@@ -19,8 +19,8 @@ class GtlMessage():
 
     def __init__(self, 
                  msg_id: GAPM_MSG_ID = GAPM_MSG_ID.GAPM_UNKNOWN_TASK_MSG, 
-                 dst_id: KE_API_ID = KE_API_ID.TASK_ID_GAPM,
-                 src_id: KE_API_ID = KE_API_ID.TASK_ID_GTL,
+                 dst_id: KE_API_ID = KE_API_ID.TASK_ID_INVALID,
+                 src_id: KE_API_ID = KE_API_ID.TASK_ID_INVALID,
                  par_len: int = 0, 
                  parameters: object() = None ):
 
@@ -52,8 +52,8 @@ class GtlMessage():
     
 class GapmResetCmd(GtlMessage):
     def __init__(self, 
-                 par_len: int,
-                 parameters: gapm_reset_cmd_params):
+                 par_len: int = 1,
+                 parameters: gapm_reset_cmd_params = gapm_reset_cmd_params(GAPM_OPERATION.GAPM_NO_OP)):
 
         super().__init__(GAPM_MSG_ID.GAPM_RESET_CMD,
                          KE_API_ID.TASK_ID_GAPM,
@@ -65,8 +65,8 @@ class GapmResetCmd(GtlMessage):
 
 class GapmCmpEvt(GtlMessage):
     def __init__(self, 
-                 par_len: int, # 2
-                 parameters: gapm_cmp_evt_params):
+                 par_len: int = 2, # 2
+                 parameters: gapm_cmp_evt_params = gapm_cmp_evt_params(GAPM_OPERATION.GAPM_NO_OP, HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR)):
 
         super().__init__(GAPM_MSG_ID.GAPM_CMP_EVT,
                          KE_API_ID.TASK_ID_GTL,
@@ -77,15 +77,16 @@ class GapmCmpEvt(GtlMessage):
         self.parameters = parameters
 
    
-test = GapmResetCmd(1, gapm_reset_cmd_params(GAPM_OPERATION.GAPM_RESET))
+test = GapmResetCmd(parameters = gapm_reset_cmd_params(GAPM_OPERATION.GAPM_RESET))
 test.parameters.operation = GAPM_OPERATION.GAPM_CANCEL
 print(test.parameters.operation)
 print(test.to_bytes().hex())
 
-test2 = GapmCmpEvt(2, gapm_cmp_evt_params(GAPM_OPERATION.GAPM_RESET, HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR))
+test2 = GapmCmpEvt(parameters = gapm_cmp_evt_params(GAPM_OPERATION.GAPM_RESET, HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR))
 print(test2.parameters.operation)
 print(test2.parameters.status)
 print(test2.to_bytes().hex())
+
 '''
 gtl = GtlMessage()
 gtl.msg_id = GAPM_MSG_ID.GAPM_RESET_CMD
