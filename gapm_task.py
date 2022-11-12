@@ -363,19 +363,14 @@ enum gapm_att_cfg_flag
 #TODO" Took these definitions from co_bt.h for now. Make a co_bt.py
 BD_ADDR_LEN = 6
 #BD Address structure
-@dataclass
-class bd_addr:
-    # 6-byte array address value
-    addr: c_uint8 * BD_ADDR_LEN 
+class bd_addr(Structure):
+                # 6-byte array address value
+    _fields_ = [("addr", c_uint8 * BD_ADDR_LEN)] 
 
 LE_CHNL_MAP_LEN = 0x05
 # Channel map structure
-@dataclass
-class le_chnl_map:
-    # 5-byte channel map array
-    map: c_uint8 * LE_CHNL_MAP_LEN
-
-class le_chnl_map_struct(Structure):
+class le_chnl_map(Structure):
+                # 5-byte channel map array
     _fields_ = [("map", c_uint8 * LE_CHNL_MAP_LEN)] 
 
 #TODO end co_bt.h
@@ -384,18 +379,17 @@ class le_chnl_map_struct(Structure):
 #TODO Took these definitions from gap.h for now. Make a gap.py
 KEY_LEN = 0x10
 # Generic Security key structure
-@dataclass
-class gap_sec_key:
+class gap_sec_key(Structure):
     # Key value MSB -> LSB
-    key: c_uint8 * KEY_LEN
+    _fields_ = [("key", c_uint8 * KEY_LEN)] 
 
 # Address information about a device address
-@dataclass
-class gap_bdaddr:
-    # BD Address of device
-    addr: bd_addr
-    # BD Address type of the device
-    addr_type: c_uint8
+class gap_bdaddr(Structure):
+                # BD Address of device
+     _fields_ = [("addr", bd_addr),
+                # BD Address type of the device
+                 ("addr_type", c_uint8)] 
+
 
 # Resolving list device information
 @dataclass
@@ -521,6 +515,19 @@ class KE_API_ID(IntEnum):
 
 #TODO end rwip_config.h
 
+#TODO taken from rwble_hl_error.h
+
+class hl_err(IntEnum): 
+    #No error
+    GAP_ERR_NO_ERROR                   = 0x00,
+
+    # ----------------------------------------------------------------------------------
+    # -------------------------  ATT Specific Error ------------------------------------
+    # ----------------------------------------------------------------------------------
+    #No error
+    ATT_ERR_NO_ERROR                   = 0x00,
+    
+#TODO end rwble_hl_error.h
 
 # Operation command structure in order to keep requested operation.
 @dataclass
@@ -530,12 +537,15 @@ class gapm_operation_cmd:
 
 
 # Command complete event data structure
-@dataclass
-class gapm_cmp_evt:
-    # GAP requested operation
-    operation: c_uint8
-    # Status of the request
-    status: c_uint8
+class gapm_cmp_evt(Structure):
+    def __init__(self, operation: GAPM_OPERATION, status: hl_err):
+        self.operation = operation
+        self.status = status
+        super().__init__(operation=self.operation, status=self.status)
+                # GAP requested operation
+    _fields_ = [("operation", c_uint8),
+                # Status of the request
+                ("status", c_uint8)]
 
 class gtl_struct:
     def to_bytes(self):
@@ -567,16 +577,12 @@ class gtl_struct:
         return self.operation.to_bytes(length = 1, byteorder = 'little')
 
 #  Reset link layer and the host command
-@dataclass
-class gapm_reset_cmd:
-    def to_bytes(self):
-        return self.operation.to_bytes(length = 1, byteorder = 'little')
-    
-    # GAPM requested operation:
-    # - GAPM_RESET: Reset BLE subsystem: LL and HL.
-    operation: c_uint8
-
-class gapm_reset_cmd_struct(Structure):
+class gapm_reset_cmd(Structure):
+    def __init__(self, operation: GAPM_OPERATION):
+            self.operation = operation
+            super().__init__(operation=self.operation)
+                # GAPM requested operation:
+                # - GAPM_RESET: Reset BLE subsystem: LL and HL.
     _fields_ = [("operation", c_uint8)] 
 
 # Set device configuration command
@@ -654,7 +660,7 @@ class gapm_set_channel_map_cmd:
 
 class gapm_set_channel_map_cmd_struct(Structure):
     _fields_ = [("operation", c_uint8),
-                ("chmap", le_chnl_map_struct)] 
+                ("chmap", le_chnl_map)] 
 
 # Get local device info command
 @dataclass

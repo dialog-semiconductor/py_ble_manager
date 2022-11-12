@@ -17,35 +17,75 @@ class GtlMessage():
     # par_len: c_uint16
     # parameters: object()
 
-    def __init__(self, msg_id = GAPM_MSG_ID.GAPM_UNKNOWN_TASK_MSG, par_len = 0, parameters = None ):
+    def __init__(self, 
+                 msg_id: GAPM_MSG_ID = GAPM_MSG_ID.GAPM_UNKNOWN_TASK_MSG, 
+                 dst_id: KE_API_ID = KE_API_ID.TASK_ID_GAPM,
+                 src_id: KE_API_ID = KE_API_ID.TASK_ID_GTL,
+                 par_len: int = 0, 
+                 parameters: object() = None ):
+
         self.msg_id = msg_id
-        self.dst_id = KE_API_ID.TASK_ID_GAPM
-        self.src_id = KE_API_ID.TASK_ID_GTL
+        self.dst_id = dst_id
+        self.src_id = src_id
         self.par_len = par_len
         self.parameters = parameters
+    
+    #def creat_message_type(self, msg_id = GAPM_MSG_ID.GAPM_UNKNOWN_TASK_MSG, parameters = None):
+    #    if(msg_id == GAPM_MSG_ID.GAPM_RESET_CMD):
+    #        if(parameters == None):
+    #            self.parameters == gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET)
+    #        elif(parameters )
 
     def to_bytes(self):
         message = bytearray()
         message.append(GTL_INITIATOR)
-        
+
         members = self.__dict__.keys()
-        len = 0
         for member in members:
             if(member != 'parameters'):
                 message.extend(getattr(self, member).to_bytes(length=2, byteorder='little'))
-            if(member == 'parameters' and getattr(self, 'par_len') > 0):
-                #param_members = self.parameters.__dict__.keys()
-                #for param_member in param_members:
-                #     message.extend(self.parameters.to_bytes())   
-                
-                
-                #message.extend(self.parameters.to_bytes())
-                message.extend(bytearray(self.parameters))
+            elif(member == 'parameters' and getattr(self, 'par_len') > 0):
+                message.extend(bytearray(self.parameters)) # TODO revisit this for big endian machine
         
         return message
 
-
     
+class GAPM_RESET_CMD(GtlMessage):
+    def __init__(self, 
+                 par_len: int,
+                 parameters: gapm_reset_cmd):
+
+        super().__init__(GAPM_MSG_ID.GAPM_RESET_CMD,
+                         KE_API_ID.TASK_ID_GAPM,
+                         KE_API_ID.TASK_ID_GTL,
+                         par_len,
+                         parameters)
+                        
+        self.parameters = parameters
+
+class GAPM_CMP_EVT(GtlMessage):
+    def __init__(self, 
+                 par_len: int, # 2
+                 parameters: gapm_cmp_evt):
+
+        super().__init__(GAPM_MSG_ID.GAPM_CMP_EVT,
+                         KE_API_ID.TASK_ID_GTL,
+                         KE_API_ID.TASK_ID_GAPM,
+                         par_len,
+                         parameters)
+
+        self.parameters = parameters
+
+   
+test = GAPM_RESET_CMD(1, gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
+test.parameters.operation = GAPM_OPERATION.GAPM_CANCEL
+print(test.parameters.operation)
+print(test.to_bytes().hex())
+
+test2 = GAPM_CMP_EVT(2, gapm_cmp_evt(GAPM_OPERATION.GAPM_RESET, hl_err.GAP_ERR_NO_ERROR))
+print(test2.parameters.operation)
+print(test2.parameters.status)
+print(test2.to_bytes().hex())
 '''
 gtl = GtlMessage()
 gtl.msg_id = GAPM_MSG_ID.GAPM_RESET_CMD
@@ -58,15 +98,27 @@ gtl2 = GtlMessage(GAPM_MSG_ID.GAPM_RESET_CMD, 1, gapm_reset_cmd(GAPM_OPERATION.G
 
 print(gtl2.to_bytes().hex())
 '''
-gtl3 = GtlMessage(GAPM_MSG_ID.GAPM_RESET_CMD, 1, gapm_reset_cmd_struct(GAPM_OPERATION.GAPM_CANCEL))
-print(gtl3.to_bytes().hex())
+#gtl3 = GtlMessage(GAPM_MSG_ID.GAPM_RESET_CMD, 1, gapm_reset_cmd(GAPM_OPERATION.GAPM_CANCEL))
+#print(gtl3.to_bytes().hex())
 
-ch_array = c_uint8 * 5
-channel_map = ch_array()
-ch_map = le_chnl_map_struct((c_uint8 * 5)(1,2,3,4,5))
-gtl4 = GtlMessage(GAPM_MSG_ID.GAPM_RESET_CMD, 1, 
-                 gapm_set_channel_map_cmd_struct(GAPM_OPERATION.GAPM_CANCEL,ch_map))
-print(gtl4.to_bytes().hex())
+#test = gapm_cmp_evt(1,2)
+
+#print(test.operation)
+
+
+#gtl5 = GAPM_RESET_CMD(1, gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
+#print(gtl5.to_bytes().hex())
+
+
+
+#GAPM_RESET_CMD()
+
+#ch_array = c_uint8 * 5
+#channel_map = ch_array()
+#ch_map = le_chnl_map_struct((c_uint8 * 5)(1,2,3,4,5))
+#gtl4 = GtlMessage(GAPM_MSG_ID.GAPM_RESET_CMD, 1, 
+#                 gapm_set_channel_map_cmd_struct(GAPM_OPERATION.GAPM_CANCEL,ch_map))
+#print(gtl4.to_bytes().hex())
 
 '''
 ser = serial.Serial('COM13', 115200, timeout=1)  # open serial port
