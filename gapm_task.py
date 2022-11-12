@@ -517,7 +517,7 @@ class KE_API_ID(IntEnum):
 
 #TODO taken from rwble_hl_error.h
 
-class hl_err(IntEnum): 
+class HOST_STACK_ERROR_CODE(IntEnum): # hl_err
     #No error
     GAP_ERR_NO_ERROR                   = 0x00,
 
@@ -537,8 +537,8 @@ class gapm_operation_cmd:
 
 
 # Command complete event data structure
-class gapm_cmp_evt(Structure):
-    def __init__(self, operation: GAPM_OPERATION, status: hl_err):
+class gapm_cmp_evt_params(Structure):
+    def __init__(self, operation: GAPM_OPERATION, status: HOST_STACK_ERROR_CODE):
         self.operation = operation
         self.status = status
         super().__init__(operation=self.operation, status=self.status)
@@ -547,37 +547,8 @@ class gapm_cmp_evt(Structure):
                 # Status of the request
                 ("status", c_uint8)]
 
-class gtl_struct:
-    def to_bytes(self):
-        message = bytearray()  
-        members = self.__dict__.keys()
-        fields = self.__dataclass_fields__
-        for member in members:
-            #message.extend(getattr(self, member)to_bytes(length=sizeof(), byteorder='little'))
-            if(member != 'parameters'):
-                print(sizeof(getattr(self, member)))
-                #message.extend(getattr(self, member).to_bytes(length=2, byteorder='little'))
-            if(member == 'parameters' and getattr(self, 'par_len') > 0):
-                #param_members = self.parameters.__dict__.keys()
-                #for param_member in param_members:
-                #     message.extend(self.parameters.to_bytes())   
-                
-                
-                message.extend(self.parameters.to_bytes())
-                #message.extend(bytearray(self.parameters))
-        
-        return message
-        
-        
-        
-        members = self.__dict__.keys()
-
-
-
-        return self.operation.to_bytes(length = 1, byteorder = 'little')
-
 #  Reset link layer and the host command
-class gapm_reset_cmd(Structure):
+class gapm_reset_cmd_params(Structure):
     def __init__(self, operation: GAPM_OPERATION):
             self.operation = operation
             super().__init__(operation=self.operation)

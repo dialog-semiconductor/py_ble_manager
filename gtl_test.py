@@ -50,10 +50,10 @@ class GtlMessage():
         return message
 
     
-class GAPM_RESET_CMD(GtlMessage):
+class GapmResetCmd(GtlMessage):
     def __init__(self, 
                  par_len: int,
-                 parameters: gapm_reset_cmd):
+                 parameters: gapm_reset_cmd_params):
 
         super().__init__(GAPM_MSG_ID.GAPM_RESET_CMD,
                          KE_API_ID.TASK_ID_GAPM,
@@ -63,10 +63,10 @@ class GAPM_RESET_CMD(GtlMessage):
                         
         self.parameters = parameters
 
-class GAPM_CMP_EVT(GtlMessage):
+class GapmCmpEvt(GtlMessage):
     def __init__(self, 
                  par_len: int, # 2
-                 parameters: gapm_cmp_evt):
+                 parameters: gapm_cmp_evt_params):
 
         super().__init__(GAPM_MSG_ID.GAPM_CMP_EVT,
                          KE_API_ID.TASK_ID_GTL,
@@ -77,12 +77,12 @@ class GAPM_CMP_EVT(GtlMessage):
         self.parameters = parameters
 
    
-test = GAPM_RESET_CMD(1, gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
+test = GapmResetCmd(1, gapm_reset_cmd_params(GAPM_OPERATION.GAPM_RESET))
 test.parameters.operation = GAPM_OPERATION.GAPM_CANCEL
 print(test.parameters.operation)
 print(test.to_bytes().hex())
 
-test2 = GAPM_CMP_EVT(2, gapm_cmp_evt(GAPM_OPERATION.GAPM_RESET, hl_err.GAP_ERR_NO_ERROR))
+test2 = GapmCmpEvt(2, gapm_cmp_evt_params(GAPM_OPERATION.GAPM_RESET, HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR))
 print(test2.parameters.operation)
 print(test2.parameters.status)
 print(test2.to_bytes().hex())
