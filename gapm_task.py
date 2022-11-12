@@ -364,12 +364,23 @@ enum gapm_att_cfg_flag
 BD_ADDR_LEN = 6
 #BD Address structure
 class bd_addr(Structure):
+
+    def __init__(self, addr: Array):
+            self.addr = addr
+            super().__init__(addr=self.addr)
+
                 # 6-byte array address value
     _fields_ = [("addr", c_uint8 * BD_ADDR_LEN)] 
 
 LE_CHNL_MAP_LEN = 0x05
 # Channel map structure
 class le_chnl_map(Structure):
+
+
+    def __init__(self, map: Array):
+            self.map = map
+            super().__init__(map=self.map)
+
                 # 5-byte channel map array
     _fields_ = [("map", c_uint8 * LE_CHNL_MAP_LEN)] 
 
@@ -377,31 +388,51 @@ class le_chnl_map(Structure):
 
 
 #TODO Took these definitions from gap.h for now. Make a gap.py
+
 KEY_LEN = 0x10
 # Generic Security key structure
 class gap_sec_key(Structure):
-    # Key value MSB -> LSB
+
+    def __init__(self, key: Array):
+            self.key = key
+            super().__init__(key=self.key)
+
+                # Key value MSB -> LSB
     _fields_ = [("key", c_uint8 * KEY_LEN)] 
 
 # Address information about a device address
 class gap_bdaddr(Structure):
+    def __init__(self, addr: bd_addr, addr_type: GAPM_ADDR_TYPE):
+            self.addr = addr
+            super().__init__(addr=self.addr)
+
                 # BD Address of device
-     _fields_ = [("addr", bd_addr),
+    _fields_ = [("addr", bd_addr),
                 # BD Address type of the device
-                 ("addr_type", c_uint8)] 
+                ("addr_type", c_uint8)] 
 
 
 # Resolving list device information
-@dataclass
 class gap_ral_dev_info:
-    # Identity type of the device 0: Public, 1: Random Static
-    addr_type: c_uint8
-    # Identity Address of the device
-    addr: c_uint8 * BD_ADDR_LEN
-    # Peer IRK
-    peer_irk: c_uint8 * KEY_LEN
-    # Local IRK
-    local_irk: c_uint8 * KEY_LEN
+
+    def __init__(self, addr_type: GAPM_ADDR_TYPE, addr: Array, peer_irk: Array, local_irk: Array):
+        self.addr_type = addr_type
+        self.addr = addr
+        self.peer_irk = peer_irk
+        self.local_irk = local_irk
+        super().__init__(addr_type=self.addr_type,
+                         addr=self.addr,
+                         peer_irk=self.peer_irk,
+                         local_irk=self.local_irk)
+
+                # Identity type of the device 0: Public, 1: Random Static
+    _fields_ = [("addr_type", c_uint8),
+                # Identity Address of the device
+                ("addr", c_uint8 * BD_ADDR_LEN)
+                # Peer IRK
+                ("peer_irk", c_uint8 * KEY_LEN),
+                # Local IRK
+                ("local_irk", c_uint8 * KEY_LEN)]
 
 #TODO end gap.h
 
