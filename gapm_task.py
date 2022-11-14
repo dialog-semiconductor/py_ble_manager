@@ -1,14 +1,52 @@
-#TODO Do we need these?
-#define GAPM_LE_LENGTH_EXT_OCTETS_MIN   27
-#define GAPM_LE_LENGTH_EXT_OCTETS_MAX   251
-#define GAPM_LE_LENGTH_EXT_TIME_MIN     328
-#define GAPM_LE_LENGTH_EXT_TIME_MAX     2120
-#define GAPM_IDX_MAX                                 0x01
+'''
+/**
+ ****************************************************************************************
+ *
+ * @file gapm_task.h
+ *
+ * @brief Generic Access Profile Manager Task Header.
+ *
+ * Copyright (C) RivieraWaves 2009-2014
+ *
+ ****************************************************************************************
+ */
 
+/**
+ ****************************************************************************************
+ * @addtogroup GAPM_TASK Generic Access Profile Manager Task
+ * @ingroup GAPM
+ * @brief  Handles ALL messages to/from GAP Manager block.
+ *
+ * It handles messages from lower and higher layers not related to an ongoing connection.
+ *
+ * @{
+ ****************************************************************************************
+ */
+
+/*
+ * INCLUDE FILES
+ ****************************************************************************************
+ */
+#include "rwip_config.h"
+#include "ke_task.h"
+#include "gapm.h"
+#include "attm.h"
+
+'''
 from enum import IntEnum
 from enum import auto
-from dataclasses import dataclass
 from ctypes import *
+
+from gap import *
+from co_bt import *
+from rwip_config import *
+from rwble_hl_error import *
+
+GAPM_LE_LENGTH_EXT_OCTETS_MIN = 27
+GAPM_LE_LENGTH_EXT_OCTETS_MAX = 251
+GAPM_LE_LENGTH_EXT_TIME_MIN   = 328
+GAPM_LE_LENGTH_EXT_TIME_MAX   = 2120
+GAPM_IDX_MAX                  = 0x01
 
 # GAPM states
 class GAPM_STATE_ID(IntEnum):
@@ -268,10 +306,6 @@ class GAPM_OPERATION(IntEnum):
     # Last GAPM operation flag
     GAPM_LAST = auto()
 
-
-
-
-
 # Device Address type Configuration
 class GAPM_ADDR_TYPE(IntEnum):
 
@@ -284,14 +318,6 @@ class GAPM_ADDR_TYPE(IntEnum):
     GAPM_CFG_ADDR_PRIVACY = auto()
     # Device Address generated using Privacy feature in Controller
     GAPM_CFG_ADDR_PRIVACY_CNTL = 0x4
-
-'''
-val = [(member.name, member.value) for member in GAPM_ADDR_TYPE]
-
-for item in val:
-    print(item[0], hex(item[1]))
-
-'''
 
 # Own BD address source of the device
 class GAPM_OWN_ADDR(IntEnum): 
@@ -360,290 +386,143 @@ enum gapm_att_cfg_flag
 };
 '''
 
-#TODO" Took these definitions from co_bt.h for now. Make a co_bt.py
-BD_ADDR_LEN = 6
-#BD Address structure
-class bd_addr(Structure):
-
-    def __init__(self, addr: Array):
-            self.addr = addr
-            super().__init__(addr=self.addr)
-
-                # 6-byte array address value
-    _fields_ = [("addr", c_uint8 * BD_ADDR_LEN)] 
-
-LE_CHNL_MAP_LEN = 0x05
-# Channel map structure
-class le_chnl_map(Structure):
-
-
-    def __init__(self, map: Array):
-            self.map = map
-            super().__init__(map=self.map)
-
-                # 5-byte channel map array
-    _fields_ = [("map", c_uint8 * LE_CHNL_MAP_LEN)] 
-
-#TODO end co_bt.h
-
-
-#TODO Took these definitions from gap.h for now. Make a gap.py
-
-KEY_LEN = 0x10
-# Generic Security key structure
-class gap_sec_key(Structure):
-
-    def __init__(self, key: Array):
-            self.key = key
-            super().__init__(key=self.key)
-
-                # Key value MSB -> LSB
-    _fields_ = [("key", c_uint8 * KEY_LEN)] 
-
-# Address information about a device address
-class gap_bdaddr(Structure):
-    def __init__(self, addr: bd_addr, addr_type: GAPM_ADDR_TYPE):
-            self.addr = addr
-            super().__init__(addr=self.addr)
-
-                # BD Address of device
-    _fields_ = [("addr", bd_addr),
-                # BD Address type of the device
-                ("addr_type", c_uint8)] 
-
-
-# Resolving list device information
-class gap_ral_dev_info:
-
-    def __init__(self, addr_type: GAPM_ADDR_TYPE, addr: Array, peer_irk: Array, local_irk: Array):
-        self.addr_type = addr_type
-        self.addr = addr
-        self.peer_irk = peer_irk
-        self.local_irk = local_irk
-        super().__init__(addr_type=self.addr_type,
-                         addr=self.addr,
-                         peer_irk=self.peer_irk,
-                         local_irk=self.local_irk)
-
-                # Identity type of the device 0: Public, 1: Random Static
-    _fields_ = [("addr_type", c_uint8),
-                # Identity Address of the device
-                ("addr", c_uint8 * BD_ADDR_LEN)
-                # Peer IRK
-                ("peer_irk", c_uint8 * KEY_LEN),
-                # Local IRK
-                ("local_irk", c_uint8 * KEY_LEN)]
-
-#TODO end gap.h
-
-#TODO Took these definitions from rwip_config.h for now. Make a rwip_config.py
-# Tasks types definition, this value shall be in [0-254] range
-class KE_API_ID(IntEnum):
-    # Link Layer Tasks
-    TASK_ID_LLM          = 0
-    TASK_ID_LLC          = 1
-    TASK_ID_LLD          = 2
-    TASK_ID_DBG          = 3
-
-    # BT Controller Tasks
-    TASK_ID_LM           = 4
-    TASK_ID_LC           = 5
-    TASK_ID_LB           = 6
-    TASK_ID_LD           = 7
-
-    TASK_ID_HCI          = 8
-    TASK_ID_DISPLAY      = 9
-
-    TASK_ID_L2CC         = 10
-    TASK_ID_GATTM        = 11   # Generic Attribute Profile Manager Task
-    TASK_ID_GATTC        = 12   # Generic Attribute Profile Controller Task
-    TASK_ID_GAPM         = 13   # Generic Access Profile Manager
-    TASK_ID_GAPC         = 14   # Generic Access Profile Controller
-
-    TASK_ID_APP          = 15
-    TASK_ID_GTL          = 16
-
-    # -----------------------------------------------------------------------------------
-    # --------------------- BLE Profile TASK API Identifiers ----------------------------
-    # -----------------------------------------------------------------------------------
-    TASK_ID_DISS         = 20   # Device Information Service Server Task
-    TASK_ID_DISC         = 21   # Device Information Service Client Task
-
-    TASK_ID_PROXM        = 22   # Proximity Monitor Task
-    TASK_ID_PROXR        = 23   # Proximity Reporter Task
-
-    TASK_ID_FINDL        = 24   # Find Me Locator Task
-    TASK_ID_FINDT        = 25   # Find Me Target Task
-
-    TASK_ID_HTPC         = 26   # Health Thermometer Collector Task
-    TASK_ID_HTPT         = 27   # Health Thermometer Sensor Task
-
-    TASK_ID_BLPS         = 28   # Blood Pressure Sensor Task
-    TASK_ID_BLPC         = 29   # Blood Pressure Collector Task
-
-    TASK_ID_HRPS         = 30   # Heart Rate Sensor Task
-    TASK_ID_HRPC         = 31   # Heart Rate Collector Task
-
-    TASK_ID_TIPS         = 32   # Time Server Task
-    TASK_ID_TIPC         = 33   # Time Client Task
-
-    TASK_ID_SCPPS        = 34   # Scan Parameter Profile Server Task
-    TASK_ID_SCPPC        = 35   # Scan Parameter Profile Client Task
-
-    TASK_ID_BASS         = 36   # Battery Service Server Task
-    TASK_ID_BASC         = 37   # Battery Service Client Task
-
-    TASK_ID_HOGPD        = 38   # HID Device Task
-    TASK_ID_HOGPBH       = 39   # HID Boot Host Task
-    TASK_ID_HOGPRH       = 40   # HID Report Host Task
-
-    TASK_ID_GLPS         = 41   # Glucose Profile Sensor Task
-    TASK_ID_GLPC         = 42   # Glucose Profile Collector Task
-
-    TASK_ID_RSCPS        = 43   # Running Speed and Cadence Profile Server Task
-    TASK_ID_RSCPC        = 44   # Running Speed and Cadence Profile Collector Task
-
-    TASK_ID_CSCPS        = 45   # Cycling Speed and Cadence Profile Server Task
-    TASK_ID_CSCPC        = 46   # Cycling Speed and Cadence Profile Client Task
-
-    TASK_ID_ANPS         = 47   # Alert Notification Profile Server Task
-    TASK_ID_ANPC         = 48   # Alert Notification Profile Client Task
-
-    TASK_ID_PASPS        = 49   # Phone Alert Status Profile Server Task
-    TASK_ID_PASPC        = 50   # Phone Alert Status Profile Client Task
-
-    TASK_ID_CPPS         = 51   # Cycling Power Profile Server Task
-    TASK_ID_CPPC         = 52   # Cycling Power Profile Client Task
-
-    TASK_ID_LANS         = 53   # Location and Navigation Profile Server Task
-    TASK_ID_LANC         = 54   # Location and Navigation Profile Client Task
-
-    TASK_ID_BMSS         = 55   # Bond Management Service Server Task
-    TASK_ID_BMSC         = 56   # Bond Management Service Client Task
-
-    TASK_ID_BCSS         = 57   # Body Composition Server
-    TASK_ID_BCSC         = 58   # Body Composition Client
-
-    TASK_ID_UDSS         = 59   # User Data Service Server Task
-    TASK_ID_UDSC         = 60   # User Data Service Client Task
-
-    TASK_ID_WSSS         = 61   # Weight Scale Service Server Task
-    TASK_ID_WSSC         = 62   # Weight Scale Service Client Task
-
-    TASK_ID_CTSS         = 63   # Current Time Service Server Task
-    TASK_ID_CTSC         = 64   # Current Time Service Client Task
-
-    TASK_ID_ANCC         = 65   # Apple Notification Center Service Client Task
-
-    TASK_ID_GATT_CLIENT  = 66   # Generic Attribute Profile Service Client Task
-
-    TASK_ID_SUOTAR       = 0xFC # Software Patching Over The Air Receiver
-
-    TASK_ID_CUSTS1       = 0xFD # Custom1 Task
-    TASK_ID_CUSTS2       = 0xFE # Custom2 Task
-
-    TASK_ID_INVALID      = 0xFF # Invalid Task Identifier
-
-#TODO end rwip_config.h
-
-#TODO taken from rwble_hl_error.h
-
-class HOST_STACK_ERROR_CODE(IntEnum): # hl_err
-    #No error
-    GAP_ERR_NO_ERROR                   = 0x00,
-
-    # ----------------------------------------------------------------------------------
-    # -------------------------  ATT Specific Error ------------------------------------
-    # ----------------------------------------------------------------------------------
-    #No error
-    ATT_ERR_NO_ERROR                   = 0x00,
-    
-#TODO end rwble_hl_error.h
-
 # Operation command structure in order to keep requested operation.
-@dataclass
-class gapm_operation_cmd:
-    # GAP request type
-    operation: c_uint8
+class gapm_operation_cmd(Structure):
+    def __init__(self, operation: GAPM_OPERATION = GAPM_OPERATION.GAPM_NO_OP):
+        self.operation = operation
+        super().__init__(operation=self.operation)
 
-
+                 # GAP request type
+    _fields_ = [("operation", c_uint8)]
+   
 # Command complete event data structure
-class gapm_cmp_evt_params(Structure):
-    def __init__(self, operation: GAPM_OPERATION, status: HOST_STACK_ERROR_CODE):
+class gapm_cmp_evt(Structure):
+    def __init__(self, 
+                 operation: GAPM_OPERATION = GAPM_OPERATION.GAPM_NO_OP, 
+                 status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR):
         self.operation = operation
         self.status = status
         super().__init__(operation=self.operation, status=self.status)
+
                 # GAP requested operation
     _fields_ = [("operation", c_uint8),
                 # Status of the request
                 ("status", c_uint8)]
 
 #  Reset link layer and the host command
-class gapm_reset_cmd_params(Structure):
-    def __init__(self, operation: GAPM_OPERATION):
-            self.operation = operation
-            super().__init__(operation=self.operation)
+class gapm_reset_cmd(Structure):
+    def __init__(self, operation: GAPM_OPERATION = GAPM_OPERATION.GAPM_NO_OP):
+        self.operation = operation
+        super().__init__(operation=self.operation)
+
                 # GAPM requested operation:
                 # - GAPM_RESET: Reset BLE subsystem: LL and HL.
     _fields_ = [("operation", c_uint8)] 
 
 # Set device configuration command
-@dataclass
-class gapm_set_dev_config_cmd:
-    # GAPM requested operation:
-    #  - GAPM_SET_DEV_CONFIG: Set device configuration
-    #  - GAPM_SET_SUGGESTED_DFLT_LE_DATA_LEN: Set Suggested Default LE Data Length
-    operation: c_uint8
-    # Device Role: Central, Peripheral, Observer, Broadcaster or All roles.
-    role: c_uint8
+class gapm_set_dev_config_cmd(Structure):
+    def __init__(self, 
+                 operation: GAPM_OPERATION = GAPM_OPERATION.GAPM_NO_OP,
+                 role: GAP_ROLE = GAP_ROLE.GAP_ROLE_NONE,
+                 renew_dur: c_uint16 = 0,
+                 addr: bd_addr = bd_addr((c_uint8*BD_ADDR_LEN)( *([0]*BD_ADDR_LEN) )),
+                 irk: gap_sec_key = gap_sec_key((c_uint8*KEY_LEN)( *([0]*KEY_LEN) )),
+                 addr_type: GAPM_ADDR_TYPE = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PUBLIC,
+                 att_cfg: c_uint8 = 0,
+                 gap_start_hdl: c_uint16 = 0,
+                 gatt_start_hdl: c_uint16 = 0,
+                 max_mtu: c_uint16 = 0,
+                 max_mps: c_uint16 = 0,
+                 att_cfg_: c_uint16 = 0, # Not used
+                 max_txoctets: c_uint16 = 0,
+                 max_txtime: c_uint16 = 0,
+                 priv1_2: c_uint8 = 0
+                ):
+        
+        self.operation = operation
+        self.role = role
+        self.renew_dur = renew_dur
+        self.addr = addr
+        self.irk = irk
+        self.addr_type = addr_type
+        self.att_cfg = att_cfg
+        self.gap_start_hdl = gap_start_hdl
+        self.gatt_start_hdl = gatt_start_hdl
+        self.max_mtu = max_mtu
+        self.max_mps = max_mps
+        self.att_cfg_ = att_cfg_
+        self.max_txoctets = max_txoctets
+        self.max_txtime = max_txtime
+        self.priv1_2 = priv1_2
+        super().__init__(operation=self.operation,
+                         role = self.role,
+                         renew_dur = self.renew_dur,
+                         addr = self.addr,
+                         irk = self.irk,
+                         addr_type = self.addr_type,
+                         att_cfg = self.att_cfg,
+                         gap_start_hdl = self.gap_start_hdl,
+                         gatt_start_hdl = self.gatt_start_hdl,
+                         max_mtu = self.max_mtu,
+                         max_mps = self.max_mps,
+                         att_cfg_ = self.att_cfg_,
+                         max_txoctets = self.max_txoctets,
+                         max_txtime = self.max_txtime,
+                         priv1_2 = self.priv1_2,
+                         padding = 0)
 
-    # -------------- Privacy Config -----------------------
-    # Duration before regenerate device address when privacy is enabled.
-    renew_dur: c_uint16
-    # Provided own Random Static Address
-    addr: bd_addr
-    # Device IRK used for Random Resolvable Private Address generation (LSB first)
-    irk: gap_sec_key
-    # Device Address Type (@see gapm_addr_type)
-    # - GAPM_CFG_ADDR_PUBLIC: Device Address is a Public Static address
-    # - GAPM_CFG_ADDR_PRIVATE: Device Address is a Private Static address
-    # - GAPM_CFG_ADDR_PRIVACY: Device Address generated using Privacy feature
-    # - GAPM_CFG_ADDR_PRIVACY_CNTL: Device Address generated using Privacy feature in
-    #                               controller
-    addr_type: c_uint8
-
-    # -------------- ATT Database Config -----------------------
-
-    # Attribute database configuration (@see gapm_att_cfg_flag)
-    #    7     6    5     4     3    2    1    0
-    # +-----+-----+----+-----+-----+----+----+----+
-    # | DBG | RFU | SC | PCP | APP_PERM |NAME_PERM|
-    # +-----+-----+----+-----+-----+----+----+----+
-    # - Bit [0-1]: Device Name write permission requirements for peer device (@see gapm_write_att_perm)
-    # - Bit [2-3]: Device Appearance write permission requirements for peer device (@see gapm_write_att_perm)
-    # - Bit [4]  : Slave Preferred Connection Parameters present
-    # - Bit [5]  : Service change feature present in GATT attribute database.
-    # - Bit [6]  : Reserved
-    # - Bit [7]  : Enable Debug Mode
-    att_cfg: c_uint8
-    # GAP service start handle
-    gap_start_hdl: c_uint16
-    # GATT service start handle
-    gatt_start_hdl: c_uint16
-    # Maximal MTU
-    max_mtu: c_uint16
-    # Maximal MPS
-    max_mps: c_uint16
-
-    att_cfg: c_uint16 # Not used
-
-    # Maximal Tx octets
-    max_txoctets: c_uint16
-    # Maximal Tx time
-    max_txtime: c_uint16
-    # Privacy 1.2 Helper
-    priv1_2: c_uint8
-
+                # GAPM requested operation:
+                #  - GAPM_SET_DEV_CONFIG: Set device configuration
+                #  - GAPM_SET_SUGGESTED_DFLT_LE_DATA_LEN: Set Suggested Default LE Data Length
+    _fields_ = [("operation", c_uint8),
+                # Device Role: Central, Peripheral, Observer, Broadcaster or All roles.
+                ("role", c_uint8),
+                # -------------- Privacy Config -----------------------
+                # Duration before regenerate device address when privacy is enabled.
+                ("renew_dur", c_uint16),
+                # Provided own Random Static Address
+                ("addr", bd_addr),
+                # Device IRK used for Random Resolvable Private Address generation (LSB first)
+                ("irk", gap_sec_key),        
+                # Device Address Type (@see gapm_addr_type)
+                # - GAPM_CFG_ADDR_PUBLIC: Device Address is a Public Static address
+                # - GAPM_CFG_ADDR_PRIVATE: Device Address is a Private Static address
+                # - GAPM_CFG_ADDR_PRIVACY: Device Address generated using Privacy feature
+                # - GAPM_CFG_ADDR_PRIVACY_CNTL: Device Address generated using Privacy feature in
+                #                               controller
+                ("addr_type", c_uint8),
+                 # -------------- ATT Database Config -----------------------
+                # Attribute database configuration (@see gapm_att_cfg_flag)
+                #    7     6    5     4     3    2    1    0
+                # +-----+-----+----+-----+-----+----+----+----+
+                # | DBG | RFU | SC | PCP | APP_PERM |NAME_PERM|
+                # +-----+-----+----+-----+-----+----+----+----+
+                # - Bit [0-1]: Device Name write permission requirements for peer device (@see gapm_write_att_perm)
+                # - Bit [2-3]: Device Appearance write permission requirements for peer device (@see gapm_write_att_perm)
+                # - Bit [4]  : Slave Preferred Connection Parameters present
+                # - Bit [5]  : Service change feature present in GATT attribute database.
+                # - Bit [6]  : Reserved
+                # - Bit [7]  : Enable Debug Mode
+                ("att_cfg", c_uint8),
+                # GAP service start handle
+                ("gap_start_hdl", c_uint16),
+                # GATT service start handle
+                ("gatt_start_hdl", c_uint16),
+                # Maximal MTU
+                ("max_mtu", c_uint16),
+                # Maximal MPS
+                ("max_mps", c_uint16),
+                # Not used
+                ("att_cfg_", c_uint16), 
+                # Maximal Tx octets
+                ("max_txoctets", c_uint16),
+                # Maximal Tx time
+                ("max_txtime", c_uint16),
+                # Privacy 1.2 Helper
+                ("priv1_2", c_uint8),
+                # Padding
+                ("padding", c_uint8)]   
+'''
 # Set device channel map
 @dataclass
 class gapm_set_channel_map_cmd:
@@ -818,88 +697,143 @@ class gapm_addr_solved_ind:
     # IRK that correctly solved the Random Resolvable Private Address
     irk: gap_sec_key
 '''
+
+#adv_data_array = c_uint8*ADV_DATA_LEN
+
 # Advertising data that contains information set by host.
-struct gapm_adv_host
-{
-    # Advertising mode :
-    # - GAP_NON_DISCOVERABLE: Non discoverable mode
-    # - GAP_GEN_DISCOVERABLE: General discoverable mode
-    # - GAP_LIM_DISCOVERABLE: Limited discoverable mode
-    # - GAP_BROADCASTER_MODE: Broadcaster mode
-    uint8_t              mode;
+class gapm_adv_host(Structure):
+    def __init__(self, 
+                 mode: GAP_ADV_MODE = GAP_ADV_MODE.GAP_NON_DISCOVERABLE, 
+                 adv_filt_policy: ADV_FILTER_POLICY = ADV_FILTER_POLICY.ADV_ALLOW_SCAN_ANY_CON_ANY,
+                 adv_data_len: c_uint8 = 0, 
+                 adv_data: (c_uint8*ADV_DATA_LEN) = (c_uint8*ADV_DATA_LEN)( *([0]*ADV_DATA_LEN) ),
+                 # TODO custom type for this array for type hinting
+                 #adv_data: adv_data_array = adv_data_array( *([0]*ADV_DATA_LEN) ),
+                 scan_rsp_data_len: c_uint8 = 0,
+                 scan_rsp_data:  (c_uint8*SCAN_RSP_DATA_LEN) = (c_uint8*SCAN_RSP_DATA_LEN)( *([0]*SCAN_RSP_DATA_LEN) ),
+                 peer_info: gap_bdaddr = gap_bdaddr()
+                ):
+            self.mode = mode
+            self.adv_filt_policy = adv_filt_policy
+            self.adv_data_len = adv_data_len
+            self.adv_data = adv_data
+            self.scan_rsp_data_len = scan_rsp_data_len
+            self.scan_rsp_data = scan_rsp_data
+            self.peer_info = peer_info
+            super().__init__(mode=self.mode, 
+                             adv_filt_policy=self.adv_filt_policy,
+                             adv_data_len=self.adv_data_len,
+                             adv_data=self.adv_data,
+                             scan_rsp_data_len=self.scan_rsp_data_len,
+                             scan_rsp_data=self.scan_rsp_data,
+                             peer_info=self.peer_info)
 
-    # Advertising filter policy:
-    # - ADV_ALLOW_SCAN_ANY_CON_ANY: Allow both scan and connection requests from anyone
-    # - ADV_ALLOW_SCAN_WLST_CON_ANY: Allow both scan req from White List devices only and
-    #   connection req from anyone
-    # - ADV_ALLOW_SCAN_ANY_CON_WLST: Allow both scan req from anyone and connection req
-    #   from White List devices only
-    # - ADV_ALLOW_SCAN_WLST_CON_WLST: Allow scan and connection requests from White List
-    #   devices only
-    uint8_t              adv_filt_policy;
+                # Advertising mode :
+                # - GAP_NON_DISCOVERABLE: Non discoverable mode
+                # - GAP_GEN_DISCOVERABLE: General discoverable mode
+                # - GAP_LIM_DISCOVERABLE: Limited discoverable mode
+                # - GAP_BROADCASTER_MODE: Broadcaster mode          
+    _fields_ = [("mode", c_uint8),     
+                # Advertising filter policy:
+                # - ADV_ALLOW_SCAN_ANY_CON_ANY: Allow both scan and connection requests from anyone
+                # - ADV_ALLOW_SCAN_WLST_CON_ANY: Allow both scan req from White List devices only and
+                #   connection req from anyone
+                # - ADV_ALLOW_SCAN_ANY_CON_WLST: Allow both scan req from anyone and connection req
+                #   from White List devices only
+                # - ADV_ALLOW_SCAN_WLST_CON_WLST: Allow scan and connection requests from White List
+                #   devices only
+                ("adv_filt_policy", c_uint8),
+                # Advertising data length - maximum 28 bytes, 3 bytes are reserved to set
+                # Advertising AD type flags, shall not be set in advertising data
+                ("adv_data_len", c_uint8),
+                
+                # Advertising data
+                ("adv_data", c_uint8 * ADV_DATA_LEN),
+                # TODO custom type for this array for type hinting
+                #("adv_data", adv_data_array),
 
-    # Advertising data length - maximum 28 bytes, 3 bytes are reserved to set
-    # Advertising AD type flags, shall not be set in advertising data
-    uint8_t              adv_data_len;
-    # Advertising data
-    uint8_t              adv_data[ADV_DATA_LEN];
-    # Scan response data length- maximum 31 bytes
-    uint8_t              scan_rsp_data_len;
-    # Scan response data
-    uint8_t              scan_rsp_data[SCAN_RSP_DATA_LEN];
-    # Peer Info - bdaddr
-    struct gap_bdaddr peer_info;
-};
+                # Scan response data length- maximum 31 bytes.
+                ("scan_rsp_data_len", c_uint8),
+                # Scan response data
+                ("scan_rsp_data", c_uint8 * SCAN_RSP_DATA_LEN),
+                # Peer Info - bdaddr
+                ("peer_info", gap_bdaddr)]
 
 # Air operation default parameters
-struct gapm_air_operation
-{
-    # Operation code.
-    uint8_t code;
+class gapm_air_operation(Structure):
+    def __init__(self, 
+                 code: GAPM_OPERATION = GAPM_OPERATION.GAPM_NO_OP, 
+                 addr_src: GAPM_OWN_ADDR = GAPM_OWN_ADDR.GAPM_STATIC_ADDR,
+                ):
+        self.code = code
+        self.addr_src = addr_src
+        super().__init__(code=self.code, 
+                         addr_src=self.addr_src,
+                         state=0)
 
-    #*
-     * Own BD address source of the device:
-     * - GAPM_STATIC_ADDR: Public or Random Static Address according to device address configuration
-     * - GAPM_GEN_RSLV_ADDR: Generated Random Resolvable Private Address
-     * - GAPM_GEN_NON_RSLV_ADDR: Generated Random non-Resolvable Private Address
-     */
-    uint8_t addr_src;
+                # Operation code.                             
+    _fields_ = [("code", c_uint8),
+                # Own BD address source of the device:
+                # - GAPM_STATIC_ADDR: Public or Random Static Address according to device address configuration
+                # - GAPM_GEN_RSLV_ADDR: Generated Random Resolvable Private Address
+                ("status", c_uint8),
+                # Dummy data use to retrieve internal operation state (should be set to 0).
+                ("state", c_uint16)]
 
-    # Dummy data use to retrieve internal operation state (should be set to 0).
-    uint16_t state;
-};
+# TODO could this be defined within gapm_start_advertise_cmd      
+class gapm_adv_info(Union):
+    def __init__(self, direct: gap_bdaddr = gap_bdaddr()):
+        self.direct = direct
+        super().__init__(direct=self.direct)
 
+    def __init__(self, host: gapm_adv_host = gapm_adv_host()):
+        self.host = host
+        super().__init__(host=self.host)
+
+
+                # Host information advertising data (GAPM_ADV_NON_CONN and GAPM_ADV_UNDIRECT)           
+    _fields_ = [("host", gapm_adv_host),
+                #  Direct address information (GAPM_ADV_DIRECT)
+                # (used only if reconnection address isn't set or host privacy is disabled)
+                ("direct", gap_bdaddr)]  
 
 # Set advertising mode Command
-struct gapm_start_advertise_cmd
-{
-    # GAPM requested operation:
-    # - GAPM_ADV_NON_CONN: Start non connectable advertising
-    # - GAPM_ADV_UNDIRECT: Start undirected connectable advertising
-    # - GAPM_ADV_DIRECT: Start directed connectable advertising
-    # - GAPM_ADV_DIRECT_LDC: Start directed connectable advertising using Low Duty Cycle
-    struct gapm_air_operation op;
+class gapm_start_advertise_cmd(Structure):
 
-    # Minimum interval for advertising
-    uint16_t             intv_min;
-    # Maximum interval for advertising
-    uint16_t             intv_max;
+    def __init__(self, 
+                 op: gapm_air_operation = gapm_air_operation(), 
+                 intv_min: c_uint16 = 0,
+                 intv_max: c_uint16 = 0,
+                 channel_map: c_uint8 = 0,
+                 info = gapm_adv_info()):
+        self.op = op
+        self.intv_min = intv_min
+        self.intv_max = intv_max
+        self.channel_map = channel_map
+        self.info = info
+        super().__init__(operation=self.op, 
+                         intv_min=self.intv_min,
+                         intv_max=self.intv_max,
+                         channel_map=self.channel_map,
+                         info=self.info)
 
-    #Advertising channel map
-    uint8_t              channel_map;
+                # GAPM requested operation:
+                # - GAPM_ADV_NON_CONN: Start non connectable advertising
+                # - GAPM_ADV_UNDIRECT: Start undirected connectable advertising
+                # - GAPM_ADV_DIRECT: Start directed connectable advertising
+                # - GAPM_ADV_DIRECT_LDC: Start directed connectable advertising using Low Duty Cycle
+    _fields_ = [("op", gapm_air_operation),
+                # Minimum interval for advertising
+                ("intv_min", c_uint16),
+                # Maximum interval for advertising
+                ("intv_max", c_uint16),
+                #Advertising channel map
+                ("channel_map", c_uint8),
+                # Advertising information
+                ("info", gapm_adv_info)]
 
-    # Advertising information
-    union gapm_adv_info
-    {
-        # Host information advertising data (GAPM_ADV_NON_CONN and GAPM_ADV_UNDIRECT)
-        struct gapm_adv_host host;
-        #  Direct address information (GAPM_ADV_DIRECT)
-        # (used only if reconnection address isn't set or host privacy is disabled)
-        struct gap_bdaddr direct;
-    } info;
-};
 
-
+'''
 # Update Advertising Data Command - On fly update when device is advertising
 struct gapm_update_advertise_data_cmd
 {
