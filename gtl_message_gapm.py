@@ -2,7 +2,7 @@ from ctypes import *
 from gapm_task import *
 from gtl_message_base import *
 
-# TODO Do we need this? Is is a response, not somethine we need to send.
+# TODO Do we need this message? It is a response, not something we need to send.
 # We could match against response from DA14531?
 class GapmDeviceReadyInd(GtlMessage):
      def __init__(self):
@@ -34,7 +34,6 @@ class GapmCmpEvt(GtlMessage):
                          parameters=parameters)
 
         self.parameters = parameters
-
 
 class GapmSetDevConfigCmd(GtlMessage):
     def __init__(self, parameters: gapm_set_dev_config_cmd = gapm_set_dev_config_cmd()):

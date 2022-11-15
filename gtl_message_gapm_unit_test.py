@@ -119,11 +119,12 @@ class TestGapmCmpEvt_GAPM_SET_DEV_CONFIG(unittest.TestCase):
 
         self.assertNotEqual(test_message.to_bytes(), self.expected, "{0}() incorrect byte stream".format(self.message_type ))
 
+# Table 11
 class TestGapmStartAdvertiseCmd(unittest.TestCase):
     def setUp(self):
         self.expected = bytes.fromhex("050D0D0D00100052000D000000C800C8000701001B070303180218041812094469616C6F6750455220" + \
-                                        "44413134353835000000000D0CFFD20053616D706C6520233100000000000000000000000000000000" + \
-                                        "000000000000000000")
+                                      "44413134353835000000000D0CFFD20053616D706C6520233100000000000000000000000000000000" + \
+                                      "000000000000000000")
         self.message_type = type(GapmStartAdvertiseCmd()).__name__
             
     def test_parameters_updated_after_construction(self):
@@ -140,7 +141,7 @@ class TestGapmStartAdvertiseCmd(unittest.TestCase):
 
         # TODO move this to gapm_task.py def
         adv_data_array = c_uint8*ADV_DATA_LEN
-        # TODO ensure easy to pass name from strin 
+        # TODO ensure easy to pass name from string
         #complete_local_name = "DialogPER DA14585"
         test_message.parameters.info.host.adv_data = adv_data_array(0x07, 0x03, 0x03, 0x18, 0x02, 0x18, 0x04, 0x18, 0x12, 0x09, 0x44, 0x69, 
                                                                     0x61, 0x6c, 0x6f, 0x67, 0x50, 0x45, 0x52, 0x20, 0x44, 0x41, 0x31, 0x34,

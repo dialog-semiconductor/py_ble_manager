@@ -11,7 +11,6 @@ print(ser.name)         # check which port was really used
 
 print("Sending GAPM_RESET: ")
 cmd = GapmResetCmd(parameters = gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
-print(cmd.to_hex())
 ser.write(cmd.to_bytes())
 
 print("waiting for data")
