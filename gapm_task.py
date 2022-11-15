@@ -804,7 +804,7 @@ class gapm_start_advertise_cmd(Structure):
                  op: gapm_air_operation = gapm_air_operation(), 
                  intv_min: c_uint16 = 0,
                  intv_max: c_uint16 = 0,
-                 channel_map: c_uint8 = 0,
+                 channel_map: ADV_CHANNEL_MAP = ADV_CHANNEL_MAP.ADV_ALL_CHNLS_EN,
                  info = gapm_adv_info()):
         self.op = op
         self.intv_min = intv_min
