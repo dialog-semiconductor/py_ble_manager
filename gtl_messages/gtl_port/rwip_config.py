@@ -39,7 +39,7 @@
 from enum import IntEnum
 from enum import auto
 from ctypes import *
-from co_bt import *
+from .co_bt import *
 
 '''
 /*

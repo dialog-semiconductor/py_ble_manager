@@ -37,10 +37,10 @@ from enum import IntEnum
 from enum import auto
 from ctypes import *
 
-from gap import *
-from co_bt import *
-from rwip_config import *
-from rwble_hl_error import *
+from .gap import *
+from .co_bt import *
+from .rwip_config import *
+from .rwble_hl_error import *
 
 GAPM_LE_LENGTH_EXT_OCTETS_MIN = 27
 GAPM_LE_LENGTH_EXT_OCTETS_MAX = 251

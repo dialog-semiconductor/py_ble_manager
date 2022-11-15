@@ -1,5 +1,6 @@
 import serial
-from gtl_message_gapm import *
+from ctypes import *
+from gtl_messages import *
 
 # Hacked comms Test
 

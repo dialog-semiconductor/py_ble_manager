@@ -1,8 +1,6 @@
 import unittest
 from ctypes import *
-from gtl_message_gapm import *
-from gtl_message_base import *
-from gapm_task import *
+from gtl_messages import *
 
 # Table 3
 class TestGapmDeviceReadyInd(unittest.TestCase):

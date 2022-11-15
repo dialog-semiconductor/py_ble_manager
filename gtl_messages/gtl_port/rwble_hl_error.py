@@ -35,7 +35,7 @@
 from enum import IntEnum
 from enum import auto
 from ctypes import *
-from co_version import *
+from .co_version import *
 
 '''
 

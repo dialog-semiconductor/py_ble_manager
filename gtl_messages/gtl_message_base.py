@@ -1,9 +1,11 @@
+
+import sys
 from ctypes import *
-from gapm_task import *
+from .gtl_port import *
 
 GTL_INITIATOR = 0x05
 
-class GtlMessage():
+class GtlMessageBase():
     # msg_id: c_uint16 
     # dst_id: c_uint16
     # src_id: c_uint16

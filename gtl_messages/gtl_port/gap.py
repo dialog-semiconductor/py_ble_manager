@@ -41,7 +41,7 @@
 from enum import IntEnum
 from enum import auto
 from ctypes import *
-from co_bt import *
+from .co_bt import *
 
 # GAP Advertising Flags
 class GAP_AD_TYPE(IntEnum):

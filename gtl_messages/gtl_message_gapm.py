@@ -1,10 +1,9 @@
 from ctypes import *
-from gapm_task import *
-from gtl_message_base import *
+from .gtl_message_base import *
 
 # TODO Do we need this message? It is a response, not something we need to send.
 # We could match against response from DA14531?
-class GapmDeviceReadyInd(GtlMessage):
+class GapmDeviceReadyInd(GtlMessageBase):
      def __init__(self):
 
         super().__init__(msg_id=GAPM_MSG_ID.GAPM_DEVICE_READY_IND,
@@ -13,7 +12,7 @@ class GapmDeviceReadyInd(GtlMessage):
                          par_len=0,
                          parameters=None)
 
-class GapmResetCmd(GtlMessage):
+class GapmResetCmd(GtlMessageBase):
     def __init__(self, parameters: gapm_reset_cmd = gapm_reset_cmd()):
 
         super().__init__(msg_id=GAPM_MSG_ID.GAPM_RESET_CMD,
@@ -24,7 +23,7 @@ class GapmResetCmd(GtlMessage):
                         
         self.parameters = parameters
 
-class GapmCmpEvt(GtlMessage):
+class GapmCmpEvt(GtlMessageBase):
     def __init__(self, parameters: gapm_cmp_evt = gapm_cmp_evt()):
 
         super().__init__(msg_id=GAPM_MSG_ID.GAPM_CMP_EVT,
@@ -35,7 +34,7 @@ class GapmCmpEvt(GtlMessage):
 
         self.parameters = parameters
 
-class GapmSetDevConfigCmd(GtlMessage):
+class GapmSetDevConfigCmd(GtlMessageBase):
     def __init__(self, parameters: gapm_set_dev_config_cmd = gapm_set_dev_config_cmd()):
 
         super().__init__(msg_id=GAPM_MSG_ID.GAPM_SET_DEV_CONFIG_CMD,
@@ -46,7 +45,7 @@ class GapmSetDevConfigCmd(GtlMessage):
 
         self.parameters = parameters
 
-class GapmStartAdvertiseCmd(GtlMessage):
+class GapmStartAdvertiseCmd(GtlMessageBase):
     def __init__(self, parameters: gapm_start_advertise_cmd = gapm_start_advertise_cmd()):
 
         super().__init__(msg_id=GAPM_MSG_ID.GAPM_START_ADVERTISE_CMD,
