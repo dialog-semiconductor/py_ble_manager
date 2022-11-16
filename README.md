@@ -49,7 +49,7 @@ class GAPM_ADDR_TYPE(IntEnum):
     GAPM_CFG_ADDR_PRIVACY_CNTL = 0x4
 ```
 
-The C structures are ported to python classes. Each of these classes inherits from the Python [ctypes](https://docs.python.org/3/library/ctypes.html) library [Structure](https://docs.python.org/3/library/ctypes.html#structures-and-unions) definition. The python ctypes library is used to simplify converting these data types into the appropriate byte sequence for transmission over the serial port.
+The C structures are ported to python classes. Each of these classes inherits from the Python [ctypes](https://docs.python.org/3/library/ctypes.html) library [Structure](https://docs.python.org/3/library/ctypes.html#structures-and-unions) class. The python ctypes library is used to simplify converting these data types into the appropriate byte sequence for transmission over the serial port.
 
 For example, the c structure `struct gapm_operation_cmd` in `gapm_task.h`:
 
@@ -144,4 +144,4 @@ cmd = GapmResetCmd(parameters = gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
 ser.write(cmd.to_bytes())
 ```
 
-The [test_gtl_message_gapm.py](test_gtl_message_gapm.py) file is a work in progress unit test file for the messages defined in [gtl_messages/gtl_message_gapm.py](gtl_messages/gtl_message_gapm.py). For each message, the example message defined in the [GTL User Manual](https://www.renesas.com/us/en/document/mat/um-b-143-renesas-external-processor-interface-gtl-interface?language=en&r=1564826) is created and checked against the expected result.
+The [tests/test_gtl_message_gapm.py](test_gtl_message_gapm.py) file is a work in progress unit test file for the messages defined in [gtl_messages/gtl_message_gapm.py](gtl_messages/gtl_message_gapm.py). For each message, the example message defined in the [GTL User Manual](https://www.renesas.com/us/en/document/mat/um-b-143-renesas-external-processor-interface-gtl-interface?language=en&r=1564826) is created and checked against the expected result.

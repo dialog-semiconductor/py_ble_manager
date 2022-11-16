@@ -154,4 +154,5 @@ class TestGapmStartAdvertiseCmd(unittest.TestCase):
 
         self.assertEqual(test_message.to_bytes(), self.expected, "{0}() incorrect byte stream".format(self.message_type ))                                                           
 
-unittest.main()
+if __name__ == '__main__':
+    unittest.main()
