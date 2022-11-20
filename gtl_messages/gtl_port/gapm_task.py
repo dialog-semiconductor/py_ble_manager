@@ -887,46 +887,77 @@ struct gapm_adv_report_ind
     # Advertising report structure
     struct adv_report report;
 };
-
-
+'''
+                
 # Set connection initialization Command
-struct gapm_start_connection_cmd
-{
-    # GAPM requested operation:
-    # - GAPM_CONNECTION_DIRECT: Direct connection operation
-    # - GAPM_CONNECTION_AUTO: Automatic connection operation
-    # - GAPM_CONNECTION_SELECTIVE: Selective connection operation
-    # - GAPM_CONNECTION_NAME_REQUEST: Name Request operation (requires to start a direct
-    #   connection)
-    struct gapm_air_operation op;
+class gapm_start_connection_cmd(Structure):
+    def __init__(self, 
+                 op: gapm_air_operation = gapm_air_operation(),
+                 scan_interval: c_uint16 = 0, 
+                 scan_window: c_uint16 = 0,
+                 con_intv_min: c_uint16 = 0,
+                 con_intv_max: c_uint16 = 0,
+                 con_latency: c_uint16 = 0,
+                 superv_to: c_uint16 = 0, 
+                 ce_len_min: c_uint16 = 0,
+                 ce_len_max: c_uint16 = 0,
+                 nb_peers: c_uint8 = 0,
+                 peers: gap_bdaddr = gap_bdaddr()):
+    
+        self.op = op
+        self.scan_interval = scan_interval
+        self.scan_window = scan_window
+        self.con_intv_min = con_intv_min
+        self.con_intv_max = con_intv_max
+        self.con_latency = con_latency
+        self.superv_to = superv_to
+        self.ce_len_min = ce_len_min
+        self.ce_len_max = ce_len_max
+        self.nb_peers = nb_peers
+        self.peers = peers
+        super().__init__(op = self.op,
+                         scan_interval=self.scan_interval, 
+                         scan_window=self.scan_window,
+                         con_intv_min=self.con_intv_min,
+                         con_intv_max=self.con_intv_max,
+                         con_latency=self.con_latency,
+                         superv_to = self.superv_to,
+                         e_len_min = self.ce_len_min,
+                         ce_len_max = self.ce_len_max,
+                         nb_peers = self.nb_peers,
+                         peers = self.peers)
 
-    # Scan interval
-    uint16_t             scan_interval;
-    # Scan window size
-    uint16_t             scan_window;
+                # GAPM requested operation:
+                # - GAPM_CONNECTION_DIRECT: Direct connection operation
+                # - GAPM_CONNECTION_AUTO: Automatic connection operation
+                # - GAPM_CONNECTION_SELECTIVE: Selective connection operation
+                # - GAPM_CONNECTION_NAME_REQUEST: Name Request operation (requires to start a direct
+                #   connection)
+    _fields_ = [("op", gapm_air_operation),
+                # Scan interval
+                ("scan_interval", c_uint16),
+                # Scan window size
+                ("oscan_windowp", c_uint16),
+                # Minimum of connection interval
+                ("con_intv_min", c_uint16),
+                # Maximum of connection interval
+                ("con_intv_max", c_uint16),
+                # Connection latency
+                ("con_latency", c_uint16),
+                # Link supervision timeout
+                ("superv_to", c_uint16),
+                # Minimum CE length
+                ("ce_len_min", c_uint16),
+                # Maximum CE length
+                ("ce_len_max", c_uint16),
+                # Number of peer device information present in message.
+                #  Shall be 1 for GAPM_CONNECTION_DIRECT or GAPM_CONNECTION_NAME_REQUEST operations
+                #  Shall be greater than 0 for other operations
+                ("nb_peers", c_uint8),
+                # Peer device information
+                ("peers", gap_bdaddr)]
 
-    # Minimum of connection interval
-    uint16_t             con_intv_min;
-    # Maximum of connection interval
-    uint16_t             con_intv_max;
-    # Connection latency
-    uint16_t             con_latency;
-    # Link supervision timeout
-    uint16_t             superv_to;
-    # Minimum CE length
-    uint16_t             ce_len_min;
-    # Maximum CE length
-    uint16_t             ce_len_max;
-
-    # Number of peer device information present in message.
-    #  Shall be 1 for GAPM_CONNECTION_DIRECT or GAPM_CONNECTION_NAME_REQUEST operations
-    #  Shall be greater than 0 for other operations
-    uint8_t              nb_peers;
-
-    # Peer device information
-    struct gap_bdaddr   peers[__ARRAY_EMPTY];
-};
-
+'''
 
 # Name of peer device indication
 struct gapm_peer_name_ind

@@ -7,7 +7,7 @@ GTL_INITIATOR = 0x05
 
 # TODO Rename AbstractGtlMessage? 
 
-class GtlMessageBase():
+class AbstractGtlMessage():
     # msg_id: c_uint16 
     # dst_id: c_uint16
     # src_id: c_uint16
