@@ -1,5 +1,5 @@
 from ctypes import *
-from .gtl_message_base import *
+from .abstract_gtl_message import *
 
 class GapmDeviceReadyInd(AbstractGtlMessage):
      def __init__(self):

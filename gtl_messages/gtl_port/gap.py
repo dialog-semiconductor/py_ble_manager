@@ -275,43 +275,42 @@ enum gap_oob
     GAP_OOB_AUTH_DATA_PRESENT,
     GAP_OOB_AUTH_DATA_LAST
 };
-
-/// Authentication mask
-enum gap_auth_mask
-{
-    /// No Flag set
-    GAP_AUTH_NONE = 0,
-    /// Bond authentication
-    GAP_AUTH_BOND = (1 << 0),
-    /// Man In the middle protection
-    GAP_AUTH_MITM = (1 << 2),
-    /// Secure Connections
-    GAP_AUTH_SEC = (1 << 3),
-    /// Keypress Notifications
+'''
+# Authentication mask
+class GAP_AUTH_MASK(IntEnum):
+    # No Flag set
+    GAP_AUTH_NONE = 0
+    # Bond authentication
+    GAP_AUTH_BOND = (1 << 0)
+    # Man In the middle protection
+    GAP_AUTH_MITM = (1 << 2)
+    # Secure Connections
+    GAP_AUTH_SEC = (1 << 3)
+    # Keypress Notifications
     GAP_AUTH_KEY = (1 << 4)
-};
+
 
 #define GAP_AUTH_REQ_MASK   0x1F
 
-/// Authentication Requirements
-enum gap_auth
-{
-    /// No MITM No Bonding
-    GAP_AUTH_REQ_NO_MITM_NO_BOND = (GAP_AUTH_NONE),
-    /// No MITM Bonding
-    GAP_AUTH_REQ_NO_MITM_BOND    = (GAP_AUTH_BOND),
-    /// MITM No Bonding
-    GAP_AUTH_REQ_MITM_NO_BOND    = (GAP_AUTH_MITM),
-    /// MITM and Bonding
-    GAP_AUTH_REQ_MITM_BOND       = (GAP_AUTH_MITM | GAP_AUTH_BOND),
-    /// Secure Connection
-    GAP_AUTH_REQ_SECURE_CONNECTION = (GAP_AUTH_SEC),
-    /// Keypress Notification
-    GAP_AUTH_REQ_KEYPRESS_NOTIFICATIONS = (GAP_AUTH_KEY),
+# Authentication Requirements
+class GAP_AUTH(IntEnum):
 
-    GAP_AUTH_REQ_LAST
-};
+    # No MITM No Bonding
+    GAP_AUTH_REQ_NO_MITM_NO_BOND = (GAP_AUTH_MASK.GAP_AUTH_NONE)
+    # No MITM Bonding
+    GAP_AUTH_REQ_NO_MITM_BOND    = (GAP_AUTH_MASK.GAP_AUTH_BOND)
+    # MITM No Bonding
+    GAP_AUTH_REQ_MITM_NO_BOND    = (GAP_AUTH_MASK.GAP_AUTH_MITM)
+    # MITM and Bonding
+    GAP_AUTH_REQ_MITM_BOND       = (GAP_AUTH_MASK.GAP_AUTH_MITM | GAP_AUTH_MASK.GAP_AUTH_BOND)
+    # Secure Connection
+    GAP_AUTH_REQ_SECURE_CONNECTION = (GAP_AUTH_MASK.GAP_AUTH_SEC)
+    # Keypress Notification
+    GAP_AUTH_REQ_KEYPRESS_NOTIFICATIONS = (GAP_AUTH_MASK.GAP_AUTH_KEY)
 
+    GAP_AUTH_REQ_LAST = auto()
+
+'''
 /// Key Distribution Flags
 enum gap_kdist
 {
@@ -411,7 +410,7 @@ struct gap_slv_pref
 # Address information about a device address
 class gap_bdaddr(Structure):
     def __init__(self, 
-                 addr: bd_addr = bd_addr((c_uint8*BD_ADDR_LEN)( *([0]*BD_ADDR_LEN) )), 
+                 addr: bd_addr = bd_addr(), 
                  # TODO: NOTE 1 Was below:
                  # addr_type: GAPM_ADDR_TYPE = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PUBLIC):
                  # Changed to generic c_types to avoid moving enum into this file or creating circular ref.
@@ -430,7 +429,8 @@ class gap_bdaddr(Structure):
 # Generic Security key structure
 class gap_sec_key(Structure):
 
-    def __init__(self, key: Array):
+    def __init__(self, 
+                 key: Array = (c_uint8*KEY_LEN)()):
         assert len(key) == KEY_LEN
         self.key = key
         super().__init__(key=self.key)
@@ -442,7 +442,11 @@ class gap_sec_key(Structure):
 class gap_ral_dev_info:
 
     # TODO: See NOTE 1 
-    def __init__(self, addr_type: c_uint8, addr: Array, peer_irk: Array, local_irk: Array):
+    def __init__(self, 
+                 addr_type: c_uint8 = 0, 
+                 addr: Array = (c_uint8*BD_ADDR_LEN)(), 
+                 peer_irk: Array = (c_uint8*KEY_LEN)(), 
+                 local_irk: Array = (c_uint8*KEY_LEN)()):
         assert len(addr) == BD_ADDR_LEN
         assert len(peer_irk) == KEY_LEN
         assert len(local_irk) == KEY_LEN

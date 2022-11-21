@@ -2,31 +2,34 @@ import serial
 from ctypes import *
 from gtl_messages import *
 
-expected = bytes.fromhex("05000D10000D0002000100")
+expected = "05010E10000E001000000024000000F401000002EE70CAEA80"
 
-test1 = GapmCmpEvt(gapm_cmp_evt(GAPM_OPERATION.GAPM_RESET, HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR))
+test_message = GapcConnectionReqInd()
+test_message.parameters = gapc_connection_req_ind()
+test_message.parameters.conhdl = 0
+test_message.parameters .con_interval = 36 # (36 × 1.25 ms = 45 ms)
+test_message.parameters.con_latency = 0
+test_message.parameters.sup_to = 500 # (500 x 10 = 5000ms = 5s)
+test_message.parameters.clk_accuracy = 0 
+test_message.parameters.peer_addr_type = 0 # Public
 
+# TODO need make array type 
+bd = c_uint8 * BD_ADDR_LEN
+
+
+# TODO having to put in this array backwards. Any way to address?
+addr = '02EE70CAEA80'
+#addr.reverse()
+#print(addr)
+#memmove(byref(test_message.parameters.peer_addr), ad), sizeof(test_message.parameters.peer_addr))
+#test_message.parameters.peer_addr
+
+print(expected == test_message.to_bytes())
 print(expected)
+print(test_message.to_hex())
 
-print(len(expected))
-params = expected[9:]
+next = (c_uint8*BD_ADDR_LEN)( )
+for i in next:
+    print(i)
 
-print(params)
-
-built = gapm_cmp_evt.from_buffer_copy(params)
-test2 = GapmCmpEvt()
-test2.parameters = built
-
-print("Expected: ", expected)
-print("test1: ", test1.to_bytes())
-print("test2: ", test2.to_bytes())
-
-
-test3 = GapmCmpEvt()
-print(sizeof(test3.parameters))
-memmove(pointer(test3.parameters), expected[9:], sizeof(test3.parameters))
-print("test3: ", test3.to_bytes())
-
-#def receiveSome(self, bytes):
-#    fit = min(len(bytes), ctypes.sizeof(self))
-#    ctypes.memmove(ctypes.addressof(self), bytes, fit)
+gapm_adv_host()

@@ -260,85 +260,86 @@ class GAPC_MSG_ID(IntEnum):
     GAPC_KEYPRESS_NOTIFICATION_CMD = GAPC_KEYPRESS_NOTIFICATION
     GAPC_KEYPRESS_NOTIFICATION_IND = GAPC_KEYPRESS_NOTIFICATION
 
-'''
+
 # request operation type - application interface
-enum gapc_operation
-{
+class GAPC_OPERATION(IntEnum):
+
     #                 Operation Flags                  */
     # No Operation (if nothing has been requested)     */
     # ************************************************ */
     # No operation
-    GAPC_NO_OP                                    = 0x00,
+    GAPC_NO_OP                                    = 0x00
 
     # Connection management */
     # Disconnect link
-    GAPC_DISCONNECT,
+    GAPC_DISCONNECT = auto()
 
     # Connection information */
     # Retrieve name of peer device.
-    GAPC_GET_PEER_NAME,
+    GAPC_GET_PEER_NAME = auto()
     # Retrieve peer device version info.
-    GAPC_GET_PEER_VERSION,
+    GAPC_GET_PEER_VERSION = auto()
     # Retrieve peer device features.
-    GAPC_GET_PEER_FEATURES,
+    GAPC_GET_PEER_FEATURES = auto()
     # Get Peer device appearance
-    GAPC_GET_PEER_APPEARANCE,
+    GAPC_GET_PEER_APPEARANCE = auto()
     # Get Peer device Slaved Preferred Parameters
-    GAPC_GET_PEER_SLV_PREF_PARAMS,
+    GAPC_GET_PEER_SLV_PREF_PARAMS = auto()
     # Retrieve connection RSSI.
-    GAPC_GET_CON_RSSI,
+    GAPC_GET_CON_RSSI = auto()
     # Retrieve Connection Channel MAP.
-    GAPC_GET_CON_CHANNEL_MAP,
+    GAPC_GET_CON_CHANNEL_MAP = auto()
 
     # Connection parameters update */
     # Perform update of connection parameters.
-    GAPC_UPDATE_PARAMS,
+    GAPC_UPDATE_PARAMS = auto()
 
     # Security procedures */
     # Start bonding procedure.
-    GAPC_BOND,
+    GAPC_BOND = auto()
     # Start encryption procedure.
-    GAPC_ENCRYPT,
+    GAPC_ENCRYPT = auto()
     # Start security request procedure
-    GAPC_SECURITY_REQ,
+    GAPC_SECURITY_REQ = auto()
 
     # LE Credit Based*/
     # LE credit based connection creation
-    GAPC_LE_CB_CREATE,
+    GAPC_LE_CB_CREATE = auto()
     # LE credit based connection destruction
-    GAPC_LE_CB_DESTROY,
+    GAPC_LE_CB_DESTROY = auto()
     # LE credit based connection request
-    GAPC_LE_CB_CONNECTION,
+    GAPC_LE_CB_CONNECTION = auto()
     # LE credit based disconnection request
-    GAPC_LE_CB_DISCONNECTION,
+    GAPC_LE_CB_DISCONNECTION = auto()
     # LE credit addition request
-    GAPC_LE_CB_ADDITION,
+    GAPC_LE_CB_ADDITION = auto()
 
     # LE Ping*/
     # get timer timeout value
-    GAPC_GET_LE_PING_TO,
+    GAPC_GET_LE_PING_TO = auto()
     # set timer timeout value
-    GAPC_SET_LE_PING_TO,
+    GAPC_SET_LE_PING_TO = auto()
 
     #  LE Set Data Length
-    GAPC_SET_LE_PKT_SIZE,
+    GAPC_SET_LE_PKT_SIZE = auto()
 
     # Get Peer device central address resolution
-    GAPC_GET_PEER_CENTRAL_RPA,
-//ESR10
+    GAPC_GET_PEER_CENTRAL_RPA = auto()
+#ESR10
     # Get Peer Resolvable Private Address only
-    GAPC_GET_PEER_RPA_ONLY,
+    GAPC_GET_PEER_RPA_ONLY = auto()
 
-    // ---------------------- INTERNAL API ------------------------
+    # ---------------------- INTERNAL API ------------------------
     # Packet signature */
     # sign an attribute packet
-    GAPC_SIGN_PACKET,
+    GAPC_SIGN_PACKET = auto()
     # Verify signature or an attribute packet
-    GAPC_SIGN_CHECK,
+    GAPC_SIGN_CHECK = auto()
 
     # Last GAPC operation flag
-    GAPC_LAST
-};
+    GAPC_LAST = auto()
+
+'''
 
 # Bond event type.
 enum gapc_bond
@@ -432,7 +433,7 @@ class gapc_connection_req_ind(Structure):
                  sup_to: c_uint16 = 0,
                  clk_accuracy: c_uint8 = 0,
                  peer_addr_type: c_uint8 = 0, 
-                 peer_addr: bd_addr = bd_addr((c_uint8*BD_ADDR_LEN)( *([0]*BD_ADDR_LEN) ))):
+                 peer_addr: bd_addr = bd_addr((c_uint8*BD_ADDR_LEN)())):
                  
         self.conhdl = conhdl
         self.con_interval = con_interval
@@ -464,26 +465,47 @@ class gapc_connection_req_ind(Structure):
                 # Peer BT address
                 ("peer_addr", bd_addr)]
 
-'''
+
 # Set specific link data configuration.
-struct gapc_connection_cfm
-{
-    # Local CSRK value
-    struct gap_sec_key lcsrk;
-    # Local signature counter value
-    uint32_t lsign_counter;
+class gapc_connection_cfm(Structure):
+    def __init__(self, 
+                 lcsrk: gap_sec_key = gap_sec_key(), 
+                 lsign_counter: c_uint32 = 0,
+                 rcsrk: gap_sec_key = gap_sec_key(),
+                 rsign_counter: c_uint32 = 0,
+                 auth: GAP_AUTH = GAP_AUTH.GAP_AUTH_REQ_NO_MITM_NO_BOND,
+                 svc_changed_ind_enable: c_uint8 = 0):
 
-    # Remote CSRK value
-    struct gap_sec_key rcsrk;
-    # Remote signature counter value
-    uint32_t rsign_counter;
+        self.lcsrk = lcsrk
+        self.lsign_counter = lsign_counter
+        self.rcsrk = rcsrk
+        self.rsign_counter = rsign_counter
+        self.auth = auth
+        self.svc_changed_ind_enable = svc_changed_ind_enable
+        super().__init__(lcsrk=self.lcsrk,
+                         lsign_counter=self.lsign_counter,
+                         rcsrk=self.rcsrk,
+                         rsign_counter=self.rsign_counter,
+                         auth=self.auth,
+                         svc_changed_ind_enable=self.svc_changed_ind_enable,
+                         padding=0)
 
-    # Authentication (@see gap_auth)
-    uint8_t auth;
-    # Service Changed Indication enabled
-    uint8_t svc_changed_ind_enable;
-};
+                # Local CSRK value
+    _fields_ = [("lcsrk", gap_sec_key),
+                # Local signature counter value
+                ("lsign_counter", c_uint32),
+                # Remote CSRK value
+                ("rcsrk", gap_sec_key),
+                # Remote signature counter value
+                ("rsign_counter", c_uint32),
+                # Authentication (@see gap_auth)
+                ("auth", c_uint8),
+                # Service Changed Indication enabled
+                ("svc_changed_ind_enable", c_uint8),
+                # Padding
+                ("padding", c_uint16)]   
 
+'''
 
 # Request disconnection of current link command.
 struct gapc_disconnect_cmd
@@ -896,16 +918,30 @@ struct gapc_encrypt_ind
     # Authentication  level (@see gap_auth)
     uint8_t auth;
 };
+'''
 
 # Start Security Request command procedure
-struct gapc_security_cmd
-{
-    # GAP request type:
-    # - GAPC_SECURITY_REQ: Start security request procedure
-    uint8_t operation;
-    # Authentication level (@see gap_auth)
-    uint8_t auth;
-};
+class gapc_security_cmd(Structure):
+    def __init__(self, 
+                  operation: GAPC_OPERATION = GAPC_OPERATION.GAPC_NO_OP,
+                  auth: c_uint16 = GAP_AUTH.GAP_AUTH_REQ_SECURE_CONNECTION,
+                 ):
+                 
+        self.operation = operation
+        self.auth = auth
+        super().__init__(operation=self.operation,
+                         auth=self.auth)
+
+                # GAP request type:
+                # - GAPC_SECURITY_REQ: Start security request procedure
+    _fields_ = [("operation", c_uint8),
+                # Authentication level (@see gap_auth)
+                ("auth", c_uint8)]
+
+
+    
+
+'''
 # Security requested by peer device indication message
 struct gapc_security_ind
 {

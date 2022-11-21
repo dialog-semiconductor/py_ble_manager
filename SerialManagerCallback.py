@@ -2,7 +2,9 @@ import asyncio
 import serial_asyncio
 from gtl_messages import *
 
-class BleManager(asyncio.Protocol):
+# TODO GAPM message handling should be in a GapManager class
+
+class SerialManagerCallback(asyncio.Protocol):
 
     def default_handler(self, message):
         print("default handler")
@@ -40,19 +42,13 @@ class BleManager(asyncio.Protocol):
         # TODO 
         self.transport.serial.write(dev_config.to_bytes())
 
-
-        
-
-
-
-
     func_table = {
         GAPM_MSG_ID.GAPM_CMP_EVT: handle_gapm_cmp_evt,
         GAPM_MSG_ID.GAPM_DEVICE_READY_IND: handle_gapm_device_ready_ind,
         GAPM_MSG_ID.GAPM_CANCEL_CMD: default_handler,
     }
 
-    def run(self, message: GtlMessageBase):
+    def run(self, message: AbstractGtlMessage):
         #TODO be careful, not clear if you are calling instance func or class method
         return self.func_table[message.msg_id](self, message)
 
@@ -64,7 +60,7 @@ class BleManager(asyncio.Protocol):
         print("Decode")
 
         # Assuming all data at once
-        #message = GtlMessageBase(msg_id = GAPM_MSG_ID(int.from_bytes(byte_string[1:3], "little",signed=False)),
+        #message = AbstractGtlMessage(msg_id = GAPM_MSG_ID(int.from_bytes(byte_string[1:3], "little",signed=False)),
         #                         dst_id=KE_API_ID(int.from_bytes(byte_string[3:5], "little",signed=False)),
         #                         src_id=KE_API_ID(int.from_bytes(byte_string[5:7], "little",signed=False)),
         #                         par_len=int.from_bytes(byte_string[7:9], "little",signed=False))
@@ -114,7 +110,7 @@ class BleManager(asyncio.Protocol):
         print('resume writing')
 
 loop = asyncio.get_event_loop()
-coro = serial_asyncio.create_serial_connection(loop, BleManager, 'COM13', baudrate=115200)
+coro = serial_asyncio.create_serial_connection(loop, SerialManagerCallback, 'COM13', baudrate=115200)
 transport, protocol = loop.run_until_complete(coro)
 loop.run_forever()
 loop.close()

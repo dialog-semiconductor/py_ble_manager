@@ -1710,7 +1710,8 @@ struct host_cmpl_pkts
 #BD Address structure
 class bd_addr(Structure):
 
-    def __init__(self, addr: Array):
+    def __init__(self, 
+                 addr: Array = (c_uint8*BD_ADDR_LEN)()):
         assert len(addr) == BD_ADDR_LEN
         self.addr = addr
         super().__init__(addr=self.addr)
@@ -1752,7 +1753,8 @@ struct chnl_map
 class le_chnl_map(Structure):
 
 
-    def __init__(self, map: Array):
+    def __init__(self, 
+                 map: Array = (c_uint8*LE_CHNL_MAP_LEN)()):
         assert len(map) == LE_CHNL_MAP_LEN
         self.map = map
         super().__init__(map=self.map)
