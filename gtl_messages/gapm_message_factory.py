@@ -6,6 +6,8 @@ class GapmMessageFactory():
     
     @staticmethod
     def create_message(msg_bytes):
+
+        # TODO this section will be same for each factory except for the msg_id enum, dont rewrite it everytime
         assert(len(msg_bytes) >= 9)
 
         print(len(msg_bytes))

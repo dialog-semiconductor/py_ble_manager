@@ -2,34 +2,147 @@ import serial
 from ctypes import *
 from gtl_messages import *
 
-expected = "05010E10000E001000000024000000F401000002EE70CAEA80"
+first_message = GapmCmpEvt()
+second_message = GapmCmpEvt()
+print(f"TESTING")
+#bytes_string = "\x05\x01\r\x10\x00\r\x00\x00\x00"
+bytes_string = bytes.fromhex("05010D10000D000000")
+print(bytes_string)
+#message = GtlMessageFactory.create_message(bytes_string)
 
-test_message = GapcConnectionReqInd()
-test_message.parameters = gapc_connection_req_ind()
-test_message.parameters.conhdl = 0
-test_message.parameters .con_interval = 36 # (36 × 1.25 ms = 45 ms)
-test_message.parameters.con_latency = 0
-test_message.parameters.sup_to = 500 # (500 x 10 = 5000ms = 5s)
-test_message.parameters.clk_accuracy = 0 
-test_message.parameters.peer_addr_type = 0 # Public
+#print(message)
+#print(f"With f string: {message}")
+print(GapmCmpEvt())
+print(GtlMessageBase())
+'''
+print("Expect true: ", first_message == second_message)
+print()
 
-# TODO need make array type 
-bd = c_uint8 * BD_ADDR_LEN
+first_message.parameters.operation = GAPM_OPERATION.GAPM_CANCEL
+
+print("Expect false: ", first_message == second_message)
+print()
+
+third_message = GapmCmpEvt(gapm_cmp_evt(GAPM_OPERATION.GAPM_CANCEL, HOST_STACK_ERROR_CODE.ATT_ERR_APP_ERROR))
+fourth_message = GapmCmpEvt()
+
+print("Expect false: ", third_message == fourth_message)
+print()
+
+fourth_message.parameters.operation = GAPM_OPERATION.GAPM_CANCEL
+
+print("Expect false: ", third_message == fourth_message)
+print()
+
+fourth_message.parameters.status = HOST_STACK_ERROR_CODE.ATT_ERR_APP_ERROR
+
+print("Expect true: ", third_message == fourth_message)
+print()
+
+print(first_message.__str__)
+print(first_message.__repr__)
+print(str(first_message))
+print(first_message.parameters.operation)
+
+fifth_message = GapcConnectionCfm()
+
+print(fifth_message)
+struct = gapc_connection_cfm()
+print(struct)
+
+msg = GapmCmpEvt(gapm_cmp_evt(GAPM_OPERATION.GAPM_RESET, HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR))
+test = gapm_cmp_evt.from_buffer_copy(msg.to_bytes()[9:])
+
+print(msg.parameters.operation)
+print(msg.parameters.status)
+print(test.operation)
+print(test.status)
+'''
+
+'''
+first_message = GapmCmpEvt(gapm_cmp_evt(GAPM_OPERATION.GAPM_ADV_DIRECT))
+second_message = GapmCmpEvt()
+
+print("First : ", first_message.to_hex())
+print("Second: ", second_message.to_hex())
+print()
+
+second_message.parameters.operation = GAPM_OPERATION.GAPM_ADV_NON_CONN
+
+print("First : ", first_message.to_hex())
+print("Second: ", second_message.to_hex())
+print()
+
+print("Changing to 0x0D")
+second_message.parameters.operation = 0x0D
+
+print("First : ", first_message.to_hex())
+print("Second: ", second_message.to_hex())
+print()
+
+third_message = GapmCmpEvt()
+third_message.parameters.operation = GAPM_OPERATION.GAPM_CANCEL
+
+print("First : ", first_message.to_hex())
+print("First sync: ", first_message.sync_test().hex().upper())
+print("Second: ", second_message.to_hex())
+print("Second sync: ", second_message.sync_test().hex().upper())
+print("Third : ", third_message.to_hex())
+print("Third sync: ", third_message.sync_test().hex().upper())
+print()
+
+ctype_test_1 = GapcConnectionCfm()
+print("Ctype 1 : ", ctype_test_1.to_hex())
 
 
-# TODO having to put in this array backwards. Any way to address?
-addr = '02EE70CAEA80'
-#addr.reverse()
-#print(addr)
-#memmove(byref(test_message.parameters.peer_addr), ad), sizeof(test_message.parameters.peer_addr))
-#test_message.parameters.peer_addr
+ctype_test_2 = GapcConnectionCfm(conidx=6)
 
-print(expected == test_message.to_bytes())
-print(expected)
-print(test_message.to_hex())
+print("Ctype 1 : ", ctype_test_1.to_hex())
+print("Ctype 2 : ", ctype_test_2.to_hex())
 
-next = (c_uint8*BD_ADDR_LEN)( )
-for i in next:
-    print(i)
+'''
 
-gapm_adv_host()
+
+#
+'''
+first_message = GapmCmpEvt(gapm_cmp_evt(GAPM_OPERATION.GAPM_ADV_DIRECT))
+second_message = GapmCmpEvt()
+second_message.parameters.operation = GAPM_OPERATION.GAPM_ADV_NON_CONN
+
+print("First : ", first_message.to_hex())
+print("Second: ", second_message.to_hex())
+
+third_message = GapmCmpEvt()
+third_message.parameters.operation = GAPM_OPERATION.GAPM_CANCEL
+
+print("First : ", first_message.to_hex())
+print("Second: ", second_message.to_hex())
+print("Third : ", third_message.to_hex())
+
+fourth_message = GapcConnectionReqInd()
+
+print("First : ", first_message.to_hex())
+print("Second: ", second_message.to_hex())
+print("Third : ", third_message.to_hex())
+print("Fourth: ", fourth_message.to_hex())
+
+
+first_struct = gapm_set_dev_config_cmd()
+second_struct = gapm_set_dev_config_cmd()
+
+print("First Struct: ", bytearray(first_struct).hex().upper())
+print("Second Struct: ", bytearray(second_struct).hex().upper())
+print()
+
+
+first_struct.addr = bd_addr((c_uint8*BD_ADDR_LEN)(1, 2, 3, 4 , 5, 6))
+
+print("First Struct: ", bytearray(first_struct).hex().upper())
+print("Second Struct: ", bytearray(second_struct).hex().upper())
+
+second_struct.addr = bd_addr((c_uint8*BD_ADDR_LEN)(7, 8, 9, 10 , 11, 12))
+
+print("First Struct: ", bytearray(first_struct).hex().upper())
+print("Second Struct: ", bytearray(second_struct).hex().upper())
+
+'''

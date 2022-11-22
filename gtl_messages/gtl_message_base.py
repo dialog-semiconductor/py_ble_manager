@@ -35,3 +35,16 @@ class GtlMessageBase():
 
     def to_hex(self):
         return self.to_bytes().hex().upper()
+
+    def __eq__(self, other):
+        if isinstance(other, GtlMessageBase):
+            return self.to_bytes() == other.to_bytes()
+        return False 
+
+    # TODO need to handle if parameter field is another Strucutre, and if is an array
+    def __repr__(self):
+        param_string = f''
+        if self.parameters: 
+            for field in self.parameters._fields_:
+                param_string += f'{field[0]}={getattr(self.parameters, field[0])}, '
+        return f'{type(self).__name__}(msg_id={self.msg_id}, dst_id={self.dst_id}, src_id={self.src_id}, par_len={self.par_len}, parameters={type(self.parameters).__name__}({param_string[:-2]})'

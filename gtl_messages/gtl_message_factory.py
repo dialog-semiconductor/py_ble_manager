@@ -20,7 +20,6 @@ class GtlMessageFactory():
         if(src_id == KE_API_ID.TASK_ID_GTL):
             message_task_id = dst_id
 
-
         try:
             if message_task_id == KE_API_ID.TASK_ID_GAPM:
                 return GapmMessageFactory().create_message(msg_bytes)

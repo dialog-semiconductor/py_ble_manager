@@ -27,10 +27,11 @@ class GapcConnectionCfm(GtlMessageBase):
 
         self.parameters = parms
 
+#TODO create unit test
 class GapcSecurityCmd(GtlMessageBase):
     def __init__(self, conidx: c_uint8 = 0, parameters: gapc_security_cmd = None):
 
-        parms = parameters if parameters else gapc_connection_cfm()
+        parms = parameters if parameters else gapc_security_cmd()
 
         super().__init__(msg_id=GAPC_MSG_ID.GAPC_SECURITY_CMD,
                          dst_id=KE_API_ID.TASK_ID_GAPC,
