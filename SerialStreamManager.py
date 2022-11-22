@@ -4,7 +4,6 @@ from gtl_messages import *
 # TODO consider downsides of importing everything without namespace
 from Gap import *
 from MessageRouter import *
-from GapController import *
 
 class SerialStreamManager(asyncio.Protocol):
 
@@ -48,22 +47,25 @@ class SerialStreamManager(asyncio.Protocol):
         self.writer.write(byte_string)
 
 
-async def main(coro1, coro2, coro3):
+# TODO move to a main file
+async def main(open_serial_port_coro, serial_rx_coro, router_tx_coro, router_handle_rx_coro):
     # TaskGroup is in 3.11
     #async with asyncio.TaskGroup() as tg:
     #    task1 = tg.create_task(coro1,)
         #task2 = tg.create_task(another_coro(...))
 
     #task1 = asyncio.create_task(coro1, name='OpenPort')
-    task2 = asyncio.create_task(coro2, name='StreamRx')
-    task3 = asyncio.create_task(coro3, name='ParserTx')
+    serial_rx_task = asyncio.create_task(serial_rx_coro, name='StreamRx')
+    router_tx_task = asyncio.create_task(router_tx_coro, name='RouterTx')
+    router_handle_rx_task = asyncio.create_task(router_handle_rx_coro, name='RouterRx')
 
     #print("Waiting to open port")
-    await asyncio.wait_for(coro1, timeout=None)
+    await asyncio.wait_for(open_serial_port_coro, timeout=None)
 
     #print("Port should be open????????")
-    await task2
-    await task3
+    await serial_rx_task
+    await router_tx_task
+    await router_handle_rx_task
 
 
 message_router = MessageRouter()
@@ -71,9 +73,9 @@ gap_manager = GapManager()
 gap_controller = GapController()
 message_router.register_observer(gap_manager.handle_gap_message)
 serial_stream_manager = SerialStreamManager()
-serial_stream_manager.register_rx_callback(message_router.handle_received_message)
+serial_stream_manager.register_rx_callback(message_router.receive)
 message_router.register_tx_callback(serial_stream_manager.send)
 
 loop = asyncio.get_event_loop()
-loop.run_until_complete(main(serial_stream_manager.open_port(), serial_stream_manager.receive(), message_router.send()))
+loop.run_until_complete(main(serial_stream_manager.open_port(), serial_stream_manager.receive(), message_router.send(), message_router.handle_received_message()))
 loop.close()

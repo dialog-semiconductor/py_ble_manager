@@ -13,13 +13,19 @@ class MessageRouter():
     def __init__(self) -> None:
         self.observers = []
         self.tx_queue = asyncio.Queue() 
+        self.rx_queue = asyncio.Queue()
         self.message_parser = MessageParser()
 
-    async def handle_received_message(self, byte_string):
-        message = self.message_parser.decode_from_bytes(byte_string) 
-        #self.rx_queue.put_nowait(message)
-        print(f"MessageParser.handle_received_message(). Received: {message}")
-        await self.notify(message)
+    async def receive(self, byte_string):
+        await self.rx_queue.put(byte_string)
+    
+    async def handle_received_message(self):
+        while True:
+            byte_string = await self.rx_queue.get()
+            message = self.message_parser.decode_from_bytes(byte_string) 
+            #self.rx_queue.put_nowait(message)
+            print(f"MessageParser.handle_received_message(). Received: {message}")
+            await self.notify(message)
         
 
     async def notify(self, message):
