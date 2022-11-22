@@ -6,11 +6,6 @@ from .gtl_port import *
 GTL_INITIATOR = 0x05
 
 class GtlMessageBase():
-    # msg_id: c_uint16 
-    # dst_id: c_uint16
-    # src_id: c_uint16
-    # par_len: c_uint16
-    # parameters: object()
 
     def __init__(self, 
                  msg_id: GAPM_MSG_ID = GAPM_MSG_ID.GAPM_UNKNOWN_TASK_MSG, 
