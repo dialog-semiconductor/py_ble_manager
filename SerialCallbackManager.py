@@ -4,7 +4,7 @@ from gtl_messages import *
 
 # TODO GAPM message handling should be in a GapManager class
 
-class SerialManagerCallback(asyncio.Protocol):
+class SerialCallbackManager(asyncio.Protocol):
 
     def default_handler(self, message):
         print("default handler")
@@ -110,7 +110,7 @@ class SerialManagerCallback(asyncio.Protocol):
         print('resume writing')
 
 loop = asyncio.get_event_loop()
-coro = serial_asyncio.create_serial_connection(loop, SerialManagerCallback, 'COM13', baudrate=115200)
+coro = serial_asyncio.create_serial_connection(loop, SerialCallbackManager, 'COM13', baudrate=115200)
 transport, protocol = loop.run_until_complete(coro)
 loop.run_forever()
 loop.close()
