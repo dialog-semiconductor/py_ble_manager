@@ -48,7 +48,7 @@ class SerialManagerStream(asyncio.Protocol):
         GAPM_MSG_ID.GAPM_CANCEL_CMD: default_handler,
     }
 
-    def run(self, message: AbstractGtlMessage):
+    def run(self, message: GtlMessageBase):
         #TODO be careful, not clear if you are calling instance func or class method
         return self.func_table[message.msg_id](self, message)
 
@@ -60,7 +60,7 @@ class SerialManagerStream(asyncio.Protocol):
         print("Decode")
 
         # Assuming all data at once
-        #message = AbstractGtlMessage(msg_id = GAPM_MSG_ID(int.from_bytes(byte_string[1:3], "little",signed=False)),
+        #message = GtlMessageBase(msg_id = GAPM_MSG_ID(int.from_bytes(byte_string[1:3], "little",signed=False)),
         #                         dst_id=KE_API_ID(int.from_bytes(byte_string[3:5], "little",signed=False)),
         #                         src_id=KE_API_ID(int.from_bytes(byte_string[5:7], "little",signed=False)),
         #                         par_len=int.from_bytes(byte_string[7:9], "little",signed=False))

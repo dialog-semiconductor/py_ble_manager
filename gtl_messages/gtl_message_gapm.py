@@ -1,7 +1,7 @@
 from ctypes import *
-from .abstract_gtl_message import *
+from .gtl_message_base import *
 
-class GapmDeviceReadyInd(AbstractGtlMessage):
+class GapmDeviceReadyInd(GtlMessageBase):
      def __init__(self):
 
         super().__init__(msg_id=GAPM_MSG_ID.GAPM_DEVICE_READY_IND,
@@ -10,7 +10,7 @@ class GapmDeviceReadyInd(AbstractGtlMessage):
                          par_len=0,
                          parameters=None)
 
-class GapmResetCmd(AbstractGtlMessage):
+class GapmResetCmd(GtlMessageBase):
     def __init__(self, parameters: gapm_reset_cmd = gapm_reset_cmd()):
 
         super().__init__(msg_id=GAPM_MSG_ID.GAPM_RESET_CMD,
@@ -21,7 +21,7 @@ class GapmResetCmd(AbstractGtlMessage):
                         
         self.parameters = parameters
 
-class GapmCmpEvt(AbstractGtlMessage):
+class GapmCmpEvt(GtlMessageBase):
     def __init__(self, parameters: gapm_cmp_evt = gapm_cmp_evt()):
 
         super().__init__(msg_id=GAPM_MSG_ID.GAPM_CMP_EVT,
@@ -32,7 +32,7 @@ class GapmCmpEvt(AbstractGtlMessage):
 
         self.parameters = parameters
 
-class GapmSetDevConfigCmd(AbstractGtlMessage):
+class GapmSetDevConfigCmd(GtlMessageBase):
     def __init__(self, parameters: gapm_set_dev_config_cmd = gapm_set_dev_config_cmd()):
 
         super().__init__(msg_id=GAPM_MSG_ID.GAPM_SET_DEV_CONFIG_CMD,
@@ -43,7 +43,7 @@ class GapmSetDevConfigCmd(AbstractGtlMessage):
 
         self.parameters = parameters
 
-class GapmStartAdvertiseCmd(AbstractGtlMessage):
+class GapmStartAdvertiseCmd(GtlMessageBase):
     def __init__(self, parameters: gapm_start_advertise_cmd = gapm_start_advertise_cmd()):
 
         super().__init__(msg_id=GAPM_MSG_ID.GAPM_START_ADVERTISE_CMD,
@@ -55,7 +55,7 @@ class GapmStartAdvertiseCmd(AbstractGtlMessage):
         self.parameters = parameters
 
 # TODO need unit test case
-class GapmStartConnectionCmd(AbstractGtlMessage):
+class GapmStartConnectionCmd(GtlMessageBase):
     def __init__(self, parameters: gapm_start_connection_cmd = gapm_start_connection_cmd()):
 
         super().__init__(msg_id=GAPM_MSG_ID.GAPM_START_ADVERTISE_CMD,

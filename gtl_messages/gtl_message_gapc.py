@@ -1,7 +1,7 @@
 from ctypes import *
-from .abstract_gtl_message import *
+from .gtl_message_base import *
 
-class GapcConnectionReqInd(AbstractGtlMessage):
+class GapcConnectionReqInd(GtlMessageBase):
      def __init__(self, parameters: gapc_connection_req_ind = gapc_connection_req_ind()):
 
         super().__init__(msg_id=GAPC_MSG_ID.GAPC_CONNECTION_REQ_IND,
@@ -12,7 +12,7 @@ class GapcConnectionReqInd(AbstractGtlMessage):
 
         self.parameters = parameters
         
-class GapcConnectionCfm(AbstractGtlMessage):
+class GapcConnectionCfm(GtlMessageBase):
     def __init__(self, conidx: c_uint8 = 0, parameters: gapc_connection_cfm = gapc_connection_cfm()):
 
         super().__init__(msg_id=GAPC_MSG_ID.GAPC_CONNECTION_CFM,
@@ -23,7 +23,7 @@ class GapcConnectionCfm(AbstractGtlMessage):
 
         self.parameters = parameters
 
-class GapcSecurityCmd(AbstractGtlMessage):
+class GapcSecurityCmd(GtlMessageBase):
     def __init__(self, conidx: c_uint8 = 0, parameters: gapc_security_cmd = gapc_security_cmd()):
 
         super().__init__(msg_id=GAPC_MSG_ID.GAPC_SECURITY_CMD,

@@ -1,5 +1,5 @@
 from ctypes import *
-from .abstract_gtl_message import *
+from .gtl_message_base import *
 from .gapm_message_factory import *
 
 class GtlMessageFactory():

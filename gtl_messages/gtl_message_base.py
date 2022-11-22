@@ -5,9 +5,7 @@ from .gtl_port import *
 
 GTL_INITIATOR = 0x05
 
-# TODO Rename AbstractGtlMessage? 
-
-class AbstractGtlMessage():
+class GtlMessageBase():
     # msg_id: c_uint16 
     # dst_id: c_uint16
     # src_id: c_uint16
