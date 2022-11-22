@@ -36,13 +36,6 @@ class GapmCmpEvt(GtlMessageBase):
 
         self.parameters = parms
 
-    def sync_test(self):
-        message = bytearray()
-        message.extend(bytearray(self.parameters)) 
-        
-        return message
-
-
 class GapmSetDevConfigCmd(GtlMessageBase):
     def __init__(self, parameters: gapm_set_dev_config_cmd = None):
 

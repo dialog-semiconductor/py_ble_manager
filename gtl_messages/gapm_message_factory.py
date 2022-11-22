@@ -9,9 +9,6 @@ class GapmMessageFactory():
 
         # TODO this section will be same for each factory except for the msg_id enum, dont rewrite it everytime
         assert(len(msg_bytes) >= 9)
-
-        print(len(msg_bytes))
-        #TODO figure out what is wrong with this assert
         assert(int.from_bytes(msg_bytes[:1], "little",signed=False) == GTL_INITIATOR)
 
         # First byte is GTL header
@@ -27,14 +24,12 @@ class GapmMessageFactory():
         #TODO for each case add a check to ensure params_buf not too long for parameters variablee
         try:
             if msg_id == GAPM_MSG_ID.GAPM_DEVICE_READY_IND:
-                print("Creating GapmDeviceReadyInd")
                 return GapmDeviceReadyInd()
 
             elif msg_id == GAPM_MSG_ID.GAPM_RESET_CMD:
                 return GapmResetCmd(gapm_reset_cmd.from_buffer_copy(params_buf))
 
             elif msg_id == GAPM_MSG_ID.GAPM_CMP_EVT:
-                print("Creating GapmCmpEvt")
                 return GapmCmpEvt(gapm_cmp_evt.from_buffer_copy(params_buf))
 
             elif GAPM_MSG_ID.GAPM_SET_DEV_CONFIG_CMD:
