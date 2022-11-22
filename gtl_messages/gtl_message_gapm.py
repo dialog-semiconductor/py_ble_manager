@@ -61,7 +61,7 @@ class GapmStartConnectionCmd(GtlMessageBase):
         super().__init__(msg_id=GAPM_MSG_ID.GAPM_START_ADVERTISE_CMD,
                          dst_id=KE_API_ID.TASK_ID_GAPM,
                          src_id=KE_API_ID.TASK_ID_GTL,
-                         par_len=28, # Min for 1 peer
+                         par_len=21+parameters.nb_peers*7,
                          parameters=parameters)
 
         self.parameters = parameters
