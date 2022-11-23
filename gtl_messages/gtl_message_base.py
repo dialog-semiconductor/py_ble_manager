@@ -73,9 +73,13 @@ class GtlMessageBase():
 
 
                 # otherwise if sub attribute is not a structure, get the value of the field        
-                elif issubclass(type(struct), Array):
+                elif issubclass(type(sub_attr), Array):
+                    param_string += f'{field[0]}=('
+                    for i in sub_attr:
                     # This is just a fill in for now. Need additional logic to handle array
-                    param_string += f'{field[0]}={getattr(struct, field[0])}, '
+                        param_string += f'{i}, '
+                    param_string = param_string[:-2]
+                    param_string += f'), '
                 else:
 
                     param_string += f'{field[0]}={getattr(struct, field[0])}, '
