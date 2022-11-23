@@ -44,11 +44,42 @@ class GtlMessageBase():
     # TODO need to handle if parameter field is another Strucutre, and if is an array
     def __repr__(self):
         return_string = f'{type(self).__name__}(msg_id={self.msg_id}, dst_id={self.dst_id}, src_id={self.src_id}, par_len={self.par_len}, parameters={type(self.parameters).__name__}'
-        param_string = f''
-        if self.parameters: 
-            for field in self.parameters._fields_:
-                param_string += f'{field[0]}={getattr(self.parameters, field[0])}, '
-            return_string += f'({param_string[:-2]}'
+        return_string += self.struct_to_str(self.parameters)
+        return_string = return_string[:-2]
         return_string += f')'
 
+        return return_string
+
+    def struct_to_str(self, struct):
+        return_string = f''
+        param_string = f''
+
+        # Expect a ctypes structure
+        if struct: 
+            # for each field in the structure
+            for field in struct._fields_:
+                # get the attribute for that field
+                sub_attr = getattr(struct, field[0])    
+                # if the sub attribute has is also a structure, call this function recursively
+                if hasattr(sub_attr, '_fields_'):
+                        param_string += f'{field[0]}={type(sub_attr).__name__}'
+                        param_string += self.struct_to_str(sub_attr)
+                        
+
+                        #for sub_attr_field in sub_attr._fields_:
+                        #    param_string += f'{field[0]}={type(sub_attr).__name__}='
+                        #    param_string += self.struct_to_str(sub_attr)
+                        #    param_string += f')'
+
+
+                # otherwise if sub attribute is not a structure, get the value of the field        
+                elif issubclass(type(struct), Array):
+                    # This is just a fill in for now. Need additional logic to handle array
+                    param_string += f'{field[0]}={getattr(struct, field[0])}, '
+                else:
+
+                    param_string += f'{field[0]}={getattr(struct, field[0])}, '
+
+            return_string += f'({param_string[:-2]}'
+        return_string += f'), ' 
         return return_string

@@ -777,7 +777,7 @@ class gapm_air_operation(Structure):
                 # Own BD address source of the device:
                 # - GAPM_STATIC_ADDR: Public or Random Static Address according to device address configuration
                 # - GAPM_GEN_RSLV_ADDR: Generated Random Resolvable Private Address
-                ("status", c_uint8),
+                ("addr_src", c_uint8),
                 # Dummy data use to retrieve internal operation state (should be set to 0).
                 ("state", c_uint16)]
 
