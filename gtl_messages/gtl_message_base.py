@@ -60,28 +60,22 @@ class GtlMessageBase():
             for field in struct._fields_:
                 # get the attribute for that field
                 sub_attr = getattr(struct, field[0])    
+
                 # if the sub attribute has is also a structure, call this function recursively
                 if hasattr(sub_attr, '_fields_'):
                         param_string += f'{field[0]}={type(sub_attr).__name__}'
                         param_string += self.struct_to_str(sub_attr)
-                        
 
-                        #for sub_attr_field in sub_attr._fields_:
-                        #    param_string += f'{field[0]}={type(sub_attr).__name__}='
-                        #    param_string += self.struct_to_str(sub_attr)
-                        #    param_string += f')'
-
-
-                # otherwise if sub attribute is not a structure, get the value of the field        
+                # if sub attribute is an array, traverse the array        
                 elif issubclass(type(sub_attr), Array):
                     param_string += f'{field[0]}=('
                     for i in sub_attr:
-                    # This is just a fill in for now. Need additional logic to handle array
                         param_string += f'{i}, '
                     param_string = param_string[:-2]
                     param_string += f'), '
-                else:
 
+                # otherwise if sub attribute is not a structure or array, get the value of the field   
+                else:
                     param_string += f'{field[0]}={getattr(struct, field[0])}, '
 
             return_string += f'({param_string[:-2]}'
