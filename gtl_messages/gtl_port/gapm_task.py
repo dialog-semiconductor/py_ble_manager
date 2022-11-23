@@ -916,18 +916,21 @@ class gapm_start_connection_cmd(Structure):
         self.ce_len_max = ce_len_max
         self.nb_peers = nb_peers
         self.peers = peers
-        super().__init__(op = self.op,
+        super().__init__(op=self.op,
                          scan_interval=self.scan_interval, 
                          scan_window=self.scan_window,
                          con_intv_min=self.con_intv_min,
                          con_intv_max=self.con_intv_max,
                          con_latency=self.con_latency,
-                         superv_to = self.superv_to,
-                         e_len_min = self.ce_len_min,
-                         ce_len_max = self.ce_len_max,
-                         nb_peers = self.nb_peers,
-                         peers = self.peers)
+                         superv_to=self.superv_to,
+                         e_len_min=self.ce_len_min,
+                         ce_len_max=self.ce_len_max,
+                         nb_peers=self.nb_peers,
+                         peers=self.peers,
+                         padding=0)
 
+    # TODO check if any other structures need to be packed: https://docs.python.org/3/library/ctypes.html#structure-union-alignment-and-byte-order
+    _pack_ = 1
                 # GAPM requested operation:
                 # - GAPM_CONNECTION_DIRECT: Direct connection operation
                 # - GAPM_CONNECTION_AUTO: Automatic connection operation
@@ -938,7 +941,7 @@ class gapm_start_connection_cmd(Structure):
                 # Scan interval
                 ("scan_interval", c_uint16),
                 # Scan window size
-                ("oscan_windowp", c_uint16),
+                ("scan_window", c_uint16),
                 # Minimum of connection interval
                 ("con_intv_min", c_uint16),
                 # Maximum of connection interval
@@ -956,7 +959,9 @@ class gapm_start_connection_cmd(Structure):
                 #  Shall be greater than 0 for other operations
                 ("nb_peers", c_uint8),
                 # Peer device information
-                ("peers", gap_bdaddr)]
+                ("peers", gap_bdaddr),
+                # Padding
+                ("padding", c_uint8)]
 
 '''
 

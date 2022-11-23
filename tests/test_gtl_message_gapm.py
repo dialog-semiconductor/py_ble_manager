@@ -6,33 +6,31 @@ from gtl_messages import *
 class TestGapmDeviceReadyInd(unittest.TestCase):
 
     def setUp(self):
-        self.expected  = bytes.fromhex("05010D10000D000000")
-        self.message_type = type(GapmDeviceReadyInd()).__name__
+        self.expected  = "05010D10000D000000"
     
     def test_message_creation(self):
         test_message = GapmDeviceReadyInd()
-        self.assertEqual(test_message.to_bytes(), self.expected, "{0}() incorrect byte stream".format(self.message_type))
+        self.assertEqual(test_message.to_hex(), self.expected, "{0}() incorrect byte stream".format(self.message_type))
 
 # Table 5
 class TestGapmResetCmd(unittest.TestCase):
 
     def setUp(self):
-        self.expected = bytes.fromhex("05020D0D001000010001")
-        self.message_type = type(GapmResetCmd()).__name__
+        self.expected = "05020D0D001000010001"
     
     def test_parameters_passed_on_construction(self):
         test_message = GapmResetCmd(parameters = gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
-        self.assertEqual(test_message.to_bytes(), self.expected, "{0}() incorrect byte stream".format(self.message_type))
+        self.assertEqual(test_message.to_hex(), self.expected, "{0}() incorrect byte stream".format(self.message_type))
 
     def test_parameters_updated_after_construction(self):
         test_message = GapmResetCmd()
         test_message.parameters = gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET)
-        self.assertEqual(test_message.to_bytes(), self.expected, "{0}() incorrect byte stream".format(self.message_type ))
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
     def test_parameters_wrong_operation(self):
         test_message = GapmResetCmd()
         test_message.parameters = gapm_reset_cmd(GAPM_OPERATION.GAPM_CANCEL)
-        self.assertNotEqual(test_message.to_bytes(), self.expected, "{0}() incorrect byte stream".format(self.message_type))
+        self.assertNotEqual(test_message.to_hex(), self.expected, "{0}() incorrect byte stream".format(self.message_type))
 
 
 # Table 6
@@ -40,39 +38,37 @@ class TestGapmResetCmd(unittest.TestCase):
 class TestGapmCmpEvt_GAPM_RESET(unittest.TestCase):
 
     def setUp(self):
-        self.expected = bytes.fromhex("05000D10000D0002000100")
-        self.message_type = type(GapmCmpEvt()).__name__
+        self.expected = "05000D10000D0002000100"
         
     def test_parameters_passed_on_construction(self):
         test_message = GapmCmpEvt(parameters = gapm_cmp_evt(GAPM_OPERATION.GAPM_RESET, 
                                                             HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR))
 
-        self.assertEqual(test_message.to_bytes(), self.expected, "{0}() incorrect byte stream".format(self.message_type ))
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
     def test_parameters_updated_after_construction(self):
         test_message = GapmCmpEvt()
-        test_message.parameters = gapm_cmp_evt(GAPM_OPERATION.GAPM_RESET, 
-                                               HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR)
+        test_message.parameters.operation = GAPM_OPERATION.GAPM_RESET
+        test_message.parameters.status = HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR
 
-        self.assertEqual(test_message.to_bytes(), self.expected, "{0}() incorrect byte stream".format(self.message_type ))
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
     def test_parameters_wrong_operation(self):
         test_message = GapmCmpEvt(parameters = gapm_cmp_evt(GAPM_OPERATION.GAPM_CANCEL, 
                                                             HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR))
 
-        self.assertNotEqual(test_message.to_bytes(), self.expected, "{0}() incorrect byte stream".format(self.message_type ))
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
     def test_parameters_wrong_host_stack_error_code(self):
         test_message = GapmCmpEvt(parameters = gapm_cmp_evt(GAPM_OPERATION.GAPM_RESET, 
                                                             HOST_STACK_ERROR_CODE.ATT_ERR_APP_ERROR))
 
-        self.assertNotEqual(test_message.to_bytes(), self.expected, "{0}() incorrect byte stream".format(self.message_type ))
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
 # Table 8
 class TestGapmSetDevConfigCmd(unittest.TestCase):
     def setUp(self):
-        self.expected = bytes.fromhex("05040D0D0010002C00030A000000000000000000000000000000000000000000000000002000000000000200000000FB0048080000")
-        self.message_type = type(GapmSetDevConfigCmd()).__name__
+        self.expected = "05040D0D0010002C00030A000000000000000000000000000000000000000000000000002000000000000200000000FB0048080000"
 
     def test_parameters_updated_after_construction(self):
         test_message = GapmSetDevConfigCmd()
@@ -83,52 +79,50 @@ class TestGapmSetDevConfigCmd(unittest.TestCase):
         test_message.parameters.max_txoctets = 251
         test_message.parameters.max_txtime = 2120
 
-        self.assertEqual(test_message.to_bytes(), self.expected, "{0}() incorrect byte stream".format(self.message_type ))
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
 # Table 9
 class TestGapmCmpEvt_GAPM_SET_DEV_CONFIG(unittest.TestCase):
 
     def setUp(self):
-        self.expected = bytes.fromhex("05000D10000D0002000300")
-        self.message_type = type(GapmCmpEvt()).__name__
+        self.expected = "05000D10000D0002000300"
         
     def test_parameters_passed_on_construction(self):
         test_message = GapmCmpEvt(parameters = gapm_cmp_evt(GAPM_OPERATION.GAPM_SET_DEV_CONFIG, 
                                                             HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR))
 
-        self.assertEqual(test_message.to_bytes(), self.expected, "{0}() incorrect byte stream".format(self.message_type ))
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
     def test_parameters_updated_after_construction(self):
         test_message = GapmCmpEvt()
         test_message.parameters = gapm_cmp_evt(GAPM_OPERATION.GAPM_SET_DEV_CONFIG, 
                                                HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR)
 
-        self.assertEqual(test_message.to_bytes(), self.expected, "{0}() incorrect byte stream".format(self.message_type ))
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
     def test_parameters_wrong_operation(self):
         test_message = GapmCmpEvt(parameters = gapm_cmp_evt(GAPM_OPERATION.GAPM_CANCEL, 
                                                             HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR))
 
-        self.assertNotEqual(test_message.to_bytes(), self.expected, "{0}() incorrect byte stream".format(self.message_type ))
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
     def test_parameters_wrong_host_stack_error_code(self):
         test_message = GapmCmpEvt(parameters = gapm_cmp_evt(GAPM_OPERATION.GAPM_SET_DEV_CONFIG, 
                                                             HOST_STACK_ERROR_CODE.ATT_ERR_APP_ERROR))
 
-        self.assertNotEqual(test_message.to_bytes(), self.expected, "{0}() incorrect byte stream".format(self.message_type ))
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
 # Table 11
 class TestGapmStartAdvertiseCmd(unittest.TestCase):
     def setUp(self):
-        self.expected = bytes.fromhex("050D0D0D00100052000D000000C800C8000701001B070303180218041812094469616C6F6750455220" + \
+        self.expected = "050D0D0D00100052000D000000C800C8000701001B070303180218041812094469616C6F6750455220" + \
                                       "44413134353835000000000D0CFFD20053616D706C6520233100000000000000000000000000000000" + \
-                                      "000000000000000000")
-        self.message_type = type(GapmStartAdvertiseCmd()).__name__
+                                      "000000000000000000"
             
     def test_parameters_updated_after_construction(self):
         test_message = GapmStartAdvertiseCmd()
         test_message.parameters.op.code = GAPM_OPERATION.GAPM_ADV_UNDIRECT
-        test_message.parameters.op.addr_src = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_STATIC
+        test_message.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_STATIC_ADDR
         test_message.parameters.intv_min = 200 # 0.625 x 200 = 125ms TODO would be nicer to have adv_slots to ms. Should it belong to a class?
         test_message.parameters.intv_max = 200 # see above
         test_message.parameters.channel_map = ADV_CHANNEL_MAP.ADV_ALL_CHNLS_EN 
@@ -152,7 +146,71 @@ class TestGapmStartAdvertiseCmd(unittest.TestCase):
                                                                                 0x00)
         test_message.parameters.info.host.peer_info = gap_bdaddr()     
 
-        self.assertEqual(test_message.to_bytes(), self.expected, "{0}() incorrect byte stream".format(self.message_type ))                                                           
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")          
+
+# Table 19
+class TestGapmCmpEvt_GAPM_ADV_UNDIRECT(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05000D10000D0002000D00"
+        
+    def test_parameters_passed_on_construction(self):
+        test_message = GapmCmpEvt(parameters = gapm_cmp_evt(GAPM_OPERATION.GAPM_ADV_UNDIRECT, 
+                                                            HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR))
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Not sure these are really necessary
+'''
+    def test_parameters_updated_after_construction(self):
+        test_message = GapmCmpEvt()
+        test_message.parameters = gapm_cmp_evt(GAPM_OPERATION.GAPM_ADV_UNDIRECT, 
+                                               HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR)
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_wrong_operation(self):
+        test_message = GapmCmpEvt(parameters = gapm_cmp_evt(GAPM_OPERATION.GAPM_CANCEL, 
+                                                            HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR))
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_wrong_host_stack_error_code(self):
+        test_message = GapmCmpEvt(parameters = gapm_cmp_evt(GAPM_OPERATION.GAPM_ADV_UNDIRECT, 
+                                                            HOST_STACK_ERROR_CODE.ATT_ERR_APP_ERROR))
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")     
+'''
+
+# Table 22
+class TestGapmStartConnectionCmd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05110D0D0010001D001300000080016001240024000000F401430043000109EE70CAEA800000"
+        
+    def test_parameters_passed_on_construction(self):
+        test_message = GapmStartConnectionCmd()
+        test_message.parameters.op.code = GAPM_OPERATION.GAPM_CONNECTION_DIRECT
+        test_message.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_STATIC_ADDR
+        test_message.parameters.scan_interval = 384 # (384 x 0.625 = 240 ms)
+        test_message.parameters.scan_window = 352  # (352 x 0.625 = 220 ms)
+        test_message.parameters.con_intv_min = 36 # (36 × 1.25 ms = 45 ms
+        test_message.parameters.con_intv_max = 36 # (36 × 1.25 ms = 45 ms
+        test_message.parameters.superv_to = 500 # (500 x 10 = 5000ms = 5s) 
+        test_message.parameters.ce_len_min = 67 # (67 x 0.625 = 41.875 ms)
+        test_message.parameters.ce_len_max = 67 # (67 x 0.625 = 41.875 ms)
+        test_message.parameters.nb_peers = 1
+
+        # TODO par_len needs to get updated automatically based on nb_peers 
+        test_message.par_len = 21+test_message.parameters.nb_peers*7+1
+
+        # TODO need api for this defined somewhere
+        addr_array = c_uint8*BD_ADDR_LEN
+        # TODO need api to swap endian
+        test_message.parameters.peers.addr.addr=addr_array(0x09, 0xEE, 0x70, 0xCA, 0xEA, 0x80)
+    
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
 
 if __name__ == '__main__':
     unittest.main()

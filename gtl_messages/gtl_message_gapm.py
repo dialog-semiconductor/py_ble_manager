@@ -68,14 +68,11 @@ class GapmStartConnectionCmd(GtlMessageBase):
 
         parms = parameters if parameters else gapm_start_connection_cmd()
 
-        super().__init__(msg_id=GAPM_MSG_ID.GAPM_START_ADVERTISE_CMD,
+        super().__init__(msg_id=GAPM_MSG_ID.GAPM_START_CONNECTION_CMD,
                          dst_id=KE_API_ID.TASK_ID_GAPM,
                          src_id=KE_API_ID.TASK_ID_GTL,
-                         par_len=21+parameters.nb_peers*7,
+                         par_len=21+parms.nb_peers*7+1, # TODO par_len needs to be updated by user if the update nb_peers after construction. Use property()?
                          parameters=parms)
 
         self.parameters = parms
-
-
-
 

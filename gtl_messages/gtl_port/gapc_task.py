@@ -39,6 +39,7 @@ from ctypes import *
 
 from .rwip_config import *
 from .gap import *
+from .rwble_hl_error import *
 
 '''
 
@@ -411,19 +412,25 @@ struct gapc_operation_cmd
     # GAP request type
     uint8_t operation;
 };
-
-
-# Command complete event data structure
-struct gapc_cmp_evt
-{
-    # GAP request type
-    uint8_t operation;
-    # Status of the request
-    uint8_t status;
-};
-
 '''
 
+# Command complete event data structure
+class gapc_cmp_evt(Structure):
+
+    def __init__(self, 
+                     operation: GAPC_OPERATION = GAPC_OPERATION.GAPC_NO_OP,
+                     status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR):
+                 
+        self.operation = operation
+        self.status = status
+        super().__init__(operation=self.operation,
+                         status=self.status)
+
+                # GAP request type
+    _fields_ = [("operation", c_uint8),
+                # Status of the request
+                ("status", c_uint8)]
+    
 # Indicate that a connection has been established
 class gapc_connection_req_ind(Structure):
     def __init__(self, 
@@ -527,23 +534,29 @@ struct gapc_disconnect_ind
     # Reason of disconnection
     uint8_t reason;
 };
-
+'''
 
 # Retrieve information command
-struct gapc_get_info_cmd
-{
-    # GAP request type:
-    # - GAPC_GET_PEER_NAME: Retrieve name of peer device.
-    # - GAPC_GET_PEER_VERSION: Retrieve peer device version info.
-    # - GAPC_GET_PEER_FEATURES: Retrieve peer device features.
-    # - GAPC_GET_CON_RSSI: Retrieve connection RSSI.
-    # - GAPC_GET_CON_CHANNEL_MAP: Retrieve Connection Channel MAP.
-    # - GAPC_GET_PEER_APPEARANCE: Get Peer device appearance
-    # - GAPC_GET_PEER_SLV_PREF_PARAMS: Get Peer device Slaved Preferred Parameters
-    # - GAPC_GET_LE_PING_TIMEOUT: Retrieve LE Ping Timeout Value
-    uint8_t operation;
-};
+class gapc_get_info_cmd(Structure):
 
+    def __init__(self, 
+                 operation: GAPC_OPERATION = GAPC_OPERATION.GAPC_NO_OP):
+
+        self.operation = operation
+        super().__init__(operation=self.operation)
+
+                # GAP request type:
+                # - GAPC_GET_PEER_NAME: Retrieve name of peer device.
+                # - GAPC_GET_PEER_VERSION: Retrieve peer device version info.
+                # - GAPC_GET_PEER_FEATURES: Retrieve peer device features.
+                # - GAPC_GET_CON_RSSI: Retrieve connection RSSI.
+                # - GAPC_GET_CON_CHANNEL_MAP: Retrieve Connection Channel MAP.
+                # - GAPC_GET_PEER_APPEARANCE: Get Peer device appearance
+                # - GAPC_GET_PEER_SLV_PREF_PARAMS: Get Peer device Slaved Preferred Parameters
+                # - GAPC_GET_LE_PING_TIMEOUT: Retrieve LE Ping Timeout Value
+    _fields_ = [("operation", c_uint8)]   
+
+'''
 # device information data
 union gapc_dev_info_val
 {

@@ -12,12 +12,23 @@ print(bytes_string)
 
 #print(message)
 #print(f"With f string: {message}")
-print(GapmCmpEvt())
+#print(GapmCmpEvt())
 #print(GtlMessageBase())
-msg = GapmStartAdvertiseCmd()
+#msg = GapmStartAdvertiseCmd()
 #msg = GapmSetDevConfigCmd()
-print(msg)
+#print(msg)
 #print(msg.parameters.info.host.adv_data.value)
+
+
+test_message = GapcGetInfoCmd()
+test_message.parameters.operation = GAPC_OPERATION.GAPC_GET_PEER_FEATURES
+print(test_message)
+expected = "05050E0E001000010004"
+print(expected)
+print(test_message.to_hex())
+print(test_message.to_hex() == expected)
+
+
 '''
 print("Expect true: ", first_message == second_message)
 print()
