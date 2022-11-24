@@ -782,15 +782,22 @@ class gapm_air_operation(Structure):
                 ("state", c_uint16)]
 
 # TODO could this be defined within gapm_start_advertise_cmd      
+# TODO is there way to indicate this is union with autocomplete?
 class gapm_adv_info(Union):
-    def __init__(self, direct: gap_bdaddr = gap_bdaddr()):
-        self.direct = direct
-        super().__init__(direct=self.direct)
+    def __init__(self, 
+                 host: gapm_adv_host = None,
+                 direct: gap_bdaddr = None
+                ):
 
-    def __init__(self, host: gapm_adv_host = gapm_adv_host()):
-        self.host = host
-        super().__init__(host=self.host)
-
+        if host:
+            self.host = host
+            super().__init__(host=self.host)
+        elif direct:
+            self.direct = direct
+            super().__init__(direct=self.direct)
+        else:
+            self.host = gapm_adv_host()
+            super().__init__(host=self.host)
 
                 # Host information advertising data (GAPM_ADV_NON_CONN and GAPM_ADV_UNDIRECT)           
     _fields_ = [("host", gapm_adv_host),

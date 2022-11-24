@@ -93,8 +93,11 @@ KEY_LEN             = 0x10
 #define CFM_LEN             0x10
 #define ENC_DATA_LEN        0x10
 #define RAND_VAL_LEN        0x10
-#define RAND_NB_LEN         0x08
-#define LE_FEATS_LEN        0x08
+
+'''
+RAND_NB_LEN         = 0x08
+LE_FEATS_LEN        = 0x08
+'''
 #define SUPP_CMDS_LEN       0x40
 #define FEATS_LEN           0x08
 #define NAME_VECT_SIZE      14
@@ -1720,7 +1723,7 @@ class bd_addr(Structure):
     _fields_ = [("addr", c_uint8 * BD_ADDR_LEN)] 
 
 '''
-///Access Address structure
+///Access Address structurev
 struct access_addr
 {
     ///4-byte array access address
@@ -1752,7 +1755,6 @@ struct chnl_map
 # Channel map structure
 class le_chnl_map(Structure):
 
-
     def __init__(self, 
                  map: Array = (c_uint8*LE_CHNL_MAP_LEN)()):
         assert len(map) == LE_CHNL_MAP_LEN
@@ -1779,14 +1781,20 @@ struct bd_addr_plus_key
     /// Link Key
     struct ltk link_key;
 };
+'''
+#Random number structure
+class rand_nb(Structure):
+    def __init__(self, 
+                 nb: Array = (c_uint8*RAND_NB_LEN)()):
+                 
+        assert len(nb) == RAND_NB_LEN
+        self.nb = nb
+        super().__init__(nb=self.nb)
 
-///Random number structure
-struct rand_nb
-{
-    ///8-byte array for random number
-    uint8_t     nb[RAND_NB_LEN];
-};
-
+                #8-byte array for random number
+    _fields_ = [("nb", c_uint8 * RAND_NB_LEN)]
+    
+'''
 ///Advertising report structure
 struct adv_report
 {

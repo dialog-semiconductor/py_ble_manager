@@ -235,47 +235,43 @@ class GAP_SCAN_MODE(IntEnum):
     GAP_INVALID_MODE = auto()
 
 
-'''
+# IO Capability Values
+class GAP_IO_CAP(IntEnum):
+    # Display Only
+    GAP_IO_CAP_DISPLAY_ONLY = 0x00
+    # Display Yes No
+    GAP_IO_CAP_DISPLAY_YES_NO = auto()
+    # Keyboard Only
+    GAP_IO_CAP_KB_ONLY = auto()
+    # No Input No Output
+    GAP_IO_CAP_NO_INPUT_NO_OUTPUT = auto()
+    # Keyboard Display
+    GAP_IO_CAP_KB_DISPLAY = auto()
+    GAP_IO_CAP_LAST = auto()
 
-/// IO Capability Values
-enum gap_io_cap
-{
-    /// Display Only
-    GAP_IO_CAP_DISPLAY_ONLY = 0x00,
-    /// Display Yes No
-    GAP_IO_CAP_DISPLAY_YES_NO,
-    /// Keyboard Only
-    GAP_IO_CAP_KB_ONLY,
-    /// No Input No Output
-    GAP_IO_CAP_NO_INPUT_NO_OUTPUT,
-    /// Keyboard Display
-    GAP_IO_CAP_KB_DISPLAY,
-    GAP_IO_CAP_LAST
-};
 
-/// TK Type
-enum gap_tk_type
-{
-    ///  TK get from out of band method
-    GAP_TK_OOB         = 0x00,
-    /// TK generated and shall be displayed by local device
-    GAP_TK_DISPLAY,
-    /// TK shall be entered by user using device keyboard
-    GAP_TK_KEY_ENTRY,
-    /// TK shall be displayed and confirmed
-    GAP_TK_KEY_CONFIRM
-};
+# TK Type
+class GAP_TK_TYPE(IntEnum):
 
-/// OOB Data Present Flag Values
-enum gap_oob
-{
-    /// OOB Data not present
-    GAP_OOB_AUTH_DATA_NOT_PRESENT = 0x00,
-    /// OOB data present
-    GAP_OOB_AUTH_DATA_PRESENT,
-    GAP_OOB_AUTH_DATA_LAST
-};
-'''
+    #  TK get from out of band method
+    GAP_TK_OOB         = 0x00
+    # TK generated and shall be displayed by local device
+    GAP_TK_DISPLAY = auto()
+    # TK shall be entered by user using device keyboard
+    GAP_TK_KEY_ENTRY = auto()
+    # TK shall be displayed and confirmed
+    GAP_TK_KEY_CONFIRM = auto()
+
+
+# OOB Data Present Flag Values
+class GAP_OOB(IntEnum):
+    # OOB Data not present
+    GAP_OOB_AUTH_DATA_NOT_PRESENT = 0x00
+    # OOB data present
+    GAP_OOB_AUTH_DATA_PRESENT = auto()
+    GAP_OOB_AUTH_DATA_LAST = auto()
+
+
 # Authentication mask
 class GAP_AUTH_MASK(IntEnum):
     # No Flag set
@@ -310,43 +306,42 @@ class GAP_AUTH(IntEnum):
 
     GAP_AUTH_REQ_LAST = auto()
 
-'''
-/// Key Distribution Flags
-enum gap_kdist
-{
-    /// No Keys to distribute
+
+# Key Distribution Flags
+class GAP_KDIST(IntEnum):
+
+    # No Keys to distribute
     GAP_KDIST_NONE = 0x00,
-    /// Encryption key in distribution
-    GAP_KDIST_ENCKEY = (1 << 0),
-    /// IRK (ID key)in distribution
-    GAP_KDIST_IDKEY  = (1 << 1),
-    /// CSRK(Signature key) in distribution
-    GAP_KDIST_SIGNKEY= (1 << 2),
-    // TODO add missing comment
-    GAP_KDIST_BR_EDR = (1 << 3),
+    # Encryption key in distribution
+    GAP_KDIST_ENCKEY = (1 << 0)
+    # IRK (ID key)in distribution
+    GAP_KDIST_IDKEY  = (1 << 1)
+    # CSRK(Signature key) in distribution
+    GAP_KDIST_SIGNKEY= (1 << 2)
+    # TODO add missing comment (This is from the original file, what does it mean???)
+    GAP_KDIST_BR_EDR = (1 << 3)
 
     GAP_KDIST_LAST =   (1 << 4)
-};
 
-/// Security Defines
-enum gap_sec_req
-{
-    /// No security (no authentication and encryption)
+# Security Defines
+class GAP_SEC_REQ(IntEnum):
+
+    # No security (no authentication and encryption)
     GAP_NO_SEC = 0x00,
-    /// Unauthenticated pairing with encryption
-    GAP_SEC1_NOAUTH_PAIR_ENC,
-    /// Authenticated pairing with encryption
-    GAP_SEC1_AUTH_PAIR_ENC,
-    /// Unauthenticated pairing with data signing
-    GAP_SEC2_NOAUTH_DATA_SGN,
-    /// Authentication pairing with data signing
-    GAP_SEC2_AUTH_DATA_SGN,
-    /// Authenticated LE Secure Connections pairing with encryption
-    GAP_SEC1_SEC_PAIR_ENC,
-    /// Unrecognized security
-    GAP_SEC_UNDEFINED
-};
+    # Unauthenticated pairing with encryption
+    GAP_SEC1_NOAUTH_PAIR_ENC = auto()
+    # Authenticated pairing with encryption
+    GAP_SEC1_AUTH_PAIR_ENC = auto()
+    # Unauthenticated pairing with data signing
+    GAP_SEC2_NOAUTH_DATA_SGN = auto()
+    # Authentication pairing with data signing
+    GAP_SEC2_AUTH_DATA_SGN = auto()
+    # Authenticated LE Secure Connections pairing with encryption
+    GAP_SEC1_SEC_PAIR_ENC = auto()
+    # Unrecognized security
+    GAP_SEC_UNDEFINED = auto()
 
+'''
 /// device name
 struct gap_dev_name
 {

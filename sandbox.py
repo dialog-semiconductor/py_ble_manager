@@ -19,15 +19,35 @@ print(bytes_string)
 #print(msg)
 #print(msg.parameters.info.host.adv_data.value)
 
+test_message = GapmSetDevConfigCmd()
+test_message.parameters.operation = GAPM_OPERATION.GAPM_SET_DEV_CONFIG
+test_message.parameters.role = GAP_ROLE.GAP_ROLE_PERIPHERAL
+test_message.parameters.att_cfg = 0x20 # TODO setup GAPM_MASK_ATT_SVC_CNG_EN
+test_message.parameters.max_mtu = 512 
+test_message.parameters.max_txoctets = 251
+test_message.parameters.max_txtime = 2120
 
-test_message = GapcGetInfoCmd()
-test_message.parameters.operation = GAPC_OPERATION.GAPC_GET_PEER_FEATURES
 print(test_message)
-expected = "05050E0E001000010004"
-print(expected)
-print(test_message.to_hex())
-print(test_message.to_hex() == expected)
 
+
+test_message2 = GapmSetDevConfigCmd()
+test_message2.parameters.operation = GAPM_OPERATION.GAPM_SET_DEV_CONFIG
+test_message2.parameters.role = GAP_ROLE.GAP_ROLE_PERIPHERAL
+test_message2.parameters.att_cfg = 0x20 # TODO setup GAPM_MASK_ATT_SVC_CNG_EN
+test_message2.parameters.max_mtu = 512 
+test_message2.parameters.max_txoctets = 251
+test_message2.parameters.max_txtime = 2120
+
+# Test mutable arguments to ctypes Strucutre
+test_message2.parameters.addr.addr = (c_uint8*BD_ADDR_LEN)(1,2,3,4,5,6)
+
+print(test_message)
+print(test_message2)
+
+print(test_message == test_message2)
+
+
+print(GapcBondCfm())
 
 '''
 print("Expect true: ", first_message == second_message)

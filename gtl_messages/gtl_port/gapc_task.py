@@ -340,34 +340,31 @@ class GAPC_OPERATION(IntEnum):
     # Last GAPC operation flag
     GAPC_LAST = auto()
 
-'''
-
 # Bond event type.
-enum gapc_bond
-{
+class GAPC_BOND(IntEnum):
     # Bond Pairing request
-    GAPC_PAIRING_REQ,
+    GAPC_PAIRING_REQ = 0x00
     # Respond to Pairing request
-    GAPC_PAIRING_RSP,
+    GAPC_PAIRING_RSP = auto()
 
     # Pairing Finished information
-    GAPC_PAIRING_SUCCEED,
+    GAPC_PAIRING_SUCCEED = auto()
     # Pairing Failed information
-    GAPC_PAIRING_FAILED,
+    GAPC_PAIRING_FAILED = auto()
 
     # Used to retrieve pairing Temporary Key
-    GAPC_TK_EXCH,
+    GAPC_TK_EXCH = auto()
     # Used for Identity Resolving Key exchange
-    GAPC_IRK_EXCH,
+    GAPC_IRK_EXCH = auto()
     # Used for Connection Signature Resolving Key exchange
-    GAPC_CSRK_EXCH,
+    GAPC_CSRK_EXCH = auto()
     # Used for Long Term Key exchange
-    GAPC_LTK_EXCH,
+    GAPC_LTK_EXCH = auto()
 
     # Bond Pairing request issue, Repeated attempt
-    GAPC_REPEATED_ATTEMPT
-};
+    GAPC_REPEATED_ATTEMPT = auto()
 
+'''
 # List of device info that should be provided by application
 enum gapc_dev_info
 {
@@ -601,15 +598,23 @@ struct gapc_peer_version_ind
     # LMP version
     uint8_t  lmp_vers;
 };
+'''
 
 # Indication of peer features info
-struct gapc_peer_features_ind
-{
-    # 8-byte array for LE features
-    uint8_t features[LE_FEATS_LEN];
-};
+class gapc_peer_features_ind(Structure):
+
+    def __init__(self, 
+                 features: Array = (c_uint8*LE_FEATS_LEN)()):
+
+        self.features = features
+        super().__init__(features=self.features)
+
+                # 8-byte array for LE features
+    _fields_ = [("features", c_uint8*LE_FEATS_LEN)]   
 
 
+
+'''
 
 
 
@@ -771,40 +776,77 @@ struct gapc_param_update_cfm
     # Maximum Connection Event Duration
     uint16_t ce_len_max;
 };
-
+'''
 # Pairing parameters
-struct gapc_pairing
-{
-    # IO capabilities (@see gap_io_cap)
-    uint8_t iocap;
-    # OOB information (@see gap_oob)
-    uint8_t oob;
-    # Authentication (@see gap_auth)
-    uint8_t auth;
-    # Encryption key size (7 to 16)
-    uint8_t key_size;
-    #Initiator key distribution (@see gap_kdist)
-    uint8_t ikey_dist;
-    #Responder key distribution (@see gap_kdist)
-    uint8_t rkey_dist;
+class gapc_pairing(Structure):
+    def __init__(self, 
+                 iocap: GAP_IO_CAP = GAP_IO_CAP.GAP_IO_CAP_DISPLAY_ONLY,
+                 oob: GAP_OOB = GAP_OOB.GAP_OOB_AUTH_DATA_NOT_PRESENT,
+                 auth: GAP_AUTH = GAP_AUTH.GAP_AUTH_REQ_NO_MITM_NO_BOND,
+                 key_size: c_uint8 = 16,
+                 ikey_dist: GAP_KDIST = GAP_KDIST.GAP_KDIST_NONE,
+                 rkey_dist: GAP_KDIST = GAP_KDIST.GAP_KDIST_NONE,
+                 sec_req: gap_sec_key = gap_sec_key()):
 
-    # Device security requirements (minimum security level). (@see gap_sec_req)
-    uint8_t sec_req;
-};
+        self.iocap = iocap
+        self.oob = oob
+        self.auth = auth
+        self.key_size = key_size
+        self.ikey_dist = ikey_dist
+        self.rkey_dist = rkey_dist
+        self.sec_req = sec_req
+        super().__init__(iocap=self.iocap,
+                         oob=self.oob,
+                         auth=self.auth,
+                         key_size=self.key_size,
+                         ikey_dist=self.ikey_dist,
+                         rkey_dist=self.rkey_dist,
+                         sec_req=self.sec_req)
+
+                # IO capabilities (@see gap_io_cap)
+    _fields_ = [("iocap", c_uint8),
+                # OOB information (@see gap_oob)
+                ("oob", c_uint8),
+                # Authentication (@see gap_auth)
+                ("auth", c_uint8),
+                # Encryption key size (7 to 16)
+                ("key_size", c_uint8),
+                #Initiator key distribution (@see gap_kdist)
+                ("ikey_dist", c_uint8),
+                #Responder key distribution (@see gap_kdist)
+                ("rkey_dist", c_uint8),
+                # Device security requirements (minimum security level). (@see gap_sec_req)
+                ("sec_req", gap_sec_key)]  
+
 
 # Long Term Key information
-struct gapc_ltk
-{
-    # Long Term Key
-    struct gap_sec_key ltk;
-    # Encryption Diversifier
-    uint16_t ediv;
-    # Random Number
-    struct rand_nb randnb;
-    # Encryption key size (7 to 16)
-    uint8_t key_size;
-};
+class gapc_ltk(Structure):
 
+    def __init__(self, 
+                 ltk: gap_sec_key = gap_sec_key(),
+                 ediv: c_uint16 = 0,
+                 randnb: rand_nb = rand_nb(),
+                 key_size: c_uint8 = 16):
+
+        self.ltk = ltk
+        self.ediv = ediv
+        self.randnb = randnb
+        self.key_size = key_size
+        super().__init__(ltk=self.ltk,
+                         ediv=self.ediv,
+                         randnb=self.randnb,
+                         key_size=self.key_size)
+
+                # Long Term Key
+    _fields_ = [("ltk", gap_sec_key),
+                # Encryption Diversifier
+                ("ediv", c_uint16),
+                # Random Number)
+                ("randnb", rand_nb),
+                # Encryption key size (7 to 16)
+                ("key_size", c_uint8)]  
+
+'''
 # Identity Resolving Key information
 struct gapc_irk
 {
@@ -824,54 +866,118 @@ struct gapc_bond_cmd
     # Pairing information
     struct gapc_pairing pairing;
 };
+'''
+# Bond procedure requested information data
+class gapc_bond_req_data(Union):
+
+    def __init__(self, 
+                 auth_req: GAP_AUTH = None,
+                 key_size: c_uint8 = None,
+                 tk_type: GAP_TK_TYPE = None):
+
+        if auth_req:
+            self.auth_req = auth_req
+            super().__init__(auth_req=self.auth_req)
+        elif key_size:
+            self.key_size = key_size
+            super().__init__(key_size=self.key_size)
+        elif tk_type:
+            self.tk_type = tk_type
+            super().__init__(tk_type=self.tk_type)
+        else:
+            self.auth_req = 0
+            super().__init__(auth_req=self.auth_req)
+
+                # Authentication level (@see gap_auth) (if request = GAPC_PAIRING_REQ)
+    _fields_ = [("auth_req", c_uint8),
+                # LTK Key Size (if request = GAPC_LTK_EXCH)
+                ("key_size", c_uint8),
+                # Device IO used to get TK: (if request = GAPC_TK_EXCH)
+                #  - GAP_TK_OOB:       TK get from out of band method
+                #  - GAP_TK_DISPLAY:   TK generated and shall be displayed by local device
+                #  - GAP_TK_KEY_ENTRY: TK shall be entered by user using device keyboard
+                #  - GAP_TK_KEY_CONFIRM: TK shall be displayed and confirmed
+                ("tk_type", c_uint8)]  
 
 # Bonding requested by peer device indication message.
-struct gapc_bond_req_ind
-{
-    # Bond request type (@see gapc_bond)
-    uint8_t request;
+class gapc_bond_req_ind(Structure):
 
-    # Bond procedure requested information data
-    union gapc_bond_req_data
-    {
-        # Authentication level (@see gap_auth) (if request = GAPC_PAIRING_REQ)
-        uint8_t auth_req;
-        # LTK Key Size (if request = GAPC_LTK_EXCH)
-        uint8_t key_size;
-        # Device IO used to get TK: (if request = GAPC_TK_EXCH)
-        #  - GAP_TK_OOB:       TK get from out of band method
-        #  - GAP_TK_DISPLAY:   TK generated and shall be displayed by local device
-        #  - GAP_TK_KEY_ENTRY: TK shall be entered by user using device keyboard
-        #  - GAP_TK_KEY_CONFIRM: TK shall be displayed and confirmed
-        uint8_t tk_type;
-    } data;
+    def __init__(self, 
+                 request: GAPC_BOND = GAPC_BOND.GAPC_PAIRING_REQ,
+                 data: gapc_bond_req_data = gapc_bond_req_data(),
+                 tk: gap_sec_key = gap_sec_key()):
 
-    struct gap_sec_key tk;
-};
+        self.request = request
+        self.data = data
+        self.tk = tk
+        super().__init__(request=self.request,
+                         data=self.data,
+                         tk=self.tk)
+
+                # Bond request type (@see gapc_bond)
+    _fields_ = [("request", c_uint8),
+                # Bond procedure requested information data
+                ("data", gapc_bond_req_data),
+                ("tk", gap_sec_key)]
+
+# Bond procedure information data
+class gapc_bond_cfm_data(Union):
+
+    def __init__(self, 
+                 pairing_feat: gapc_pairing = None,
+                 ltk: gapc_ltk = None,
+                 csrk: gap_sec_key = None,
+                 tk: gap_sec_key = None):
+
+        if pairing_feat:
+            self.pairing_feat = pairing_feat
+            super().__init__(pairing_feat=self.pairing_feat)
+        elif ltk:
+            self.ltk = ltk
+            super().__init__(ltk=self.ltk)
+        elif csrk:
+            self.csrk = csrk
+            super().__init__(csrk=self.csrk)
+        elif tk:
+            self.tk = tk
+            super().__init__(tk=self.tk)
+        else:
+            self.pairing_feat = gapc_pairing()
+            super().__init__(pairing_feat=self.pairing_feat)
+
+                # Pairing Features (request = GAPC_PAIRING_RSP)
+    _fields_ = [("pairing_feat", gapc_pairing),
+                # LTK (request = GAPC_LTK_EXCH)
+                ("ltk", gapc_ltk),
+                # CSRK (request = GAPC_CSRK_EXCH)
+                ("csrk", gap_sec_key),
+                # TK (request = GAPC_TK_EXCH)
+                ("tk", gap_sec_key)]  
 
 # Confirm requested bond information.
-struct gapc_bond_cfm
-{
-    # Bond request type (@see gapc_bond)
-    uint8_t request;
-    # Request accepted
-    uint8_t accept;
+class gapc_bond_cfm(Structure):
 
-    # Bond procedure information data
-    union gapc_bond_cfm_data
-    {
-        # Pairing Features (request = GAPC_PAIRING_RSP)
-        struct gapc_pairing pairing_feat;
-        # LTK (request = GAPC_LTK_EXCH)
-        struct gapc_ltk ltk;
-        # CSRK (request = GAPC_CSRK_EXCH)
-        struct gap_sec_key csrk;
-        # TK (request = GAPC_TK_EXCH)
-        struct gap_sec_key tk;
-    } data;
-};
+    def __init__(self, 
+                 request: GAPC_BOND = GAPC_BOND.GAPC_PAIRING_RSP,
+                 accept: c_uint8 = 0,
+                 data: gapc_bond_cfm_data = gapc_bond_cfm_data()):
+
+        self.request = request
+        self.accept = accept
+        self.data = data
+        super().__init__(request=self.request,
+                         accept=self.accept,
+                         data=self.data)
+
+                # Bond request type (@see gapc_bond)
+    _fields_ = [("request", c_uint8),
+                # Request accepted
+                ("accept", c_uint8),
+                # Bond procedure information data
+                ("data", gapc_bond_cfm_data)]
 
 
+'''
 # Bonding information indication message
 struct gapc_bond_ind
 {

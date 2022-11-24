@@ -207,7 +207,9 @@ class TestGapmStartConnectionCmd(unittest.TestCase):
         # TODO need api for this defined somewhere
         addr_array = c_uint8*BD_ADDR_LEN
         # TODO need api to swap endian
-        test_message.parameters.peers.addr.addr=addr_array(0x09, 0xEE, 0x70, 0xCA, 0xEA, 0x80)
+
+        addr_string = bytes.fromhex('80EACA70EE09').__reversed__
+        test_message.parameters.peers.addr.addr = (c_uint8 * BD_ADDR_LEN).from_buffer_copy(addr_string)
     
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 

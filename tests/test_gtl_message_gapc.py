@@ -101,7 +101,6 @@ class TestGapcGetInfoCmd(unittest.TestCase):
     def setUp(self):
         self.expected = "05050E0E001000010004"
 
-    # TODO for some reason this fails even though 0x0E is the same
     def test_parameters_updated_after_construction(self):
         test_message = GapcGetInfoCmd()
         test_message.parameters.operation = GAPC_OPERATION.GAPC_GET_PEER_FEATURES
@@ -112,7 +111,82 @@ class TestGapcGetInfoCmd(unittest.TestCase):
         test_message = GapcGetInfoCmd(conidx=1)
         test_message.parameters.operation = GAPC_OPERATION.GAPC_GET_PEER_FEATURES
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
-              
+
+# Table 27
+class TestGapcPeerFeaturesInd(unittest.TestCase):
+
+    def setUp(self):
+        # TODO Alot of these E's in the maanual are unicode in the document (U+0395 instead of U+0045)
+        self.expected = "05080E10000E000800FF00000000000000"
+
+    def test_parameters_updated_after_construction(self):
+        test_message = GapcPeerFeaturesInd()
+        features = bytearray(bytes.fromhex('FF00000000000000'))
+        test_message.parameters.features = (c_uint8 * LE_FEATS_LEN).from_buffer_copy(features)
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_non_zero_conidx(self):
+        test_message = GapcPeerFeaturesInd(conidx=1)
+        features = bytearray(bytes.fromhex('FF00000000000000'))
+        test_message.parameters.features = (c_uint8 * LE_FEATS_LEN).from_buffer_copy(features)
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+            
+# Table 31 
+class TestGapcBondReqInd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected_legacy = "05130E10000E001200000500000000000000000000000000000000"
+        self.expected_secure_connections = "05130E10000E001200000D00000000000000000000000000000000"
+
+    def test_parameters_updated_after_construction_legacy(self):
+        test_message = GapcBondReqInd()
+        test_message.parameters.request = GAPC_BOND.GAPC_PAIRING_REQ
+        test_message.parameters.data.auth_req = GAP_AUTH.GAP_AUTH_REQ_MITM_BOND
+
+        self.assertEqual(test_message.to_hex(), self.expected_legacy, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_non_zero_conidx_legacy(self):
+        test_message = GapcBondReqInd(conidx=1)
+        test_message.parameters.request = GAPC_BOND.GAPC_PAIRING_REQ
+        test_message.parameters.data.auth_req = GAP_AUTH.GAP_AUTH_REQ_MITM_BOND
+
+        self.assertNotEqual(test_message.to_hex(), self.expected_legacy, f"{type(test_message).__name__}() incorrect byte stream")
+            
+    def test_parameters_updated_after_construction_secure(self):
+        test_message = GapcBondReqInd()
+        test_message.parameters.request = GAPC_BOND.GAPC_PAIRING_REQ
+        test_message.parameters.data.auth_req = GAP_AUTH.GAP_AUTH_REQ_MITM_BOND | GAP_AUTH. GAP_AUTH_REQ_SECURE_CONNECTION
+
+        self.assertEqual(test_message.to_hex(), self.expected_secure_connections, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_non_zero_conidx_secure(self):
+        test_message = GapcBondReqInd(conidx=1)
+        test_message.parameters.request = GAPC_BOND.GAPC_PAIRING_REQ
+        test_message.parameters.data.auth_req = GAP_AUTH.GAP_AUTH_REQ_MITM_BOND | GAP_AUTH. GAP_AUTH_REQ_SECURE_CONNECTION
+
+        self.assertNotEqual(test_message.to_hex(), self.expected_secure_connections, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 33
+class TestGapcBondCfm(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05140E0E0010001E00010101000D10020102000000000000000000000000000000000000000000"
+
+    def test_parameters_updated_after_construction(self):
+        test_message = GapcBondCfm()
+        test_message.parameters.request = GAPC_BOND.GAPC_PAIRING_RSP
+        test_message.parameters.accept = True        
+        test_message.parameters.features = (c_uint8 * LE_FEATS_LEN).from_buffer_copy(features)
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_non_zero_conidx(self):
+        test_message = GapcBondCfm(conidx=1)
+        features = bytearray(bytes.fromhex('FF00000000000000'))
+        test_message.parameters.features = (c_uint8 * LE_FEATS_LEN).from_buffer_copy(features)
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+         
 
 if __name__ == '__main__':
     unittest.main()
