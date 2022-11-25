@@ -106,4 +106,4 @@ class GapcBondCfm(GtlMessageBase):
 
         self.parameters = params
 
-     
+# TODO Next message: GAPC_BOND_IND 

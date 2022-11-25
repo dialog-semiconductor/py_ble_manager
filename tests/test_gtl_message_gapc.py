@@ -156,14 +156,14 @@ class TestGapcBondReqInd(unittest.TestCase):
     def test_parameters_updated_after_construction_secure(self):
         test_message = GapcBondReqInd()
         test_message.parameters.request = GAPC_BOND.GAPC_PAIRING_REQ
-        test_message.parameters.data.auth_req = GAP_AUTH.GAP_AUTH_REQ_MITM_BOND | GAP_AUTH. GAP_AUTH_REQ_SECURE_CONNECTION
+        test_message.parameters.data.auth_req = GAP_AUTH.GAP_AUTH_REQ_MITM_BOND | GAP_AUTH.GAP_AUTH_REQ_SECURE_CONNECTION
 
         self.assertEqual(test_message.to_hex(), self.expected_secure_connections, f"{type(test_message).__name__}() incorrect byte stream")
 
     def test_parameters_non_zero_conidx_secure(self):
         test_message = GapcBondReqInd(conidx=1)
         test_message.parameters.request = GAPC_BOND.GAPC_PAIRING_REQ
-        test_message.parameters.data.auth_req = GAP_AUTH.GAP_AUTH_REQ_MITM_BOND | GAP_AUTH. GAP_AUTH_REQ_SECURE_CONNECTION
+        test_message.parameters.data.auth_req = GAP_AUTH.GAP_AUTH_REQ_MITM_BOND | GAP_AUTH.GAP_AUTH_REQ_SECURE_CONNECTION
 
         self.assertNotEqual(test_message.to_hex(), self.expected_secure_connections, f"{type(test_message).__name__}() incorrect byte stream")
 
@@ -176,15 +176,29 @@ class TestGapcBondCfm(unittest.TestCase):
     def test_parameters_updated_after_construction(self):
         test_message = GapcBondCfm()
         test_message.parameters.request = GAPC_BOND.GAPC_PAIRING_RSP
-        test_message.parameters.accept = True        
-        test_message.parameters.features = (c_uint8 * LE_FEATS_LEN).from_buffer_copy(features)
+        test_message.parameters.accept = 0x01 # TODO enum for this?        
+        test_message.parameters.data.pairing_feat.iocap = GAP_IO_CAP.GAP_IO_CAP_DISPLAY_YES_NO
+        test_message.parameters.data.pairing_feat.oob = GAP_OOB.GAP_OOB_AUTH_DATA_NOT_PRESENT
+        test_message.parameters.data.pairing_feat.auth = GAP_AUTH.GAP_AUTH_REQ_SECURE_CONNECTION | GAP_AUTH.GAP_AUTH_REQ_MITM_BOND
+        # Key size 16 bytes by default
+        test_message.parameters.data.pairing_feat.ikey_dist = GAP_KDIST.GAP_KDIST_IDKEY # initiator should distribute IRK for random address resolution
+        test_message.parameters.data.pairing_feat.rkey_dist = GAP_KDIST.GAP_KDIST_ENCKEY # responder distributes LTK 
+        test_message.parameters.data.pairing_feat.sec_req = GAP_SEC_REQ.GAP_SEC1_AUTH_PAIR_ENC # minimum security requirements, MITM is required. Peer cannot pair without MITM
 
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
     def test_parameters_non_zero_conidx(self):
         test_message = GapcBondCfm(conidx=1)
-        features = bytearray(bytes.fromhex('FF00000000000000'))
-        test_message.parameters.features = (c_uint8 * LE_FEATS_LEN).from_buffer_copy(features)
+        test_message.parameters.request = GAPC_BOND.GAPC_PAIRING_RSP
+        test_message.parameters.accept = 0x01 # TODO enum for this?        
+        test_message.parameters.data.pairing_feat.iocap = GAP_IO_CAP.GAP_IO_CAP_DISPLAY_YES_NO
+        test_message.parameters.data.pairing_feat.oob = GAP_OOB.GAP_OOB_AUTH_DATA_NOT_PRESENT
+        test_message.parameters.data.pairing_feat.auth = GAP_AUTH.GAP_AUTH_REQ_SECURE_CONNECTION | GAP_AUTH.GAP_AUTH_REQ_MITM_BOND
+        # Key size 16 bytes by default
+        test_message.parameters.data.pairing_feat.ikey_dist = GAP_KDIST.GAP_KDIST_IDKEY # initiator should distribute IRK for random address resolution
+        test_message.parameters.data.pairing_feat.rkey_dist = GAP_KDIST.GAP_KDIST_ENCKEY # responder distributes LTK 
+        test_message.parameters.data.pairing_feat.sec_req = GAP_SEC_REQ.GAP_SEC1_AUTH_PAIR_ENC # minimum security requirements, MITM is required. Peer cannot pair without MITM
+
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
          
 

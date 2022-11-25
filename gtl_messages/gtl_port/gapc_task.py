@@ -786,7 +786,7 @@ class gapc_pairing(Structure):
                  key_size: c_uint8 = 16,
                  ikey_dist: GAP_KDIST = GAP_KDIST.GAP_KDIST_NONE,
                  rkey_dist: GAP_KDIST = GAP_KDIST.GAP_KDIST_NONE,
-                 sec_req: gap_sec_key = gap_sec_key()):
+                 sec_req: GAP_SEC_REQ = GAP_SEC_REQ.GAP_NO_SEC):
 
         self.iocap = iocap
         self.oob = oob
@@ -816,7 +816,7 @@ class gapc_pairing(Structure):
                 #Responder key distribution (@see gap_kdist)
                 ("rkey_dist", c_uint8),
                 # Device security requirements (minimum security level). (@see gap_sec_req)
-                ("sec_req", gap_sec_key)]  
+                ("sec_req", c_uint8)]  
 
 
 # Long Term Key information

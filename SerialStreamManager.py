@@ -7,15 +7,17 @@ from MessageRouter import *
 
 class SerialStreamManager(asyncio.Protocol):
 
+    def __init__(self, tx_queue: asyncio.Queue(), rx_queue: asyncio.Queue()) -> None:
+        # TODO error check queues are asyncio.Queue
+        #if(not tx_queue or not rx_queue):
+            # throw error
+        self.tx_queue = tx_queue 
+        self.rx_queue = rx_queue
+
     async def open_port(self):
+
         self.reader, self.writer = await serial_asyncio.open_serial_connection(url='COM13', baudrate=115200)
         #print("SerialStreamManager.open_port Port has been opened")
-    
-    def register_rx_callback(self, rx_callback):
-        self.rx_callback = rx_callback
-
-    async def notify(self, byte_string):
-        await self.rx_callback(byte_string)
 
     async def receive(self):
         while True:
@@ -31,24 +33,29 @@ class SerialStreamManager(asyncio.Protocol):
                     #print("Waiting for message params")
                     buffer += await self.reader.readexactly(par_len)
                 
-                #print(f"SerialStreamManager.receive Sending: {buffer}")
+                print(f"SerialStreamManager.receive Sending: {buffer}")
 
                 # Handle it
                 # TODO awaiting here makes is so buffer is not reset and enter endless loop
-                await self.notify(buffer)
+                self.rx_queue.put_nowait(buffer)
 
                 #print('Tasks count: ', len(asyncio.all_tasks()))
                 #print('Tasks: ', asyncio.all_tasks())
             else:
                 print("Received some garbage")
-
-    def send(self, byte_string):
-        #print(f"SerialStreamManager.send: {byte_string}")
-        self.writer.write(byte_string)
+    
+    async def send(self):
+        while True:
+            #TODO how to make vs code recongnize this is an asyncio.Queue? And that it is pulling off a GtlMessageBase message?
+            # TODO instead of infinite loop, could we instead schedule this coroutine when an item is put on the queue? 
+            message = await self.tx_queue.get()
+            print(f"SerialStreamManager.send(): {message}")
+            self.writer.write(message.to_bytes())
+            await self.writer.drain()
 
 
 # TODO move to a main file
-async def main(open_serial_port_coro, serial_rx_coro, router_tx_coro, router_handle_rx_coro):
+async def main(open_serial_port_coro, serial_rx_coro, serial_tx_coro, router_handle_rx_coro):
     # TaskGroup is in 3.11
     #async with asyncio.TaskGroup() as tg:
     #    task1 = tg.create_task(coro1,)
@@ -56,10 +63,11 @@ async def main(open_serial_port_coro, serial_rx_coro, router_tx_coro, router_han
 
     #task1 = asyncio.create_task(coro1, name='OpenPort')
     serial_rx_task = asyncio.create_task(serial_rx_coro, name='StreamRx')
-    router_tx_task = asyncio.create_task(router_tx_coro, name='RouterTx')
+    router_tx_task = asyncio.create_task(serial_tx_coro, name='StreamTx')
     router_handle_rx_task = asyncio.create_task(router_handle_rx_coro, name='RouterRx')
 
     #print("Waiting to open port")
+    # Wait until the port is open before starting any other coroutines
     await asyncio.wait_for(open_serial_port_coro, timeout=None)
 
     #print("Port should be open????????")
@@ -68,14 +76,15 @@ async def main(open_serial_port_coro, serial_rx_coro, router_tx_coro, router_han
     await router_handle_rx_task
 
 
-message_router = MessageRouter()
+tx_queue = asyncio.Queue() 
+rx_queue = asyncio.Queue()
+
+message_router = MessageRouter(tx_queue, rx_queue)
 gap_manager = GapManager()
 gap_controller = GapController()
 message_router.register_observer(gap_manager.handle_gap_message)
-serial_stream_manager = SerialStreamManager()
-serial_stream_manager.register_rx_callback(message_router.receive)
-message_router.register_tx_callback(serial_stream_manager.send)
+serial_stream_manager = SerialStreamManager(tx_queue, rx_queue)
 
 loop = asyncio.get_event_loop()
-loop.run_until_complete(main(serial_stream_manager.open_port(), serial_stream_manager.receive(), message_router.send(), message_router.handle_received_message()))
+loop.run_until_complete(main(serial_stream_manager.open_port(), serial_stream_manager.receive(), serial_stream_manager.send(), message_router.handle_received_message()))
 loop.close()
