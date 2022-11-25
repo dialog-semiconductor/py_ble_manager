@@ -20,6 +20,9 @@ class GapManager():
             response = self.handle_gapm_reset_cmd()
         elif(message.parameters.operation == GAPM_OPERATION.GAPM_SET_DEV_CONFIG):
             response = self.handle_gapm_set_dev_config()
+        #elif(message.parameters.operation == GAPM_OPERATION.GAPM_ADV_UNDIRECT): GAPM_START_ADVERTISE_CMD
+        else:
+            print(f"{type(self).__name__}.handle_gapm_cmp_evt unhandled operation: {str(GAPM_OPERATION(message.parameters.operation))}")
             # Because this is not handled we add a GtlBaseMessage to the queue
             #print("handle_gapm_reset_completion GAPM_SET_DEV_CONFIG")
         
