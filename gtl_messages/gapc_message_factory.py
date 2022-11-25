@@ -30,8 +30,7 @@ class GapcMessageFactory():
             elif msg_id == GAPC_MSG_ID.GAPC_SECURITY_CMD:
                 return GapcSecurityCmd(gapc_security_cmd.from_buffer_copy(params_buf))
 
-            raise AssertionError("GapcMessageFactory: Message type is handled or not valid")
+            raise AssertionError("GapcMessageFactory: Message type is unhandled or not valid")
         except AssertionError as e:
-            print("Exception")
             print(e)
 

@@ -24,8 +24,6 @@ class GtlMessageFactory():
             if message_task_id == KE_API_ID.TASK_ID_GAPM:
                 return GapmMessageFactory().create_message(msg_bytes)
            
-            print("Failed to created")
-            raise AssertionError("GtlMessageFactory: Message type is handled or not valid.")
+            raise AssertionError("GtlMessageFactory: Message type is unhandled or not valid.")
         except AssertionError as e:
-            print("Exception")
             print(e)

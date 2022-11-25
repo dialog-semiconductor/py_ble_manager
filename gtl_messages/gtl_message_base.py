@@ -43,7 +43,8 @@ class GtlMessageBase():
 
     # TODO need to handle if parameter field is another Strucutre, and if is an array
     def __repr__(self):
-        return_string = f'{type(self).__name__}(msg_id={self.msg_id}, dst_id={self.dst_id}, src_id={self.src_id}, par_len={self.par_len}, parameters={type(self.parameters).__name__}'
+        # TODO KE_API_ID(self.src_id or dst_id) will not be correct if conidx is not 0
+        return_string = f'{type(self).__name__}(msg_id={self.msg_id}, dst_id={KE_API_ID(self.dst_id)}, src_id={KE_API_ID(self.src_id)}, par_len={self.par_len}, parameters={type(self.parameters).__name__}'
         return_string += self.struct_to_str(self.parameters)
         return_string = return_string[:-2]
         return_string += f')'

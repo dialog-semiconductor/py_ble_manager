@@ -33,7 +33,7 @@ class SerialStreamManager(asyncio.Protocol):
                     #print("Waiting for message params")
                     buffer += await self.reader.readexactly(par_len)
                 
-                print(f"SerialStreamManager.receive Sending: {buffer}")
+                #print(f"<-- SerialStreamManager.receive Sending: {buffer}")
 
                 # Handle it
                 # TODO awaiting here makes is so buffer is not reset and enter endless loop
@@ -49,7 +49,7 @@ class SerialStreamManager(asyncio.Protocol):
             #TODO how to make vs code recongnize this is an asyncio.Queue? And that it is pulling off a GtlMessageBase message?
             # TODO instead of infinite loop, could we instead schedule this coroutine when an item is put on the queue? 
             message = await self.tx_queue.get()
-            print(f"SerialStreamManager.send(): {message}")
+            print(f"-- > SerialStreamManager.send(): {message}")
             self.writer.write(message.to_bytes())
             await self.writer.drain()
 

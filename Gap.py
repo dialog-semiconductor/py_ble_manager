@@ -80,7 +80,12 @@ class GapManager():
     def handle_gap_message(self, message: GtlMessageBase):
         #print("GapManager.handle_gap_message Calling function table")
         #TODO be careful, not clear if you are calling instance func or class method
-        return self.func_table[message.msg_id](self, message)
-
+        response = None
+        # dict.get() will return None if no key found
+        handler = self.func_table.get(message.msg_id)
+        if handler: 
+            # TODO func_table is currently a class variable, make instance var?
+            response = handler(self, message)
+        return response
 class GapController():
         pass
