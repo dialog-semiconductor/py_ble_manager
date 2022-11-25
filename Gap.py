@@ -15,12 +15,11 @@ class GapManager():
 
     def handle_gapm_cmp_evt(self, message: GapmCmpEvt = None):
 
-        response = GtlMessageBase()
+        response = None
         if(message.parameters.operation == GAPM_OPERATION.GAPM_RESET):
             response = self.handle_gapm_reset_cmd()
         elif(message.parameters.operation == GAPM_OPERATION.GAPM_SET_DEV_CONFIG):
             response = self.handle_gapm_set_dev_config()
-            pass
             # Because this is not handled we add a GtlBaseMessage to the queue
             #print("handle_gapm_reset_completion GAPM_SET_DEV_CONFIG")
         
@@ -44,7 +43,7 @@ class GapManager():
         #TODO remove below, just testing to advertise
         response = GapmStartAdvertiseCmd()
         response.parameters.op.code = GAPM_OPERATION.GAPM_ADV_UNDIRECT
-        response.parameters.op.addr_src = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_STATIC
+        response.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_STATIC_ADDR
         response.parameters.intv_min = 200 # 0.625 x 200 = 125ms TODO would be nicer to have adv_slots to ms. Should it belong to a class?
         response.parameters.intv_max = 200 # see above
         response.parameters.channel_map = ADV_CHANNEL_MAP.ADV_ALL_CHNLS_EN 
@@ -86,6 +85,8 @@ class GapManager():
         if handler: 
             # TODO func_table is currently a class variable, make instance var?
             response = handler(self, message)
+            if not response:
+                print(f"GapManager() unhandled message")
         return response
 class GapController():
         pass
