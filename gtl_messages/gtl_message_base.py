@@ -8,7 +8,7 @@ GTL_INITIATOR = 0x05
 class GtlMessageBase():
 
     def __init__(self, 
-                 msg_id: GAPM_MSG_ID = GAPM_MSG_ID.GAPM_UNKNOWN_TASK_MSG, 
+                 msg_id: c_uint8 = 0, 
                  dst_id: KE_API_ID = KE_API_ID.TASK_ID_INVALID,
                  src_id: KE_API_ID = KE_API_ID.TASK_ID_INVALID,
                  par_len: int = 0, 
@@ -44,7 +44,20 @@ class GtlMessageBase():
     # TODO need to handle if parameter field is another Strucutre, and if is an array
     def __repr__(self):
         # TODO KE_API_ID(self.src_id or dst_id) will not be correct if conidx is not 0
-        return_string = f'{type(self).__name__}(msg_id={self.msg_id}, dst_id={KE_API_ID(self.dst_id)}, src_id={KE_API_ID(self.src_id)}, par_len={self.par_len}, parameters={type(self.parameters).__name__}'
+        #print(type(self.msg_id))
+        #print(type(self.msg_id).__name__)
+        message_id = str(eval(f"{type(self.msg_id).__name__}({self.msg_id})"))
+        if self.dst_id != KE_API_ID.TASK_ID_GTL:
+            destination_id = f"(conidx={(self.dst_id & 0xFF00) >> 8}, id={str(KE_API_ID(self.dst_id & 0xFF))})"
+            source_id = str(KE_API_ID(self.src_id))
+        else:
+            source_id = f"(conidx={(self.src_id & 0xFF00) >> 8}, id={str(KE_API_ID(self.src_id & 0xFF))})"
+            destination_id = str(KE_API_ID(self.dst_id))
+
+        print(message_id)
+        return_string = f'{type(self).__name__}(msg_id={message_id}, dst_id={destination_id}, src_id={source_id}, par_len={self.par_len}, parameters={type(self.parameters).__name__}'
+        
+        #return_string = f'{type(self).__name__}(msg_id={self.msg_id}, dst_id={KE_API_ID(self.dst_id)}, src_id={KE_API_ID(self.src_id)}, par_len={self.par_len}, parameters={type(self.parameters).__name__}'
         return_string += self.struct_to_str(self.parameters)
         return_string = return_string[:-2]
         return_string += f')'
