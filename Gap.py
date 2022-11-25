@@ -76,6 +76,7 @@ class GapManager():
         GAPM_MSG_ID.GAPM_CANCEL_CMD: default_handler,
     }
 
+    # TODO likely need to pass incoming message, also need to pass conidx
     def handle_message(self, message: GtlMessageBase):
         #print("GapManager.handle_gap_message Calling function table")
         #TODO be careful, not clear if you are calling instance func or class method
@@ -117,6 +118,7 @@ class GapController():
         #TODO be careful, not clear if you are calling instance func or class method
         response = None
 
+        # TODO likely need to pass incoming message, also need to pass conidx
         handler = self.func_table.get(message.msg_id)
         if handler: 
             # TODO func_table is currently a class variable, make instance var?
