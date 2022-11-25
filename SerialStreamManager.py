@@ -33,7 +33,7 @@ class SerialStreamManager(asyncio.Protocol):
                     #print("Waiting for message params")
                     buffer += await self.reader.readexactly(par_len)
                 
-                #print(f"<-- SerialStreamManager.receive Sending: {buffer}")
+                print(f"<-- SerialStreamManager.receive Sending: {buffer}")
 
                 # Handle it
                 # TODO awaiting here makes is so buffer is not reset and enter endless loop
@@ -82,7 +82,8 @@ rx_queue = asyncio.Queue()
 message_router = MessageRouter(tx_queue, rx_queue)
 gap_manager = GapManager()
 gap_controller = GapController()
-message_router.register_observer(gap_manager.handle_gap_message)
+message_router.register_observer(gap_manager.handle_message)
+message_router.register_observer(gap_controller.handle_message)
 serial_stream_manager = SerialStreamManager(tx_queue, rx_queue)
 
 loop = asyncio.get_event_loop()

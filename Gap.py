@@ -6,7 +6,7 @@ from gtl_messages import *
 class GapManager():
 
     def default_handler(self, message):
-        print("default handler")
+        print(f"{type(self).__name__} default handler")
         return None
 
     def handle_gapm_device_ready_ind(self, message):      
@@ -76,7 +76,7 @@ class GapManager():
         GAPM_MSG_ID.GAPM_CANCEL_CMD: default_handler,
     }
 
-    def handle_gap_message(self, message: GtlMessageBase):
+    def handle_message(self, message: GtlMessageBase):
         #print("GapManager.handle_gap_message Calling function table")
         #TODO be careful, not clear if you are calling instance func or class method
         response = None
@@ -86,7 +86,41 @@ class GapManager():
             # TODO func_table is currently a class variable, make instance var?
             response = handler(self, message)
             if not response:
-                print(f"GapManager() unhandled message")
+                print(f"{type(self).__name__} unhandled message")
         return response
+
 class GapController():
-        pass
+    def default_handler(self, message):
+        print(f"{type(self).__name__} default handler")
+        return None
+
+    def handle_gapc_cmp_evt(self, message: GapmCmpEvt = None):
+        response = None
+        return response     
+
+    def handle_gapc_connection_req_ind(self, message: GapmCmpEvt = None):
+        response = GapcConnectionCfm()
+        response.parameters.auth = GAP_AUTH.GAP_AUTH_REQ_NO_MITM_NO_BOND
+        response.parameters.svc_changed_ind_enable = 0 # TODO is there an enum for this?
+
+        return response     
+
+
+    func_table = {
+        GAPC_MSG_ID.GAPC_CMP_EVT: handle_gapc_cmp_evt,
+        GAPC_MSG_ID.GAPC_CONNECTION_REQ_IND: handle_gapc_connection_req_ind,
+        GAPC_MSG_ID.GAPC_BOND_CFM: default_handler,
+    }
+
+    # TODO this handler is the same for Gapm and Gapc, make a base class they both inherit from or a common interface 
+    def handle_message(self, message: GtlMessageBase):
+        #TODO be careful, not clear if you are calling instance func or class method
+        response = None
+
+        handler = self.func_table.get(message.msg_id)
+        if handler: 
+            # TODO func_table is currently a class variable, make instance var?
+            response = handler(self, message)
+            if not response:
+                print(f"{type(self).__name__} unhandled message")
+        return response
