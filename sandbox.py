@@ -2,23 +2,9 @@ import serial
 from ctypes import *
 from gtl_messages import *
 
-first_message = GapmCmpEvt()
-second_message = GapmCmpEvt()
-print(f"TESTING")
-#bytes_string = "\x05\x01\r\x10\x00\r\x00\x00\x00"
-bytes_string = bytes.fromhex("05010D10000D000000")
-print(bytes_string)
-#message = GtlMessageFactory.create_message(bytes_string)
-
-#print(message)
-#print(f"With f string: {message}")
-#print(GapmCmpEvt())
-#print(GtlMessageBase())
-#msg = GapmStartAdvertiseCmd()
-#msg = GapmSetDevConfigCmd()
-#print(msg)
-#print(msg.parameters.info.host.adv_data.value)
-
+print(GapcBondCfm(conidx=1))
+print(GapcBondReqInd(conidx=2))
+'''
 test_message = GapmSetDevConfigCmd()
 test_message.parameters.operation = GAPM_OPERATION.GAPM_SET_DEV_CONFIG
 test_message.parameters.role = GAP_ROLE.GAP_ROLE_PERIPHERAL
@@ -45,9 +31,7 @@ print(test_message)
 print(test_message2)
 
 print(test_message == test_message2)
-
-
-print(GapcBondCfm())
+'''
 
 '''
 print("Expect true: ", first_message == second_message)

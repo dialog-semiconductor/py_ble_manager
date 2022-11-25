@@ -24,14 +24,14 @@ class MessageRouter():
             byte_string = await self.rx_queue.get()
             message = self.message_parser.decode_from_bytes(byte_string) 
             #self.rx_queue.put_nowait(message)
-            print(f"<-- MessageParser.handle_received_message(). Received: {message}")
+            print(f"<-- {message}")
             await self.notify(message)
         
     async def notify(self, message):
         for observer in self.observers:
             response = observer(message=message)
             if response:
-                print(f"MessageParser.notify. Adding Response to queue: {response}")
+                #print(f"MessageParser.notify. Adding Response to queue: {response}")
                 await self.tx_queue.put(response) 
 
     def register_observer(self, observer: callable):

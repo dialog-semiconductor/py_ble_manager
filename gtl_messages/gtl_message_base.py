@@ -43,16 +43,20 @@ class GtlMessageBase():
 
     def __repr__(self):
         message_id = str(eval(f"{type(self.msg_id).__name__}({self.msg_id})"))
+        
 
-        # TODO does filtering on conidx for GAPC messages impact any other messages?
-        if self.dst_id != KE_API_ID.TASK_ID_GTL:
-            destination_id = f"(conidx={(self.dst_id & 0xFF00) >> 8}, id={str(KE_API_ID(self.dst_id & 0xFF))})"
-            source_id = str(KE_API_ID(self.src_id))
+        # If GAPC message, dst_id or scr_id contains conidx. Separate conidx from task_id
+        if type(self.msg_id).__name__ == 'GAPC_MSG_ID':
+            if self.dst_id != KE_API_ID.TASK_ID_GTL:
+                destination_id = f"(conidx={(self.dst_id & 0xFF00) >> 8}, id={str(KE_API_ID(self.dst_id & 0xFF))})"
+                source_id = str(KE_API_ID(self.src_id))
+            else:
+                source_id = f"(conidx={(self.src_id & 0xFF00) >> 8}, id={str(KE_API_ID(self.src_id & 0xFF))})"
+                destination_id = str(KE_API_ID(self.dst_id))
         else:
-            source_id = f"(conidx={(self.src_id & 0xFF00) >> 8}, id={str(KE_API_ID(self.src_id & 0xFF))})"
             destination_id = str(KE_API_ID(self.dst_id))
-
-        print(message_id)
+            source_id = str(KE_API_ID(self.src_id))
+            
         return_string = f'{type(self).__name__}(msg_id={message_id}, dst_id={destination_id}, src_id={source_id}, par_len={self.par_len}, parameters={type(self.parameters).__name__}'
         
         #return_string = f'{type(self).__name__}(msg_id={self.msg_id}, dst_id={KE_API_ID(self.dst_id)}, src_id={KE_API_ID(self.src_id)}, par_len={self.par_len}, parameters={type(self.parameters).__name__}'
