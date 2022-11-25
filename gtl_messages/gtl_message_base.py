@@ -41,12 +41,10 @@ class GtlMessageBase():
             return self.to_bytes() == other.to_bytes()
         return False 
 
-    # TODO need to handle if parameter field is another Strucutre, and if is an array
     def __repr__(self):
-        # TODO KE_API_ID(self.src_id or dst_id) will not be correct if conidx is not 0
-        #print(type(self.msg_id))
-        #print(type(self.msg_id).__name__)
         message_id = str(eval(f"{type(self.msg_id).__name__}({self.msg_id})"))
+
+        # TODO does filtering on conidx for GAPC messages impact any other messages?
         if self.dst_id != KE_API_ID.TASK_ID_GTL:
             destination_id = f"(conidx={(self.dst_id & 0xFF00) >> 8}, id={str(KE_API_ID(self.dst_id & 0xFF))})"
             source_id = str(KE_API_ID(self.src_id))
