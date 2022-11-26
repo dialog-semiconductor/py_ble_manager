@@ -15,8 +15,8 @@ class SerialStreamManager(asyncio.Protocol):
         self.rx_queue = rx_queue
 
     async def open_port(self):
-
-        self.reader, self.writer = await serial_asyncio.open_serial_connection(url='COM13', baudrate=115200)
+        # TODO pass COM port in
+        self.reader, self.writer = await serial_asyncio.open_serial_connection(url='COM40', baudrate=115200)
         #print("SerialStreamManager.open_port Port has been opened")
 
     async def receive(self):
@@ -49,7 +49,7 @@ class SerialStreamManager(asyncio.Protocol):
             #TODO how to make vs code recongnize this is an asyncio.Queue? And that it is pulling off a GtlMessageBase message?
             # TODO instead of infinite loop, could we instead schedule this coroutine when an item is put on the queue? 
             message = await self.tx_queue.get()
-            print(f"--> Tx: {message}")
+            print(f"--> Tx: {message}\n")
             self.writer.write(message.to_bytes())
             await self.writer.drain()
 

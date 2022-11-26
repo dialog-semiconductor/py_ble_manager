@@ -76,3 +76,5 @@ class GapmStartConnectionCmd(GtlMessageBase):
 
         self.parameters = params
 
+# TODO next message GAPM_RESOLV_ADDR_CMD, GAPM_ADDR_SOLVED_IND  
+

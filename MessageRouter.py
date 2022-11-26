@@ -24,7 +24,7 @@ class MessageRouter():
             byte_string = await self.rx_queue.get()
             message = self.message_parser.decode_from_bytes(byte_string) 
             #self.rx_queue.put_nowait(message)
-            print(f"<-- Rx: {message}")
+            print(f"<-- Rx: {message}\n")
             await self.notify(message)
         
     async def notify(self, message):

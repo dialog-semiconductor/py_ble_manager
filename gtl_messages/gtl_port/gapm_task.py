@@ -63,7 +63,7 @@ class GAPM_STATE_ID(IntEnum):
 class GAPM_MSG_ID(IntEnum):
     # Default event 
     # Command Complete event
-    GAPM_CMP_EVT = 0x0D00
+    GAPM_CMP_EVT = (KE_API_ID.TASK_ID_GAPM << 8) #0x0D00
     # Event triggered to inform that lower layers are ready
     GAPM_DEVICE_READY_IND = auto()
 

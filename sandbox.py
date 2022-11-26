@@ -2,8 +2,13 @@ import serial
 from ctypes import *
 from gtl_messages import *
 
-print(GapcBondCfm(conidx=1))
-print(GapcBondReqInd(conidx=2))
+msg = GapmCmpEvt()
+print(msg)
+
+
+print(msg.msg_id)
+print(msg.msg_id.value)
+
 '''
 test_message = GapmSetDevConfigCmd()
 test_message.parameters.operation = GAPM_OPERATION.GAPM_SET_DEV_CONFIG

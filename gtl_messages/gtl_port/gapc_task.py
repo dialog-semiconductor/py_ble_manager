@@ -121,7 +121,7 @@ enum gapc_state_id
 class GAPC_MSG_ID(IntEnum):
     # Default event */
     # Command Complete event
-    GAPC_CMP_EVT = 0x0E00
+    GAPC_CMP_EVT = (KE_API_ID.TASK_ID_GAPC << 8) #0x0E00
 
     # Connection state information */
     # Indicate that a connection has been established
