@@ -29,6 +29,7 @@ class GtlMessageBase():
             if(member != 'parameters'):
                 message.extend(getattr(self, member).to_bytes(length=2, byteorder='little'))
             elif(member == 'parameters' and getattr(self, 'par_len') > 0):
+                # TODO need to detect if pointer type and get contents. Look at __repr__ for parsing. Make Struct to bytearray?
                 message.extend(bytearray(self.parameters)) # TODO revisit this for big endian machine
         
         return message
@@ -43,7 +44,6 @@ class GtlMessageBase():
 
     def __repr__(self):
         message_id = str(eval(f"{type(self.msg_id).__name__}({self.msg_id})"))
-        
 
         # If GAPC message, dst_id or scr_id contains conidx. Separate conidx from task_id
         if type(self.msg_id).__name__ == 'GAPC_MSG_ID':

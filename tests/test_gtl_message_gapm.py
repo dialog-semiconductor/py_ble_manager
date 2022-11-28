@@ -10,7 +10,7 @@ class TestGapmDeviceReadyInd(unittest.TestCase):
     
     def test_message_creation(self):
         test_message = GapmDeviceReadyInd()
-        self.assertEqual(test_message.to_hex(), self.expected, "{0}() incorrect byte stream".format(self.message_type))
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
 # Table 5
 class TestGapmResetCmd(unittest.TestCase):
@@ -20,7 +20,7 @@ class TestGapmResetCmd(unittest.TestCase):
     
     def test_parameters_passed_on_construction(self):
         test_message = GapmResetCmd(parameters = gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
-        self.assertEqual(test_message.to_hex(), self.expected, "{0}() incorrect byte stream".format(self.message_type))
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
     def test_parameters_updated_after_construction(self):
         test_message = GapmResetCmd()
@@ -30,7 +30,7 @@ class TestGapmResetCmd(unittest.TestCase):
     def test_parameters_wrong_operation(self):
         test_message = GapmResetCmd()
         test_message.parameters = gapm_reset_cmd(GAPM_OPERATION.GAPM_CANCEL)
-        self.assertNotEqual(test_message.to_hex(), self.expected, "{0}() incorrect byte stream".format(self.message_type))
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
 
 # Table 6
@@ -208,7 +208,8 @@ class TestGapmStartConnectionCmd(unittest.TestCase):
         addr_array = c_uint8*BD_ADDR_LEN
         # TODO need api to swap endian
 
-        addr_string = bytes.fromhex('80EACA70EE09').__reversed__
+        addr_string = bytearray.fromhex('80EACA70EE09')
+        addr_string.reverse()
         test_message.parameters.peers.addr.addr = (c_uint8 * BD_ADDR_LEN).from_buffer_copy(addr_string)
     
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")

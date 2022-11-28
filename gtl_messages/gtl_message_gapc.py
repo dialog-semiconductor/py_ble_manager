@@ -92,7 +92,6 @@ class GapcBondReqInd(GtlMessageBase):
 
         self.parameters = params
 
-# TODO need unit test 
 class GapcBondCfm(GtlMessageBase):
     def __init__(self, conidx: c_uint8 = 0, parameters: gapc_bond_cfm = None):
 

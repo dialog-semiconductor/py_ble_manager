@@ -910,7 +910,7 @@ class gapm_start_connection_cmd(Structure):
                  ce_len_min: c_uint16 = 0,
                  ce_len_max: c_uint16 = 0,
                  nb_peers: c_uint8 = 0,
-                 peers: gap_bdaddr = gap_bdaddr()):
+                 peers: gap_bdaddr = gap_bdaddr()): #TODO need to use POINTER as this is variable length array
     
         self.op = op
         self.scan_interval = scan_interval
