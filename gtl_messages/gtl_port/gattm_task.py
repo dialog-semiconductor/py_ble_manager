@@ -236,7 +236,8 @@ class gattm_svc_desc(Structure):
         self.perm_primary_svc = perm_primary_svc
         self.nb_att = nb_att
         self.uuid = uuid
-        self.atts = atts if atts else pointer(gattm_att_desc())
+        self._atts = atts if atts else pointer(gattm_att_desc())
+        self._atts_len = len(atts) if atts else 1
         super().__init__(start_hdl=self.start_hdl,
                         task_id=self.task_id,
                         perm_multi=self.perm_multi,
@@ -247,7 +248,7 @@ class gattm_svc_desc(Structure):
                         nb_att=self.nb_att,
                         uuid=self.uuid,
                         __padding__=0,
-                        atts=self.atts)
+                        _atts=self._atts)
 
                 # Attribute Start Handle (0 = dynamically allocated)
     _fields_ = [("start_hdl", c_uint16),
@@ -267,8 +268,17 @@ class gattm_svc_desc(Structure):
                 ("__padding__", c_uint16),
                 #endif
                 # List of attribute description present in service.
-                ("atts", POINTER(gattm_att_desc))] # TODO This needs to be an array of gattm_att_desc for each uuid
+                ("_atts", POINTER(gattm_att_desc))] # TODO This needs to be an array of gattm_att_desc for each uuid
     #return gattm_svc_desc
+
+    def get_atts(self):
+        return cast(self._atts, POINTER(gattm_att_desc * self._atts_len)).contents
+
+    def set_atts(self, value: POINTER(gattm_att_desc)): #TODO should this be an array?
+        self._atts = value if value else pointer(gattm_att_desc())
+        self._atts_len = len(value)
+
+    atts = property(get_atts, set_atts) 
 
 '''
 # Service description

@@ -68,4 +68,8 @@ for i in range(3):
     print(f"uuid: {test.atts[i].uuid}, read: {test.atts[i].perm_read}, write: {test.atts[i].perm_write}, write requuest: {test.atts[i].perm_write_request}, uuid_len: {test.atts[i].uuid_len}, max_len: {test.atts[i].max_len}, trigger: {test.atts[i].trigger_read_indication} ")
 
 print(test.atts)
-print(sizeof(test.atts.contents))
+print(sizeof(test.atts))
+
+print(test.atts[0].max_len)
+print(test.atts[1].max_len)
+print(len(test.atts))
