@@ -225,7 +225,7 @@ class gattm_svc_desc(Structure):
                 perm_primary_svc: ATTM_SERVICE_TYPE = ATTM_SERVICE_TYPE.PRIMARY_SERVICE, 
                 nb_att: c_uint8 = 0,
                 uuid: c_uint*ATT_UUID_128_LEN = (c_uint8*ATT_UUID_128_LEN)(),
-                atts: POINTER(gattm_att_desc) = POINTER(gattm_att_desc)(),
+                atts: POINTER(gattm_att_desc) = None,
                 ):
         self.start_hdl = start_hdl
         self.task_id = task_id
@@ -236,7 +236,7 @@ class gattm_svc_desc(Structure):
         self.perm_primary_svc = perm_primary_svc
         self.nb_att = nb_att
         self.uuid = uuid
-        self.atts = atts
+        self.atts = atts if atts else pointer(gattm_att_desc())
         super().__init__(start_hdl=self.start_hdl,
                         task_id=self.task_id,
                         perm_multi=self.perm_multi,
