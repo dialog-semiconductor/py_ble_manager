@@ -225,7 +225,7 @@ class gattm_svc_desc(Structure):
                 perm_primary_svc: ATTM_SERVICE_TYPE = ATTM_SERVICE_TYPE.PRIMARY_SERVICE, 
                 nb_att: c_uint8 = 0,
                 uuid: c_uint*ATT_UUID_128_LEN = (c_uint8*ATT_UUID_128_LEN)(),
-                atts: POINTER(gattm_att_desc) = None,
+                atts: POINTER(gattm_att_desc) = None, # TODO atts should be a ctypes array of gattm_att_desc. how to type hint? 
                 ):
         self.start_hdl = start_hdl
         self.task_id = task_id
@@ -236,8 +236,7 @@ class gattm_svc_desc(Structure):
         self.perm_primary_svc = perm_primary_svc
         self.nb_att = nb_att
         self.uuid = uuid
-        self._atts = atts if atts else pointer(gattm_att_desc())
-        self._atts_len = len(atts) if atts else 1
+        self.atts = atts 
         super().__init__(start_hdl=self.start_hdl,
                         task_id=self.task_id,
                         perm_multi=self.perm_multi,
@@ -272,11 +271,15 @@ class gattm_svc_desc(Structure):
     #return gattm_svc_desc
 
     def get_atts(self):
+        # self._atts is a pointer to gattm_att_desc (LP_gattm_att_desc)
+        # here we 
+        # 1. cast to a pointer to an array (LP_gattm_att_desc_Array_x where x is some positive integer) 
+        # 2. return the contents, providing the underlying array 
         return cast(self._atts, POINTER(gattm_att_desc * self._atts_len)).contents
 
     def set_atts(self, value: POINTER(gattm_att_desc)): #TODO should this be an array?
         self._atts = value if value else pointer(gattm_att_desc())
-        self._atts_len = len(value)
+        self._atts_len = len(value) if value else 1
 
     atts = property(get_atts, set_atts) 
 
