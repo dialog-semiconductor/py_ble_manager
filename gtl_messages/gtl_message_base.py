@@ -23,14 +23,14 @@ class GtlMessageBase():
     def to_bytes(self):
         message = bytearray()
         message.append(GTL_INITIATOR)
-
         members = self.__dict__.keys()
         for member in members:
             if(member != 'parameters'):
                 message.extend(getattr(self, member).to_bytes(length=2, byteorder='little'))
             elif(member == 'parameters' and getattr(self, 'par_len') > 0):
                 # TODO need to detect if pointer type and get contents. Look at __repr__ for parsing. Make Struct to bytearray?
-                message.extend(bytearray(self.parameters)) # TODO revisit this for big endian machine
+                #message.extend(bytearray(self.parameters)) # TODO revisit this for big endian machine
+                message.extend(self.struct_to_bytearray(self.parameters))
         
         return message
 
@@ -97,3 +97,39 @@ class GtlMessageBase():
             return_string += f'({param_string[:-2]}'
         return_string += f'), ' 
         return return_string
+
+    def struct_to_bytearray(self, struct):
+        return_array = bytearray()
+        param_array = bytearray()
+
+        # Expect a ctypes structure
+        if struct: 
+            # for each field in the structure
+            for field in struct._fields_:
+                # get the attribute for that field
+                sub_attr = getattr(struct, field[0])    
+
+                # if the sub attribute has is also a structure, call this function recursively
+                if hasattr(sub_attr, '_fields_'):
+                        param_array += self.struct_to_bytearray(sub_attr)
+
+                # if sub attribute is a POINTER, convert its contents     
+                elif sub_attr and hasattr(sub_attr, 'contents'):
+                    sub_attr_array = getattr(struct, field[0].split('_')[1])    
+                    param_array += bytearray(sub_attr_array)
+
+                elif issubclass(type(sub_attr), Array):
+                    param_array += bytearray(sub_attr)
+
+                # some c structure use zero length array.
+                # in this case additional variable 
+                elif field[0][0] == "_" and field[0][-3:] == "len":
+                    print(f"skipping {field[0]}")
+                    continue
+                # otherwise if sub attribute is not a structure or POINTER, convert it directly 
+                else:
+                    #need to convert value (e.g. 0) to bytearray
+                    param_array += bytearray([sub_attr])
+
+            return_array += param_array
+        return return_array

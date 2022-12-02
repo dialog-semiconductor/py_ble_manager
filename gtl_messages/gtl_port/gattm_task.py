@@ -210,10 +210,6 @@ class gattm_att_desc(Structure):
                 ("padding", c_uint16)]
 
 
-#TODO is factory a good work around for variable length atts
-# Alternative approach: make atts a POINTER
-# Service description
-#def gattm_svc_desc_factory(nb_att):
 class gattm_svc_desc(Structure):
     def __init__(self, 
                 start_hdl: c_uint16 = 0,
@@ -237,6 +233,7 @@ class gattm_svc_desc(Structure):
         self.nb_att = nb_att
         self.uuid = uuid
         self.atts = atts 
+        print(F"gattm_svc_desc.__init__ atts_len {self._atts_len}")
         super().__init__(start_hdl=self.start_hdl,
                         task_id=self.task_id,
                         perm_multi=self.perm_multi,
@@ -267,7 +264,8 @@ class gattm_svc_desc(Structure):
                 ("__padding__", c_uint16),
                 #endif
                 # List of attribute description present in service.
-                ("_atts", POINTER(gattm_att_desc))] # TODO This needs to be an array of gattm_att_desc for each uuid
+                ("_atts", POINTER(gattm_att_desc)), 
+                ("_atts_len", c_uint32)] # This must be added or it is lost when creating gattm_add_svc_req # TODO This needs to be an array of gattm_att_desc for each uuid
     #return gattm_svc_desc
 
     def get_atts(self):
@@ -333,7 +331,7 @@ class gattm_add_svc_req(Structure):
         super().__init__(svc_desc=self.svc_desc)
 
                 # service description
-    _fields_ = [("svc_desc", gattm_svc_desc)]
+    _fields_ = [("svc_desc", gattm_svc_desc)] # This is setting the structure not the class values
 
 
 '''
