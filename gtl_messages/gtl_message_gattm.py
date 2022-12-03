@@ -18,6 +18,7 @@ class GattmAddSvcReq(GtlMessageBase):
 
     def get_par_len(self):
         self._par_len = 24*(self.parameters.svc_desc.nb_att+1)
+        print(f"GattmAddSvcReq._par_len = {self._par_len}")
         return self._par_len
 
     def set_par_len(self, value):

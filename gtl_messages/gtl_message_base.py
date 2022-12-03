@@ -26,11 +26,15 @@ class GtlMessageBase():
         members = self.__dict__.keys()
         for member in members:
             if(member != 'parameters'):
+                #print(f"{type(self).__name__}.{member}={getattr(self, member)}, bytes={getattr(self, member).to_bytes(length=2, byteorder='little')}")
                 message.extend(getattr(self, member).to_bytes(length=2, byteorder='little'))
             elif(member == 'parameters' and getattr(self, 'par_len') > 0):
                 # TODO need to detect if pointer type and get contents. Look at __repr__ for parsing. Make Struct to bytearray?
                 #message.extend(bytearray(self.parameters)) # TODO revisit this for big endian machine
+
+                #print(f"message before: {message[:10]}")
                 message.extend(self.struct_to_bytearray(self.parameters))
+                #print(f"message before: {message[:10]}")
                 #message.extend(self.serialize(self.parameters))
         
         return message
@@ -137,7 +141,6 @@ class GtlMessageBase():
                 # some c structure use zero length array.
                 # in this case additional variable 
                 elif field[0][0] == "_" and field[0][-3:] == "len":
-                    print(f"skipping {field[0]}")
                     continue
 
                 # bit field
@@ -145,10 +148,7 @@ class GtlMessageBase():
                     return bytearray(struct) 
                 # otherwise if sub attribute is not a structure or POINTER, convert it directly 
                 else:
-                    #need to convert value (e.g. 0) to bytearray
-                    # TODO be carefule with bitfields
-                    # Need to handle bitfield and uuid endianness and should work
-                    print(f"attempting to convert {field[1]}({sub_attr})")
+                    # TODO Need to handle uuid endianness and should work
                     param_array += bytearray(field[1](sub_attr))
 
             return_array += param_array
