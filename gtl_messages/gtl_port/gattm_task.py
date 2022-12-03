@@ -156,8 +156,7 @@ class att_perm(Structure):
         self.uuid_len = uuid_len
         self.max_len = max_len
         self.trigger_read_indication = trigger_read_indication
-        super().__init__(uuid=self.uuid,
-                         read=self.read,
+        super().__init__(read=self.read,
                          write=self.write,
                          indication=self.indication,
                          notification=self.notification,

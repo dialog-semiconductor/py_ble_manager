@@ -2,84 +2,30 @@ import serial
 from ctypes import *
 from gtl_messages import *
 
-expected = "05000B0B001000C00000001000CC072F2A93A6BDD84152AC0B10992EC6FEED000003280000000000000000000000000000010000000080000020EE8D0CE1F04A0CB325DC536A68862D09000A00648000000129000000000000000000000000000001000000FA8000000328000000000000000000000000000001000000000000004F43313C939242E6A876FA3BEFB4875A49820800640000000129000000000000000000000000000001000000FA000000022900000000000000000000000000000900020002000000"
+test_message = GapmStartAdvertiseCmd()
+test_message.parameters.op.code = GAPM_OPERATION.GAPM_ADV_UNDIRECT
+test_message.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_STATIC_ADDR
+test_message.parameters.intv_min = 200 # 0.625 x 200 = 125ms TODO would be nicer to have adv_slots to ms. Should it belong to a class?
+test_message.parameters.intv_max = 200 # see above
+test_message.parameters.channel_map = ADV_CHANNEL_MAP.ADV_ALL_CHNLS_EN 
+test_message.parameters.info = gapm_adv_info()
+test_message.parameters.info.host.mode = GAP_ADV_MODE.GAP_GEN_DISCOVERABLE
+test_message.parameters.info.host.adv_filt_policy = ADV_FILTER_POLICY.ADV_ALLOW_SCAN_ANY_CON_ANY
+test_message.parameters.info.host.adv_data_len = 27
 
+# TODO move this to gapm_task.py def
+adv_data_array = c_uint8*ADV_DATA_LEN
+# TODO ensure easy to pass name from string
+#complete_local_name = "DialogPER DA14585"
+test_message.parameters.info.host.adv_data = adv_data_array(0x07, 0x03, 0x03, 0x18, 0x02, 0x18, 0x04, 0x18, 0x12, 0x09, 0x44, 0x69, 
+                                                            0x61, 0x6c, 0x6f, 0x67, 0x50, 0x45, 0x52, 0x20, 0x44, 0x41, 0x31, 0x34,
+                                                            0x35, 0x38, 0x35, 0x00, 0x00, 0x00, 0x00)
+test_message.parameters.info.host.scan_rsp_data_len = 13
+scan_response_data_array = c_uint8*SCAN_RSP_DATA_LEN
+test_message.parameters.info.host.scan_rsp_data = scan_response_data_array(0x0c, 0xff, 0xd2, 0x00, 0x53, 0x61, 0x6d, 0x70, 0x6c, 0x65,
+                                                                        0x20, 0x23, 0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                                                        0x00)
+test_message.parameters.info.host.peer_info = gap_bdaddr()     
 
-test_message = GattmAddSvcReq()
-test_message.parameters.svc_desc.task_id = KE_API_ID.TASK_ID_GTL
-test_message.parameters.svc_desc.perm.uuid_len = ATTM_UUID_LEN._128_BITS
-test_message.parameters.svc_desc.perm.svc_perm = ATTM_PERM.AUTH
-test_message.parameters.svc_desc.perm.enc_key_16_bytes = ATTM_ENC_KEY_SIZE_16_BYTES.NO
-test_message.parameters.svc_desc.nb_att = 7
-
-uuid_str = bytearray.fromhex("EDFEC62E99100BAC5241D8BDA6932A2F")
-uuid_str.reverse()
-test_message.parameters.svc_desc.uuid = (c_uint8 * ATT_UUID_128_LEN).from_buffer_copy(uuid_str)
-
-att_list = []
-# TODO is there a better way to handle 16bit ids
-uuid_str = bytearray.fromhex("00")*(ATT_UUID_128_LEN-2) + bytearray.fromhex("2803") 
-uuid_str.reverse()
-att_list.append(gattm_att_desc(uuid=(c_uint8*ATT_UUID_128_LEN).from_buffer_copy(uuid_str),
-                                perm_read=ATTM_PERM.ENABLE,
-                                trigger_read_indication=ATTM_TRIGGER_READ_INDICATION.YES))
-
-uuid_str = bytearray.fromhex("2D86686A53DC25B30C4AF0E10C8DEE20")
-uuid_str.reverse()
-att_list.append(gattm_att_desc(uuid=(c_uint8*ATT_UUID_128_LEN).from_buffer_copy(uuid_str),
-                                perm_read=ATTM_PERM.ENABLE,
-                                perm_write=ATTM_PERM.ENABLE,
-                                perm_write_request=ATTM_WRITE_REQUEST.ACCEPTED,
-                                uuid_len=ATTM_UUID_LEN._128_BITS,
-                                max_len=100))
-
-uuid_str = bytearray.fromhex("00")*(ATT_UUID_128_LEN-2) + bytearray.fromhex("2901")
-uuid_str.reverse()
-att_list.append(gattm_att_desc(uuid=(c_uint8*ATT_UUID_128_LEN).from_buffer_copy(uuid_str),
-                                perm_read=ATTM_PERM.ENABLE,
-                                max_len=250,
-                                trigger_read_indication=ATTM_TRIGGER_READ_INDICATION.YES))
-
-uuid_str =  bytearray.fromhex("00")*(ATT_UUID_128_LEN-2) + bytearray.fromhex("2803")
-uuid_str.reverse()
-att_list.append(gattm_att_desc(uuid=(c_uint8*ATT_UUID_128_LEN).from_buffer_copy(uuid_str),
-                                perm_read=ATTM_PERM.ENABLE))
-
-uuid_str = bytearray.fromhex("5A87B4EF3BFA76A8E64292933C31434F")
-uuid_str.reverse()
-att_list.append(gattm_att_desc(uuid=(c_uint8*ATT_UUID_128_LEN).from_buffer_copy(uuid_str),
-                                perm_read=ATTM_PERM.ENABLE,
-                                perm_write=ATTM_PERM.ENABLE,
-                                perm_write_request=ATTM_WRITE_REQUEST.ACCEPTED,
-                                uuid_len=ATTM_UUID_LEN._128_BITS,
-                                max_len=100))
-
-uuid_str = bytearray.fromhex("00")*(ATT_UUID_128_LEN-2) + bytearray.fromhex("2901")
-uuid_str.reverse()
-att_list.append(gattm_att_desc(uuid=(c_uint8*ATT_UUID_128_LEN).from_buffer_copy(uuid_str),
-                                perm_read=ATTM_PERM.ENABLE,
-                                max_len=250))
-
-uuid_str = bytearray.fromhex("00")*(ATT_UUID_128_LEN-2) + bytearray.fromhex("2902")
-uuid_str.reverse()
-att_list.append(gattm_att_desc(uuid=(c_uint8*ATT_UUID_128_LEN).from_buffer_copy(uuid_str),
-                                perm_read=ATTM_PERM.ENABLE,
-                                perm_write=ATTM_PERM.ENABLE,
-                                perm_write_request=ATTM_WRITE_REQUEST.ACCEPTED,
-                                uuid_len=ATTM_UUID_LEN._128_BITS,
-                                max_len=2))
-
-
-test_message.parameters.svc_desc.atts = (gattm_att_desc * len(att_list))(*att_list)
-
-
-print(f"{test_message.to_hex()}")
-print(len(test_message.to_bytes()))
-print(f"{test_message.to_hex()}")
-print(len(test_message.to_bytes()))
-
-huh = gattm_att_desc()
-print(bytearray(huh))
-
-huh.trigger_read_indication = ATTM_TRIGGER_READ_INDICATION.YES
-print(bytearray(huh))
+print(test_message.to_hex())
