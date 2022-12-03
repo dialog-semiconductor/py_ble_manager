@@ -101,3 +101,39 @@ print(len(test_message.to_bytes()))
 expected_bytes = bytes.fromhex(expected)
 print(expected)
 print(len(expected_bytes))
+
+class test_perm(Structure):
+    def __init__(self, 
+                 multi: ATTM_TASK_MULTI_INSTANTIATED = ATTM_TASK_MULTI_INSTANTIATED.NO, 
+                 enc_key_16_bytes: ATTM_ENC_KEY_SIZE_16_BYTES = ATTM_ENC_KEY_SIZE_16_BYTES.NO, 
+                 svc_perm: ATTM_PERM = ATTM_PERM.UNAUTH, 
+                 uuid_len: ATTM_UUID_LEN = ATTM_UUID_LEN._16_BITS, 
+                 primary_svc: ATTM_SERVICE_TYPE = ATTM_SERVICE_TYPE.PRIMARY_SERVICE
+                ):
+
+        self.multi = multi
+        self.enc_key_16_bytes = enc_key_16_bytes
+        self.svc_perm = svc_perm
+        self.uuid_len = uuid_len
+        self.primary_svc = primary_svc
+
+        super().__init__(multi=self.multi,
+                         enc_key_16_bytes=self.enc_key_16_bytes,
+                         svc_perm=self.svc_perm,
+                         uuid_len=self.uuid_len,
+                         primary_svc=self.primary_svc)
+
+                # Service permissions (@see enum attm_svc_perm_mask)
+    _fields_ = [("multi", c_uint8, 1),
+                ("enc_key_16_bytes", c_uint8, 1),
+                ("svc_perm", c_uint8, 3),
+                ("uuid_len", c_uint8, 2),
+                ("primary_svc", c_uint8, 1)] 
+                
+helper = test_perm()
+helper.multi = ATTM_TASK_MULTI_INSTANTIATED.YES
+#helper.enc_key_16_bytes =  ATTM_ENC_KEY_SIZE_16_BYTES.NO 
+helper.svc_perm = ATTM_PERM.UNAUTH
+#helper.uuid_len = ATTM_UUID_LEN._128_BITS
+helper.primary_svc = ATTM_SERVICE_TYPE.PRIMARY_SERVICE
+print(bytearray(helper))

@@ -139,6 +139,10 @@ class GtlMessageBase():
                 elif field[0][0] == "_" and field[0][-3:] == "len":
                     print(f"skipping {field[0]}")
                     continue
+
+                # bit field
+                elif len(field) == 3:
+                    return bytearray(struct) 
                 # otherwise if sub attribute is not a structure or POINTER, convert it directly 
                 else:
                     #need to convert value (e.g. 0) to bytearray

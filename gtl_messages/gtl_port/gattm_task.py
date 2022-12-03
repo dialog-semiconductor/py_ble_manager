@@ -209,38 +209,70 @@ class gattm_att_desc(Structure):
                 ("trigger_read_indication", c_uint16, 1),
                 ("padding", c_uint16)]
 
+class attm_svc_perm(Structure):
+    def __init__(self, 
+                 multi: ATTM_TASK_MULTI_INSTANTIATED = ATTM_TASK_MULTI_INSTANTIATED.NO, 
+                 enc_key_16_bytes: ATTM_ENC_KEY_SIZE_16_BYTES = ATTM_ENC_KEY_SIZE_16_BYTES.NO, 
+                 svc_perm: ATTM_PERM = ATTM_PERM.UNAUTH, 
+                 uuid_len: ATTM_UUID_LEN = ATTM_UUID_LEN._16_BITS, 
+                 primary_svc: ATTM_SERVICE_TYPE = ATTM_SERVICE_TYPE.PRIMARY_SERVICE
+                ):
+
+        self.multi = multi
+        self.enc_key_16_bytes = enc_key_16_bytes
+        self.svc_perm = svc_perm
+        self.uuid_len = uuid_len
+        self.primary_svc = primary_svc
+
+        super().__init__(multi=self.multi,
+                         enc_key_16_bytes=self.enc_key_16_bytes,
+                         svc_perm=self.svc_perm,
+                         uuid_len=self.uuid_len,
+                         primary_svc=self.primary_svc)
+
+                # Service permissions (@see enum attm_svc_perm_mask)
+    _fields_ = [("multi", c_uint8, 1),
+                ("enc_key_16_bytes", c_uint8, 1),
+                ("svc_perm", c_uint8, 3),
+                ("uuid_len", c_uint8, 2),
+                ("primary_svc", c_uint8, 1)] 
+
+'''
+class attm_svc_perm(Union):
+    def __init__(self, 
+                 perm: attm_svc_perm_bitfield = attm_svc_perm_bitfield(),
+                ):
+
+        self.perm = perm
+        super().__init__(perm=self.perm)
+
+                # Service permissions (@see enum attm_svc_perm_mask)
+    _fields_ = [("perm", c_uint8,),
+                ("bytes", c_uint8),
+                ("svc_perm", c_uint8, 3),
+                ("uuid_len", c_uint8, 2),
+                ("primary_svc", c_uint8, 1)] 
+'''
 
 class gattm_svc_desc(Structure):
     def __init__(self, 
                 start_hdl: c_uint16 = 0,
                 task_id: KE_API_ID = 0, 
-                perm_multi: ATTM_TASK_MULTI_INSTANTIATED = ATTM_TASK_MULTI_INSTANTIATED.NO, 
-                perm_enc_key_16_bytes: ATTM_ENC_KEY_SIZE_16_BYTES = ATTM_ENC_KEY_SIZE_16_BYTES.NO, 
-                perm_svc_perm: ATTM_PERM = ATTM_PERM.UNAUTH, 
-                perm_uuid_len: ATTM_UUID_LEN = ATTM_UUID_LEN._16_BITS, 
-                perm_primary_svc: ATTM_SERVICE_TYPE = ATTM_SERVICE_TYPE.PRIMARY_SERVICE, 
+                perm: attm_svc_perm = attm_svc_perm(),
                 nb_att: c_uint8 = 0,
                 uuid: c_uint*ATT_UUID_128_LEN = (c_uint8*ATT_UUID_128_LEN)(),
                 atts: POINTER(gattm_att_desc) = None, # TODO atts should be a ctypes array of gattm_att_desc. how to type hint? 
                 ):
         self.start_hdl = start_hdl
         self.task_id = task_id
-        self.perm_multi = perm_multi
-        self.perm_enc_key_16_bytes = perm_enc_key_16_bytes
-        self.perm_svc_perm = perm_svc_perm
-        self.perm_uuid_len = perm_uuid_len
-        self.perm_primary_svc = perm_primary_svc
+        self.perm = perm
         self.nb_att = nb_att
         self.uuid = uuid
         self.atts = atts 
         print(F"gattm_svc_desc.__init__ atts_len {self._atts_len}")
         super().__init__(start_hdl=self.start_hdl,
                         task_id=self.task_id,
-                        perm_multi=self.perm_multi,
-                        perm_enc_key_16_bytes=self.perm_enc_key_16_bytes,
-                        perm_svc_perm=self.perm_svc_perm,
-                        perm_uuid_len=self.perm_uuid_len,
-                        perm_primary_svc=self.perm_primary_svc,
+                        perm=self.perm,
                         nb_att=self.nb_att,
                         uuid=self.uuid,
                         __padding__=0,
@@ -251,11 +283,7 @@ class gattm_svc_desc(Structure):
                 # Task identifier that manages service
                 ("task_id", c_uint16),
                 # Service permissions (@see enum attm_svc_perm_mask)
-                ("perm_multi", c_uint8, 1),
-                ("perm_enc_key_16_bytes", c_uint8, 1),
-                ("perm_svc_perm", c_uint8, 3),
-                ("perm_uuid_len", c_uint8, 2),
-                ("perm_primary_svc", c_uint8, 1),
+                ("perm", attm_svc_perm),
                 # Number of attributes
                 ("nb_att", c_uint8),
                 # Service  UUID
