@@ -31,6 +31,7 @@ class GtlMessageBase():
                 # TODO need to detect if pointer type and get contents. Look at __repr__ for parsing. Make Struct to bytearray?
                 #message.extend(bytearray(self.parameters)) # TODO revisit this for big endian machine
                 message.extend(self.struct_to_bytearray(self.parameters))
+                #message.extend(self.serialize(self.parameters))
         
         return message
 
@@ -97,6 +98,17 @@ class GtlMessageBase():
             return_string += f'({param_string[:-2]}'
         return_string += f'), ' 
         return return_string
+    
+    def convert_struct_to_bytes(self, st):
+        buffer = create_string_buffer(sizeof(st))
+        memmove(buffer, addressof(st), sizeof(st))
+        return buffer.raw
+
+    def serialize(self, struct):
+        struct_size = sizeof(struct)
+        buf = (c_char * struct_size)()
+        memmove(addressof(buf), addressof(struct), struct_size)
+        return bytearray(buf)
 
     def struct_to_bytearray(self, struct):
         return_array = bytearray()
@@ -108,6 +120,7 @@ class GtlMessageBase():
             for field in struct._fields_:
                 # get the attribute for that field
                 sub_attr = getattr(struct, field[0])    
+                attr_type = field[1]
 
                 # if the sub attribute has is also a structure, call this function recursively
                 if hasattr(sub_attr, '_fields_'):
@@ -129,7 +142,10 @@ class GtlMessageBase():
                 # otherwise if sub attribute is not a structure or POINTER, convert it directly 
                 else:
                     #need to convert value (e.g. 0) to bytearray
-                    param_array += bytearray([sub_attr])
+                    # TODO be carefule with bitfields
+                    # Need to handle bitfield and uuid endianness and should work
+                    print(f"attempting to convert {field[1]}({sub_attr})")
+                    param_array += bytearray(field[1](sub_attr))
 
             return_array += param_array
         return return_array

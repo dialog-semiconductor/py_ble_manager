@@ -72,10 +72,32 @@ att_list.append(gattm_att_desc(uuid=(c_uint8*ATT_UUID_128_LEN).from_buffer_copy(
 
 test_message.parameters.svc_desc.atts = (gattm_att_desc * len(att_list))(*att_list)
 
-print(len(bytes.fromhex(expected)))
-print(expected)
 
-print(len(test_message.to_bytes()))
+class test_class(Structure):
+    def __init__(self, 
+                start_hdl: c_uint16 = 0,
+                task_id: KE_API_ID = 0):
+        self.start_hdl = start_hdl
+        self.task_id = task_id
+
+        super().__init__(start_hdl=self.start_hdl,
+                        task_id=self.task_id,)
+
+                # Attribute Start Handle (0 = dynamically allocated)
+    _fields_ = [("start_hdl", c_uint16),
+                # Task identifier that manages service
+                ("task_id", c_uint16)]
+
+
+
+help = test_class()
+help.start_hdl = 5
+help.task_id = 9
+
+
 print(test_message.to_hex())
+print(len(test_message.to_bytes()))
 
-print(bytes([0]))
+expected_bytes = bytes.fromhex(expected)
+print(expected)
+print(len(expected_bytes))
