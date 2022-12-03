@@ -21,18 +21,18 @@ class GtlMessageBase():
         self.parameters = parameters
     
     def to_bytes(self):
+
         message = bytearray()
         message.append(GTL_INITIATOR)
         members = self.__dict__.keys()
         for member in members:
             if(member != 'parameters'):
-                #print(f"{type(self).__name__}.{member}={getattr(self, member)}, bytes={getattr(self, member).to_bytes(length=2, byteorder='little')}")
                 message.extend(getattr(self, member).to_bytes(length=2, byteorder='little'))
             elif(member == 'parameters' and getattr(self, 'par_len') > 0):
                 # TODO need to detect if pointer type and get contents. Look at __repr__ for parsing. Make Struct to bytearray?
                 #message.extend(bytearray(self.parameters)) # TODO revisit this for big endian machine
 
-                #print(f"message before: {message[:10]}")
+                print(f"message before: {message[:10]}")
                 message.extend(self.struct_to_bytearray(self.parameters))
                 #print(f"message before: {message[:10]}")
                 #message.extend(self.serialize(self.parameters))

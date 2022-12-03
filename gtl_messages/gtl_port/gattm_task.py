@@ -125,70 +125,79 @@ class GATTM_MSG_ID(IntEnum):
     # DEBUG ONLY: Retrieve information of attribute response
     GATTM_ATT_GET_INFO_RSP = auto()
 
-# Attribute Description
-class gattm_att_desc(Structure):
+#TODO move to att or attm
+class att_perm(Structure):
     def __init__(self, 
-                  uuid: c_uint8*ATT_UUID_128_LEN = (c_uint8*ATT_UUID_128_LEN)(),
-                  perm_read: ATTM_PERM = ATTM_PERM.DISABLE,
-                  perm_write: ATTM_PERM = ATTM_PERM.DISABLE,
-                  perm_indication: ATTM_PERM = ATTM_PERM.DISABLE,
-                  perm_notification: ATTM_PERM = ATTM_PERM.DISABLE,
-                  extended_properties_present: ATTM_EXTENDED_PROPERTIES = ATTM_EXTENDED_PROPERTIES.NO,
-                  perm_broadcast: ATTM_BROADCAST = ATTM_BROADCAST.NO,
-                  perm_enc_key_size: ATTM_ENC_KEY_SIZE_16_BYTES = ATTM_ENC_KEY_SIZE_16_BYTES.NO,
-                  perm_write_command: ATTM_WRITE_COMMAND = ATTM_WRITE_COMMAND.NOT_ACCEPTED, 
-                  perm_write_signed: ATTM_WRITE_SIGNED = ATTM_WRITE_SIGNED.NOT_ACCEPTED,
-                  perm_write_request: ATTM_WRITE_REQUEST = ATTM_WRITE_REQUEST.NOT_ACCEPTED,
-                  uuid_len: ATTM_UUID_LEN = ATTM_UUID_LEN._16_BITS, 
-                  max_len: c_uint16 = 0,
-                  trigger_read_indication: ATTM_TRIGGER_READ_INDICATION = ATTM_TRIGGER_READ_INDICATION.NO,
-                  ):
+                 read: ATTM_PERM = ATTM_PERM.DISABLE,
+                 write: ATTM_PERM = ATTM_PERM.DISABLE,
+                 indication: ATTM_PERM = ATTM_PERM.DISABLE,
+                 notification: ATTM_PERM = ATTM_PERM.DISABLE,
+                 extended_properties_present: ATTM_EXTENDED_PROPERTIES = ATTM_EXTENDED_PROPERTIES.NO,
+                 broadcast: ATTM_BROADCAST = ATTM_BROADCAST.NO,
+                 enc_key_size: ATTM_ENC_KEY_SIZE_16_BYTES = ATTM_ENC_KEY_SIZE_16_BYTES.NO,
+                 write_command: ATTM_WRITE_COMMAND = ATTM_WRITE_COMMAND.NOT_ACCEPTED, 
+                 write_signed: ATTM_WRITE_SIGNED = ATTM_WRITE_SIGNED.NOT_ACCEPTED,
+                 write_request: ATTM_WRITE_REQUEST = ATTM_WRITE_REQUEST.NOT_ACCEPTED,
+                 uuid_len: ATTM_UUID_LEN = ATTM_UUID_LEN._16_BITS, 
+                 max_len: c_uint16 = 0,
+                 trigger_read_indication: ATTM_TRIGGER_READ_INDICATION = ATTM_TRIGGER_READ_INDICATION.NO,
+                ):
 
-        self.uuid = uuid
-        self.perm_read = perm_read
-        self.perm_write = perm_write
-        self.perm_indication = perm_indication
-        self.perm_notification = perm_notification
+        self.read = read
+        self.write = write
+        self.indication = indication
+        self.notification = notification
         self.extended_properties_present = extended_properties_present
-        self.perm_broadcast = perm_broadcast
-        self.perm_enc_key_size = perm_enc_key_size
-        self.perm_write_command = perm_write_command
-        self.perm_write_signed = perm_write_signed
-        self.perm_write_request = perm_write_request
+        self.broadcast = broadcast
+        self.enc_key_size = enc_key_size
+        self.write_command = write_command
+        self.write_signed = write_signed
+        self.write_request = write_request
         self.uuid_len = uuid_len
         self.max_len = max_len
         self.trigger_read_indication = trigger_read_indication
         super().__init__(uuid=self.uuid,
-                         perm_read=self.perm_read,
-                         perm_write=self.perm_write,
-                         perm_indication=self.perm_indication,
-                         perm_notification=self.perm_notification,
+                         read=self.read,
+                         write=self.write,
+                         indication=self.indication,
+                         notification=self.notification,
                          extended_properties_present=self.extended_properties_present,
-                         perm_broadcast=self.perm_broadcast,
-                         perm_write_command=self.perm_write_command,
-                         perm_write_signed=self.perm_write_signed,
-                         perm_write_request=self.perm_write_request,
+                         broadcast=self.broadcast,
+                         write_command=self.write_command,
+                         write_signed=self.write_signed,
+                         write_request=self.write_request,
                          uuid_len=self.uuid_len,
-                         perm_reserved=0,
+                         reserved=0,
                          max_len=self.max_len,
                          trigger_read_indication=self.trigger_read_indication,
                          padding=0)
 
-                # Attribute UUID (LSB First) 
-    _fields_ = [("uuid", c_uint8*ATT_UUID_128_LEN),
                 # Attribute Permission (@see attm_perm_mask)
-                ("perm_read", c_uint32, 3),
-                ("perm_write", c_uint32, 3),
-                ("perm_indication", c_uint32, 3),
-                ("perm_notification", c_uint32, 3),
+    _fields_ = [("read", c_uint32, 3),
+                ("write", c_uint32, 3),
+                ("indication", c_uint32, 3),
+                ("notification", c_uint32, 3),
                 ("extended_properties_present", c_uint32, 1),
-                ("perm_broadcast", c_uint32, 1),
-                ("perm_enc_key_size", c_uint32, 1),
-                ("perm_write_command", c_uint32, 1),
-                ("perm_write_signed", c_uint32, 1),
-                ("perm_write_request", c_uint32, 1),
+                ("broadcast", c_uint32, 1),
+                ("enc_key_size", c_uint32, 1),
+                ("write_command", c_uint32, 1),
+                ("write_signed", c_uint32, 1),
+                ("write_request", c_uint32, 1),
                 ("uuid_len", c_uint32, 2),
-                ("perm_reserved", c_uint32, 12),
+                ("reserved", c_uint32, 12)]
+
+#TODO move to att or attm
+class att_max_len_read_ind(Structure):
+    def __init__(self, 
+                 max_len: c_uint16 = 0,
+                 trigger_read_indication: ATTM_TRIGGER_READ_INDICATION = ATTM_TRIGGER_READ_INDICATION.NO,
+                ):
+
+        self.max_len = max_len
+        self.trigger_read_indication = trigger_read_indication
+        super().__init__(max_len=self.max_len,
+                         trigger_read_indication=self.trigger_read_indication)
+
                 #  15   14   13   12   11   10   9    8    7    6    5    4    3    2    1    0
                 # +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
                 # | RI |                               MAX_LEN                                    |
@@ -205,10 +214,33 @@ class gattm_att_desc(Structure):
                 #
                 # Not used Client Characteristic Configuration and Server Characteristic Configuration,
                 # this field is not used.
-                ("max_len", c_uint16, 15),
-                ("trigger_read_indication", c_uint16, 1),
+    _fields_ = [("max_len", c_uint16, 15),
+                ("trigger_read_indication", c_uint16, 1)]
+
+# Attribute Description
+class gattm_att_desc(Structure):
+    def __init__(self, 
+                  uuid: c_uint8*ATT_UUID_128_LEN = (c_uint8*ATT_UUID_128_LEN)(), 
+                  perm: att_perm = att_perm(),
+                  max_len_read_ind: att_max_len_read_ind = att_max_len_read_ind()
+                  ):
+
+        self.uuid = uuid
+        self.perm = perm
+        self.max_len_read_ind = max_len_read_ind
+        super().__init__(uuid=self.uuid,
+                         perm=self.perm,
+                         max_len_read_ind=self.max_len_read_ind,
+                         padding=0)
+
+                # Attribute UUID (LSB First) 
+    _fields_ = [("uuid", c_uint8*ATT_UUID_128_LEN),
+                # Attribute Permission (@see attm_perm_mask)
+                ("perm", att_perm),
+                ("max_len_read_ind", att_max_len_read_ind),
                 ("padding", c_uint16)]
 
+#TODO move to att or attm
 class attm_svc_perm(Structure):
     def __init__(self, 
                  multi: ATTM_TASK_MULTI_INSTANTIATED = ATTM_TASK_MULTI_INSTANTIATED.NO, 

@@ -18,7 +18,7 @@ test_message.parameters.svc_desc.uuid = (c_uint8 * ATT_UUID_128_LEN).from_buffer
 
 att_list = []
 # TODO is there a better way to handle 16bit ids
-uuid_str = bytearray.fromhex("2803") + bytearray.fromhex("00")*(ATT_UUID_128_LEN-2)
+uuid_str = bytearray.fromhex("00")*(ATT_UUID_128_LEN-2) + bytearray.fromhex("2803") 
 uuid_str.reverse()
 att_list.append(gattm_att_desc(uuid=(c_uint8*ATT_UUID_128_LEN).from_buffer_copy(uuid_str),
                                 perm_read=ATTM_PERM.ENABLE,
@@ -33,14 +33,14 @@ att_list.append(gattm_att_desc(uuid=(c_uint8*ATT_UUID_128_LEN).from_buffer_copy(
                                 uuid_len=ATTM_UUID_LEN._128_BITS,
                                 max_len=100))
 
-uuid_str = bytearray.fromhex("2901") + bytearray.fromhex("00")*(ATT_UUID_128_LEN-2)
+uuid_str = bytearray.fromhex("00")*(ATT_UUID_128_LEN-2) + bytearray.fromhex("2901")
 uuid_str.reverse()
 att_list.append(gattm_att_desc(uuid=(c_uint8*ATT_UUID_128_LEN).from_buffer_copy(uuid_str),
                                 perm_read=ATTM_PERM.ENABLE,
                                 max_len=250,
                                 trigger_read_indication=ATTM_TRIGGER_READ_INDICATION.YES))
 
-uuid_str = bytearray.fromhex("2803") + bytearray.fromhex("00")*(ATT_UUID_128_LEN-2)
+uuid_str =  bytearray.fromhex("00")*(ATT_UUID_128_LEN-2) + bytearray.fromhex("2803")
 uuid_str.reverse()
 att_list.append(gattm_att_desc(uuid=(c_uint8*ATT_UUID_128_LEN).from_buffer_copy(uuid_str),
                                 perm_read=ATTM_PERM.ENABLE))
@@ -54,13 +54,13 @@ att_list.append(gattm_att_desc(uuid=(c_uint8*ATT_UUID_128_LEN).from_buffer_copy(
                                 uuid_len=ATTM_UUID_LEN._128_BITS,
                                 max_len=100))
 
-uuid_str = bytearray.fromhex("2901") + bytearray.fromhex("00")*(ATT_UUID_128_LEN-2)
+uuid_str = bytearray.fromhex("00")*(ATT_UUID_128_LEN-2) + bytearray.fromhex("2901")
 uuid_str.reverse()
 att_list.append(gattm_att_desc(uuid=(c_uint8*ATT_UUID_128_LEN).from_buffer_copy(uuid_str),
                                 perm_read=ATTM_PERM.ENABLE,
                                 max_len=250))
 
-uuid_str = bytearray.fromhex("2902") + bytearray.fromhex("00")*(ATT_UUID_128_LEN-2)
+uuid_str = bytearray.fromhex("00")*(ATT_UUID_128_LEN-2) + bytearray.fromhex("2902")
 uuid_str.reverse()
 att_list.append(gattm_att_desc(uuid=(c_uint8*ATT_UUID_128_LEN).from_buffer_copy(uuid_str),
                                 perm_read=ATTM_PERM.ENABLE,
@@ -73,11 +73,13 @@ att_list.append(gattm_att_desc(uuid=(c_uint8*ATT_UUID_128_LEN).from_buffer_copy(
 test_message.parameters.svc_desc.atts = (gattm_att_desc * len(att_list))(*att_list)
 
 
-print(f"Test message: {test_message.to_hex()}")
-print(f"Test message: {test_message.to_hex()}")
-#print(len(test_message.to_bytes()))
+print(f"{test_message.to_hex()}")
+print(len(test_message.to_bytes()))
+print(f"{test_message.to_hex()}")
+print(len(test_message.to_bytes()))
 
-#expected_bytes = bytes.fromhex(expected)
-#print(expected)
-#print(len(expected_bytes))
+huh = gattm_att_desc()
+print(bytearray(huh))
 
+huh.trigger_read_indication = ATTM_TRIGGER_READ_INDICATION.YES
+print(bytearray(huh))
