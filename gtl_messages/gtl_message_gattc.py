@@ -41,4 +41,18 @@ class GattcWriteReqInd(GtlMessageBase):
         self._par_len = value
 
     par_len = property(get_par_len, set_par_len)
+
+class GattcWriteCfm(GtlMessageBase):
+    def __init__(self, conidx: c_uint8 = 0, parameters: gattc_write_cfm = None):
+
+        params = parameters if parameters else gattc_write_cfm()
+
+        super().__init__(msg_id=GATTC_MSG_ID.GATTC_WRITE_CFM,
+                         dst_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC), 
+                         src_id=KE_API_ID.TASK_ID_GTL,
+                         par_len=4,
+                         parameters=params)
+
+        self.parameters = params 
+ 
  

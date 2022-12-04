@@ -669,16 +669,27 @@ class gattc_write_req_ind(Structure):
     value = property(get_value, set_value) 
 
 
-'''
-# Confirm modification of database from upper layer when requested by peer device.
-struct gattc_write_cfm
-{
-    # Handle of the attribute written
-    uint16_t handle;
-    # Status of write command execution by upper layers
-    uint8_t status;
-};
 
+# Confirm modification of database from upper layer when requested by peer device.
+class gattc_write_cfm(Structure):
+    def __init__(self, 
+                 handle: c_uint16 = 0, 
+                 status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR,
+                ):
+
+        self.handle = handle
+        self.status = status
+        super().__init__(handle=self.handle,
+                         status=self.status,
+                         padding=0)
+
+                # Handle of the attribute written
+    _fields_ = [("handle", c_uint16),
+                # Status of write command execution by upper layers
+                ("status", c_uint8),
+                ("padding", c_uint8)]
+
+'''
 # Parameters for @ref GATTC_SEND_SVC_CHANGED_CMD message
 struct gattc_send_svc_changed_cmd
 {

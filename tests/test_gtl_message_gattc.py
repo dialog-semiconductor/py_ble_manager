@@ -25,6 +25,26 @@ class TestGattcWriteReqInd(unittest.TestCase):
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+# Table 95
+class TestGattcWriteCfm(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05160C0C00100004001C000000"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcWriteCfm()
+        test_message.parameters.handle = 28
+        test_message.parameters.status = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR
+        
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        test_message = GattcWriteCfm(conidx=1)
+        test_message.parameters.handle = 28
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
 
 if __name__ == '__main__':
     unittest.main()
