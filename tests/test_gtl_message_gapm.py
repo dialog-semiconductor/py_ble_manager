@@ -208,8 +208,8 @@ class TestGapmStartConnectionCmd(unittest.TestCase):
         # have to pass a ctype list whose parm is the contents of a list with the data. Less covuluted way to do this
         test_message.parameters.peers = (gap_bdaddr * 1)(*[gap_bdaddr()])
 
-        # peers comes back as an array that we can index into directly, but editor has trouble with type
-        gap = test_message.parameters.peers[0].addr.addr = (c_uint8 * BD_ADDR_LEN).from_buffer_copy(addr_string)
+        # peers comes back as an array that we can index into directly, but editor has trouble with type TODO Typedef return type??
+        test_message.parameters.peers[0].addr.addr = (c_uint8 * BD_ADDR_LEN).from_buffer_copy(addr_string)
     
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
