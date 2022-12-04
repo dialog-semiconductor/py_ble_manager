@@ -24,10 +24,10 @@ class GtlMessageBase():
 
         message = bytearray()
         message.append(GTL_INITIATOR)
-        message.extend(getattr(self, 'msg_id').to_bytes(length=2, byteorder='little'))
+        message.extend(self.msg_id.value.to_bytes(length=2, byteorder='little'))
         message.extend(self.dst_id.to_bytes(length=2, byteorder='little'))
         message.extend(self.src_id.to_bytes(length=2, byteorder='little'))
-        message.extend(getattr(self, 'par_len').to_bytes(length=2, byteorder='little'))
+        message.extend(self.par_len.to_bytes(length=2, byteorder='little'))
         message.extend(self._struct_to_bytearray(self.parameters))
 
         return message
