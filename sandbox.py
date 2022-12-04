@@ -117,10 +117,8 @@ test_message.par_len = 21+test_message.parameters.nb_peers*7+1
 
 addr_string = bytearray.fromhex('80EACA70EE09')
 addr_string.reverse()
-addr = (c_uint8 * BD_ADDR_LEN).from_buffer_copy(addr_string)
-gap_address = gap_bdaddr(addr=bd_addr(addr)) 
-test_message.parameters.peers = (gap_bdaddr * 1)(*[gap_address])
-#test_message.parameters.peers.addr.addr = (c_uint8 * BD_ADDR_LEN).from_buffer_copy(addr_string)
-print(test_message.to_hex())
+# TODO this is super convuluted. Find a better way. Create empty list of necessary size when allocation message?
 
-print(test_message)
+test_message.parameters.peers = (gap_bdaddr * 1)(*[gap_bdaddr()])
+
+print(test_message.parameters.peers[0].addr.addr)
