@@ -8,7 +8,7 @@ GTL_INITIATOR = 0x05
 class GtlMessageBase():
 
     def __init__(self, 
-                 msg_id: c_uint8 = 0, 
+                 msg_id: c_uint16 = 0, 
                  dst_id: KE_API_ID = KE_API_ID.TASK_ID_INVALID,
                  src_id: KE_API_ID = KE_API_ID.TASK_ID_INVALID,
                  par_len: int = 0, 
@@ -24,17 +24,12 @@ class GtlMessageBase():
 
         message = bytearray()
         message.append(GTL_INITIATOR)
-        members = self.__dict__.keys()
-        for member in members:
-            if(member != 'parameters'):
-                message.extend(getattr(self, member).to_bytes(length=2, byteorder='little'))
-            elif(member == 'parameters' and getattr(self, 'par_len') > 0):
-                # TODO need to detect if pointer type and get contents. Look at __repr__ for parsing. Make Struct to bytearray?
-                #message.extend(bytearray(self.parameters)) # TODO revisit this for big endian machine
-                message.extend(self._struct_to_bytearray(self.parameters))
-                #print(f"message before: {message[:10]}")
-                #message.extend(self.serialize(self.parameters))
-        
+        message.extend(getattr(self, 'msg_id').to_bytes(length=2, byteorder='little'))
+        message.extend(self.dst_id.to_bytes(length=2, byteorder='little'))
+        message.extend(self.src_id.to_bytes(length=2, byteorder='little'))
+        message.extend(getattr(self, 'par_len').to_bytes(length=2, byteorder='little'))
+        message.extend(self._struct_to_bytearray(self.parameters))
+
         return message
 
     def to_hex(self):

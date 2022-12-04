@@ -86,23 +86,5 @@ class GapmStartConnectionCmd(GtlMessageBase):
 
     par_len = property(get_par_len, set_par_len)
 
-    # TODO taken from GattmAddSvcReq.to_bytes(). See relevant comments there, Perhaps can create base class to address this workaround
-    def to_bytes(self):
-        message = bytearray()
-        message.append(GTL_INITIATOR)
-        members = self.__dict__.keys()
-        for member in members:
-            if(member != 'parameters'):
-                if(member == '_par_len'):
-                    message.extend(self.par_len.to_bytes(length=2, byteorder='little'))
-                else:
-                    message.extend(getattr(self, member).to_bytes(length=2, byteorder='little'))
-
-            elif(member == 'parameters' and getattr(self, 'par_len') > 0):
-                print(f"message before: {message[:10]}")
-                message.extend(self._struct_to_bytearray(self.parameters))
-
-        return message
-
 # TODO next message GAPM_RESOLV_ADDR_CMD, GAPM_ADDR_SOLVED_IND  
 
