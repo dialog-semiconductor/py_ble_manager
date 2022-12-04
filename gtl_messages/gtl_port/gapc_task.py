@@ -835,7 +835,8 @@ class gapc_ltk(Structure):
         super().__init__(ltk=self.ltk,
                          ediv=self.ediv,
                          randnb=self.randnb,
-                         key_size=self.key_size)
+                         key_size=self.key_size,
+                         padding=0)
 
                 # Long Term Key
     _fields_ = [("ltk", gap_sec_key),
@@ -844,7 +845,8 @@ class gapc_ltk(Structure):
                 # Random Number)
                 ("randnb", rand_nb),
                 # Encryption key size (7 to 16)
-                ("key_size", c_uint8)]  
+                ("key_size", c_uint8),
+                ("padding", c_uint8)]  
 
 '''
 # Identity Resolving Key information

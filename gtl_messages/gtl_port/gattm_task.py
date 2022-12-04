@@ -300,7 +300,6 @@ class gattm_svc_desc(Structure):
         self.nb_att = nb_att
         self.uuid = uuid
         self.atts = atts 
-        print(F"gattm_svc_desc.__init__ atts_len {self._atts_len}")
         super().__init__(start_hdl=self.start_hdl,
                         task_id=self.task_id,
                         perm=self.perm,

@@ -31,8 +31,6 @@ class GtlMessageBase():
             elif(member == 'parameters' and getattr(self, 'par_len') > 0):
                 # TODO need to detect if pointer type and get contents. Look at __repr__ for parsing. Make Struct to bytearray?
                 #message.extend(bytearray(self.parameters)) # TODO revisit this for big endian machine
-
-                print(f"message before: {message[:10]}")
                 message.extend(self.struct_to_bytearray(self.parameters))
                 #print(f"message before: {message[:10]}")
                 #message.extend(self.serialize(self.parameters))
@@ -102,17 +100,6 @@ class GtlMessageBase():
             return_string += f'({param_string[:-2]}'
         return_string += f'), ' 
         return return_string
-    
-    def convert_struct_to_bytes(self, st):
-        buffer = create_string_buffer(sizeof(st))
-        memmove(buffer, addressof(st), sizeof(st))
-        return buffer.raw
-
-    def serialize(self, struct):
-        struct_size = sizeof(struct)
-        buf = (c_char * struct_size)()
-        memmove(addressof(buf), addressof(struct), struct_size)
-        return bytearray(buf)
 
     def struct_to_bytearray(self, struct):
         return_array = bytearray()
@@ -120,11 +107,18 @@ class GtlMessageBase():
 
         # Expect a ctypes structure
         if struct: 
+
+            # TODO workaround for now that need to revisit. this only works if union does not have a pointer or bitfield in it
+            if issubclass(type(struct), Union):
+                return bytearray(struct)
+
             # for each field in the structure
             for field in struct._fields_:
                 # get the attribute for that field
                 sub_attr = getattr(struct, field[0])    
                 attr_type = field[1]
+
+                # TODO NEED TO HANDLE CASE WHERE FIELD IS UNION
 
                 # if the sub attribute has is also a structure, call this function recursively
                 if hasattr(sub_attr, '_fields_'):
@@ -143,9 +137,10 @@ class GtlMessageBase():
                 elif field[0][0] == "_" and field[0][-3:] == "len":
                     continue
 
-                # bit field
+                # bit field, Need to short circuit to not add other bitfields as additional bytes as they are already included
                 elif len(field) == 3:
                     return bytearray(struct) 
+
                 # otherwise if sub attribute is not a structure or POINTER, convert it directly 
                 else:
                     # TODO Need to handle uuid endianness and should work
