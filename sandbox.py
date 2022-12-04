@@ -122,3 +122,5 @@ gap_address = gap_bdaddr(addr=bd_addr(addr))
 test_message.parameters.peers = (gap_bdaddr * 1)(*[gap_address])
 #test_message.parameters.peers.addr.addr = (c_uint8 * BD_ADDR_LEN).from_buffer_copy(addr_string)
 print(test_message.to_hex())
+
+print(test_message)

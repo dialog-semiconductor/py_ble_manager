@@ -132,8 +132,6 @@ class GtlMessageBase():
                 sub_attr = getattr(struct, field[0])    
                 attr_type = field[1]
 
-                # TODO NEED TO HANDLE CASE WHERE FIELD IS UNION
-
                 # if the sub attribute has is also a structure, call this function recursively
                 if hasattr(sub_attr, '_fields_'):
                         param_array += self._struct_to_bytearray(sub_attr)
