@@ -910,7 +910,7 @@ class gapm_start_connection_cmd(Structure):
                  ce_len_min: c_uint16 = 0,
                  ce_len_max: c_uint16 = 0,
                  nb_peers: c_uint8 = 0,
-                 peers: gap_bdaddr = gap_bdaddr()): #TODO need to use POINTER as this is variable length array
+                 peers: POINTER(gap_bdaddr) = None): 
     
         self.op = op
         self.scan_interval = scan_interval
@@ -966,9 +966,23 @@ class gapm_start_connection_cmd(Structure):
                 #  Shall be greater than 0 for other operations
                 ("nb_peers", c_uint8),
                 # Peer device information
-                ("peers", gap_bdaddr),
+                ("_peers", POINTER(gap_bdaddr)),
+                ("_peers_len", c_uint32), # This must be added or length is lost 
                 # Padding
                 ("padding", c_uint8)]
+
+    def get_peers(self):
+        # self._atts is a pointer to gattm_att_desc (LP_gattm_att_desc)
+        # here we 
+        # 1. cast to a pointer to an array (LP_gattm_att_desc_Array_x where x is some positive integer) 
+        # 2. return the contents, providing the underlying array 
+        return cast(self._peers, POINTER(gap_bdaddr * self._peers_len)).contents
+
+    def set_peers(self, value: POINTER(gap_bdaddr)): #TODO User should pass array, how to type hint?  
+        self._peers = value if value else pointer(gap_bdaddr())
+        self._peers_len = len(value) if value else 1
+
+    peers = property(get_peers, set_peers) 
 
 '''
 

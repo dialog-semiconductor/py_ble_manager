@@ -18,7 +18,6 @@ class GattmAddSvcReq(GtlMessageBase):
 
     def get_par_len(self):
         self._par_len = 24*(self.parameters.svc_desc.nb_att+1)
-        print(f"GattmAddSvcReq getting _par_len = {self._par_len}")
         return self._par_len
 
     def set_par_len(self, value):
@@ -46,7 +45,7 @@ class GattmAddSvcReq(GtlMessageBase):
                 #message.extend(bytearray(self.parameters)) # TODO revisit this for big endian machine
 
                 print(f"message before: {message[:10]}")
-                message.extend(self.struct_to_bytearray(self.parameters))
+                message.extend(self._struct_to_bytearray(self.parameters))
                 #print(f"message before: {message[:10]}")
                 #message.extend(self.serialize(self.parameters))
         

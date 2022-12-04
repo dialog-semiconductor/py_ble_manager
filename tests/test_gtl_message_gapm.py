@@ -204,13 +204,15 @@ class TestGapmStartConnectionCmd(unittest.TestCase):
         # TODO par_len needs to get updated automatically based on nb_peers 
         test_message.par_len = 21+test_message.parameters.nb_peers*7+1
 
-        # TODO need api for this defined somewhere
-        addr_array = c_uint8*BD_ADDR_LEN
+
         # TODO need api to swap endian
 
         addr_string = bytearray.fromhex('80EACA70EE09')
         addr_string.reverse()
-        test_message.parameters.peers.addr.addr = (c_uint8 * BD_ADDR_LEN).from_buffer_copy(addr_string)
+        # TODO this is super convuluted. Find a better way
+        addr = (c_uint8 * BD_ADDR_LEN).from_buffer_copy(addr_string)
+        gap_address = gap_bdaddr(addr=bd_addr(addr)) 
+        test_message.parameters.peers = (gap_bdaddr * 1)(*[gap_address])
     
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 

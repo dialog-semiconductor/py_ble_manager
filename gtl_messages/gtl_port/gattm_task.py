@@ -323,7 +323,7 @@ class gattm_svc_desc(Structure):
                 #endif
                 # List of attribute description present in service.
                 ("_atts", POINTER(gattm_att_desc)), 
-                ("_atts_len", c_uint32)] # This must be added or it is lost when creating gattm_add_svc_req # TODO This needs to be an array of gattm_att_desc for each uuid
+                ("_atts_len", c_uint32)] # This must be added or length is lost when creating gattm_add_svc_req 
     #return gattm_svc_desc
 
     def get_atts(self):
@@ -333,7 +333,7 @@ class gattm_svc_desc(Structure):
         # 2. return the contents, providing the underlying array 
         return cast(self._atts, POINTER(gattm_att_desc * self._atts_len)).contents
 
-    def set_atts(self, value: POINTER(gattm_att_desc)): #TODO should this be an array?
+    def set_atts(self, value: POINTER(gattm_att_desc)): #TODO User should pass array, how to type hint?  
         self._atts = value if value else pointer(gattm_att_desc())
         self._atts_len = len(value) if value else 1
 
