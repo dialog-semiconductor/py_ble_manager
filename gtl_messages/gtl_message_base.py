@@ -156,7 +156,6 @@ class GtlMessageBase():
 
                 # otherwise if sub attribute is not a structure or POINTER, convert it directly 
                 else:
-                    # TODO Need to handle uuid endianness and should work
                     param_array += bytearray(field[1](sub_attr))
 
             return_array += param_array
