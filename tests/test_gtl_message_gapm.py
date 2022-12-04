@@ -201,10 +201,6 @@ class TestGapmStartConnectionCmd(unittest.TestCase):
         test_message.parameters.ce_len_max = 67 # (67 x 0.625 = 41.875 ms)
         test_message.parameters.nb_peers = 1
 
-        # TODO par_len needs to get updated automatically based on nb_peers 
-        test_message.par_len = 21+test_message.parameters.nb_peers*7+1
-
-
         # TODO need api to swap endian
 
         addr_string = bytearray.fromhex('80EACA70EE09')
