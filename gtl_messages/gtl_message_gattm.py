@@ -107,3 +107,15 @@ class GattmAttSetValueReq(GtlMessageBase):
 
         return message
  
+class GattmAttSetValueRsp(GtlMessageBase):
+    def __init__(self, parameters: gattm_att_set_value_rsp = None):
+
+        params = parameters if parameters else gattm_att_set_value_rsp()
+
+        super().__init__(msg_id=GATTM_MSG_ID.GATTM_ATT_SET_VALUE_RSP,
+                         dst_id=KE_API_ID.TASK_ID_GTL,
+                         src_id=KE_API_ID.TASK_ID_GATTM,
+                         par_len=4,
+                         parameters=params)
+
+        self.parameters = params 

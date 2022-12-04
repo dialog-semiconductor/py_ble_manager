@@ -181,6 +181,20 @@ class TestGattmAttSetValueReq(unittest.TestCase):
 
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+class TestGattmAttSetValueRsp(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "050D0B10000B0004001C000000"
+
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattmAttSetValueRsp()
+        test_message.parameters.handle = 28
+        test_message.parameters.status = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -515,27 +515,42 @@ class gattm_att_set_value_req(Structure):
                 # Attribute value length
                 ("length", c_uint16),
                 # Attribute value
-                ("_value", POINTER(c_uint8))] # This must be added or length of underlying container is lost
+                ("_value", POINTER(c_uint8))] 
 
     def get_value(self):
         return cast(self._value, POINTER(c_uint8 * self.length)).contents
 
     def set_value(self, new_value: POINTER(c_uint8)): #TODO User should pass array, how to type hint? 
         print(new_value) 
+        #TODO raise error if length > 512
         self._value = new_value if new_value else pointer(c_uint8(0))
         self.length = len(new_value) if new_value else 1
 
     value = property(get_value, set_value) 
 
+
+# Set attribute value response
+class gattm_att_set_value_rsp(Structure):
+
+    def __init__(self, 
+                 handle: c_uint16 = 0,
+                 status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR  
+                ):
+
+            self.handle = handle
+            self.status = status 
+            super().__init__(handle=self.handle,
+                             status=self.status,
+                             padding=0)
+
+                # Handle of the attribute
+    _fields_ = [("handle", c_uint16),
+                # Return status
+                ("status", c_uint8),
+                ("padding", c_uint8)] 
+
+
 '''
-/// Set attribute value response
-struct gattm_att_set_value_rsp
-{
-    /// Handle of the attribute
-    uint16_t handle;
-    /// Return status
-    uint8_t status;
-};
 
 /// DEBUG ONLY: Destroy Attribute database request
 struct gattm_destroy_db_req
