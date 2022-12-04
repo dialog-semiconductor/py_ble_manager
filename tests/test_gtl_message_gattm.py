@@ -181,6 +181,7 @@ class TestGattmAttSetValueReq(unittest.TestCase):
 
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+# Table 87
 class TestGattmAttSetValueRsp(unittest.TestCase):
 
     def setUp(self):
