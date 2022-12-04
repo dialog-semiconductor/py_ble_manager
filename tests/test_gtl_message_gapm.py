@@ -205,7 +205,7 @@ class TestGapmStartConnectionCmd(unittest.TestCase):
 
         addr_string = bytearray.fromhex('80EACA70EE09')
         addr_string.reverse()
-        # have to pass a ctype list whose parm is the contents of a list with the data. Less covuluted way to do this
+        # have to pass a ctype list whose parm is the contents of a list with the data. Less covuluted way to do this?
         test_message.parameters.peers = (gap_bdaddr * 1)(*[gap_bdaddr()])
 
         # peers comes back as an array that we can index into directly, but editor has trouble with type TODO Typedef return type??

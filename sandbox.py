@@ -1,6 +1,7 @@
 import serial
 from ctypes import *
 from gtl_messages import *
+
 '''
 test_message = GattmAddSvcReq()
 test_message.parameters.svc_desc.task_id = KE_API_ID.TASK_ID_GTL
@@ -94,31 +95,9 @@ test_message.parameters.svc_desc.atts = (gattm_att_desc * len(att_list))(*att_li
 
 print(test_message)
 '''
-test_message = GattmAddSvcReq()
+test_message = GattmAttSetValueReq()
+test_message.parameters.handle = 28
+value = bytearray.fromhex("7B636861726163746572697374696320427D2E7B63686172616374657269737469632076616C75657D202D64656D6F2076616C75652D")
+test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+
 print(test_message.to_hex())
-
-test_message = GapmStartConnectionCmd()
-test_message.parameters.op.code = GAPM_OPERATION.GAPM_CONNECTION_DIRECT
-test_message.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_STATIC_ADDR
-test_message.parameters.scan_interval = 384 # (384 x 0.625 = 240 ms)
-test_message.parameters.scan_window = 352  # (352 x 0.625 = 220 ms)
-test_message.parameters.con_intv_min = 36 # (36 × 1.25 ms = 45 ms
-test_message.parameters.con_intv_max = 36 # (36 × 1.25 ms = 45 ms
-test_message.parameters.superv_to = 500 # (500 x 10 = 5000ms = 5s) 
-test_message.parameters.ce_len_min = 67 # (67 x 0.625 = 41.875 ms)
-test_message.parameters.ce_len_max = 67 # (67 x 0.625 = 41.875 ms)
-test_message.parameters.nb_peers = 1
-
-# TODO par_len needs to get updated automatically based on nb_peers 
-test_message.par_len = 21+test_message.parameters.nb_peers*7+1
-
-
-# TODO need api to swap endian
-
-addr_string = bytearray.fromhex('80EACA70EE09')
-addr_string.reverse()
-# TODO this is super convuluted. Find a better way. Create empty list of necessary size when allocation message?
-
-test_message.parameters.peers = (gap_bdaddr * 1)(*[gap_bdaddr()])
-
-print(test_message.parameters.peers[0].addr.addr)

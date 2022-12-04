@@ -268,23 +268,6 @@ class attm_svc_perm(Structure):
                 ("uuid_len", c_uint8, 2),
                 ("primary_svc", c_uint8, 1)] 
 
-'''
-class attm_svc_perm(Union):
-    def __init__(self, 
-                 perm: attm_svc_perm_bitfield = attm_svc_perm_bitfield(),
-                ):
-
-        self.perm = perm
-        super().__init__(perm=self.perm)
-
-                # Service permissions (@see enum attm_svc_perm_mask)
-    _fields_ = [("perm", c_uint8,),
-                ("bytes", c_uint8),
-                ("svc_perm", c_uint8, 3),
-                ("uuid_len", c_uint8, 2),
-                ("primary_svc", c_uint8, 1)] 
-'''
-
 class gattm_svc_desc(Structure):
     def __init__(self, 
                 start_hdl: c_uint16 = 0,
@@ -306,7 +289,8 @@ class gattm_svc_desc(Structure):
                         nb_att=self.nb_att,
                         uuid=self.uuid,
                         __padding__=0,
-                        _atts=self._atts)
+                        _atts=self._atts,
+                        _atts_len=self._atts_len)
 
                 # Attribute Start Handle (0 = dynamically allocated)
     _fields_ = [("start_hdl", c_uint16),
@@ -389,20 +373,31 @@ class gattm_add_svc_req(Structure):
         super().__init__(svc_desc=self.svc_desc)
 
                 # service description
-    _fields_ = [("svc_desc", gattm_svc_desc)] # This is setting the structure not the class values
+    _fields_ = [("svc_desc", gattm_svc_desc)] 
 
+
+
+
+# Add service in database response
+class gattm_add_svc_rsp(Structure):
+
+    def __init__(self, 
+                 start_hdl: c_uint16 = 0,
+                 status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR
+                ):
+        self.start_hdl = start_hdl
+        self.status = status
+        super().__init__(start_hdl=self.start_hdl,
+                         status=self.status,
+                         padding=0)
+
+                # Start handle of allocated service in attribute database
+    _fields_ = [("start_hdl", c_uint16),
+                # Return status of service allocation in attribute database.
+                ("status", c_uint8),
+                ("padding", c_uint8)] 
 
 '''
-
-/// Add service in database response
-struct gattm_add_svc_rsp
-{
-    /// Start handle of allocated service in attribute database
-    uint16_t start_hdl;
-    /// Return status of service allocation in attribute database.
-    uint8_t status;
-};
-
 /* Service management */
 /// Get permission settings of service request
 struct gattm_svc_get_permission_req
@@ -498,18 +493,41 @@ struct gattm_att_get_value_rsp
     /// Attribute value
     uint8_t value[__ARRAY_EMPTY];
 };
+'''
 
-/// Set attribute value request
-struct gattm_att_set_value_req
-{
-    /// Handle of the attribute
-    uint16_t handle;
-    /// Attribute value length
-    uint16_t length;
-    /// Attribute value
-    uint8_t value[__ARRAY_EMPTY];
-};
+# Set attribute value request
+class gattm_att_set_value_req(Structure):
+    def __init__(self, 
+                 handle: c_uint16 = 0,
+                 #length: c_uint16 = 0, # Take length from len of array
+                 value: POINTER(c_uint8) = None # TODO should be a ctypes array of c_uint8. how to type hint? 
+                ):
+        self.handle = handle
+        #self.length = length
+        self.value = value 
+        super().__init__(handle=self.handle,
+                         length=self.length,
+                         _value=self._value,
+                        )
 
+                # Handle of the attribute
+    _fields_ = [("handle", c_uint16),
+                # Attribute value length
+                ("length", c_uint16),
+                # Attribute value
+                ("_value", POINTER(c_uint8))] # This must be added or length of underlying container is lost
+
+    def get_value(self):
+        return cast(self._value, POINTER(c_uint8 * self.length)).contents
+
+    def set_value(self, new_value: POINTER(c_uint8)): #TODO User should pass array, how to type hint? 
+        print(new_value) 
+        self._value = new_value if new_value else pointer(c_uint8(0))
+        self.length = len(new_value) if new_value else 1
+
+    value = property(get_value, set_value) 
+
+'''
 /// Set attribute value response
 struct gattm_att_set_value_rsp
 {

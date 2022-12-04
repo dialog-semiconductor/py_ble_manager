@@ -145,6 +145,42 @@ class TestGattmAddSvcReq(unittest.TestCase):
 
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+# Table 75
+class TestGattmAddSvcRsp(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05010B10000B00040017000000"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattmAddSvcRsp()
+        test_message.parameters.start_hdl = 0x17
+        test_message.parameters.status = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 87
+class TestGattmAttSetValueReq(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05" + \
+                        "0C0B" + \
+                        "0B00" + \
+                        "1000" + \
+                        "3A00" + \
+                        "1C00" + \
+                        "3600" + \
+                        "7B636861726163746572697374696320427D2E7B63686172616374657269737469632076616C75657D202D64656D6F2076616C75652D"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattmAttSetValueReq()
+        test_message.parameters.handle = 28
+        value = bytearray.fromhex("7B636861726163746572697374696320427D2E7B63686172616374657269737469632076616C75657D202D64656D6F2076616C75652D")
+        test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
 
 if __name__ == '__main__':
     unittest.main()
