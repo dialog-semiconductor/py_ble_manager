@@ -909,7 +909,6 @@ class gapm_start_connection_cmd(Structure):
                  superv_to: c_uint16 = 0, 
                  ce_len_min: c_uint16 = 0,
                  ce_len_max: c_uint16 = 0,
-                 nb_peers: c_uint8 = 0,
                  peers:  Array[gap_bdaddr] = None): 
     
         self.op = op
@@ -921,7 +920,6 @@ class gapm_start_connection_cmd(Structure):
         self.superv_to = superv_to
         self.ce_len_min = ce_len_min
         self.ce_len_max = ce_len_max
-        self.nb_peers = nb_peers
         self.peers = peers
         super().__init__(op=self.op,
                          scan_interval=self.scan_interval, 
@@ -967,7 +965,6 @@ class gapm_start_connection_cmd(Structure):
                 ("nb_peers", c_uint8),
                 # Peer device information
                 ("_peers", POINTER(gap_bdaddr)),
-                ("_peers_len", c_uint32), # This must be added or length is lost 
                 # Padding
                 ("padding", c_uint8)]
 
@@ -976,11 +973,11 @@ class gapm_start_connection_cmd(Structure):
         # here we 
         # 1. cast to a pointer to an array (LP_gattm_att_desc_Array_x where x is some positive integer) 
         # 2. return the contents, providing the underlying array 
-        return cast(self._peers, POINTER(gap_bdaddr * self._peers_len)).contents
+        return cast(self._peers, POINTER(gap_bdaddr * self.nb_peers)).contents
 
     def set_peers(self, value: Array[gap_bdaddr]): #TODO User should pass array, how to type hint?  
-        self._peers = value if value else pointer(gap_bdaddr()) # Should create array of one?
-        self._peers_len = len(value) if value else 1
+        self._peers = value if value else pointer(gap_bdaddr()) #TODO Should create array of one?
+        self.nb_peers = len(value) if value else 1
 
     peers = property(get_peers, set_peers) 
 

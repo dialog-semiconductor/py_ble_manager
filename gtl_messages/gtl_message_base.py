@@ -139,12 +139,6 @@ class GtlMessageBase():
                 elif issubclass(type(sub_attr), Array):
                     param_array += bytearray(sub_attr)
 
-                # some c structure use zero length array.
-                # in this case additional variable added to structure to track length on underlying array pointer points to
-                # we dont want this extra tracking variable to be added to the bytearray so skip it
-                elif field[0][0] == "_" and field[0][-3:] == "len":
-                    continue
-
                 # bit field, Need to short circuit to not add other bitfields as additional bytes as they are already included
                 elif len(field) == 3:
                     return bytearray(struct) 
