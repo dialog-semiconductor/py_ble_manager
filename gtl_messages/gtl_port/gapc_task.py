@@ -412,7 +412,7 @@ struct gapc_operation_cmd
 '''
 
 # Command complete event data structure
-class gapc_cmp_evt(Structure):
+class gapc_cmp_evt(LittleEndianStructure):
 
     def __init__(self, 
                      operation: GAPC_OPERATION = GAPC_OPERATION.GAPC_NO_OP,
@@ -429,7 +429,7 @@ class gapc_cmp_evt(Structure):
                 ("status", c_uint8)]
     
 # Indicate that a connection has been established
-class gapc_connection_req_ind(Structure):
+class gapc_connection_req_ind(LittleEndianStructure):
     def __init__(self, 
                  conhdl: c_uint16 = 0,
                  con_interval: c_uint16 = 0,
@@ -471,7 +471,7 @@ class gapc_connection_req_ind(Structure):
 
 
 # Set specific link data configuration.
-class gapc_connection_cfm(Structure):
+class gapc_connection_cfm(LittleEndianStructure):
     def __init__(self, 
                  lcsrk: gap_sec_key = gap_sec_key(), 
                  lsign_counter: c_uint32 = 0,
@@ -534,7 +534,7 @@ struct gapc_disconnect_ind
 '''
 
 # Retrieve information command
-class gapc_get_info_cmd(Structure):
+class gapc_get_info_cmd(LittleEndianStructure):
 
     def __init__(self, 
                  operation: GAPC_OPERATION = GAPC_OPERATION.GAPC_NO_OP):
@@ -601,7 +601,7 @@ struct gapc_peer_version_ind
 '''
 
 # Indication of peer features info
-class gapc_peer_features_ind(Structure):
+class gapc_peer_features_ind(LittleEndianStructure):
 
     def __init__(self, 
                  features: Array = (c_uint8*LE_FEATS_LEN)()):
@@ -778,7 +778,7 @@ struct gapc_param_update_cfm
 };
 '''
 # Pairing parameters
-class gapc_pairing(Structure):
+class gapc_pairing(LittleEndianStructure):
     def __init__(self, 
                  iocap: GAP_IO_CAP = GAP_IO_CAP.GAP_IO_CAP_DISPLAY_ONLY,
                  oob: GAP_OOB = GAP_OOB.GAP_OOB_AUTH_DATA_NOT_PRESENT,
@@ -820,7 +820,7 @@ class gapc_pairing(Structure):
 
 
 # Long Term Key information
-class gapc_ltk(Structure):
+class gapc_ltk(LittleEndianStructure):
 
     def __init__(self, 
                  ltk: gap_sec_key = gap_sec_key(),
@@ -902,7 +902,7 @@ class gapc_bond_req_data(Union):
                 ("tk_type", c_uint8)]  
 
 # Bonding requested by peer device indication message.
-class gapc_bond_req_ind(Structure):
+class gapc_bond_req_ind(LittleEndianStructure):
 
     def __init__(self, 
                  request: GAPC_BOND = GAPC_BOND.GAPC_PAIRING_REQ,
@@ -957,7 +957,7 @@ class gapc_bond_cfm_data(Union):
                 ("tk", gap_sec_key)]  
 
 # Confirm requested bond information.
-class gapc_bond_cfm(Structure):
+class gapc_bond_cfm(LittleEndianStructure):
 
     def __init__(self, 
                  request: GAPC_BOND = GAPC_BOND.GAPC_PAIRING_RSP,
@@ -1042,7 +1042,7 @@ struct gapc_encrypt_ind
 '''
 
 # Start Security Request command procedure
-class gapc_security_cmd(Structure):
+class gapc_security_cmd(LittleEndianStructure):
     def __init__(self, 
                   operation: GAPC_OPERATION = GAPC_OPERATION.GAPC_NO_OP,
                   auth: c_uint16 = GAP_AUTH.GAP_AUTH_REQ_SECURE_CONNECTION,

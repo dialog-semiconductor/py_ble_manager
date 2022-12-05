@@ -385,10 +385,10 @@ enum gapm_att_cfg_flag
 #endif // (BLE_DEBUG)
 };
 '''
-# TODO Should use LittleEndianStructure instead of Structure?
+# TODO Should use LittleEndianLittleEndianStructure instead of LittleEndianStructure?
 
 # Operation command structure in order to keep requested operation.
-class gapm_operation_cmd(Structure):
+class gapm_operation_cmd(LittleEndianStructure):
     def __init__(self, operation: GAPM_OPERATION = GAPM_OPERATION.GAPM_NO_OP):
         self.operation = operation
         super().__init__(operation=self.operation)
@@ -397,7 +397,7 @@ class gapm_operation_cmd(Structure):
     _fields_ = [("operation", c_uint8)]
    
 # Command complete event data structure
-class gapm_cmp_evt(Structure):
+class gapm_cmp_evt(LittleEndianStructure):
     def __init__(self, 
                  operation: GAPM_OPERATION = GAPM_OPERATION.GAPM_NO_OP, 
                  status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR):
@@ -411,7 +411,7 @@ class gapm_cmp_evt(Structure):
                 ("status", c_uint8)]
 
 #  Reset link layer and the host command
-class gapm_reset_cmd(Structure):
+class gapm_reset_cmd(LittleEndianStructure):
     def __init__(self, operation: GAPM_OPERATION = GAPM_OPERATION.GAPM_NO_OP):
         self.operation = operation
         super().__init__(operation=self.operation)
@@ -421,7 +421,7 @@ class gapm_reset_cmd(Structure):
     _fields_ = [("operation", c_uint8)] 
 
 # Set device configuration command
-class gapm_set_dev_config_cmd(Structure):
+class gapm_set_dev_config_cmd(LittleEndianStructure):
     def __init__(self, 
                  operation: GAPM_OPERATION = GAPM_OPERATION.GAPM_NO_OP,
                  role: GAP_ROLE = GAP_ROLE.GAP_ROLE_NONE,
@@ -540,7 +540,7 @@ class gapm_set_channel_map_cmd:
     # Channel map
     chmap: le_chnl_map
 
-class gapm_set_channel_map_cmd_struct(Structure):
+class gapm_set_channel_map_cmd_struct(LittleEndianStructure):
     _fields_ = [("operation", c_uint8),
                 ("chmap", le_chnl_map)] 
 
@@ -702,7 +702,7 @@ class gapm_addr_solved_ind:
 #adv_data_array = c_uint8*ADV_DATA_LEN
 
 # Advertising data that contains information set by host.
-class gapm_adv_host(Structure):
+class gapm_adv_host(LittleEndianStructure):
     def __init__(self, 
                  mode: GAP_ADV_MODE = GAP_ADV_MODE.GAP_NON_DISCOVERABLE, 
                  adv_filt_policy: ADV_FILTER_POLICY = ADV_FILTER_POLICY.ADV_ALLOW_SCAN_ANY_CON_ANY,
@@ -761,7 +761,7 @@ class gapm_adv_host(Structure):
                 ("peer_info", gap_bdaddr)]
 
 # Air operation default parameters
-class gapm_air_operation(Structure):
+class gapm_air_operation(LittleEndianStructure):
     def __init__(self, 
                  code: GAPM_OPERATION = GAPM_OPERATION.GAPM_NO_OP, 
                  addr_src: GAPM_OWN_ADDR = GAPM_OWN_ADDR.GAPM_STATIC_ADDR,
@@ -806,7 +806,7 @@ class gapm_adv_info(Union):
                 ("direct", gap_bdaddr)]  
 
 # Set advertising mode Command
-class gapm_start_advertise_cmd(Structure):
+class gapm_start_advertise_cmd(LittleEndianStructure):
 
     def __init__(self, 
                  op: gapm_air_operation = gapm_air_operation(), 
@@ -898,7 +898,7 @@ struct gapm_adv_report_ind
 '''
                 
 # Set connection initialization Command
-class gapm_start_connection_cmd(Structure):
+class gapm_start_connection_cmd(LittleEndianStructure):
     def __init__(self, 
                  op: gapm_air_operation = gapm_air_operation(),
                  scan_interval: c_uint16 = 0, 

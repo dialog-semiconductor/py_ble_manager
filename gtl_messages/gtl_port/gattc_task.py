@@ -355,7 +355,7 @@ struct gattc_cmp_evt
 };
 
 
-# Service Discovery Command Structure
+# Service Discovery Command LittleEndianStructure
 struct gattc_exc_mtu_cmd
 {
     # GATT request type
@@ -373,7 +373,7 @@ struct gattc_mtu_changed_ind
     uint16_t seq_num;
 };
 
-# Service Discovery Command Structure
+# Service Discovery Command LittleEndianStructure
 struct gattc_disc_cmd
 {
     # GATT request type
@@ -391,7 +391,7 @@ struct gattc_disc_cmd
 };
 
 
-# Discover Service indication Structure
+# Discover Service indication LittleEndianStructure
 struct gattc_disc_svc_ind
 {
     # start handle
@@ -404,7 +404,7 @@ struct gattc_disc_svc_ind
     uint8_t  uuid[__ARRAY_EMPTY];
 };
 
-# Discover Service indication Structure
+# Discover Service indication LittleEndianStructure
 struct gattc_disc_svc_incl_ind
 {
     # element handle
@@ -419,7 +419,7 @@ struct gattc_disc_svc_incl_ind
     uint8_t uuid[__ARRAY_EMPTY];
 };
 
-# Discovery All Characteristic indication Structure
+# Discovery All Characteristic indication LittleEndianStructure
 struct gattc_disc_char_ind
 {
     # database element handle
@@ -434,7 +434,7 @@ struct gattc_disc_char_ind
     uint8_t uuid[__ARRAY_EMPTY];
 };
 
-# Discovery Characteristic Descriptor indication Structure
+# Discovery Characteristic Descriptor indication LittleEndianStructure
 struct gattc_disc_char_desc_ind
 {
     # database element handle
@@ -611,7 +611,7 @@ struct gattc_send_evt_cmd
 '''
 
 # Inform that attribute value is requested by lower layers.
-class gattc_read_req_ind(Structure):
+class gattc_read_req_ind(LittleEndianStructure):
 
     def __init__(self, 
                  handle: c_uint16 = 0):
@@ -625,7 +625,7 @@ class gattc_read_req_ind(Structure):
 
 
 # Confirm Read Request requested by GATT to profile
-class gattc_read_cfm(Structure):
+class gattc_read_cfm(LittleEndianStructure):
 
     def __init__(self, 
                  handle: c_uint16 = 0,
@@ -664,7 +664,7 @@ class gattc_read_cfm(Structure):
 
 
 # Inform that a modification of database has been requested by peer device.
-class gattc_write_req_ind(Structure):
+class gattc_write_req_ind(LittleEndianStructure):
 
     def __init__(self, 
                  handle: c_uint16 = 0, 
@@ -703,7 +703,7 @@ class gattc_write_req_ind(Structure):
 
 
 # Confirm modification of database from upper layer when requested by peer device.
-class gattc_write_cfm(Structure):
+class gattc_write_cfm(LittleEndianStructure):
 
     def __init__(self, 
                  handle: c_uint16 = 0, 

@@ -400,10 +400,10 @@ struct gap_slv_pref
 /// maximum number of LECB connection per BLE link
 #define GAP_LECB_CNX_MAX                rom_cfg_table[gap_lecb_cnx_max_pos] //10
 '''
-# *************** GAP Structures ********************
+# *************** GAP LittleEndianStructures ********************
 
 # Address information about a device address
-class gap_bdaddr(Structure):
+class gap_bdaddr(LittleEndianStructure):
     def __init__(self, 
                  addr: bd_addr = bd_addr(), 
                  # TODO: NOTE 1 Was below:
@@ -422,7 +422,7 @@ class gap_bdaddr(Structure):
                 ("addr_type", c_uint8)] 
 
 # Generic Security key structure
-class gap_sec_key(Structure):
+class gap_sec_key(LittleEndianStructure):
 
     def __init__(self, 
                  key: Array = (c_uint8*KEY_LEN)()):

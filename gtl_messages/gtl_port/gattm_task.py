@@ -126,7 +126,7 @@ class GATTM_MSG_ID(IntEnum):
     GATTM_ATT_GET_INFO_RSP = auto()
 
 #TODO move to att or attm
-class att_perm(Structure):
+class att_perm(LittleEndianStructure):
     def __init__(self, 
                  read: ATTM_PERM = ATTM_PERM.DISABLE,
                  write: ATTM_PERM = ATTM_PERM.DISABLE,
@@ -186,7 +186,7 @@ class att_perm(Structure):
                 ("reserved", c_uint32, 12)]
 
 #TODO move to att or attm
-class att_max_len_read_ind(Structure):
+class att_max_len_read_ind(LittleEndianStructure):
     def __init__(self, 
                  max_len: c_uint16 = 0,
                  trigger_read_indication: ATTM_TRIGGER_READ_INDICATION = ATTM_TRIGGER_READ_INDICATION.NO,
@@ -217,7 +217,7 @@ class att_max_len_read_ind(Structure):
                 ("trigger_read_indication", c_uint16, 1)]
 
 # Attribute Description
-class gattm_att_desc(Structure):
+class gattm_att_desc(LittleEndianStructure):
     def __init__(self, 
                   uuid: c_uint8*ATT_UUID_128_LEN = (c_uint8*ATT_UUID_128_LEN)(), 
                   perm: att_perm = att_perm(),
@@ -240,7 +240,7 @@ class gattm_att_desc(Structure):
                 ("padding", c_uint16)]
 
 #TODO move to att or attm
-class attm_svc_perm(Structure):
+class attm_svc_perm(LittleEndianStructure):
     def __init__(self, 
                  multi: ATTM_TASK_MULTI_INSTANTIATED = ATTM_TASK_MULTI_INSTANTIATED.NO, 
                  enc_key_16_bytes: ATTM_ENC_KEY_SIZE_16_BYTES = ATTM_ENC_KEY_SIZE_16_BYTES.NO, 
@@ -269,7 +269,7 @@ class attm_svc_perm(Structure):
                 ("primary_svc", c_uint8, 1)] 
 
 # Service description
-class gattm_svc_desc(Structure):
+class gattm_svc_desc(LittleEndianStructure):
     def __init__(self, 
                 start_hdl: c_uint16 = 0,
                 task_id: KE_API_ID = 0, 
@@ -320,7 +320,7 @@ class gattm_svc_desc(Structure):
     atts = property(get_atts, set_atts) 
 
 # Add service in database request
-class gattm_add_svc_req(Structure):
+class gattm_add_svc_req(LittleEndianStructure):
     def __init__(self, svc_desc: gattm_svc_desc = gattm_svc_desc()):
         self.svc_desc = svc_desc
         super().__init__(svc_desc=self.svc_desc)
@@ -332,7 +332,7 @@ class gattm_add_svc_req(Structure):
 
 
 # Add service in database response
-class gattm_add_svc_rsp(Structure):
+class gattm_add_svc_rsp(LittleEndianStructure):
 
     def __init__(self, 
                  start_hdl: c_uint16 = 0,
@@ -428,7 +428,7 @@ struct gattm_att_set_permission_rsp
 
 '''
 # Get attribute value request
-class gattm_att_get_value_req(Structure):
+class gattm_att_get_value_req(LittleEndianStructure):
 
     def __init__(self, handle: c_uint16 = 0):
         self.handle = handle
@@ -439,7 +439,7 @@ class gattm_att_get_value_req(Structure):
 
 
 # Get attribute value response
-class gattm_att_get_value_rsp(Structure):
+class gattm_att_get_value_rsp(LittleEndianStructure):
 
     def __init__(self, 
                  handle: c_uint16 = 0,
@@ -476,7 +476,7 @@ class gattm_att_get_value_rsp(Structure):
     value = property(get_value, set_value) 
 
 # Set attribute value request
-class gattm_att_set_value_req(Structure):
+class gattm_att_set_value_req(LittleEndianStructure):
     def __init__(self, 
                  handle: c_uint16 = 0,
                  #length: c_uint16 = 0, # Take length from len of array
@@ -509,7 +509,7 @@ class gattm_att_set_value_req(Structure):
     value = property(get_value, set_value) 
 
 # Set attribute value response
-class gattm_att_set_value_rsp(Structure):
+class gattm_att_set_value_rsp(LittleEndianStructure):
 
     def __init__(self, 
                  handle: c_uint16 = 0,

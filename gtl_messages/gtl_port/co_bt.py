@@ -1660,14 +1660,14 @@ struct bd_name
     uint8_t name[BD_NAME_SIZE];
 };
 
-///Structure device name
+///LittleEndianStructure device name
 struct device_name
 {
     ///array of bytes for name
     uint8_t name[BD_NAME_SIZE];
 };
 
-///Structure name vector
+///LittleEndianStructure name vector
 struct name_vect
 {
     uint8_t vect[NAME_VECT_SIZE];
@@ -1711,7 +1711,7 @@ struct host_cmpl_pkts
 };
 ''' 
 #BD Address structure
-class bd_addr(Structure):
+class bd_addr(LittleEndianStructure):
 
     def __init__(self, 
                  addr: Array = (c_uint8*BD_ADDR_LEN)()):
@@ -1753,7 +1753,7 @@ struct chnl_map
 '''
 
 # Channel map structure
-class le_chnl_map(Structure):
+class le_chnl_map(LittleEndianStructure):
 
     def __init__(self, 
                  map: Array = (c_uint8*LE_CHNL_MAP_LEN)()):
@@ -1783,7 +1783,7 @@ struct bd_addr_plus_key
 };
 '''
 #Random number structure
-class rand_nb(Structure):
+class rand_nb(LittleEndianStructure):
     def __init__(self, 
                  nb: Array = (c_uint8*RAND_NB_LEN)()):
                  
