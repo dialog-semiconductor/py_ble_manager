@@ -95,11 +95,12 @@ test_message.parameters.svc_desc.atts = (gattm_att_desc * len(att_list))(*att_li
 
 print(test_message)
 '''
-test_message = GattmAttSetValueReq()
-test_message.parameters.handle = 28
+expected = "05140C0C0010003C001900360000 " + \
+                        "7B636861726163746572697374696320427D2E7B63686172616374657269737469632076616C75657D202D64656D6F2076616C75652D00"
 
-
-print(test_message.to_hex())
-
-expected = "050C0B0B00100005001C00010000"
+        
+test_message = GattcReadCfm()
+test_message.parameters.handle = 25
 print(expected)
+print(test_message.to_hex())
+    

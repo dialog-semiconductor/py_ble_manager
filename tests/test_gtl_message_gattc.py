@@ -45,6 +45,52 @@ class TestGattcWriteCfm(unittest.TestCase):
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+# Table 102
+class TestGattcReadReqInd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05130C10000C0002001900"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcReadReqInd()
+        test_message.parameters.handle = 25
+        
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        test_message = GattcReadReqInd(conidx=1)
+        test_message.parameters.handle = 25
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 103
+class TestGattcReadCfm(unittest.TestCase):
+
+    def setUp(self):
+        self.maxDiff = None
+    
+        self.expected = "05140C0C0010003C001900360000" + \
+                        "7B636861726163746572697374696320427D2E7B63686172616374657269737469632076616C75657D202D64656D6F2076616C75652D00"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcReadCfm()
+        test_message.parameters.handle = 25
+        value = bytearray.fromhex("7B636861726163746572697374696320427D2E7B63686172616374657269737469632076616C75657D202D64656D6F2076616C75652D")
+        test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+        
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        test_message = GattcReadCfm(conidx=1)
+        test_message.parameters.handle = 25
+        value = bytearray.fromhex("7B636861726163746572697374696320427D2E7B63686172616374657269737469632076616C75657D202D64656D6F2076616C75652D")
+        test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+
 if __name__ == '__main__':
     unittest.main()
     

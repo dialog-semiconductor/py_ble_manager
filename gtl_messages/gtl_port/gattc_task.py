@@ -608,30 +608,64 @@ struct gattc_send_evt_cmd
     # data value
     uint8_t  value[__ARRAY_EMPTY];
 };
+'''
 
 # Inform that attribute value is requested by lower layers.
-struct gattc_read_req_ind
-{
-    # Handle of the attribute that has to be read
-    uint16_t handle;
-};
+class gattc_read_req_ind(Structure):
+
+    def __init__(self, 
+                 handle: c_uint16 = 0):
+
+        self.handle = handle
+        super().__init__(handle=self.handle)
+
+                # Handle of the attribute that has to be read
+    _fields_ = [("handle", c_uint16)]
+
+
 
 # Confirm Read Request requested by GATT to profile
-struct gattc_read_cfm
-{
-    # Handle of the attribute read
-    uint16_t handle;
-    # Data length read
-    uint16_t length;
-    # Status of read command execution by upper layers
-    uint8_t status;
-    # attribute data value
-    uint8_t  value[__ARRAY_EMPTY];
-};
-'''
+class gattc_read_cfm(Structure):
+
+    def __init__(self, 
+                 handle: c_uint16 = 0,
+                 status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR,
+                 value: Array[c_uint8] = None):
+
+        self.handle = handle
+        self.status = status
+        self.value = value
+        super().__init__(handle=self.handle,
+                         length=self.length,
+                         status=self.status,
+                         _value=self._value,
+                         padding=0)
+
+                # Handle of the attribute read
+    _fields_ = [("handle", c_uint16),
+                # Data length read
+                ("length", c_uint16),
+                # Status of read command execution by upper layers
+                ("status", c_uint8),
+                # attribute data value
+                ("_value", POINTER(c_uint8)),
+                ("padding", c_uint8)]
+
+    def get_value(self):
+        return cast(self._value, POINTER(c_uint8 * self.length)).contents
+
+    def set_value(self, new_value: POINTER(c_uint8)): #TODO User should pass array, how to type hint? 
+        print(new_value) 
+        #TODO raise error if length > 512
+        self._value = new_value if new_value else pointer(c_uint8(0))
+        self.length = len(new_value) if new_value else 1
+
+    value = property(get_value, set_value) 
+
 
 # Inform that a modification of database has been requested by peer device.
 class gattc_write_req_ind(Structure):
+
     def __init__(self, 
                  handle: c_uint16 = 0, 
                  offset: c_uint16 = 0,
@@ -670,6 +704,7 @@ class gattc_write_req_ind(Structure):
 
 # Confirm modification of database from upper layer when requested by peer device.
 class gattc_write_cfm(Structure):
+
     def __init__(self, 
                  handle: c_uint16 = 0, 
                  status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR,
