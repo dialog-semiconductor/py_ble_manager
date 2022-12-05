@@ -45,7 +45,6 @@ class TestGattcWriteCfm(unittest.TestCase):
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
-
 if __name__ == '__main__':
     unittest.main()
     

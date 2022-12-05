@@ -268,19 +268,18 @@ class attm_svc_perm(Structure):
                 ("uuid_len", c_uint8, 2),
                 ("primary_svc", c_uint8, 1)] 
 
+# Service description
 class gattm_svc_desc(Structure):
     def __init__(self, 
                 start_hdl: c_uint16 = 0,
                 task_id: KE_API_ID = 0, 
                 perm: attm_svc_perm = attm_svc_perm(),
-                nb_att: c_uint8 = 0,
                 uuid: c_uint*ATT_UUID_128_LEN = (c_uint8*ATT_UUID_128_LEN)(),
                 atts: POINTER(gattm_att_desc) = None, # TODO atts should be a ctypes array of gattm_att_desc. how to type hint? 
                 ):
         self.start_hdl = start_hdl
         self.task_id = task_id
         self.perm = perm
-        self.nb_att = nb_att
         self.uuid = uuid
         self.atts = atts 
         super().__init__(start_hdl=self.start_hdl,
@@ -289,8 +288,7 @@ class gattm_svc_desc(Structure):
                         nb_att=self.nb_att,
                         uuid=self.uuid,
                         __padding__=0,
-                        _atts=self._atts,
-                        _atts_len=self._atts_len)
+                        _atts=self._atts)
 
                 # Attribute Start Handle (0 = dynamically allocated)
     _fields_ = [("start_hdl", c_uint16),
@@ -306,65 +304,20 @@ class gattm_svc_desc(Structure):
                 ("__padding__", c_uint16),
                 #endif
                 # List of attribute description present in service.
-                ("_atts", POINTER(gattm_att_desc)), 
-                ("_atts_len", c_uint32)] # This must be added or length is lost when creating gattm_add_svc_req 
-    #return gattm_svc_desc
+                ("_atts", POINTER(gattm_att_desc))]
 
     def get_atts(self):
         # self._atts is a pointer to gattm_att_desc (LP_gattm_att_desc)
         # here we 
         # 1. cast to a pointer to an array (LP_gattm_att_desc_Array_x where x is some positive integer) 
         # 2. return the contents, providing the underlying array 
-        return cast(self._atts, POINTER(gattm_att_desc * self._atts_len)).contents
+        return cast(self._atts, POINTER(gattm_att_desc * self.nb_att)).contents
 
     def set_atts(self, value: POINTER(gattm_att_desc)): #TODO User should pass array, how to type hint?  
         self._atts = value if value else pointer(gattm_att_desc())
-        self._atts_len = len(value) if value else 1
+        self.nb_att = len(value) if value else 1
 
     atts = property(get_atts, set_atts) 
-
-'''
-# Service description
-class gattm_svc_desc(Structure):
-    def __init__(self, 
-                 start_hdl: c_uint16 = 0,
-                 task_id: KE_API_ID = 0, 
-                 perm: c_uint8 = 0, # TODO need type attm_svc_perm_mask
-                 nb_att: c_uint8 = 0,
-                 uuid: c_uint*ATT_UUID_128_LEN = (c_uint8*ATT_UUID_128_LEN)(),
-                 atts: gattm_att_desc = gattm_att_desc(),
-                 ):
-        self.start_hdl = start_hdl
-        self.task_id = task_id
-        self.perm = perm
-        self.nb_att = nb_att
-        self.uuid = uuid
-        self.atts = atts
-        super().__init__(start_hdl=self.start_hdl,
-                         task_id=self.task_id,
-                         perm=self.perm,
-                         nb_att=self.nb_att,
-                         uuid=self.uuid,
-                         __padding__=0,
-                         atts=self.atts)
-
-
-                # Attribute Start Handle (0 = dynamically allocated)
-    _fields_ = [("start_hdl", c_uint16),
-                # Task identifier that manages service
-                ("task_id", c_uint16),
-                # Service permissions (@see enum attm_svc_perm_mask)
-                ("perm", c_uint8),
-                # Number of attributes
-                ("nb_att", c_uint8),
-                # Service  UUID
-                ("uuid", c_uint8*ATT_UUID_128_LEN),
-                #if RWBLE_SW_VERSION_MAJOR >= 8
-                ("__padding__", c_uint16),
-                #endif
-                # List of attribute description present in service.
-                ("atts", gattm_att_desc)]
-'''
 
 # Add service in database request
 class gattm_add_svc_req(Structure):
@@ -473,27 +426,54 @@ struct gattm_att_set_permission_rsp
     uint8_t status;
 };
 
-
-/// Get attribute value request
-struct gattm_att_get_value_req
-{
-    /// Handle of the attribute
-    uint16_t handle;
-};
-
-/// Get attribute value response
-struct gattm_att_get_value_rsp
-{
-    /// Handle of the attribute
-    uint16_t handle;
-    /// Attribute value length
-    uint16_t length;
-    /// Return status
-    uint8_t status;
-    /// Attribute value
-    uint8_t value[__ARRAY_EMPTY];
-};
 '''
+# Get attribute value request
+class gattm_att_get_value_req(Structure):
+
+    def __init__(self, handle: c_uint16 = 0):
+        self.handle = handle
+        super().__init__(handle=self.handle)
+
+                # Handle of the attribute
+    _fields_ = [("handle", c_uint16)] 
+
+
+# Get attribute value response
+class gattm_att_get_value_rsp(Structure):
+
+    def __init__(self, 
+                 handle: c_uint16 = 0,
+                 status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR,
+                 value: POINTER(c_uint8) = 0):
+        self.handle = handle
+        self.status = status
+        self.value = value
+        super().__init__(handle=self.handle,
+                         length=self.length,
+                         status=self.status,
+                         _value=self._value,
+                         padding=0)
+
+                # Handle of the attribute
+    _fields_ = [("handle", c_uint16),
+                # Attribute value length
+                ("length", c_uint16),
+                # Return status
+                ("status", c_uint8),
+                # Attribute value
+                ("_value", POINTER(c_uint8)),
+                ("paddong", c_uint8)] 
+
+    def get_value(self):
+        return cast(self._value, POINTER(c_uint8 * self.length)).contents
+
+    def set_value(self, new_value: POINTER(c_uint8)): #TODO User should pass array, how to type hint? 
+        print(new_value) 
+        #TODO raise error if length > 512
+        self._value = new_value if new_value else pointer(c_uint8(0))
+        self.length = len(new_value) if new_value else 1
+
+    value = property(get_value, set_value) 
 
 # Set attribute value request
 class gattm_att_set_value_req(Structure):
@@ -527,7 +507,6 @@ class gattm_att_set_value_req(Structure):
         self.length = len(new_value) if new_value else 1
 
     value = property(get_value, set_value) 
-
 
 # Set attribute value response
 class gattm_att_set_value_rsp(Structure):

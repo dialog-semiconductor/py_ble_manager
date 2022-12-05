@@ -187,7 +187,6 @@ class TestGattmAttSetValueRsp(unittest.TestCase):
     def setUp(self):
         self.expected = "050D0B10000B0004001C000000"
 
-
     def test_parameters_updated_after_construction(self):
         
         test_message = GattmAttSetValueRsp()
@@ -196,6 +195,34 @@ class TestGattmAttSetValueRsp(unittest.TestCase):
 
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+# Table 99
+class TestGattmAttGetValueReq(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "050A0B0B00100002001C00"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattmAttGetValueReq()
+        test_message.parameters.handle = 28
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 99
+class TestGattmAttGetValueRsp(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "050B0B10000B003C001C00360000" + \
+                        "7B636861726163746572697374696320427D2E7B63686172616374657269737469632076616C75657D202D64656D6F2076616C75652D00"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattmAttGetValueRsp()
+        test_message.parameters.handle = 28
+        value = bytearray.fromhex("7B636861726163746572697374696320427D2E7B63686172616374657269737469632076616C75657D202D64656D6F2076616C75652D")
+        test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
 if __name__ == '__main__':
     unittest.main()

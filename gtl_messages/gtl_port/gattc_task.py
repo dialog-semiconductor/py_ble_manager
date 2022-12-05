@@ -635,13 +635,11 @@ class gattc_write_req_ind(Structure):
     def __init__(self, 
                  handle: c_uint16 = 0, 
                  offset: c_uint16 = 0,
-                 length: c_uint16 = 0,
                  value: POINTER(c_uint8) = None
                 ):
 
         self.handle = handle
         self.offset = offset
-        self.length = length
         self.value = value
         super().__init__(handle=self.handle,
                          offset=self.offset,
