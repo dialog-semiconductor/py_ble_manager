@@ -275,7 +275,7 @@ class gattm_svc_desc(LittleEndianStructure):
                 task_id: KE_API_ID = 0, 
                 perm: attm_svc_perm = attm_svc_perm(),
                 uuid: c_uint*ATT_UUID_128_LEN = (c_uint8*ATT_UUID_128_LEN)(),
-                atts: POINTER(gattm_att_desc) = None, # TODO atts should be a ctypes array of gattm_att_desc. how to type hint? 
+                atts: Array[gattm_att_desc] = None, 
                 ):
         self.start_hdl = start_hdl
         self.task_id = task_id
@@ -313,7 +313,7 @@ class gattm_svc_desc(LittleEndianStructure):
         # 2. return the contents, providing the underlying array 
         return cast(self._atts, POINTER(gattm_att_desc * self.nb_att)).contents
 
-    def set_atts(self, value: POINTER(gattm_att_desc)): #TODO User should pass array, how to type hint?  
+    def set_atts(self, value: Array[gattm_att_desc]): 
         self._atts = value if value else pointer(gattm_att_desc())
         self.nb_att = len(value) if value else 1
 
@@ -444,7 +444,7 @@ class gattm_att_get_value_rsp(LittleEndianStructure):
     def __init__(self, 
                  handle: c_uint16 = 0,
                  status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR,
-                 value: POINTER(c_uint8) = 0):
+                 value: Array[c_uint8] = 0):
         self.handle = handle
         self.status = status
         self.value = value
@@ -467,7 +467,7 @@ class gattm_att_get_value_rsp(LittleEndianStructure):
     def get_value(self):
         return cast(self._value, POINTER(c_uint8 * self.length)).contents
 
-    def set_value(self, new_value: POINTER(c_uint8)): #TODO User should pass array, how to type hint? 
+    def set_value(self, new_value: Array[c_uint8]): #TODO User should pass array, how to type hint? 
         print(new_value) 
         #TODO raise error if length > 512
         self._value = new_value if new_value else pointer(c_uint8(0))
@@ -480,7 +480,7 @@ class gattm_att_set_value_req(LittleEndianStructure):
     def __init__(self, 
                  handle: c_uint16 = 0,
                  #length: c_uint16 = 0, # Take length from len of array
-                 value: POINTER(c_uint8) = None # TODO should be a ctypes array of c_uint8. how to type hint? 
+                 value: Array[c_uint8] = None # TODO should be a ctypes array of c_uint8. how to type hint? 
                 ):
         self.handle = handle
         #self.length = length
@@ -500,7 +500,7 @@ class gattm_att_set_value_req(LittleEndianStructure):
     def get_value(self):
         return cast(self._value, POINTER(c_uint8 * self.length)).contents
 
-    def set_value(self, new_value: POINTER(c_uint8)): #TODO User should pass array, how to type hint? 
+    def set_value(self, new_value: Array[c_uint8]): #TODO User should pass array, how to type hint? 
         print(new_value) 
         #TODO raise error if length > 512
         self._value = new_value if new_value else pointer(c_uint8(0))

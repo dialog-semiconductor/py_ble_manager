@@ -968,7 +968,7 @@ class gapm_start_connection_cmd(LittleEndianStructure):
                 # Padding
                 ("padding", c_uint8)]
 
-    def get_peers(self) -> Array[gap_bdaddr]:
+    def get_peers(self):
         # self._atts is a pointer to gattm_att_desc (LP_gattm_att_desc)
         # here we 
         # 1. cast to a pointer to an array (LP_gattm_att_desc_Array_x where x is some positive integer) 

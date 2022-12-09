@@ -237,10 +237,10 @@ class GATTC_MSG_ID(IntEnum):
     GATTC_SERVER_RTX_IND = auto()
 
 
-'''
+
 # request operation type - application interface
-enum gattc_operation
-{
+class GATTC_OPERATION(IntEnum):
+
     #              Attribute Client Flags              
     # No Operation (if nothing has been requested)     
     # ************************************************ 
@@ -250,75 +250,75 @@ enum gattc_operation
     # Operation flags for MTU Exchange                 
     # ************************************************ 
     # Perform MTU exchange
-    GATTC_MTU_EXCH,
+    GATTC_MTU_EXCH = auto()
 
     #      Operation flags for discovery operation     
     # ************************************************ 
     # Discover all services
-    GATTC_DISC_ALL_SVC,
+    GATTC_DISC_ALL_SVC = auto()
     # Discover services by UUID
-    GATTC_DISC_BY_UUID_SVC,
+    GATTC_DISC_BY_UUID_SVC = auto()
     # Discover included services
-    GATTC_DISC_INCLUDED_SVC,
+    GATTC_DISC_INCLUDED_SVC = auto()
     # Discover all characteristics
-    GATTC_DISC_ALL_CHAR,
+    GATTC_DISC_ALL_CHAR = auto()
     # Discover characteristic by UUID
-    GATTC_DISC_BY_UUID_CHAR,
+    GATTC_DISC_BY_UUID_CHAR = auto()
     # Discover characteristic descriptor
-    GATTC_DISC_DESC_CHAR,
+    GATTC_DISC_DESC_CHAR = auto()
 
     # Operation flags for reading attributes           
     # ************************************************ 
     # Read attribute
-    GATTC_READ,
+    GATTC_READ = auto()
     # Read long attribute
-    GATTC_READ_LONG,
+    GATTC_READ_LONG = auto()
     # Read attribute by UUID
-    GATTC_READ_BY_UUID,
+    GATTC_READ_BY_UUID = auto()
     # Read multiple attribute
-    GATTC_READ_MULTIPLE,
+    GATTC_READ_MULTIPLE = auto()
 
     # Operation flags for writing/modifying attributes 
     # ************************************************ 
     # Write attribute
-    GATTC_WRITE,
+    GATTC_WRITE = auto()
     # Write no response
-    GATTC_WRITE_NO_RESPONSE,
+    GATTC_WRITE_NO_RESPONSE = auto()
     # Write signed
-    GATTC_WRITE_SIGNED,
+    GATTC_WRITE_SIGNED = auto()
     # Execute write
-    GATTC_EXEC_WRITE,
+    GATTC_EXEC_WRITE = auto()
 
     # Operation flags for registering to peer device   
     # events                                           
     # ************************************************ 
     # Register to peer device events
-    GATTC_REGISTER,
+    GATTC_REGISTER = auto()
     # Unregister from peer device events
-    GATTC_UNREGISTER,
+    GATTC_UNREGISTER = auto()
 
     # Operation flags for sending events to peer device
     # ************************************************ 
     # Send an attribute notification
-    GATTC_NOTIFY,
+    GATTC_NOTIFY = auto()
     # Send an attribute indication
-    GATTC_INDICATE,
+    GATTC_INDICATE = auto()
     # Send a service changed indication
-    GATTC_SVC_CHANGED,
+    GATTC_SVC_CHANGED = auto()
 
     # Service Discovery Procedure                      
     # ************************************************ 
     # Search specific service
-    GATTC_SDP_DISC_SVC,
+    GATTC_SDP_DISC_SVC = auto()
     # Search for all services
-    GATTC_SDP_DISC_SVC_ALL,
+    GATTC_SDP_DISC_SVC_ALL = auto()
     # Cancel Service Discovery Procedure
-    GATTC_SDP_DISC_CANCEL,
+    GATTC_SDP_DISC_CANCEL = auto()
 
     # Last GATT flag
-    GATTC_LAST
-};
+    GATTC_LAST = auto()
 
+'''
 # Service Discovery Attribute type
 enum gattc_sdp_att_type
 {
@@ -343,18 +343,35 @@ struct gattc_op_cmd
     uint16_t seq_num;
 };
 
+'''
 # Command complete event data structure
-struct gattc_cmp_evt
-{
-    # GATT request type
-    uint8_t operation;
-    # Status of the request
-    uint8_t status;
-    # operation sequence number - provided when operation is started
-    uint16_t seq_num;
-};
+class gattc_cmp_evt(LittleEndianStructure):
+
+    def __init__(self, 
+                 operation: GATTC_OPERATION = GATTC_OPERATION.GATTC_NOTIFY,
+                 status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR,
+                 seq_num: c_uint16 = 0,):
+
+        #TODO instead make operation a property so user can not set operation incorrectly after construction
+        if operation and (operation != GATTC_OPERATION.GATTC_NOTIFY and operation != GATTC_OPERATION.GATTC_INDICATE):
+            raise TypeError("Operation must be GATTC_OPERATION.GATTC_NOTIFY or GATTC_OPERATION.GATTC_INDICATE")
+
+        self.operation = operation
+        self.status = status
+        self.seq_num = seq_num
+        super().__init__(operation=self.operation,
+                        status=self.status,
+                        seq_num=self.seq_num,)
+
+                # GATT request type
+    _fields_ = [("operation", c_uint8),
+                # Status of the request
+                ("padding", c_uint8),
+                # operation sequence number - provided when operation is started
+                ("seq_num", c_uint16),]
 
 
+'''
 # Service Discovery Command LittleEndianStructure
 struct gattc_exc_mtu_cmd
 {
@@ -548,39 +565,97 @@ struct gattc_execute_write_cmd
     # operation sequence number
     uint16_t seq_num;
 };
+'''
 # peer device triggers an event (notification)
-struct gattc_event_ind
-{
-    # Event Type
-    uint8_t type;
-    # Data length
-    uint16_t length;
-    # Attribute handle
-    uint16_t handle;
-    # Event Value
-    uint8_t value[__ARRAY_EMPTY];
-};
+class gattc_event_ind(LittleEndianStructure):
+
+    def __init__(self, 
+                 type: GATTC_OPERATION = GATTC_OPERATION.GATTC_NOTIFY,
+                 handle: c_uint16 = 0,
+                 value: Array[c_uint8] = None):
+
+        self.type = type #TODO raise type error is type is not NOTIFY or INDICATE. Use property to handle setting after construction
+        self.handle = handle
+        self.value = value
+        super().__init__(type=self.type,
+                        padding=0,
+                        length=self.length,
+                        handle=self.handle,
+                        _value=self._value)
+
+                # Event Type
+    _fields_ = [("type", c_uint8),
+                ("padding", c_uint8),
+                # Data length
+                ("length", c_uint16),
+                # Attribute handle
+                ("handle", c_uint16),
+                # Event Value
+                ("_value", POINTER(c_uint8))]
+
+    def get_value(self):
+        return cast(self._value, POINTER(c_uint8 * self.length)).contents
+
+    def set_value(self, new_value: Array[c_uint8]): 
+        #TODO raise error if length > 512?
+        self._value = new_value if new_value else pointer(c_uint8(0))
+        self.length = len(new_value) if new_value else 1
+
+    value = property(get_value, set_value) 
+
 
 # peer device triggers an event that requires a confirmation (indication)
-struct gattc_event_req_ind
-{
-    # Event Type
-    uint8_t type;
-    # Data length
-    uint16_t length;
-    # Attribute handle
-    uint16_t handle;
-    # Event Value
-    uint8_t value[__ARRAY_EMPTY];
-};
+class gattc_event_req_ind(LittleEndianStructure):
+
+    def __init__(self, 
+                 type: GATTC_OPERATION = GATTC_OPERATION.GATTC_NOTIFY,
+                 handle: c_uint16 = 0,
+                 value: Array[c_uint8] = None):
+
+        self.type = type #TODO raise type error is type is not NOTIFY or INDICATE. Use property to handle setting after construction
+        self.handle = handle
+        self.value = value
+        super().__init__(type=self.type,
+                        padding=0,
+                        length=self.length,
+                        handle=self.handle,
+                        _value=self._value)
+
+                # Event Type
+    _fields_ = [("type", c_uint8),
+                ("padding", c_uint8),
+                # Data length
+                ("length", c_uint16),
+                # Attribute handle
+                ("handle", c_uint16),
+                # Event Value
+                ("_value", POINTER(c_uint8))]
+
+    def get_value(self):
+        return cast(self._value, POINTER(c_uint8 * self.length)).contents
+
+    def set_value(self, new_value: Array[c_uint8]): 
+        #TODO raise error if length > 512?
+        self._value = new_value if new_value else pointer(c_uint8(0))
+        self.length = len(new_value) if new_value else 1
+
+    value = property(get_value, set_value) 
+
 
 # Confirm reception of event (trigger a confirmation message)
-struct gattc_event_cfm
-{
-    # Attribute handle
-    uint16_t handle;
-};
+class gattc_event_cfm(LittleEndianStructure):
 
+    def __init__(self, 
+                 handle: c_uint16 = 0):
+
+        self.handle = handle
+
+        super().__init__(handle=self.handle)
+
+                # Attribute handle
+    _fields_ = [("handle", c_uint16),]
+
+'''
 # Register to peer device events command
 struct gattc_reg_to_peer_evt_cmd
 {
@@ -593,22 +668,49 @@ struct gattc_reg_to_peer_evt_cmd
     # attribute end handle
     uint16_t end_hdl;
 };
-
-# Send an event to peer device
-struct gattc_send_evt_cmd
-{
-    # Request type (notification / indication)
-    uint8_t operation;
-    # operation sequence number
-    uint16_t seq_num;
-    # characteristic handle
-    uint16_t handle;
-    # length of packet to send
-    uint16_t length;
-    # data value
-    uint8_t  value[__ARRAY_EMPTY];
-};
 '''
+# Send an event to peer device
+class gattc_send_evt_cmd(LittleEndianStructure):
+    
+    def __init__(self, 
+                 operation: GATTC_OPERATION = GATTC_OPERATION.GATTC_NO_OP,
+                 seq_num: c_uint16 = 0,
+                 handle: c_uint16 = 0,
+                 value: Array[c_uint8] = None):
+
+        self.operation = operation
+        self.seq_num = seq_num
+        self.handle = handle
+        self.value = value
+        super().__init__(operation=self.operation,
+                        padding=0,
+                        seq_num=self.seq_num,
+                        handle=self.handle,
+                        length=self.length,
+                        _value=self._value,)
+
+                # Request type (notification / indication)
+    _fields_ = [("operation", c_uint8),
+                ("padding", c_uint8),
+                # operation sequence number
+                ("seq_num", c_uint16),
+                # characteristic handle
+                ("handle", c_uint16),
+                # length of packet to send
+                ("length", c_uint16),
+                # data value
+                ("_value", POINTER(c_uint8))]
+
+    def get_value(self):
+        return cast(self._value, POINTER(c_uint8 * self.length)).contents
+
+    def set_value(self, new_value: Array[c_uint8]): 
+        #TODO raise error if length > 512?
+        self._value = new_value if new_value else pointer(c_uint8(0))
+        self.length = len(new_value) if new_value else 1
+
+    value = property(get_value, set_value) 
+
 
 # Inform that attribute value is requested by lower layers.
 class gattc_read_req_ind(LittleEndianStructure):
@@ -654,8 +756,7 @@ class gattc_read_cfm(LittleEndianStructure):
     def get_value(self):
         return cast(self._value, POINTER(c_uint8 * self.length)).contents
 
-    def set_value(self, new_value: POINTER(c_uint8)): #TODO User should pass array, how to type hint? 
-        print(new_value) 
+    def set_value(self, new_value: Array[c_uint8]): 
         #TODO raise error if length > 512
         self._value = new_value if new_value else pointer(c_uint8(0))
         self.length = len(new_value) if new_value else 1
@@ -669,7 +770,7 @@ class gattc_write_req_ind(LittleEndianStructure):
     def __init__(self, 
                  handle: c_uint16 = 0, 
                  offset: c_uint16 = 0,
-                 value: POINTER(c_uint8) = None
+                 value: Array[c_uint8] = None
                 ):
 
         self.handle = handle
@@ -692,8 +793,7 @@ class gattc_write_req_ind(LittleEndianStructure):
     def get_value(self):
         return cast(self._value, POINTER(c_uint8 * self.length)).contents
 
-    def set_value(self, new_value: POINTER(c_uint8)): #TODO User should pass array, how to type hint? 
-        print(new_value) 
+    def set_value(self, new_value: Array[c_uint8]):
         #TODO raise error if length > 512
         self._value = new_value if new_value else pointer(c_uint8(0))
         self.length = len(new_value) if new_value else 1
