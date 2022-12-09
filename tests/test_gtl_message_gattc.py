@@ -239,6 +239,39 @@ class TestGattcEventCfm(unittest.TestCase):
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+# Table 115
+class TestGattcDiscCmd(unittest.TestCase):
+
+    def setUp(self):
+        self.maxDiff = None
+    
+        # TODO message string does not align with table
+        self.expected = "05030C0C0010000A00070220001A001C000000"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcDiscCmd()
+        test_message.parameters.operation = GATTC_OPERATION.GATTC_DISC_DESC_CHAR
+        test_message.parameters.seq_num = 0x20
+        test_message.parameters.start_hdl = 26
+        test_message.parameters.end_hdl = 28
+        uuid = bytearray.fromhex("0000")
+        test_message.parameters.uuid = (c_uint8 * len(uuid)).from_buffer_copy(uuid)
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        
+        test_message = GattcDiscCmd(conidx=1)
+        test_message.parameters.operation = GATTC_OPERATION.GATTC_DISC_DESC_CHAR
+        test_message.parameters.seq_num = 0x20
+        test_message.parameters.start_hdl = 26
+        test_message.parameters.end_hdl = 28
+        uuid = bytearray.fromhex("0000")
+        test_message.parameters.uuid = (c_uint8 * len(uuid)).from_buffer_copy(uuid)
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+
 
 
 if __name__ == '__main__':

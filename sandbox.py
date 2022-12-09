@@ -95,22 +95,14 @@ test_message.parameters.svc_desc.atts = (gattm_att_desc * len(att_list))(*att_li
 
 print(test_message)
 '''
-expected = "05100C0C0010003E00120001001C003600" + \
-                        "7B636861726163746572697374696320427D2E7B63686172616374657269737469632076616C75657D202D64656D6F2076616C75652D" 
-
-        
-test_message = GattcSendEvtCmd()
-test_message.parameters.operation = GATTC_OPERATION.GATTC_NOTIFY
-test_message.parameters.seq_num = 1
-test_message.parameters.handle = 0x1C
-value = bytearray.fromhex("7B636861726163746572697374696320427D2E7B63686172616374657269737469632076616C75657D202D64656D6F2076616C75652D")
-test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
-
-
+expected = "05030C0C0010000A00070020001A001C000000"
+test_message = GattcDiscCmd()
+test_message.parameters.operation = GATTC_OPERATION.GATTC_DISC_DESC_CHAR
+test_message.parameters.seq_num = 0x20
+test_message.parameters.start_hdl = 26
+test_message.parameters.end_hdl = 28
+uuid = bytearray.fromhex("0000")
+test_message.parameters.uuid = (c_uint8 * len(uuid)).from_buffer_copy(uuid)
 print(expected)
 print(test_message.to_hex())
-gattc_read_cfm()
 
-huh = gapm_start_connection_cmd()
-test = gattc_cmp_evt(operation=GATTC_OPERATION.GATTC_DISC_ALL_SVC)
-test.operation = GATTC_OPERATION.GATTC_NOTIFY

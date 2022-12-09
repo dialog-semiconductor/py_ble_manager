@@ -200,4 +200,27 @@ class GattcEventCfm(GtlMessageBase):
 
         self.parameters = params 
 
-        
+class GattcDiscCmd(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gattc_disc_cmd = None):
+
+        params = parameters if parameters else gattc_disc_cmd()
+        p_len = 8 + params.uuid_len
+
+        super().__init__(msg_id=GATTC_MSG_ID.GATTC_DISC_CMD,
+                         dst_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
+                         src_id=KE_API_ID.TASK_ID_GTL,
+                         par_len=p_len,
+                         parameters=params)
+
+        self.parameters = params 
+        self.par_len = p_len
+
+    def get_par_len(self):
+        self._par_len = 8 + self.parameters.uuid_len
+        return self._par_len
+
+    def set_par_len(self, value):
+        self._par_len = value
+
+    par_len = property(get_par_len, set_par_len)
