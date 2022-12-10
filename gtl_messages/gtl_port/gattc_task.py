@@ -516,24 +516,46 @@ class gattc_disc_svc_incl_ind(LittleEndianStructure):
 
     uuid = property(get_uuid, set_uuid) 
 
-
-
-'''
 # Discovery All Characteristic indication LittleEndianStructure
-struct gattc_disc_char_ind
-{
-    # database element handle
-    uint16_t attr_hdl;
-    # pointer attribute handle to UUID
-    uint16_t pointer_hdl;
-    # properties
-    uint8_t prop;
-    # UUID length
-    uint8_t uuid_len;
-    # characteristic UUID
-    uint8_t uuid[__ARRAY_EMPTY];
-};
-'''
+class gattc_disc_char_ind(LittleEndianStructure):
+
+    def __init__(self, 
+                 attr_hdl: c_uint16 = 0,
+                 pointer_hdl: c_uint16 = 0,
+                 prop: ATT_CHAR_PROP = ATT_CHAR_PROP.READ, #TODO difference between attribute prop and permissons 
+                 end_hdl: c_uint16 = 0,
+                 uuid: Array[c_uint8] = None):
+
+        self.attr_hdl = attr_hdl
+        self.pointer_hdl = pointer_hdl
+        self.prop = prop
+        self.uuid = uuid
+        super().__init__(attr_hdl=self.attr_hdl,
+                         pointer_hdl=self.pointer_hdl,
+                         prop=self.prop,
+                         uuid_len=self.uuid_len,
+                         _uuid=self._uuid)
+
+                # database element handle
+    _fields_ = [("attr_hdl", c_uint16),
+                # pointer attribute handle to UUID
+                ("pointer_hdl", c_uint16),
+                # properties
+                ("prop", c_uint8),
+                # UUID length
+                ("uuid_len", c_uint8),
+                # characteristic UUID
+                ("_uuid", POINTER(c_uint8))]
+
+    def get_uuid(self):
+        return cast(self._uuid, POINTER(c_uint8 * self.uuid_len)).contents
+
+    def set_uuid(self, new_uuid: Array[c_uint8]): 
+        self._uuid = new_uuid if new_uuid else (c_uint8 * 2)(0,0)
+        self.uuid_len = len(new_uuid) if new_uuid else 2 #TODO check 2 or 16
+
+    uuid = property(get_uuid, set_uuid) 
+
 # Discovery Characteristic Descriptor indication LittleEndianStructure
 class gattc_disc_char_desc_ind(LittleEndianStructure):
 

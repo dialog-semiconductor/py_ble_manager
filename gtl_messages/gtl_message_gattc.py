@@ -299,3 +299,29 @@ class GattcDiscSvcInclInd(GtlMessageBase):
         self._par_len = value
 
     par_len = property(get_par_len, set_par_len)
+
+class GattcDiscCharInd(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gattc_disc_char_ind = None):
+
+        params = parameters if parameters else gattc_disc_char_ind()
+        p_len = 6 + params.uuid_len
+
+        super().__init__(msg_id=GATTC_MSG_ID.GATTC_DISC_CHAR_IND,
+                         dst_id=KE_API_ID.TASK_ID_GTL,
+                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC), #TODO does not include conidx in manual, but all other GATTC do
+                         par_len=p_len,
+                         parameters=params)
+
+        self.parameters = params 
+        self.par_len = p_len
+
+    def get_par_len(self):
+        self._par_len = 6 + self.parameters.uuid_len
+        return self._par_len
+
+    def set_par_len(self, value):
+        self._par_len = value
+
+    par_len = property(get_par_len, set_par_len)
+ 

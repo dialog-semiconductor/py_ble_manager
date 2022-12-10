@@ -352,6 +352,35 @@ class TestGattcDiscSvcInclInd(unittest.TestCase):
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+# Table 132
+class TestGattcDiscCharInd(unittest.TestCase):
+
+    def setUp(self):
+        self.maxDiff = None
+        # TODO expected string does mot match table
+        self.expected = "05060C10000C000800020003000202002A"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcDiscCharInd()
+        test_message.parameters.attr_hdl = 2
+        test_message.parameters.pointer_hdl = 3
+        test_message.parameters.prop = ATT_CHAR_PROP.READ
+        uuid = bytearray.fromhex("002A")
+        test_message.parameters.uuid = (c_uint8 * len(uuid)).from_buffer_copy(uuid)
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        
+        test_message = GattcDiscCharInd(conidx=1)
+        test_message.parameters.attr_hdl = 2
+        test_message.parameters.pointer_hdl = 3
+        test_message.parameters.prop = ATT_CHAR_PROP.READ
+        uuid = bytearray.fromhex("002A")
+        test_message.parameters.uuid = (c_uint8 * len(uuid)).from_buffer_copy(uuid)
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
 if __name__ == '__main__':
     unittest.main()
     

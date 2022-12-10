@@ -39,7 +39,10 @@
 #include "rwip_config.h"
 #include "attm_cfg.h"
 #include <stdint.h>
-
+'''
+from enum import IntEnum
+from enum import auto
+'''
 /*
  * DEFINES
  ****************************************************************************************
@@ -83,15 +86,20 @@ ATT_UUID_128_LEN                        = 0x0010
 /// offset - l2cap header and ATT code
 #define ATT_PDU_DATA_OFFSET                     0x05
 
-/// Characteristic Properties Bit
-#define ATT_CHAR_PROP_BCAST                     0x01
-#define ATT_CHAR_PROP_RD                        0x02
-#define ATT_CHAR_PROP_WR_NO_RESP                0x04
-#define ATT_CHAR_PROP_WR                        0x08
-#define ATT_CHAR_PROP_NTF                       0x10
-#define ATT_CHAR_PROP_IND                       0x20
-#define ATT_CHAR_PROP_AUTH                      0x40
-#define ATT_CHAR_PROP_EXT_PROP                  0x80
+
+'''
+# Characteristic Properties Bit
+class ATT_CHAR_PROP(IntEnum):
+    BROADCAST = 0x01,
+    READ = 0x02,
+    WRITE_NO_RESP = 0x04
+    WRITE = 0x08,
+    NOTIFY = 0x10
+    INDICATE = 0x20
+    AUTH = 0x40
+    EXT_PROP = 0x80
+
+'''
 /// Invalid Attribute Handle
 #define ATT_INVALID_SEARCH_HANDLE               0x0000
 #define ATT_INVALID_HANDLE                      0x0000
