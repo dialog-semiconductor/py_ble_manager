@@ -95,13 +95,12 @@ test_message.parameters.svc_desc.atts = (gattm_att_desc * len(att_list))(*att_li
 
 print(test_message)
 '''
-expected = "05030C0C0010000A00070020001A001C000000"
-test_message = GattcDiscCmd()
-test_message.parameters.operation = GATTC_OPERATION.GATTC_DISC_DESC_CHAR
-test_message.parameters.seq_num = 0x20
-test_message.parameters.start_hdl = 26
-test_message.parameters.end_hdl = 28
-uuid = bytearray.fromhex("0000")
+expected = "05050C10000C000A0015000000C00020F1800"
+test_message = GattcDiscSvcInclInd()
+test_message.parameters.attr_hdl = 21
+test_message.parameters.start_hdl = 9
+test_message.parameters.end_hdl = 12
+uuid = bytearray.fromhex("0F18")
 test_message.parameters.uuid = (c_uint8 * len(uuid)).from_buffer_copy(uuid)
 print(expected)
 print(test_message.to_hex())

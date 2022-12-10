@@ -272,7 +272,85 @@ class TestGattcDiscCmd(unittest.TestCase):
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
 
+# Table 117
+class TestGattcDiscCharDescInd(unittest.TestCase):
 
+    def setUp(self):
+        self.maxDiff = None
+        self.expected = "05070C10000C0006001A0002032800"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcDiscCharDescInd()
+        test_message.parameters.attr_hdl = 26
+        uuid = bytearray.fromhex("0328")
+        test_message.parameters.uuid = (c_uint8 * len(uuid)).from_buffer_copy(uuid)
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        
+        test_message = GattcDiscCharDescInd(conidx=1)
+        test_message.parameters.attr_hdl = 26
+        uuid = bytearray.fromhex("0328")
+        test_message.parameters.uuid = (c_uint8 * len(uuid)).from_buffer_copy(uuid)
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 122
+class TestGattcDiscSvcInd(unittest.TestCase):
+
+    def setUp(self):
+        self.maxDiff = None
+        # TODO expected string does mot match table
+        self.expected = "05040C10000C0008000100050002180100"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcDiscSvcInd()
+        test_message.parameters.start_hdl = 1
+        test_message.parameters.end_hdl = 5
+        uuid = bytearray.fromhex("1801")
+        test_message.parameters.uuid = (c_uint8 * len(uuid)).from_buffer_copy(uuid)
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        
+        test_message = GattcDiscSvcInd(conidx=1)
+        test_message.parameters.start_hdl = 1
+        test_message.parameters.end_hdl = 5
+        uuid = bytearray.fromhex("1801")
+        test_message.parameters.uuid = (c_uint8 * len(uuid)).from_buffer_copy(uuid)
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 127
+class TestGattcDiscSvcInclInd(unittest.TestCase):
+
+    def setUp(self):
+        self.maxDiff = None
+        # TODO expected string does mot match table
+        self.expected = "05050C10000C000A00150009000C00020F1800"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcDiscSvcInclInd()
+        test_message.parameters.attr_hdl = 21
+        test_message.parameters.start_hdl = 9
+        test_message.parameters.end_hdl = 12
+        uuid = bytearray.fromhex("0F18")
+        test_message.parameters.uuid = (c_uint8 * len(uuid)).from_buffer_copy(uuid)
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        
+        test_message = GattcDiscSvcInclInd(conidx=1)
+        test_message.parameters.attr_hdl = 21
+        test_message.parameters.start_hdl = 9
+        test_message.parameters.end_hdl = 12
+        uuid = bytearray.fromhex("0F18")
+        test_message.parameters.uuid = (c_uint8 * len(uuid)).from_buffer_copy(uuid)
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
 if __name__ == '__main__':
     unittest.main()

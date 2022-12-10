@@ -366,7 +366,7 @@ class gattc_cmp_evt(LittleEndianStructure):
                 # GATT request type
     _fields_ = [("operation", c_uint8),
                 # Status of the request
-                ("padding", c_uint8),
+                ("status", c_uint8),
                 # operation sequence number - provided when operation is started
                 ("seq_num", c_uint16),]
 
@@ -390,7 +390,7 @@ struct gattc_mtu_changed_ind
     uint16_t seq_num;
 };
 '''
-# Service Discovery Command LittleEndianStructure
+# Service Discovery Command
 class gattc_disc_cmd(LittleEndianStructure):
 
     def __init__(self, 
@@ -407,13 +407,15 @@ class gattc_disc_cmd(LittleEndianStructure):
         self.uuid = uuid
         super().__init__(operation=self.operation,
                         padding=0,
+                        uuid_len=self.uuid_len,
                         seq_num=self.seq_num,
                         start_hdl=self.start_hdl,
                         end_hdl=self.end_hdl,
-                        _uuid=self.uuid)
+                        _uuid=self._uuid)
 
                 # GATT request type
     _fields_ = [("operation", c_uint8),
+                ("padding", c_uint8),
                 # UUID length
                 ("uuid_len", c_uint8),
                 # operation sequence number
@@ -434,35 +436,89 @@ class gattc_disc_cmd(LittleEndianStructure):
 
     uuid = property(get_uuid, set_uuid) 
 
+
+# Discover Service indication LittleEndianStructure
+class gattc_disc_svc_ind(LittleEndianStructure):
+
+    def __init__(self, 
+                 start_hdl: c_uint16 = 0,
+                 end_hdl: c_uint16 = 0,
+                 uuid: Array[c_uint8] = None):
+
+        self.start_hdl = start_hdl
+        self.end_hdl = end_hdl
+        self.uuid = uuid
+        super().__init__(start_hdl=self.start_hdl,
+                         end_hdl=self.end_hdl,
+                         uuid_len=self.uuid_len,
+                         _uuid=self._uuid,
+                         padding=0)
+
+                # start handle
+    _fields_ = [("start_hdl", c_uint16),
+                # end handle
+                ("end_hdl", c_uint16),
+                # UUID length
+                ("uuid_len", c_uint8),
+                # UUID
+                ("_uuid", POINTER(c_uint8)),
+                ("padding", c_uint8)]
+
+    def get_uuid(self):
+        return cast(self._uuid, POINTER(c_uint8 * self.uuid_len)).contents
+
+    def set_uuid(self, new_uuid: Array[c_uint8]): 
+        self._uuid = new_uuid if new_uuid else (c_uint8 * 2)(0,0)
+        self.uuid_len = len(new_uuid) if new_uuid else 2 #TODO check 2 or 16
+
+    uuid = property(get_uuid, set_uuid) 
+
+
+
+# Discover Service indication LittleEndianStructure
+class gattc_disc_svc_incl_ind(LittleEndianStructure):
+
+    def __init__(self, 
+                 attr_hdl: c_uint16 = 0,
+                 start_hdl: c_uint16 = 0,
+                 end_hdl: c_uint16 = 0,
+                 uuid: Array[c_uint8] = None):
+
+        self.attr_hdl = attr_hdl
+        self.start_hdl = start_hdl
+        self.end_hdl = end_hdl
+        self.uuid = uuid
+        super().__init__(attr_hdl=self.attr_hdl,
+                         start_hdl=self.start_hdl,
+                         end_hdl=self.end_hdl,
+                         uuid_len=self.uuid_len,
+                         _uuid=self._uuid,
+                         padding=0)
+
+                # element handle
+    _fields_ = [("attr_hdl", c_uint16),
+                # start handle
+                ("start_hdl", c_uint16),
+                # end handle
+                ("end_hdl", c_uint16),
+                # UUID length
+                ("uuid_len", c_uint8),
+                # included service UUID
+                ("_uuid", POINTER(c_uint8)),
+                ("padding", c_uint8)]
+
+    def get_uuid(self):
+        return cast(self._uuid, POINTER(c_uint8 * self.uuid_len)).contents
+
+    def set_uuid(self, new_uuid: Array[c_uint8]): 
+        self._uuid = new_uuid if new_uuid else (c_uint8 * 2)(0,0)
+        self.uuid_len = len(new_uuid) if new_uuid else 2 #TODO check 2 or 16
+
+    uuid = property(get_uuid, set_uuid) 
+
+
+
 '''
-# Discover Service indication LittleEndianStructure
-struct gattc_disc_svc_ind
-{
-    # start handle
-    uint16_t start_hdl;
-    # end handle
-    uint16_t end_hdl;
-    # UUID length
-    uint8_t  uuid_len;
-    # service UUID
-    uint8_t  uuid[__ARRAY_EMPTY];
-};
-
-# Discover Service indication LittleEndianStructure
-struct gattc_disc_svc_incl_ind
-{
-    # element handle
-    uint16_t attr_hdl;
-    # start handle
-    uint16_t start_hdl;
-    # end handle
-    uint16_t end_hdl;
-    # UUID length
-    uint8_t uuid_len;
-    # included service UUID
-    uint8_t uuid[__ARRAY_EMPTY];
-};
-
 # Discovery All Characteristic indication LittleEndianStructure
 struct gattc_disc_char_ind
 {
@@ -477,19 +533,41 @@ struct gattc_disc_char_ind
     # characteristic UUID
     uint8_t uuid[__ARRAY_EMPTY];
 };
-
+'''
 # Discovery Characteristic Descriptor indication LittleEndianStructure
-struct gattc_disc_char_desc_ind
-{
-    # database element handle
-    uint16_t attr_hdl;
-    # UUID length
-    uint8_t uuid_len;
-    # Descriptor UUID
-    uint8_t uuid[__ARRAY_EMPTY];
-};
+class gattc_disc_char_desc_ind(LittleEndianStructure):
+
+    def __init__(self, 
+                 attr_hdl: c_uint16 = 0,
+                 uuid: Array[c_uint8] = None):
+
+        self.attr_hdl = attr_hdl
+        self.uuid = uuid
+        super().__init__(attr_hdl=self.attr_hdl,
+                         uuid_len=self.uuid_len,
+                         _uuid=self._uuid,
+                         padding=0)
+
+                # database element handle
+    _fields_ = [("attr_hdl", c_uint16),
+                # UUID length
+                ("uuid_len", c_uint8),
+                # UUID
+                ("_uuid", POINTER(c_uint8)),
+                ("padding", c_uint8)]
+
+    def get_uuid(self):
+        return cast(self._uuid, POINTER(c_uint8 * self.uuid_len)).contents
+
+    def set_uuid(self, new_uuid: Array[c_uint8]): 
+        self._uuid = new_uuid if new_uuid else (c_uint8 * 2)(0,0)
+        self.uuid_len = len(new_uuid) if new_uuid else 2 #TODO check 2 or 16
+
+    uuid = property(get_uuid, set_uuid) 
 
 
+
+'''
 # Simple Read (GATTC_READ or GATTC_READ_LONG)
 struct gattc_read_simple
 {

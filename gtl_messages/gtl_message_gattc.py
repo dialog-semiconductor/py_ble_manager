@@ -224,3 +224,78 @@ class GattcDiscCmd(GtlMessageBase):
         self._par_len = value
 
     par_len = property(get_par_len, set_par_len)
+
+class GattcDiscCharDescInd(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gattc_disc_char_desc_ind = None):
+
+        params = parameters if parameters else gattc_disc_char_desc_ind()
+        p_len = 4 + params.uuid_len
+
+        super().__init__(msg_id=GATTC_MSG_ID.GATTC_DISC_CHAR_DESC_IND,
+                         dst_id=KE_API_ID.TASK_ID_GTL,
+                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
+                         par_len=p_len,
+                         parameters=params)
+
+        self.parameters = params 
+        self.par_len = p_len
+
+    def get_par_len(self):
+        self._par_len = 4 + self.parameters.uuid_len
+        return self._par_len
+
+    def set_par_len(self, value):
+        self._par_len = value
+
+    par_len = property(get_par_len, set_par_len)
+
+class GattcDiscSvcInd(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gattc_disc_svc_ind = None):
+
+        params = parameters if parameters else gattc_disc_svc_ind()
+        p_len = 6 + params.uuid_len
+
+        super().__init__(msg_id=GATTC_MSG_ID.GATTC_DISC_SVC_IND,
+                         dst_id=KE_API_ID.TASK_ID_GTL,
+                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
+                         par_len=p_len,
+                         parameters=params)
+
+        self.parameters = params 
+        self.par_len = p_len
+
+    def get_par_len(self):
+        self._par_len = 6 + self.parameters.uuid_len
+        return self._par_len
+
+    def set_par_len(self, value):
+        self._par_len = value
+
+    par_len = property(get_par_len, set_par_len)
+
+class GattcDiscSvcInclInd(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gattc_disc_svc_incl_ind = None):
+
+        params = parameters if parameters else gattc_disc_svc_incl_ind()
+        p_len = 8 + params.uuid_len
+
+        super().__init__(msg_id=GATTC_MSG_ID.GATTC_DISC_SVC_INCL_IND,
+                         dst_id=KE_API_ID.TASK_ID_GTL,
+                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
+                         par_len=p_len,
+                         parameters=params)
+
+        self.parameters = params 
+        self.par_len = p_len
+
+    def get_par_len(self):
+        self._par_len = 8 + self.parameters.uuid_len
+        return self._par_len
+
+    def set_par_len(self, value):
+        self._par_len = value
+
+    par_len = property(get_par_len, set_par_len)
