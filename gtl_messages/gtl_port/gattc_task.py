@@ -992,29 +992,63 @@ struct gattc_att_info_cfm
     # can contains authorization or application error code.
     uint8_t  status;
 };
-
+'''
 
 # Service Discovery command
-struct gattc_sdp_svc_disc_cmd
-{
-    # GATT Request Type
-    # - GATTC_SDP_DISC_SVC Search specific service
-    # - GATTC_SDP_DISC_SVC_ALL Search for all services
-    # - GATTC_SDP_DISC_CANCEL Cancel Service Discovery Procedure
-    uint8_t operation;
-    # Service UUID Length
-    uint8_t  uuid_len;
-    # operation sequence number
-    uint16_t seq_num;
-    # Search start handle
-    uint16_t start_hdl;
-    # Search end handle
-    uint16_t end_hdl;
-    # Service UUID
-    uint8_t  uuid[ATT_UUID_128_LEN];
-};
+class gattc_sdp_svc_disc_cmd(LittleEndianStructure):
+
+    def __init__(self, 
+                 operation: GATTC_OPERATION = GATTC_OPERATION.GATTC_NO_OP, 
+                 seq_num: c_uint16 = 0,
+                 start_hdl: c_uint16 = 0,
+                 end_hdl: c_uint16 = 0,
+                 uuid: Array[c_uint8] = None
+                ):
+
+        self.operation = operation
+        self.seq_num = seq_num
+        self.start_hdl = start_hdl
+        self.end_hdl = end_hdl
+        self.uuid = uuid
+        super().__init__(operation=self.operation,
+                         uuid_len=self.uuid_len,
+                         seq_num=self.seq_num,
+                         start_hdl=self.start_hdl,
+                         end_hdl=self.end_hdl,
+                         _uuid=self._uuid)
+
+                # GATT Request Type
+                # - GATTC_SDP_DISC_SVC Search specific service
+                # - GATTC_SDP_DISC_SVC_ALL Search for all services
+                # - GATTC_SDP_DISC_CANCEL Cancel Service Discovery Procedure
+    _fields_ = [("operation", c_uint8),
+                # Service UUID Length
+                ("uuid_len", c_uint8),
+                # operation sequence number
+                ("seq_num", c_uint16),
+                # Search start handle
+                ("start_hdl", c_uint16),
+                # Search end handle
+                ("end_hdl", c_uint16),
+                # Service UUID
+                ("_uuid", (c_uint8 * ATT_UUID_128_LEN))] #TODO original c uses ATT_UUID_128_LEN
+
+    def get_value(self):
+        return self._uuid
+
+    def set_value(self, new_value: Array[c_uint8]):
+        if not self._uuid:
+            self._uuid = (c_uint8 * ATT_UUID_128_LEN)()
+        set_value = new_value if new_value else (c_uint8 * ATT_UUID_128_LEN)()
+        # TODO raise error if not 2, 4, or 16
+        self.uuid_len = len(set_value)
+        memmove(self._uuid, set_value, self.uuid_len)
+
+    uuid = property(get_value, set_value) 
 
 
+
+'''
 # Information about included service
 struct gattc_sdp_include_svc
 {

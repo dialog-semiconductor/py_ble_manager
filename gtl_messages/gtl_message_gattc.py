@@ -325,3 +325,34 @@ class GattcDiscCharInd(GtlMessageBase):
 
     par_len = property(get_par_len, set_par_len)
  
+class GattcSdpSvcDiscCmd(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gattc_sdp_svc_disc_cmd = None):
+
+        params = parameters if parameters else gattc_sdp_svc_disc_cmd()
+
+        super().__init__(msg_id=GATTC_MSG_ID.GATTC_SDP_SVC_DISC_CMD,
+                         dst_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC), 
+                         src_id=KE_API_ID.TASK_ID_GTL,
+                         par_len=24, #TODO manual say 26in example, but seems 24 is max. Example string in manual too long
+                         parameters=params)
+
+        self.parameters = params 
+'''
+#TODO
+class GattcSdpSvcInd(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gattc_sdp_svc_ind = None):
+
+        params = parameters if parameters else gattc_sdp_svc_ind()
+
+        super().__init__(msg_id=GATTC_MSG_ID.GATTC_SDP_SVC_IND,
+                         dst_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC), 
+                         src_id=KE_API_ID.TASK_ID_GTL,
+                         par_len=22, 
+                         parameters=params)
+
+        self.parameters = params 
+'''
+
+#TODO GATTC_READ_CMD
