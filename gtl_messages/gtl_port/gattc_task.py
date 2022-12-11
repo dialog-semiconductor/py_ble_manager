@@ -586,64 +586,149 @@ class gattc_disc_char_desc_ind(LittleEndianStructure):
     uuid = property(get_uuid, set_uuid) 
 
 
-
-'''
 # Simple Read (GATTC_READ or GATTC_READ_LONG)
-struct gattc_read_simple
-{
-    # attribute handle
-    uint16_t handle;
-    # start offset in data payload
-    uint16_t offset;
-    # Length of data to read (0 = read all)
-    uint16_t length;
-};
+class gattc_read_simple(LittleEndianStructure):
+
+    def __init__(self, 
+                 handle: c_uint16 = 0,
+                 offset: c_uint16 = 0,
+                 length: c_uint16 = 0):
+
+        self.handle = handle
+        self.offset = offset
+        self.length = length
+        super().__init__(handle=self.handle,
+                         offset=self.offset,
+                         length=self.length)
+
+                # attribute handle
+    _fields_ = [("handle", c_uint16),
+                # start offset in data payload
+                ("offset", c_uint8),
+                # Length of data to read (0 = read all)
+                ("length", c_uint16)]
+
 
 # Read by UUID: search UUID and read it's characteristic value (GATTC_READ_BY_UUID)
 # Note: it doesn't perform an automatic read long.
-struct gattc_read_by_uuid
-{
-    # Start handle
-    uint16_t start_hdl;
-    # End handle
-    uint16_t end_hdl;
-    # Size of UUID
-    uint8_t uuid_len;
-    # UUID value
-    uint8_t uuid[__ARRAY_EMPTY];
-};
+class gattc_read_by_uuid(LittleEndianStructure):
+
+    def __init__(self, 
+                 start_hdl: c_uint16 = 0,
+                 end_hdl: c_uint16 = 0,
+                 uuid: Array[c_uint8] = None):
+
+        self.start_hdl = start_hdl
+        self.end_hdl = end_hdl
+        self.uuid = uuid
+        super().__init__(start_hdl=self.start_hdl,
+                         end_hdl=self.end_hdl,
+                         uuid_len=self.uuid_len,
+                         _uuid=self._uuid)
+
+                # Start handle
+    _fields_ = [("start_hdl", c_uint16),
+                # End handle
+                ("end_hdl", c_uint16),
+                # Size of UUID
+                ("uuid_len", c_uint8),
+                # UUID value
+                ("_uuid", POINTER(c_uint8))]
+        
+    def get_uuid(self):
+        return cast(self._uuid, POINTER(c_uint8 * self.uuid_len)).contents
+
+    def set_uuid(self, new_uuid: Array[c_uint8]): 
+        self._uuid = new_uuid if new_uuid else (c_uint8 * 2)(0,0)
+        self.uuid_len = len(new_uuid) if new_uuid else 2 #TODO check 2 or 16
+
+    uuid = property(get_uuid, set_uuid)
+
+
+
 
 # Read Multiple short characteristic (GATTC_READ_MULTIPLE)
-struct gattc_read_multiple
-{
-    # attribute handle
-    uint16_t handle;
-    # Known Handle length (shall be != 0)
-    uint16_t len;
-};
+class gattc_read_multiple(LittleEndianStructure):
+    def __init__(self, 
+                 handle: c_uint16 = 0,
+                 len: c_uint16 = 0):
+
+        self.handle = handle
+        self.len = len
+        super().__init__(handle=self.handle,
+                         len=self.len)
+
+                # attribute handle
+    _fields_ = [("handle", c_uint16),
+                # Known Handle length (shall be != 0) #TODO check this with property
+                ("len", c_uint16)]
+
+# request union according to read type
+class gattc_read_req(Union):
+
+    def __init__(self, 
+                 simple: gattc_read_simple = None,
+                 by_uuid: gattc_read_by_uuid = None,
+                 multiple: Array[gattc_read_multiple] = None):
+
+        if simple:
+            self.simple = simple
+            super().__init__(simple=self.simple)
+        elif by_uuid:
+            self.by_uuid = by_uuid
+            super().__init__(by_uuid=self.by_uuid)
+        elif multiple:
+            self.multiple = multiple
+            super().__init__(_multiple=self._multiple)
+        else:
+            self.simple = gattc_read_simple()
+            super().__init__(simple=self.simple)
+
+                # Simple Read (GATTC_READ or GATTC_READ_LONG)
+    _fields_ = [("simple", gattc_read_simple),
+                # Read by UUID (GATTC_READ_BY_UUID)
+                ("by_uuid", gattc_read_by_uuid),
+                # Read Multiple short characteristic (GATTC_READ_MULTIPLE)
+                ("_multiple", POINTER(gattc_read_multiple))]
+
+    def get_multiple(self):
+        return cast(self._multiple, POINTER(gattc_read_multiple * self.multiple_len)).contents
+
+    def set_multiple(self, new_value: Array[gattc_read_multiple]): 
+        self._multiple = new_value if new_value else pointer(gattc_read_multiple())
+        self.multiple_len = len(new_value) if new_value else 1 #TODO dont allow 0
+
+    multiple = property(get_multiple, set_multiple)
+
 
 # Read command (Simple, Long, Multiple, or by UUID)
-struct gattc_read_cmd
-{
-    # request type
-    uint8_t operation;
-    # number of read (only used for multiple read)
-    uint8_t nb;
-    # operation sequence number
-    uint16_t seq_num;
+class gattc_read_cmd(LittleEndianStructure):
 
-    # request union according to read type
-    union gattc_read_req
-    {
-        # Simple Read (GATTC_READ or GATTC_READ_LONG)
-        struct gattc_read_simple simple;
-        # Read by UUID (GATTC_READ_BY_UUID)
-        struct gattc_read_by_uuid by_uuid;
-        # Read Multiple short characteristic (GATTC_READ_MULTIPLE)
-        struct gattc_read_multiple multiple[1];
-    } req;
-};
+    def __init__(self, 
+                 operation: GATTC_OPERATION = GATTC_OPERATION.GATTC_NO_OP,
+                 nb: c_uint8 = 0,
+                 seq_num: c_uint16 = 0,
+                 req: gattc_read_req = gattc_read_req()):
 
+        self.operation = operation
+        self.nb = nb
+        self.seq_num = seq_num
+        self.req = req
+        super().__init__(operation=self.operation,
+                         nb=self.nb,
+                         seq_num=self.seq_num,
+                         req=self.req)
+
+                # request type
+    _fields_ = [("operation", c_uint8),
+                # number of read (only used for multiple read) # TODO how is this used with read multiple? multiple Should be array? 
+                ("nb", c_uint8),
+                # operation sequence number
+                ("seq_num", c_uint16),
+                # request union according to read type
+                ("req", gattc_read_req)]
+
+'''
 # Attribute value read indication
 struct gattc_read_ind
 {
@@ -1101,11 +1186,49 @@ union gattc_sdp_att_info
     struct gattc_sdp_att att;
 };
 
+'''
 
+'''
 # Service Discovery indicate that a service has been found.
-struct gattc_sdp_svc_ind
-{
-    # Service UUID Length
+class gattc_sdp_svc_ind(LittleEndianStructure):
+
+    def __init__(self, 
+                
+                 uuid: Array[c_uint8] = None,
+                 start_hdl: c_uint16 = 0,
+                 end_hdl: c_uint16 = 0,
+                ):
+
+        self.operation = operation
+        self.seq_num = seq_num
+        self.start_hdl = start_hdl
+        self.end_hdl = end_hdl
+        self.uuid = uuid
+        super().__init__(operation=self.operation,
+                         uuid_len=self.uuid_len,
+                         seq_num=self.seq_num,
+                         start_hdl=self.start_hdl,
+                         end_hdl=self.end_hdl,
+                         _uuid=self._uuid)
+
+                # GATT Request Type
+                # - GATTC_SDP_DISC_SVC Search specific service
+                # - GATTC_SDP_DISC_SVC_ALL Search for all services
+                # - GATTC_SDP_DISC_CANCEL Cancel Service Discovery Procedure
+    _fields_ = [("operation", c_uint8),
+                # Service UUID Length
+                ("uuid_len", c_uint8),
+                # operation sequence number
+                ("seq_num", c_uint16),
+                # Search start handle
+                ("start_hdl", c_uint16),
+                # Search end handle
+                ("end_hdl", c_uint16),
+                # Service UUID
+                ("_uuid", (c_uint8 * ATT_UUID_128_LEN))] #TODO original c uses ATT_UUID_128_LEN
+
+
+        # Service UUID Length
     uint8_t  uuid_len;
     # Service UUID
     uint8_t  uuid[ATT_UUID_128_LEN];
@@ -1116,9 +1239,28 @@ struct gattc_sdp_svc_ind
     # attribute information present in the service
     # (length = end_hdl - start_hdl)
     union gattc_sdp_att_info info[__ARRAY_EMPTY];
-};
 
 
+    def get_value(self):
+        return self._uuid
+
+    def set_value(self, new_value: Array[c_uint8]):
+        if not self._uuid:
+            self._uuid = (c_uint8 * ATT_UUID_128_LEN)()
+        set_value = new_value if new_value else (c_uint8 * ATT_UUID_128_LEN)()
+        # TODO raise error if not 2, 4, or 16
+        self.uuid_len = len(set_value)
+        memmove(self._uuid, set_value, self.uuid_len)
+
+         #TODO raise error if length > 512
+        self._value = new_value if new_value else pointer(c_uint8(0))
+        self.length = len(new_value) if new_value else 1
+
+    uuid = property(get_value, set_value) 
+'''
+
+
+'''
 #
  * FUNCTION DECLARATIONS
  ****************************************************************************************

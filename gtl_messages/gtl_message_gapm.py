@@ -2,6 +2,7 @@ from ctypes import *
 from .gtl_message_base import *
 
 class GapmDeviceReadyInd(GtlMessageBase):
+
      def __init__(self):
 
         super().__init__(msg_id=GAPM_MSG_ID.GAPM_DEVICE_READY_IND,
@@ -11,8 +12,9 @@ class GapmDeviceReadyInd(GtlMessageBase):
                          parameters=None)
 
 class GapmResetCmd(GtlMessageBase):
-    def __init__(self, parameters: gapm_reset_cmd = None):
 
+    def __init__(self, parameters: gapm_reset_cmd = None):
+        
         params = parameters if parameters else gapm_reset_cmd() 
 
         super().__init__(msg_id=GAPM_MSG_ID.GAPM_RESET_CMD,
@@ -24,6 +26,7 @@ class GapmResetCmd(GtlMessageBase):
         self.parameters = params
 
 class GapmCmpEvt(GtlMessageBase):
+
     def __init__(self, parameters: gapm_cmp_evt = None):
 
         params = parameters if parameters else gapm_cmp_evt()
@@ -37,6 +40,7 @@ class GapmCmpEvt(GtlMessageBase):
         self.parameters = params
 
 class GapmSetDevConfigCmd(GtlMessageBase):
+
     def __init__(self, parameters: gapm_set_dev_config_cmd = None):
 
         params = parameters if parameters else gapm_set_dev_config_cmd()
@@ -50,6 +54,7 @@ class GapmSetDevConfigCmd(GtlMessageBase):
         self.parameters = params
 
 class GapmStartAdvertiseCmd(GtlMessageBase):
+    
     def __init__(self, parameters: gapm_start_advertise_cmd = None):
 
         params = parameters if parameters else gapm_start_advertise_cmd()
@@ -63,6 +68,7 @@ class GapmStartAdvertiseCmd(GtlMessageBase):
         self.parameters = params
 
 class GapmStartConnectionCmd(GtlMessageBase):
+
     def __init__(self, parameters: gapm_start_connection_cmd = None):
 
         self.parameters = parameters if parameters else gapm_start_connection_cmd()

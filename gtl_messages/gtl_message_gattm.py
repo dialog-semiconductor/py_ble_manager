@@ -26,18 +26,13 @@ class GattmAddSvcRsp(GtlMessageBase):
 
     def __init__(self, parameters: gattm_add_svc_rsp = None):
 
-        params = parameters if parameters else gattm_add_svc_rsp()
+        self.parameters = parameters if parameters else gattm_add_svc_rsp()
 
         super().__init__(msg_id=GATTM_MSG_ID.GATTM_ADD_SVC_RSP,
                          dst_id=KE_API_ID.TASK_ID_GTL,
                          src_id=KE_API_ID.TASK_ID_GATTM,
                          par_len=4,
-                         parameters=params)
-
-        self.parameters = params 
-
-
-# TODO try using little endinan stucture to prevent endian issues
+                         parameters=self.parameters)
 
 # TODO GATTM_SVC_GET_PERMISSION_REQ, GATTM_SVC_GET_PERMISSION_RSP 
 
@@ -66,29 +61,29 @@ class GattmAttSetValueRsp(GtlMessageBase):
 
     def __init__(self, parameters: gattm_att_set_value_rsp = None):
 
-        params = parameters if parameters else gattm_att_set_value_rsp()
+        self.parameters = parameters if parameters else gattm_att_set_value_rsp()
 
         super().__init__(msg_id=GATTM_MSG_ID.GATTM_ATT_SET_VALUE_RSP,
                          dst_id=KE_API_ID.TASK_ID_GTL,
                          src_id=KE_API_ID.TASK_ID_GATTM,
                          par_len=4,
-                         parameters=params)
+                         parameters=self.parameters)
 
-        self.parameters = params
+        self.parameters = self.parameters
         
 class GattmAttGetValueReq(GtlMessageBase):
 
     def __init__(self, parameters: gattm_att_get_value_req = None):
 
-        params = parameters if parameters else gattm_att_get_value_req()
+        self.parameters = parameters if parameters else gattm_att_get_value_req()
 
         super().__init__(msg_id=GATTM_MSG_ID.GATTM_ATT_GET_VALUE_REQ,
                          dst_id=KE_API_ID.TASK_ID_GATTM,
                          src_id=KE_API_ID.TASK_ID_GTL,
                          par_len=2,
-                         parameters=params)
+                         parameters=self.parameters)
 
-        self.parameters = params
+        self.parameters = self.parameters
 
 class GattmAttGetValueRsp(GtlMessageBase):
 
