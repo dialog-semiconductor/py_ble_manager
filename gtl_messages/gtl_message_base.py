@@ -91,12 +91,9 @@ class GtlMessageBase():
                 # if sub_attribute is pointer, cast to array and treat the same
                 elif sub_attr and hasattr(sub_attr, 'contents'):
                     public_field_name = field[0].split('_')[1]
-                    ptr_underlying_array = getattr(struct, field[0].split('_')[1]) 
-                    # TODO below works when pointer is to non-fundamental c type (ie for GattmAddSvcReq().parameters.svc_desc.atts)
-                    # but may cause issues if pointer is to fundamental ctype (ie c_uint8). Needs to be tested 
-                    for item in ptr_underlying_array:
-                        param_string += self._struct_to_str(item)
-
+                    underlying_array = getattr(struct, public_field_name) 
+                    print(f"sub_attr={sub_attr}. field_name[0]={field[0]} field_name={public_field_name}. array={underlying_array}")
+                    param_string += self._array_to_str(public_field_name, underlying_array)
 
                 # if sub attribute is an array, traverse the array        
                 elif issubclass(type(sub_attr), Array):
@@ -133,8 +130,9 @@ class GtlMessageBase():
 
                 # if sub attribute is a POINTER, convert its contents     
                 elif sub_attr and hasattr(sub_attr, 'contents'):
-                    sub_attr_array = getattr(struct, field[0].split('_')[1])    
-                    param_array += bytearray(sub_attr_array)
+                    public_field_name = field[0].split('_')[1]
+                    underlying_array = getattr(struct, public_field_name)    
+                    param_array += bytearray(underlying_array)
 
                 elif issubclass(type(sub_attr), Array):
                     param_array += bytearray(sub_attr)
