@@ -88,11 +88,11 @@ class GtlMessageBase():
                         param_string += f'{field[0]}={type(sub_attr).__name__}'
                         param_string += self._struct_to_str(sub_attr)
 
+                #TODO for next two elif statements, need to handle arrays of objects, not just native ctypes
                 # if sub_attribute is pointer, cast to array and treat the same
                 elif sub_attr and hasattr(sub_attr, 'contents'):
                     public_field_name = field[0].split('_')[1]
                     underlying_array = getattr(struct, public_field_name) 
-                    print(f"sub_attr={sub_attr}. field_name[0]={field[0]} field_name={public_field_name}. array={underlying_array}")
                     param_string += self._array_to_str(public_field_name, underlying_array)
 
                 # if sub attribute is an array, traverse the array        

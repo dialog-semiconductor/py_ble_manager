@@ -106,3 +106,4 @@ test_message.parameters.uuid = (c_uint8 * len(uuid)).from_buffer_copy(uuid)
 print(expected)
 print(test_message.to_hex())
 
+hhh = GapmStartConnectionCmd()

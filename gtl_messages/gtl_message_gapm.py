@@ -65,23 +65,21 @@ class GapmStartAdvertiseCmd(GtlMessageBase):
 class GapmStartConnectionCmd(GtlMessageBase):
     def __init__(self, parameters: gapm_start_connection_cmd = None):
 
-        params = parameters if parameters else gapm_start_connection_cmd()
-        p_len = 21+params.nb_peers*7+1
+        self.parameters = parameters if parameters else gapm_start_connection_cmd()
 
         super().__init__(msg_id=GAPM_MSG_ID.GAPM_START_CONNECTION_CMD,
                          dst_id=KE_API_ID.TASK_ID_GAPM,
                          src_id=KE_API_ID.TASK_ID_GTL,
-                         par_len=p_len, #  if user updates parameters.nb_peers after construction, par_len automatically updated
-                         parameters=params)
-
-        self.parameters = params
-        self.par_len = p_len
+                         par_len=self.par_len, #  if user updates parameters.nb_peers after construction, par_len automatically updated
+                         parameters=self.parameters)
 
     def get_par_len(self):
+        print("getting par_len")
         self._par_len = 21+(self.parameters.nb_peers*7)+1
         return self._par_len
 
     def set_par_len(self, value):
+        print("setting par_len")
         self._par_len = value
 
     par_len = property(get_par_len, set_par_len)

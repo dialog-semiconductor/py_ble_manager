@@ -5,17 +5,13 @@ class GattmAddSvcReq(GtlMessageBase):
 
     def __init__(self, parameters: gattm_add_svc_req = None):
 
-        params = parameters if parameters else gattm_add_svc_req()
-        p_len = 24*(params.svc_desc.nb_att+1)
+        self.parameters = parameters if parameters else gattm_add_svc_req()
 
         super().__init__(msg_id=GATTM_MSG_ID.GATTM_ADD_SVC_REQ,
                          dst_id=KE_API_ID.TASK_ID_GATTM,
                          src_id=KE_API_ID.TASK_ID_GTL,
-                         par_len=p_len, # TODO if user updates parameters.nb_att after construction, par_len automatically updated
-                         parameters=params)
-
-        self.parameters = params 
-        self.par_len = p_len
+                         par_len=self.par_len, # TODO if user updates parameters.nb_att after construction, par_len automatically updated
+                         parameters=self.parameters)
 
     def get_par_len(self):
         self._par_len = 24*(self.parameters.svc_desc.nb_att+1)
@@ -49,17 +45,13 @@ class GattmAttSetValueReq(GtlMessageBase):
 
     def __init__(self, parameters:  gattm_att_set_value_req = None):
 
-        params = parameters if parameters else gattm_att_set_value_req()
-        p_len = 4 + params.length
+        self.parameters = parameters if parameters else gattm_att_set_value_req()
 
         super().__init__(msg_id=GATTM_MSG_ID.GATTM_ATT_SET_VALUE_REQ,
                          dst_id=KE_API_ID.TASK_ID_GATTM,
                          src_id=KE_API_ID.TASK_ID_GTL,
-                         par_len=p_len,
-                         parameters=params)
-
-        self.parameters = params 
-        self.par_len = p_len
+                         par_len=self.par_len,
+                         parameters=self.parameters)
 
     def get_par_len(self):
         self._par_len = 4 + self.parameters.length
@@ -102,17 +94,13 @@ class GattmAttGetValueRsp(GtlMessageBase):
 
     def __init__(self, parameters: gattm_att_get_value_rsp = None):
 
-        params = parameters if parameters else gattm_att_get_value_rsp()
-        p_len = 6 + params.length
+        self.parameters = parameters if parameters else gattm_att_get_value_rsp()
 
         super().__init__(msg_id=GATTM_MSG_ID.GATTM_ATT_GET_VALUE_RSP,
                          dst_id=KE_API_ID.TASK_ID_GTL,
                          src_id=KE_API_ID.TASK_ID_GATTM,
-                         par_len=p_len,
-                         parameters=params)
-
-        self.parameters = params
-        self.par_len = p_len
+                         par_len=self.par_len,
+                         parameters=self.parameters)
 
     def get_par_len(self):
         self._par_len = 6 + self.parameters.length

@@ -22,17 +22,13 @@ class GattcWriteReqInd(GtlMessageBase):
 
     def __init__(self, conidx: c_uint8 = 0, parameters: gattc_write_req_ind = None):
 
-        params = parameters if parameters else gattc_write_req_ind()
-        p_len = 6 + params.length
+        self.parameters = parameters if parameters else gattc_write_req_ind()
 
         super().__init__(msg_id=GATTC_MSG_ID.GATTC_WRITE_REQ_IND,
                          dst_id=KE_API_ID.TASK_ID_GTL,
                          src_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
-                         par_len=p_len,
-                         parameters=params)
-
-        self.parameters = params 
-        self.par_len = p_len
+                         par_len=self.par_len,
+                         parameters=self.parameters)
 
     def get_par_len(self):
         self._par_len = 6 + self.parameters.length
@@ -75,17 +71,13 @@ class GattcReadCfm(GtlMessageBase):
 
     def __init__(self, conidx: c_uint8 = 0, parameters: gattc_read_cfm = None):
 
-        params = parameters if parameters else gattc_read_cfm()
-        p_len = 6 + params.length
+        self.parameters = parameters if parameters else gattc_read_cfm()
 
         super().__init__(msg_id=GATTC_MSG_ID.GATTC_READ_CFM,
                          dst_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
                          src_id=KE_API_ID.TASK_ID_GTL,
-                         par_len=p_len,
-                         parameters=params)
-
-        self.parameters = params 
-        self.par_len = p_len
+                         par_len=self.par_len,
+                         parameters=self.parameters)
 
     def get_par_len(self):
         self._par_len = 6 + self.parameters.length
@@ -100,17 +92,13 @@ class GattcSendEvtCmd(GtlMessageBase):
 
     def __init__(self, conidx: c_uint8 = 0, parameters: gattc_send_evt_cmd = None):
 
-        params = parameters if parameters else gattc_send_evt_cmd()
-        p_len = 8 + params.length
+        self.parameters = parameters if parameters else gattc_send_evt_cmd()
 
         super().__init__(msg_id=GATTC_MSG_ID.GATTC_SEND_EVT_CMD,
                          dst_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
                          src_id=KE_API_ID.TASK_ID_GTL,
-                         par_len=p_len,
-                         parameters=params)
-
-        self.parameters = params 
-        self.par_len = p_len
+                         par_len=self.par_len,
+                         parameters=self.parameters)
 
     def get_par_len(self):
         self._par_len = 8 + self.parameters.length
@@ -139,17 +127,13 @@ class GattcEventInd(GtlMessageBase):
 
     def __init__(self, conidx: c_uint8 = 0, parameters: gattc_event_ind = None):
 
-        params = parameters if parameters else gattc_event_ind()
-        p_len = 6 + params.length
+        self.parameters = parameters if parameters else gattc_event_ind()
 
         super().__init__(msg_id=GATTC_MSG_ID.GATTC_EVENT_IND,
                          dst_id=KE_API_ID.TASK_ID_GTL,
                          src_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
-                         par_len=p_len,
-                         parameters=params)
-
-        self.parameters = params 
-        self.par_len = p_len
+                         par_len=self.par_len,
+                         parameters=self.parameters)
 
     def get_par_len(self):
         self._par_len = 6 + self.parameters.length
@@ -164,17 +148,13 @@ class GattcEventReqInd(GtlMessageBase):
 
     def __init__(self, conidx: c_uint8 = 0, parameters: gattc_event_req_ind = None):
 
-        params = parameters if parameters else gattc_event_req_ind()
-        p_len = 6 + params.length
+        self.parameters = parameters if parameters else gattc_event_req_ind()
 
         super().__init__(msg_id=GATTC_MSG_ID.GATTC_EVENT_REQ_IND,
                          dst_id=KE_API_ID.TASK_ID_GTL,
                          src_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
-                         par_len=p_len,
-                         parameters=params)
-
-        self.parameters = params 
-        self.par_len = p_len
+                         par_len=self.par_len,
+                         parameters=self.parameters)
 
     def get_par_len(self):
         self._par_len = 6 + self.parameters.length
@@ -204,17 +184,13 @@ class GattcDiscCmd(GtlMessageBase):
 
     def __init__(self, conidx: c_uint8 = 0, parameters: gattc_disc_cmd = None):
 
-        params = parameters if parameters else gattc_disc_cmd()
-        p_len = 8 + params.uuid_len
+        self.parameters = parameters if parameters else gattc_disc_cmd()
 
         super().__init__(msg_id=GATTC_MSG_ID.GATTC_DISC_CMD,
                          dst_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
                          src_id=KE_API_ID.TASK_ID_GTL,
-                         par_len=p_len,
-                         parameters=params)
-
-        self.parameters = params 
-        self.par_len = p_len
+                         par_len=self.par_len,
+                         parameters=self.parameters)
 
     def get_par_len(self):
         self._par_len = 8 + self.parameters.uuid_len
@@ -229,17 +205,13 @@ class GattcDiscCharDescInd(GtlMessageBase):
 
     def __init__(self, conidx: c_uint8 = 0, parameters: gattc_disc_char_desc_ind = None):
 
-        params = parameters if parameters else gattc_disc_char_desc_ind()
-        p_len = 4 + params.uuid_len
+        self.parameters = parameters if parameters else gattc_disc_char_desc_ind()
 
         super().__init__(msg_id=GATTC_MSG_ID.GATTC_DISC_CHAR_DESC_IND,
                          dst_id=KE_API_ID.TASK_ID_GTL,
                          src_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
-                         par_len=p_len,
-                         parameters=params)
-
-        self.parameters = params 
-        self.par_len = p_len
+                         par_len=self.par_len,
+                         parameters=self.parameters)
 
     def get_par_len(self):
         self._par_len = 4 + self.parameters.uuid_len
@@ -254,17 +226,13 @@ class GattcDiscSvcInd(GtlMessageBase):
 
     def __init__(self, conidx: c_uint8 = 0, parameters: gattc_disc_svc_ind = None):
 
-        params = parameters if parameters else gattc_disc_svc_ind()
-        p_len = 6 + params.uuid_len
+        self.parameters = parameters if parameters else gattc_disc_svc_ind()
 
         super().__init__(msg_id=GATTC_MSG_ID.GATTC_DISC_SVC_IND,
                          dst_id=KE_API_ID.TASK_ID_GTL,
                          src_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
-                         par_len=p_len,
-                         parameters=params)
-
-        self.parameters = params 
-        self.par_len = p_len
+                         par_len=self.par_len,
+                         parameters=self.parameters)
 
     def get_par_len(self):
         self._par_len = 6 + self.parameters.uuid_len
@@ -279,17 +247,13 @@ class GattcDiscSvcInclInd(GtlMessageBase):
 
     def __init__(self, conidx: c_uint8 = 0, parameters: gattc_disc_svc_incl_ind = None):
 
-        params = parameters if parameters else gattc_disc_svc_incl_ind()
-        p_len = 8 + params.uuid_len
+        self.parameters = parameters if parameters else gattc_disc_svc_incl_ind()
 
         super().__init__(msg_id=GATTC_MSG_ID.GATTC_DISC_SVC_INCL_IND,
                          dst_id=KE_API_ID.TASK_ID_GTL,
                          src_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
-                         par_len=p_len,
-                         parameters=params)
-
-        self.parameters = params 
-        self.par_len = p_len
+                         par_len=self.par_len,
+                         parameters=self.parameters)
 
     def get_par_len(self):
         self._par_len = 8 + self.parameters.uuid_len
@@ -304,17 +268,13 @@ class GattcDiscCharInd(GtlMessageBase):
 
     def __init__(self, conidx: c_uint8 = 0, parameters: gattc_disc_char_ind = None):
 
-        params = parameters if parameters else gattc_disc_char_ind()
-        p_len = 6 + params.uuid_len
+        self.parameters = parameters if parameters else gattc_disc_char_ind()
 
         super().__init__(msg_id=GATTC_MSG_ID.GATTC_DISC_CHAR_IND,
                          dst_id=KE_API_ID.TASK_ID_GTL,
                          src_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC), #TODO does not include conidx in manual, but all other GATTC do
-                         par_len=p_len,
-                         parameters=params)
-
-        self.parameters = params 
-        self.par_len = p_len
+                         par_len=self.par_len,
+                         parameters=self.parameters)
 
     def get_par_len(self):
         self._par_len = 6 + self.parameters.uuid_len
