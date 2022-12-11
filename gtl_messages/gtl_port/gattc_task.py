@@ -406,7 +406,6 @@ class gattc_disc_cmd(LittleEndianStructure):
         self.end_hdl = end_hdl
         self.uuid = uuid
         super().__init__(operation=self.operation,
-                        padding=0,
                         uuid_len=self.uuid_len,
                         seq_num=self.seq_num,
                         start_hdl=self.start_hdl,
@@ -415,7 +414,6 @@ class gattc_disc_cmd(LittleEndianStructure):
 
                 # GATT request type
     _fields_ = [("operation", c_uint8),
-                ("padding", c_uint8),
                 # UUID length
                 ("uuid_len", c_uint8),
                 # operation sequence number
