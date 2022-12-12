@@ -636,7 +636,7 @@ class gattc_read_by_uuid(LittleEndianStructure):
                 ("_uuid", POINTER(c_uint8))]
         
     def get_uuid(self):
-        return cast(self._uuid, POINTER(c_uint8 * self.uuid_len)).contents
+        return cast(self._uuid, POINTER(c_uint8 * self.uuid_len)).contents 
 
     def set_uuid(self, new_uuid: Array[c_uint8]): 
         self._uuid = new_uuid if new_uuid else (c_uint8 * 2)(0,0)
@@ -671,6 +671,8 @@ class gattc_read_req(Union):
                  by_uuid: gattc_read_by_uuid = None,
                  multiple: Array[gattc_read_multiple] = None):
 
+        self.multiple = multiple
+
         if simple:
             self.simple = simple
             super().__init__(simple=self.simple)
@@ -678,10 +680,9 @@ class gattc_read_req(Union):
             self.by_uuid = by_uuid
             super().__init__(by_uuid=self.by_uuid)
         elif multiple:
-            self.multiple = multiple
+            self.multiple = multiple 
             super().__init__(_multiple=self._multiple)
         else:
-            self.simple = gattc_read_simple()
             super().__init__(simple=self.simple)
 
                 # Simple Read (GATTC_READ or GATTC_READ_LONG)
@@ -689,14 +690,16 @@ class gattc_read_req(Union):
                 # Read by UUID (GATTC_READ_BY_UUID)
                 ("by_uuid", gattc_read_by_uuid),
                 # Read Multiple short characteristic (GATTC_READ_MULTIPLE)
-                ("_multiple", POINTER(gattc_read_multiple))]
+                #("_multiple", POINTER(gattc_read_multiple))]
+                ("_multiple", (gattc_read_multiple * 1))] #TODO having a pointer here is causing issues. Try to finc workaround or dont support multiple
 
     def get_multiple(self):
-        return cast(self._multiple, POINTER(gattc_read_multiple * self.multiple_len)).contents
+        return self._multiple
 
     def set_multiple(self, new_value: Array[gattc_read_multiple]): 
-        self._multiple = new_value if new_value else pointer(gattc_read_multiple())
-        self.multiple_len = len(new_value) if new_value else 1 #TODO dont allow 0
+
+        #self._multiple = new_value if new_value else pointer(gattc_read_multiple())
+        self._multiple = new_value if new_value else (gattc_read_multiple*1)()
 
     multiple = property(get_multiple, set_multiple)
 
@@ -705,19 +708,19 @@ class gattc_read_req(Union):
 class gattc_read_cmd(LittleEndianStructure):
 
     def __init__(self, 
-                 operation: GATTC_OPERATION = GATTC_OPERATION.GATTC_NO_OP,
-                 nb: c_uint8 = 0,
+                 operation: GATTC_OPERATION = GATTC_OPERATION.GATTC_READ,
+                 nb: c_uint8 = 0, #TODO workaroud, find a way to set req.multiple without needing this
                  seq_num: c_uint16 = 0,
-                 req: gattc_read_req = gattc_read_req()):
+                 req: gattc_read_req = None):
 
         self.operation = operation
         self.nb = nb
         self.seq_num = seq_num
-        self.req = req
+        self.req = req if req else gattc_read_req()
         super().__init__(operation=self.operation,
                          nb=self.nb,
                          seq_num=self.seq_num,
-                         req=self.req)
+                         _req=self._req)
 
                 # request type
     _fields_ = [("operation", c_uint8),
@@ -726,12 +729,26 @@ class gattc_read_cmd(LittleEndianStructure):
                 # operation sequence number
                 ("seq_num", c_uint16),
                 # request union according to read type
-                ("req", gattc_read_req)]
+                ("_req", gattc_read_req)]
 
+    def get_req(self):
+        return self._req
+
+    def set_req(self, new_value: gattc_read_req = None): 
+        print(f"gattc_read_cmd.set_req. Stting REQ")
+        self._req = new_value if new_value else gattc_read_req()
+        if self.operation == GATTC_OPERATION.GATTC_READ_MULTIPLE:
+            #TODO dont allow 0 in this case
+            self.nb = len(new_value)
+        else:
+            self.nb = 0
+
+    req = property(get_req, set_req)
 '''
+
 # Attribute value read indication
-struct gattc_read_ind
-{
+class gattc_read_ind(LittleEndianStructure)
+
     # Attribute handle
     uint16_t handle;
     # Read offset
@@ -740,7 +757,7 @@ struct gattc_read_ind
     uint16_t length;
     # Handle value
     uint8_t value[__ARRAY_EMPTY];
-};
+
 
 # Write peer attribute value command
 struct gattc_write_cmd

@@ -304,11 +304,11 @@ class GattcReadCmd(GtlMessageBase):
 
     def get_par_len(self):
         if self.parameters.operation == GATTC_OPERATION.GATTC_READ or self.parameters.operation == GATTC_OPERATION.GATTC_READ_LONG:
-            self._par_len = 6
+            self._par_len = 4 + 6
         elif self.parameters.operation == GATTC_OPERATION.GATTC_READ_BY_UUID:
-            self._par_len = 5 + self.parameters.req.by_uuid.uuid_len
+            self._par_len = 4 + 5 + self.parameters.req.by_uuid.uuid_len
         else: # self.parameters.operation == GATTC_OPERATION.GATTC_READ_MULTIPLE
-            self._par_len = 4 * self.parameters.req.multiple_len
+            self._par_len = 4 + 4 * self.parameters.nb
         return self._par_len
 
     def set_par_len(self, value):
@@ -316,4 +316,44 @@ class GattcReadCmd(GtlMessageBase):
 
     par_len = property(get_par_len, set_par_len) 
 
-#TODO GATTC_READ_CMD
+    def to_bytes(self): #TODO Cannot find way to handle gattc_read_cmd elegantly. Should to str method be created for union as well?
+        message = bytearray()
+        message.append(GTL_INITIATOR)
+        message.extend(self.msg_id.value.to_bytes(length=2, byteorder='little'))
+        message.extend(self.dst_id.to_bytes(length=2, byteorder='little'))
+        message.extend(self.src_id.to_bytes(length=2, byteorder='little'))
+        message.extend(self.par_len.to_bytes(length=2, byteorder='little'))
+        message.extend(self.parameters.operation.to_bytes(length=1, byteorder='little'))
+        message.extend(self.parameters.nb.to_bytes(length=1, byteorder='little'))
+        message.extend(self.parameters.seq_num.to_bytes(length=2, byteorder='little'))
+
+
+        if self.parameters.operation == GATTC_OPERATION.GATTC_READ or self.parameters.operation == GATTC_OPERATION.GATTC_READ_LONG:
+            simple = bytearray(self.parameters.req.simple)
+            message.extend(simple)
+        elif self.parameters.operation == GATTC_OPERATION.GATTC_READ_BY_UUID:
+            message.extend(self.parameters.req.by_uuid.start_hdl.to_bytes(length=2, byteorder='little'))
+            message.extend(self.parameters.req.by_uuid.end_hdl.to_bytes(length=2, byteorder='little'))
+            message.extend(self.parameters.req.by_uuid.uuid_len.to_bytes(length=2, byteorder='little'))
+            message.extend(bytearray(self.parameters.req.by_uuid.uuid))
+        else:
+            pointer_to_array = self.parameters.req.multiple
+            underlying_array = cast(pointer_to_array, POINTER(gattc_read_multiple * self.parameters.nb)).contents
+            message.extend(bytearray(self.parameters.req.by_uuid.uuid))
+        
+        return message
+'''
+class GattcReadInd(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gattc_read_ind = None):
+
+        self.parameters = parameters if parameters else gattc_read_ind()
+
+        super().__init__(msg_id=GATTC_MSG_ID.GATTC_READ_IND,
+                         dst_id=KE_API_ID.TASK_ID_GTL,
+                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC), 
+                         par_len=11,
+                         parameters=self.parameters)
+'''
+  
+#TODO GATTC_READ_CMD -> need test cases for other union members

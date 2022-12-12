@@ -78,6 +78,9 @@ class GtlMessageBase():
 
         # Expect a ctypes structure
         if struct: 
+
+            # TODO how to handle union
+
             # for each field in the structure
             for field in struct._fields_:
                 # get the attribute for that field
@@ -114,9 +117,25 @@ class GtlMessageBase():
         # Expect a ctypes structure
         if struct: 
 
-            # TODO workaround for now that need to revisit. this only works if union does not have a pointer or bitfield in it. Would union ever have zero len array??
+            # TODO workaround for now that need to revisit. this only works if union does not have a pointer with a subfield that is also a pointer
+            '''
             if issubclass(type(struct), Union):
-                return bytearray(struct)
+                has_pointer = False
+                for field in struct._fields_:
+                    sub_attr = getattr(struct, field[0])   
+                    if sub_attr and hasattr(sub_attr, 'contents'):
+                        has_pointer = True
+                        pointer_public_field_name = field[0].split('_')[1]
+
+                if has_pointer:
+                    underlying_array = getattr(struct, pointer_public_field_name)    
+                    return bytearray(underlying_array)
+                else:
+                    return bytearray(struct)
+            '''
+            if issubclass(type(struct), Union):
+                return bytearray(struct) # TODO how will this effect gattc_read_req
+            
 
             # for each field in the structure
             for field in struct._fields_:

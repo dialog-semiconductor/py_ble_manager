@@ -95,15 +95,43 @@ test_message.parameters.svc_desc.atts = (gattm_att_desc * len(att_list))(*att_li
 
 print(test_message)
 '''
-expected = "05190C0C0010001A00150220000100FFFF011800000000000000000000000000000000"
-test_message = GattcSdpSvcDiscCmd()
-test_message.parameters.operation = GATTC_OPERATION.GATTC_SDP_DISC_SVC
-test_message.parameters.seq_num = 0x20
-test_message.parameters.start_hdl = 1
-test_message.parameters.end_hdl = 0xFFFF
-uuid = bytearray.fromhex("0118")
-test_message.parameters.uuid = (c_uint8 * len(uuid)).from_buffer_copy(uuid)
-print(expected)
-print(test_message.to_hex())
+test = gattc_read_req()
+test.simple.handle = 0x04
+test.simple.offset = 0x05
+test.simple.length = 0x06
 
-hhh = GapmStartConnectionCmd()
+
+
+
+
+expected = "05080C0C0010000A0008000B00040000000000"
+test_message = GattcReadCmd()
+test_message.parameters.operation = GATTC_OPERATION.GATTC_READ
+test_message.parameters.seq_num = 0x0B
+test_message.parameters.req.simple.handle = 0x04
+print(expected)
+print(len(bytes.fromhex(expected)))
+print(test_message.to_hex())
+print(len(test_message.to_bytes()))
+print(test_message)
+
+'''
+read = gattc_read_req()
+read.simple.handle = 1
+read.simple.offset = 2
+read.simple.length = 3
+
+print(read.simple.handle)
+print(read.simple.offset)
+print(read.simple.length)
+
+
+print(read.by_uuid.start_hdl)
+print(read.by_uuid.end_hdl)
+print(read.by_uuid.uuid_len)
+for i in range(3):
+    print(read.by_uuid.uuid[i])
+
+print(test_message)
+
+'''
