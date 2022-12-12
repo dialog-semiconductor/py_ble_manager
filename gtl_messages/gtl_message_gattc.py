@@ -308,7 +308,7 @@ class GattcReadCmd(GtlMessageBase):
         elif self.parameters.operation == GATTC_OPERATION.GATTC_READ_BY_UUID:
             self._par_len = 4 + 6 + self.parameters.req.by_uuid.uuid_len
         else: # self.parameters.operation == GATTC_OPERATION.GATTC_READ_MULTIPLE
-            self._par_len = 4 + 4 * self.parameters.req._multiple_len # TODO nb not updated properly as set_req not called when updated multiple
+            self._par_len = 4 + 4 * self.parameters.nb # TODO nb not updated properly as set_req not called when updated multiple
         return self._par_len
 
     def set_par_len(self, value):
