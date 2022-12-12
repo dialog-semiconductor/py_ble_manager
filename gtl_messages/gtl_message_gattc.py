@@ -306,9 +306,9 @@ class GattcReadCmd(GtlMessageBase):
         if self.parameters.operation == GATTC_OPERATION.GATTC_READ or self.parameters.operation == GATTC_OPERATION.GATTC_READ_LONG:
             self._par_len = 4 + 6
         elif self.parameters.operation == GATTC_OPERATION.GATTC_READ_BY_UUID:
-            self._par_len = 4 + 5 + self.parameters.req.by_uuid.uuid_len
+            self._par_len = 4 + 6 + self.parameters.req.by_uuid.uuid_len
         else: # self.parameters.operation == GATTC_OPERATION.GATTC_READ_MULTIPLE
-            self._par_len = 4 + 4 * self.parameters.nb
+            self._par_len = 4 + 4 * self.parameters.req._multiple_len # TODO nb not updated properly as set_req not called when updated multiple
         return self._par_len
 
     def set_par_len(self, value):
@@ -337,9 +337,11 @@ class GattcReadCmd(GtlMessageBase):
             message.extend(self.parameters.req.by_uuid.uuid_len.to_bytes(length=2, byteorder='little'))
             message.extend(bytearray(self.parameters.req.by_uuid.uuid))
         else:
-            pointer_to_array = self.parameters.req.multiple
-            underlying_array = cast(pointer_to_array, POINTER(gattc_read_multiple * self.parameters.nb)).contents
-            message.extend(bytearray(self.parameters.req.by_uuid.uuid))
+            #pointer_to_array = self.parameters.req.multiple
+            #underlying_array = cast(pointer_to_array, POINTER(gattc_read_multiple * self.parameters.nb)).contents
+            array = self.parameters.req.multiple
+            for item in array:
+                message.extend(bytearray(item))
         
         return message
 '''

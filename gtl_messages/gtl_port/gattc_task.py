@@ -671,8 +671,6 @@ class gattc_read_req(Union):
                  by_uuid: gattc_read_by_uuid = None,
                  multiple: Array[gattc_read_multiple] = None):
 
-        self.multiple = multiple
-
         if simple:
             self.simple = simple
             super().__init__(simple=self.simple)
@@ -681,7 +679,8 @@ class gattc_read_req(Union):
             super().__init__(by_uuid=self.by_uuid)
         elif multiple:
             self.multiple = multiple 
-            super().__init__(_multiple=self._multiple)
+            super().__init__(_multiple=self._multiple,
+                            _multiple_len=self._multiple_len)
         else:
             super().__init__(simple=self.simple)
 
@@ -691,15 +690,15 @@ class gattc_read_req(Union):
                 ("by_uuid", gattc_read_by_uuid),
                 # Read Multiple short characteristic (GATTC_READ_MULTIPLE)
                 #("_multiple", POINTER(gattc_read_multiple))]
-                ("_multiple", (gattc_read_multiple * 1))] #TODO having a pointer here is causing issues. Try to finc workaround or dont support multiple
+                ("_multiple", POINTER(gattc_read_multiple)),
+                ("_multiple_len", c_uint16)] # This field is not included in original struct, but is required to keep track of _multiple length
 
     def get_multiple(self):
-        return self._multiple
+        return cast(self._multiple, POINTER(gattc_read_multiple * self._multiple_len)).contents 
 
     def set_multiple(self, new_value: Array[gattc_read_multiple]): 
-
-        #self._multiple = new_value if new_value else pointer(gattc_read_multiple())
-        self._multiple = new_value if new_value else (gattc_read_multiple*1)()
+        self._multiple = new_value if new_value else pointer(gattc_read_multiple)
+        self._multiple_len = len(new_value) if new_value else 1
 
     multiple = property(get_multiple, set_multiple)
 
@@ -709,41 +708,52 @@ class gattc_read_cmd(LittleEndianStructure):
 
     def __init__(self, 
                  operation: GATTC_OPERATION = GATTC_OPERATION.GATTC_READ,
-                 nb: c_uint8 = 0, #TODO workaroud, find a way to set req.multiple without needing this
                  seq_num: c_uint16 = 0,
                  req: gattc_read_req = None):
 
         self.operation = operation
-        self.nb = nb
+        self.nb = 0
         self.seq_num = seq_num
         self.req = req if req else gattc_read_req()
         super().__init__(operation=self.operation,
-                         nb=self.nb,
+                         _nb=self._nb,
                          seq_num=self.seq_num,
                          _req=self._req)
 
                 # request type
     _fields_ = [("operation", c_uint8),
-                # number of read (only used for multiple read) # TODO how is this used with read multiple? multiple Should be array? 
-                ("nb", c_uint8),
+                # number of read (only used for multiple read) 
+                ("_nb", c_uint8),
                 # operation sequence number
                 ("seq_num", c_uint16),
                 # request union according to read type
                 ("_req", gattc_read_req)]
 
     def get_req(self):
+        print(f"gattc_read_cmd.get_req self._req: {self._req}")
         return self._req
 
     def set_req(self, new_value: gattc_read_req = None): 
-        print(f"gattc_read_cmd.set_req. Stting REQ")
         self._req = new_value if new_value else gattc_read_req()
+        print(f"gattc_read_cmd.set_req self._req: {self._req}")
         if self.operation == GATTC_OPERATION.GATTC_READ_MULTIPLE:
-            #TODO dont allow 0 in this case
+            #TODO never allow 0 in this case
             self.nb = len(new_value)
         else:
             self.nb = 0
 
     req = property(get_req, set_req)
+
+    def get_nb(self):
+        if self.operation == GATTC_OPERATION.GATTC_READ_MULTIPLE:
+            return self._req._multiple_len
+        return 0
+
+    def set_nb(self, new_value): 
+        self._nb = new_value
+
+    nb = property(get_nb, set_nb)
+    
 '''
 
 # Attribute value read indication

@@ -438,6 +438,102 @@ class TestGattcReadCmd_GATTC_READ(unittest.TestCase):
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+# Table 150
+class TestGattcReadCmd_GATTC_READ_LONG(unittest.TestCase):
+
+    def setUp(self):
+        self.maxDiff = None
+        self.expected = "05080C0C0010000A0009002100030000000000"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcReadCmd()
+        test_message.parameters.operation = GATTC_OPERATION.GATTC_READ_LONG
+        test_message.parameters.seq_num = 0x21
+        test_message.parameters.req.simple.handle = 0x03
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        
+        test_message = GattcReadCmd(conidx=1)
+        test_message.parameters.operation = GATTC_OPERATION.GATTC_READ_LONG
+        test_message.parameters.seq_num = 0x21
+        test_message.parameters.req.simple.handle = 0x03
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 153
+class TestGattcReadCmd_GATTC_READ_BY_UUID(unittest.TestCase):
+
+    def setUp(self):
+        self.maxDiff = None
+        # TODO string is wrong in manual
+        self.expected = "05080C0C0010000C000A001B000100FFFF02002A00"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcReadCmd()
+        test_message.parameters.operation = GATTC_OPERATION.GATTC_READ_BY_UUID
+        test_message.parameters.seq_num = 0x1B
+        test_message.parameters.req.by_uuid.start_hdl = 1
+        test_message.parameters.req.by_uuid.end_hdl = 0xFFFF
+        uuid = bytearray.fromhex("2A00")
+        test_message.parameters.req.by_uuid.uuid = (c_uint8 * len(uuid)).from_buffer_copy(uuid)
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        
+        test_message = GattcReadCmd(conidx=1)
+        test_message.parameters.operation = GATTC_OPERATION.GATTC_READ_BY_UUID
+        test_message.parameters.seq_num = 0x1B
+        test_message.parameters.req.by_uuid.start_hdl = 1
+        test_message.parameters.req.by_uuid.end_hdl = 0xFFFF
+        uuid = bytearray.fromhex("2A00")
+        test_message.parameters.req.by_uuid.uuid = (c_uint8 * len(uuid)).from_buffer_copy(uuid)
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 156
+class TestGattcReadCmd_GATTC_READ_MULTIPLE(unittest.TestCase):
+
+    def setUp(self):
+        self.maxDiff = None
+        # TODO string is wrong in manual
+        self.expected = "05080C0C0010000C000B0216000400050005000200"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcReadCmd()
+        test_message.parameters.operation = GATTC_OPERATION.GATTC_READ_MULTIPLE
+        test_message.parameters.seq_num = 0x16
+        # Note had issue creating array, then assigning handle/len for each item in array, then assigning array to req.multiple
+        test_message.parameters.req.multiple = (gattc_read_multiple * 2)()
+        test_message.parameters.req.multiple[0].handle = 4
+        test_message.parameters.req.multiple[0].len = 5
+        test_message.parameters.req.multiple[1].handle = 5
+        test_message.parameters.req.multiple[1].len = 2
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        
+        test_message = GattcReadCmd(conidx=1)
+        test_message.parameters.operation = GATTC_OPERATION.GATTC_READ_BY_UUID
+        test_message.parameters.operation = GATTC_OPERATION.GATTC_READ_MULTIPLE
+        test_message.parameters.seq_num = 0x16
+        # Note had issue creating array, then assigning handle/len for each item in array, then assigning array to req.multiple
+        test_message.parameters.req.multiple = (gattc_read_multiple * 2)()
+        test_message.parameters.req.multiple[0].handle = 4
+        test_message.parameters.req.multiple[0].len = 5
+        test_message.parameters.req.multiple[1].handle = 5
+        test_message.parameters.req.multiple[1].len = 2
+
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+
 if __name__ == '__main__':
     unittest.main()
     
