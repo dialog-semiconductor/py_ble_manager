@@ -520,7 +520,6 @@ class TestGattcReadCmd_GATTC_READ_MULTIPLE(unittest.TestCase):
     def test_parameters_non_zero_conidx(self):
         
         test_message = GattcReadCmd(conidx=1)
-        test_message.parameters.operation = GATTC_OPERATION.GATTC_READ_BY_UUID
         test_message.parameters.operation = GATTC_OPERATION.GATTC_READ_MULTIPLE
         test_message.parameters.seq_num = 0x16
         # Note had issue creating array, then assigning handle/len for each item in array, then assigning array to req.multiple
@@ -533,6 +532,190 @@ class TestGattcReadCmd_GATTC_READ_MULTIPLE(unittest.TestCase):
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+# Table 148
+class TestGattcReadInd_GATTC_READ(unittest.TestCase):
+
+    def setUp(self):
+        self.maxDiff = None
+        # TODO  manual says src_id is TASK_ID_GAPC
+        self.expected = "05090C10000C000B00040000000500020500012A"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcReadInd()
+        test_message.parameters.handle = 4
+        value = bytearray.fromhex("020500012A")
+        test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        
+        test_message = GattcReadInd(conidx=1)
+        test_message.parameters.handle = 4
+        value = bytearray.fromhex("020500012A")
+        test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 151
+class TestGattcReadInd_GATTC_READ_LONG(unittest.TestCase):
+
+    def setUp(self):
+        self.maxDiff = None
+        # TODO  manual says src_id is TASK_ID_GAPC
+        self.expected = "05090C10000C001801030000001201" + \
+                        "566572794C6F6E6756657279" + \
+                        "4C6F6E67566572794C6F6E67" + \
+                        "566572794C6F6E6756657279" + \
+                        "4C6F6E67566572794C6F6E67" + \
+                        "566572794C6F6E674469616C" + \
+                        "6F67566572794C6F6E675665" + \
+                        "72794C6F6E67566572794C6F" + \
+                        "6E67566572794C6F6E675665" + \
+                        "72794C6F6E67566572794C6F" + \
+                        "6E67566572794C6F6E675665" + \
+                        "72794C6F6E67566572794C6F" + \
+                        "6E67566572794C6F6E675665" + \
+                        "72794C6F6E67566572794C6F" + \
+                        "6E67566572794C6F6E675665" + \
+                        "72794C6F6E67566572794C6F" + \
+                        "6E67566572794C6F6E675665" + \
+                        "72794C6F6E67566572794C6F" + \
+                        "6E67566572794C6F6E675665" + \
+                        "72794C6F6E67566572794C6F" + \
+                        "6E67566572794C6F6E675665" + \
+                        "72794C6F6E67566572794C6F" + \
+                        "6E67566572794C6F6E672048" + \
+                        "6F475020446576696365"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcReadInd()
+        test_message.parameters.handle = 3
+        value_str = "VeryLongVeryLongVer" + \
+                "yLongVeryLongVeryLo" + \
+                "ngVeryLongVeryLongD" + \
+                "ialogVeryLongVeryLon" + \
+                "gVeryLongVeryLongVe" + \
+                "ryLongVeryLongVeryLo" + \
+                "ngVeryLongVeryLongV" + \
+                "eryLongVeryLongVeryL" + \
+                "ongVeryLongVeryLong" + \
+                "VeryLongVeryLongVer" + \
+                "yLongVeryLongVeryLo" + \
+                "ngVeryLongVeryLongV" + \
+                "eryLongVeryLongVeryL" + \
+                "ongVeryLong HoGP " + \
+                "Device"
+        value = bytearray(value_str, 'utf-8') 
+        test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        
+        test_message = GattcReadInd(conidx=1)
+        test_message.parameters.handle = 3
+        value_str = "VeryLongVeryLongVer" + \
+                "yLongVeryLongVeryLo" + \
+                "ngVeryLongVeryLongD" + \
+                "ialogVeryLongVeryLon" + \
+                "gVeryLongVeryLongVe" + \
+                "ryLongVeryLongVeryLo" + \
+                "ngVeryLongVeryLongV" + \
+                "eryLongVeryLongVeryL" + \
+                "ongVeryLongVeryLong" + \
+                "VeryLongVeryLongVer" + \
+                "yLongVeryLongVeryLo" + \
+                "ngVeryLongVeryLongV" + \
+                "eryLongVeryLongVeryL" + \
+                "ongVeryLong HoGP " + \
+                "Device"
+        value = bytearray(value_str, 'utf-8') 
+        test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 154
+class TestGattcReadInd_GATTC_READ_BY_UUID(unittest.TestCase):
+
+    def setUp(self):
+        self.maxDiff = None
+        # TODO  manual says src_id is TASK_ID_GAPC
+        self.expected = "05090C10000C001000030000000A004469616C6F6720424C45"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcReadInd()
+        test_message.parameters.handle = 3
+        value_str = "Dialog BLE"
+        value = bytearray(value_str, 'utf-8') 
+        test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        
+        test_message = GattcReadInd(conidx=1)
+        test_message.parameters.handle = 3
+        value_str = "Dialog BLE"
+        value = bytearray(value_str, 'utf-8') 
+        test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 157
+class TestGattcReadInd_GATTC_READ_MULTIPLE_Num_1(unittest.TestCase):
+
+    def setUp(self):
+        self.maxDiff = None
+        # TODO  manual says src_id is TASK_ID_GAPC
+        self.expected = "05090C10000C000B00040000000500020500012A"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcReadInd()
+        test_message.parameters.handle = 4
+        value = bytearray.fromhex("020500012A")
+        test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        
+        test_message = GattcReadInd(conidx=1)
+        test_message.parameters.handle = 4
+        value = bytearray.fromhex("020500012A")
+        test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 158
+class TestGattcReadInd_GATTC_READ_MULTIPLE_Num_2(unittest.TestCase):
+
+    def setUp(self):
+        self.maxDiff = None
+        # TODO  manual says src_id is TASK_ID_GAPC
+        self.expected = "05090C10000C000800050000000200C003"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcReadInd()
+        test_message.parameters.handle = 5
+        value = bytearray.fromhex("C003")
+        test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        
+        test_message = GattcReadInd(conidx=1)
+        test_message.parameters.handle = 5
+        value = bytearray.fromhex("C003")
+        test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
 if __name__ == '__main__':
     unittest.main()

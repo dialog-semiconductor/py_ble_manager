@@ -739,20 +739,43 @@ class gattc_read_cmd(LittleEndianStructure):
 
     nb = property(get_nb, set_nb)
     
-'''
 
 # Attribute value read indication
-class gattc_read_ind(LittleEndianStructure)
+class gattc_read_ind(LittleEndianStructure):
 
-    # Attribute handle
-    uint16_t handle;
-    # Read offset
-    uint16_t offset;
-    # Read length
-    uint16_t length;
-    # Handle value
-    uint8_t value[__ARRAY_EMPTY];
+    def __init__(self, 
+                 handle: c_uint16 = 0,
+                 offset: c_uint16 = 0,
+                 value: Array[c_uint8] = None):
 
+        self.handle = handle
+        self.offset = offset
+        self.value = value
+        super().__init__(handle=self.handle,
+                         offset=self.offset,
+                         length=self.length,
+                         _value=self._value)
+
+                # Attribute handle
+    _fields_ = [("handle", c_uint16),
+                # Read offset
+                ("offset", c_uint16),
+                # Read length
+                ("length", c_uint16),
+                # Handle value
+                ("_value", POINTER(c_uint8))]
+        
+    def get_value(self):
+        return cast(self._value, POINTER(c_uint8 * self.length)).contents 
+
+    def set_value(self, new_value: Array[c_uint8]): 
+        self._value = new_value if new_value else pointer(c_uint8(0))
+        self.length = len(new_value) if new_value else 1 #TODO check 2 or 16
+
+    value = property(get_value, set_value) 
+
+
+'''
 
 # Write peer attribute value command
 struct gattc_write_cmd

@@ -344,7 +344,7 @@ class GattcReadCmd(GtlMessageBase):
                 message.extend(bytearray(item))
         
         return message
-'''
+
 class GattcReadInd(GtlMessageBase):
 
     def __init__(self, conidx: c_uint8 = 0, parameters: gattc_read_ind = None):
@@ -354,8 +354,20 @@ class GattcReadInd(GtlMessageBase):
         super().__init__(msg_id=GATTC_MSG_ID.GATTC_READ_IND,
                          dst_id=KE_API_ID.TASK_ID_GTL,
                          src_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC), 
-                         par_len=11,
+                         par_len=self.par_len,
                          parameters=self.parameters)
-'''
+
+    def get_par_len(self):
+        self._par_len = 6 + self.parameters.length
+        return self._par_len
+
+    def set_par_len(self, value):
+        self._par_len = value
+
+    par_len = property(get_par_len, set_par_len)
   
+#TODO GATTC_WRITE_CMD
+
 #TODO setup Git Action for unit tests
+#TODO setup Flake8 for linting
+#TODO explicit imports instead of wildcard (*) imports 
