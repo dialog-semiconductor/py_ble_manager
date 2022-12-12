@@ -718,7 +718,7 @@ class gattc_read_cmd(LittleEndianStructure):
         super().__init__(operation=self.operation,
                          _nb=self._nb,
                          seq_num=self.seq_num,
-                         _req=self._req)
+                         req=self.req)
 
                 # request type
     _fields_ = [("operation", c_uint8),
@@ -727,26 +727,11 @@ class gattc_read_cmd(LittleEndianStructure):
                 # operation sequence number
                 ("seq_num", c_uint16),
                 # request union according to read type
-                ("_req", gattc_read_req)]
-
-    def get_req(self):
-        print(f"gattc_read_cmd.get_req self._req: {self._req}")
-        return self._req
-
-    def set_req(self, new_value: gattc_read_req = None): 
-        self._req = new_value if new_value else gattc_read_req()
-        print(f"gattc_read_cmd.set_req self._req: {self._req}")
-        if self.operation == GATTC_OPERATION.GATTC_READ_MULTIPLE:
-            #TODO never allow 0 in this case
-            self.nb = len(new_value)
-        else:
-            self.nb = 0
-
-    req = property(get_req, set_req)
+                ("req", gattc_read_req)]
 
     def get_nb(self):
         if self.operation == GATTC_OPERATION.GATTC_READ_MULTIPLE:
-            return self._req._multiple_len
+            return self.req._multiple_len
         return 0
 
     def set_nb(self, new_value): 

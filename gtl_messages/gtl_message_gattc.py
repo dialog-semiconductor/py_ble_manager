@@ -358,4 +358,4 @@ class GattcReadInd(GtlMessageBase):
                          parameters=self.parameters)
 '''
   
-#TODO GATTC_READ_CMD -> need test cases for other union members
+#TODO setup Git Action for unit tests
