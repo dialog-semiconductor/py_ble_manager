@@ -717,6 +717,100 @@ class TestGattcReadInd_GATTC_READ_MULTIPLE_Num_2(unittest.TestCase):
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+# Table 161
+class TestGattcWriteCmd_GATTC_WRITE(unittest.TestCase):
+
+    def setUp(self):
+        self.maxDiff = None
+        self.expected = "050A0C0C0010000E000C01090003000000010000000100"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcWriteCmd()
+        test_message.parameters.operation =  GATTC_OPERATION.GATTC_WRITE
+        test_message.parameters.auto_execute = True
+        test_message.parameters.seq_num = 9
+        test_message.parameters.handle = 3
+        value = bytearray.fromhex("01")
+        test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        
+        test_message = GattcWriteCmd(conidx=1)
+        test_message.parameters.operation =  GATTC_OPERATION.GATTC_WRITE
+        test_message.parameters.auto_execute = True
+        test_message.parameters.seq_num = 9
+        test_message.parameters.handle = 3
+        value = bytearray.fromhex("01")
+        test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 163
+class TestGattcWriteCmd_GATTC_WRITE_NO_RESPONSE(unittest.TestCase):
+
+    def setUp(self):
+        self.maxDiff = None
+        self.expected = "050A0C0C00100010000D010D001D0000000400000074657374"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcWriteCmd()
+        test_message.parameters.operation =  GATTC_OPERATION.GATTC_WRITE_NO_RESPONSE
+        test_message.parameters.auto_execute = True
+        test_message.parameters.seq_num = 0x0D
+        test_message.parameters.handle = 0x1D
+        value = bytearray.fromhex("74657374")
+        test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        
+        test_message = GattcWriteCmd(conidx=1)
+        test_message.parameters.operation =  GATTC_OPERATION.GATTC_WRITE_NO_RESPONSE
+        test_message.parameters.auto_execute = True
+        test_message.parameters.seq_num = 0x0D
+        test_message.parameters.handle = 0x1D
+        value = bytearray.fromhex("74657374")
+        test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 165
+class TestGattcWriteCmd_GATTC_WRITE_SIGNED(unittest.TestCase):
+
+    def setUp(self):
+        self.maxDiff = None
+        #TODO table says two bytes len but had 0x01 in example
+        self.expected = "050A0C0C0010000E000E011000AB000000020000000B00"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcWriteCmd()
+        test_message.parameters.operation =  GATTC_OPERATION.GATTC_WRITE_SIGNED
+        test_message.parameters.auto_execute = True
+        test_message.parameters.seq_num = 0x10
+        test_message.parameters.handle = 0xAB
+        value = bytearray.fromhex("0B00")
+        test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        
+        test_message = GattcWriteCmd(conidx=1)
+        test_message.parameters.operation =  GATTC_OPERATION.GATTC_WRITE_SIGNED
+        test_message.parameters.auto_execute = True
+        test_message.parameters.seq_num = 0x10
+        test_message.parameters.handle = 0xAB
+        value = bytearray.fromhex("0B00")
+        test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
 if __name__ == '__main__':
     unittest.main()
     

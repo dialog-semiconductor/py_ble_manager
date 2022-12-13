@@ -97,4 +97,16 @@ class GapcBondCfm(GtlMessageBase):
                          par_len=30,
                          parameters=self.parameters)   
 
+class GapcSignCounterInd(GtlMessageBase):
+    
+    def __init__(self, conidx: c_uint8 = 0, parameters: gapc_sign_counter_ind = None):
+
+        self.parameters = parameters if parameters else gapc_sign_counter_ind()
+
+        super().__init__(msg_id=GAPC_MSG_ID.GAPC_SIGN_COUNTER_IND,
+                         dst_id=KE_API_ID.TASK_ID_GTL,
+                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GAPC),
+                         par_len=8,
+                         parameters=self.parameters)   
+
 # TODO Next message: GAPC_BOND_IND, GAPC_ENCRYPT_REQ_IND, GAPC_ENCRYPT_CFM, GAPC_ENCRYPT_IND, GAPC_PARAM_UPDATE_REQ_IND, GAPC_PARAM_UPDATE_CFM, GAPC_PARAM_UPDATE_CMD, GAPC_PARAM_UPDATED_IND 

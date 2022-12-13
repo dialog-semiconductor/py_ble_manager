@@ -366,8 +366,48 @@ class GattcReadInd(GtlMessageBase):
 
     par_len = property(get_par_len, set_par_len)
   
-#TODO GATTC_WRITE_CMD
+class GattcWriteCmd(GtlMessageBase):
 
+    def __init__(self, conidx: c_uint8 = 0, parameters: gattc_write_cmd = None):
+
+        self.parameters = parameters if parameters else gattc_write_cmd()
+
+        super().__init__(msg_id=GATTC_MSG_ID.GATTC_WRITE_CMD,
+                         dst_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
+                         src_id=KE_API_ID.TASK_ID_GTL,
+                         par_len=self.par_len,
+                         parameters=self.parameters)
+
+    def get_par_len(self):
+                                                      #TODO padding added if value is odd length?
+        self._par_len = 12 + self.parameters.length + self.parameters.length % 2 
+        return self._par_len
+
+    def set_par_len(self, value):
+        self._par_len = value
+
+    par_len = property(get_par_len, set_par_len)
+
+    def to_bytes(self): #TODO if value is odd padding added? Cannot find way to handle in structure so overriding to_bytes
+        message = bytearray()
+        message.append(GTL_INITIATOR)
+        message.extend(self.msg_id.value.to_bytes(length=2, byteorder='little'))
+        message.extend(self.dst_id.to_bytes(length=2, byteorder='little'))
+        message.extend(self.src_id.to_bytes(length=2, byteorder='little'))
+        message.extend(self.par_len.to_bytes(length=2, byteorder='little'))
+        message.extend(self.parameters.operation.to_bytes(length=1, byteorder='little'))
+        message.extend(self.parameters.auto_execute.to_bytes(length=1, byteorder='little'))
+        message.extend(self.parameters.seq_num.to_bytes(length=2, byteorder='little'))
+        message.extend(self.parameters.handle.to_bytes(length=2, byteorder='little'))
+        message.extend(self.parameters.offset.to_bytes(length=2, byteorder='little'))
+        message.extend(self.parameters.length.to_bytes(length=2, byteorder='little'))
+        message.extend(self.parameters.cursor.to_bytes(length=2, byteorder='little'))
+        message.extend(bytearray(self.parameters.value))
+        if(self.parameters.length % 2):
+            message.extend(bytearray.fromhex("00"))
+
+        return message
+#TODO GATTC_WRITE_EXECUTE_CMD 
 #TODO setup Git Action for unit tests
 #TODO setup Flake8 for linting
 #TODO explicit imports instead of wildcard (*) imports 

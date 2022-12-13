@@ -775,29 +775,65 @@ class gattc_read_ind(LittleEndianStructure):
     value = property(get_value, set_value) 
 
 
-'''
+
 
 # Write peer attribute value command
-struct gattc_write_cmd
-{
-    # Request type
-    uint8_t operation;
-    # Perform automatic execution
-    # (if false, an ATT Prepare Write will be used this shall be use for reliable write)
-    bool auto_execute;
-    # operation sequence number
-    uint16_t seq_num;
-    # Attribute handle
-    uint16_t handle;
-    # Write offset
-    uint16_t offset;
-    # Write length
-    uint16_t length;
-    # Internal write cursor shall be initialized to 0
-    uint16_t cursor;
-    # Value to write
-    uint8_t value[__ARRAY_EMPTY];
-};
+class gattc_write_cmd(LittleEndianStructure):
+    def __init__(self, 
+                 operation: GATTC_OPERATION = GATTC_OPERATION.GATTC_NO_OP,
+                 auto_execute: c_bool = False,
+                 seq_num: c_uint16 = 0,
+                 handle: c_uint16 = 0,
+                 offset: c_uint16 = 0,
+                 cursor: c_uint16 = 0,
+                 value: Array[c_uint8] = None):
+
+        self.operation = operation
+        self.auto_execute = auto_execute
+        self.seq_num = seq_num
+        self.handle = handle
+        self.offset = offset
+        self.cursor = cursor
+        self.value = value
+        super().__init__(operation=self.operation,
+                         auto_execute=self.auto_execute,
+                         seq_num=self.seq_num,
+                         handle=self.handle,
+                         offset=self.offset,
+                         length=self.length,
+                         cursor=self.cursor,
+                         _value=self._value)
+
+                # Request type
+    _fields_ = [("operation", c_uint8),
+                # Perform automatic execution
+                # (if false, an ATT Prepare Write will be used this shall be use for reliable write)
+                ("auto_execute", c_bool),
+                # operation sequence number
+                ("seq_num", c_uint16),
+                # Attribute handle
+                ("handle", c_uint16),
+                # Write offset
+                ("offset", c_uint16),
+                # Write length
+                ("length", c_uint16),
+                # Internal write cursor shall be initialized to 0
+                ("cursor", c_uint16),
+                # Handle value
+                ("_value", POINTER(c_uint8))]
+        
+    def get_value(self):
+        return cast(self._value, POINTER(c_uint8 * self.length)).contents 
+
+    def set_value(self, new_value: Array[c_uint8]): 
+        self._value = new_value if new_value else pointer(c_uint8(0))
+        self.length = len(new_value) if new_value else 1 
+
+    value = property(get_value, set_value) 
+
+
+
+'''
 
 # Write peer attribute value command
 struct gattc_execute_write_cmd

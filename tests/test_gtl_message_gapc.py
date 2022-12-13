@@ -201,6 +201,24 @@ class TestGapcBondCfm(unittest.TestCase):
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
          
+# Table 166
+class TestGapcSignCounterInd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "051C0E10000E0008000200000000000000"
+
+    def test_parameters_updated_after_construction(self):
+        test_message = GapcSignCounterInd()
+        test_message.parameters.local_sign_counter = 2
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_non_zero_conidx(self):
+        test_message = GapcSignCounterInd(conidx=1)
+        test_message.parameters.local_sign_counter = 2
+        
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+         
 
 if __name__ == '__main__':
     unittest.main()

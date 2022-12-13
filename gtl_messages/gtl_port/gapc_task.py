@@ -1074,16 +1074,25 @@ struct gapc_keypress_notification
 {
     uint8_t type;
 };
-
+'''
 # Parameters of the @ref GAPC_SIGN_COUNTER_IND message
-struct gapc_sign_counter_ind
-{
-    # Local SignCounter value
-    uint32_t local_sign_counter;
-    # Peer SignCounter value
-    uint32_t peer_sign_counter;
-};
+class gapc_sign_counter_ind(LittleEndianStructure):
 
+    def __init__(self, 
+                 local_sign_counter: c_uint32 = 0,
+                 peer_sign_counter: c_uint32 = 0):
+
+        self.local_sign_counter = local_sign_counter
+        self.peer_sign_counter = peer_sign_counter
+        super().__init__(local_sign_counter=self.local_sign_counter,
+                         peer_sign_counter=self.peer_sign_counter)
+
+                # Local SignCounter value
+    _fields_ = [("local_sign_counter", c_uint32),
+                # Peer SignCounter value
+                ("peer_sign_counter", c_uint32)]
+    
+'''
 
 # Parameters of the @ref GAPC_SIGN_CMD message
 struct gapc_sign_cmd
