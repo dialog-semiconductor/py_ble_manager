@@ -3,6 +3,7 @@ import asyncio
 import serial_asyncio
 from gtl_messages import *
 
+
 class GapManager():
 
     def default_handler(self, message):
@@ -90,7 +91,7 @@ class GapManager():
             # TODO func_table is currently a class variable, make instance var?
             response = handler(self, message)
             if not response:
-                print(f"{type(self).__name__} unhandled message")
+                print(f"{type(self).__name__} unhandled message. message={message}")
         return response
 
 class GapController():
@@ -127,5 +128,5 @@ class GapController():
             # TODO func_table is currently a class variable, make instance var?
             response = handler(self, message)
             if not response:
-                print(f"{type(self).__name__} unhandled message")
+                print(f"{type(self).__name__} unhandled message. message={message}")
         return response

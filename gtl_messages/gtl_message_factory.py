@@ -28,6 +28,6 @@ class GtlMessageFactory():
             elif message_task_id == KE_API_ID.TASK_ID_GAPC:
                 return GapcMessageFactory().create_message(msg_bytes)
            
-            raise AssertionError("GtlMessageFactory: Message type is unhandled or not valid.")
+            raise AssertionError(f"{type(self).__name__}: Message type is unhandled or not valid. message={msg_bytes}")
         except AssertionError as e:
             print(e)

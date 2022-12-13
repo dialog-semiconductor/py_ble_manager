@@ -29,10 +29,12 @@ class MessageRouter():
         
     async def notify(self, message):
         for observer in self.observers:
-            response = observer(message=message)
+            response = observer(message)
             if response:
                 #print(f"MessageParser.notify. Adding Response to queue: {response}")
                 await self.tx_queue.put(response) 
+                break # message hadnled, no need to send to other observers
+            
 
     def register_observer(self, observer: callable):
         self.observers.append(observer)

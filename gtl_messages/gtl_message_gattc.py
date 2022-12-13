@@ -411,3 +411,4 @@ class GattcWriteCmd(GtlMessageBase):
 #TODO setup Git Action for unit tests
 #TODO setup Flake8 for linting
 #TODO explicit imports instead of wildcard (*) imports 
+#TODO organize gtl_port files into same directory structure

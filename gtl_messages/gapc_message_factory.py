@@ -54,8 +54,8 @@ class GapcMessageFactory():
 
             elif msg_id == GAPC_MSG_ID.GAPC_BOND_CFM:
                 return GapcBondCfm(conidx=conidx, parameters=gapc_bond_cfm().from_buffer_copy(params_buf))
-
-            raise AssertionError("GapcMessageFactory: Message type is unhandled or not valid")
+                
+            raise AssertionError(f"{type(self).__name__}: Message type is unhandled or not valid. message={msg_bytes}")
         except AssertionError as e:
             print(e)
 
