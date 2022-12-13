@@ -3,19 +3,36 @@ import asyncio
 import serial_asyncio
 from gtl_messages import *
 
+class GapBase():
+    def __init__(self):
+        self.func_table = {} # Child classes should override this. Best way to make this apparent in python?
+        
+    # TODO likely need to pass incoming message, also need to pass conidx
+    def handle_message(self, message: GtlMessageBase):
+        #print("GapManager.handle_gap_message Calling function table")
+        #TODO be careful, not clear if you are calling instance func or class method
+        response = None
+        # dict.get() will return None if no key found. Need to bass conidx?
+        handler = self.func_table.get(message.msg_id)
+        if handler: 
+            # TODO func_table is currently a class variable, make instance var?
+            response = handler(message) # handler is a bound method, does not require passing self explicity
+            if not response:
+                print(f"{type(self).__name__} unhandled message. message={message}")
+        return response
 
-class GapManager():
+class GapManager(GapBase):
 
     def default_handler(self, message):
         print(f"{type(self).__name__} default handler")
         return None
 
     def handle_gapm_device_ready_ind(self, message):      
-        #print("Received GapmDeviceReadyInd()", message.msg_id)
+        print("Received GapmDeviceReadyInd()", message)
         return GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
 
     def handle_gapm_cmp_evt(self, message: GapmCmpEvt = None):
-
+        print(f"{type(self).__name__} handle_gapm_cmp_evt")
         response = None
         if(message.parameters.operation == GAPM_OPERATION.GAPM_RESET):
             response = self.handle_gapm_reset_cmd()
@@ -72,29 +89,15 @@ class GapManager():
         response.parameters.info.host.peer_info = gap_bdaddr()     
         
         return response
+    
+    def __init__(self):
+        self.func_table = {
+            GAPM_MSG_ID.GAPM_CMP_EVT: self.handle_gapm_cmp_evt,
+            GAPM_MSG_ID.GAPM_DEVICE_READY_IND: self.handle_gapm_device_ready_ind,
+            GAPM_MSG_ID.GAPM_CANCEL_CMD: self.default_handler,
+        }
 
-
-    func_table = {
-        GAPM_MSG_ID.GAPM_CMP_EVT: handle_gapm_cmp_evt,
-        GAPM_MSG_ID.GAPM_DEVICE_READY_IND: handle_gapm_device_ready_ind,
-        GAPM_MSG_ID.GAPM_CANCEL_CMD: default_handler,
-    }
-
-    # TODO likely need to pass incoming message, also need to pass conidx
-    def handle_message(self, message: GtlMessageBase):
-        #print("GapManager.handle_gap_message Calling function table")
-        #TODO be careful, not clear if you are calling instance func or class method
-        response = None
-        # dict.get() will return None if no key found
-        handler = self.func_table.get(message.msg_id)
-        if handler: 
-            # TODO func_table is currently a class variable, make instance var?
-            response = handler(self, message)
-            if not response:
-                print(f"{type(self).__name__} unhandled message. message={message}")
-        return response
-
-class GapController():
+class GapController(GapBase):
     def default_handler(self, message):
         print(f"{type(self).__name__} default handler")
         return None
@@ -110,23 +113,9 @@ class GapController():
 
         return response     
 
-
-    func_table = {
-        GAPC_MSG_ID.GAPC_CMP_EVT: handle_gapc_cmp_evt,
-        GAPC_MSG_ID.GAPC_CONNECTION_REQ_IND: handle_gapc_connection_req_ind,
-        GAPC_MSG_ID.GAPC_BOND_CFM: default_handler,
-    }
-
-    # TODO this handler is the same for Gapm and Gapc, make a base class they both inherit from or a common interface 
-    def handle_message(self, message: GtlMessageBase):
-        #TODO be careful, not clear if you are calling instance func or class method
-        response = None
-
-        # TODO likely need to pass incoming message, also need to pass conidx
-        handler = self.func_table.get(message.msg_id)
-        if handler: 
-            # TODO func_table is currently a class variable, make instance var?
-            response = handler(self, message)
-            if not response:
-                print(f"{type(self).__name__} unhandled message. message={message}")
-        return response
+    def __init__(self):
+        self. func_table = {
+            GAPC_MSG_ID.GAPC_CMP_EVT: self.handle_gapc_cmp_evt,
+            GAPC_MSG_ID.GAPC_CONNECTION_REQ_IND: self.handle_gapc_connection_req_ind,
+            GAPC_MSG_ID.GAPC_BOND_CFM: self.default_handler,
+        }
