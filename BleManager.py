@@ -1,10 +1,9 @@
 import asyncio
-import serial_asyncio
-from gtl_messages import *
-# TODO consider downsides of importing everything without namespace
-from Gap import *
-from MessageRouter import *
-from SerialStreamManager import *
+from Gap import GapController, GapManager
+from MessageRouter import MessageRouter
+from SerialStreamManager import SerialStreamManager
+from gtl_messages.gtl_port.gapm_task import GAPM_OPERATION
+from gtl_messages.gtl_message_gapm import * #TODO remove
 
 class BleBase():
     pass
@@ -29,8 +28,8 @@ class BlePeripheral(BleBase):
     async def run(self):
         # TaskGroup is in 3.11
         #async with asyncio.TaskGroup() as tg:
-        #    task1 = tg.create_task(coro1,)
-            #task2 = tg.create_task(another_coro(...))
+        #    task1 = tg.create_task(coroutine1,)
+            #task2 = tg.create_task(another_coroutine(...))
 
         serial_rx_task = asyncio.create_task(self.message_router.handle_received_message(), name='StreamRx')
         router_tx_task = asyncio.create_task(self.serial_stream_manager.send(), name='StreamTx')

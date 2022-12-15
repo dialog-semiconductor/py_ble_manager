@@ -33,14 +33,14 @@
 #include "attm.h"
 
 '''
-from enum import IntEnum
-from enum import auto
-from ctypes import *
 
-from .gap import *
-from .co_bt import *
-from .rwip_config import *
-from .rwble_hl_error import *
+from ctypes import Array, cast, c_uint8, c_uint16, LittleEndianStructure, pointer, POINTER, Union
+from enum import auto, IntEnum
+
+from .co_bt import ADV_CHANNEL_MAP, ADV_DATA_LEN, ADV_FILTER_POLICY, bd_addr, SCAN_RSP_DATA_LEN
+from .gap import GAP_ADV_MODE, gap_bdaddr, GAP_ROLE, gap_sec_key
+from .rwble_hl_error import HOST_STACK_ERROR_CODE
+from .rwip_config import KE_API_ID
 
 GAPM_LE_LENGTH_EXT_OCTETS_MIN = 27
 GAPM_LE_LENGTH_EXT_OCTETS_MAX = 251

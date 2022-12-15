@@ -47,8 +47,7 @@
 '''
 
 from enum import IntEnum
-from enum import auto
-from ctypes import *
+
 
 '''
 /*
@@ -111,57 +110,65 @@ from ctypes import *
  */
 '''
 
+
 class ATTM_SERVICE_TYPE(IntEnum):
-    SECONDARY_SERVICE = 0 
-    PRIMARY_SERVICE = 1 
+    SECONDARY_SERVICE = 0
+    PRIMARY_SERVICE = 1
+
 
 class ATTM_UUID_LEN(IntEnum):
-    _16_BITS = 0 
-    _32_BITS = 1 
-    _128_BITS = 2 
-    
+    _16_BITS = 0
+    _32_BITS = 1
+    _128_BITS = 2
+
+
 class ATTM_PERM(IntEnum):
-    DISABLE = 0 
-    ENABLE = 1 
-    UNAUTH = 2 
-    AUTH = 3 
+    DISABLE = 0
+    ENABLE = 1
+    UNAUTH = 2
+    AUTH = 3
+
 
 class ATTM_ENC_KEY_SIZE_16_BYTES(IntEnum):
-    NO = 0 
+    NO = 0
     YES = 1
 
+
 class ATTM_TASK_MULTI_INSTANTIATED(IntEnum):
-    NO = 0 
-    YES = 1 
+    NO = 0
+    YES = 1
+
 
 class ATTM_EXTENDED_PROPERTIES(IntEnum):
-    NO = 0 
-    YES = 1 
+    NO = 0
+    YES = 1
+
 
 class ATTM_BROADCAST(IntEnum):
-    NO = 0 
-    YES = 1 
+    NO = 0
+    YES = 1
+
 
 class ATTM_WRITE_COMMAND(IntEnum):
-    NOT_ACCEPTED = 0 
-    ACCEPTED = 1 
+    NOT_ACCEPTED = 0
+    ACCEPTED = 1
+
 
 class ATTM_WRITE_SIGNED(IntEnum):
-    NOT_ACCEPTED = 0 
-    ACCEPTED = 1 
+    NOT_ACCEPTED = 0
+    ACCEPTED = 1
+
 
 class ATTM_WRITE_REQUEST(IntEnum):
-    NOT_ACCEPTED = 0 
-    ACCEPTED = 1 
+    NOT_ACCEPTED = 0
+    ACCEPTED = 1
+
 
 class ATTM_TRIGGER_READ_INDICATION(IntEnum):
-    NO = 0 
-    YES = 1 
-
+    NO = 0
 
 
 '''
-
 enum attm_perm_mask
 {
     /// Retrieve all permission info

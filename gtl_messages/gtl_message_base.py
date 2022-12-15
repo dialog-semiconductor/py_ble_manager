@@ -1,7 +1,10 @@
 
-import sys
-from ctypes import *
-from .gtl_port import *
+from ctypes import Array, c_uint16, LittleEndianStructure, Union
+from .gtl_port.gattc_task import GATTC_MSG_ID
+from .gtl_port.gattm_task import GATTM_MSG_ID
+from .gtl_port.gapc_task import GAPC_MSG_ID
+from .gtl_port.gapm_task import GAPM_MSG_ID
+from .gtl_port.rwip_config import KE_API_ID
 
 GTL_INITIATOR = 0x05
 

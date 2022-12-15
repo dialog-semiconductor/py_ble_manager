@@ -38,109 +38,110 @@
  */
 '''
 
-from enum import IntEnum
-from enum import auto
-from ctypes import *
-from .co_bt import *
+from ctypes import Array, c_uint8, LittleEndianStructure
+from enum import auto, IntEnum
+from .co_bt import BD_ADDR_LEN, KEY_LEN, bd_addr
+
 
 # GAP Advertising Flags
 class GAP_AD_TYPE(IntEnum):
 
     # Flag
-    GAP_AD_TYPE_FLAGS                      = 0x01
+    GAP_AD_TYPE_FLAGS = 0x01
     # Use of more than 16 bits UUID
-    GAP_AD_TYPE_MORE_16_BIT_UUID           = 0x02
+    GAP_AD_TYPE_MORE_16_BIT_UUID = 0x02
     # Complete list of 16 bit UUID
-    GAP_AD_TYPE_COMPLETE_LIST_16_BIT_UUID  = 0x03
+    GAP_AD_TYPE_COMPLETE_LIST_16_BIT_UUID = 0x03
     # Use of more than 32 bit UUD
-    GAP_AD_TYPE_MORE_32_BIT_UUID           = 0x04
+    GAP_AD_TYPE_MORE_32_BIT_UUID = 0x04
     # Complete list of 32 bit UUID
-    GAP_AD_TYPE_COMPLETE_LIST_32_BIT_UUID  = 0x05
+    GAP_AD_TYPE_COMPLETE_LIST_32_BIT_UUID = 0x05
     # Use of more than 128 bit UUID
-    GAP_AD_TYPE_MORE_128_BIT_UUID          = 0x06
+    GAP_AD_TYPE_MORE_128_BIT_UUID = 0x06
     # Complete list of 128 bit UUID
     GAP_AD_TYPE_COMPLETE_LIST_128_BIT_UUID = 0x07
     # Shortened device name
-    GAP_AD_TYPE_SHORTENED_NAME             = 0x08
+    GAP_AD_TYPE_SHORTENED_NAME = 0x08
     # Complete device name
-    GAP_AD_TYPE_COMPLETE_NAME              = 0x09
+    GAP_AD_TYPE_COMPLETE_NAME = 0x09
     # Transmit power
-    GAP_AD_TYPE_TRANSMIT_POWER             = 0x0A
+    GAP_AD_TYPE_TRANSMIT_POWER = 0x0A
     # Class of device
-    GAP_AD_TYPE_CLASS_OF_DEVICE            = 0x0D
+    GAP_AD_TYPE_CLASS_OF_DEVICE = 0x0D
     # Simple Pairing Hash C
-    GAP_AD_TYPE_SP_HASH_C                  = 0x0E
+    GAP_AD_TYPE_SP_HASH_C = 0x0E
     # Simple Pairing Randomizer
-    GAP_AD_TYPE_SP_RANDOMIZER_R            = 0x0F
+    GAP_AD_TYPE_SP_RANDOMIZER_R = 0x0F
     # Temporary key value
-    GAP_AD_TYPE_TK_VALUE                   = 0x10
+    GAP_AD_TYPE_TK_VALUE = 0x10
     # Out of Band Flag
-    GAP_AD_TYPE_OOB_FLAGS                  = 0x11
+    GAP_AD_TYPE_OOB_FLAGS = 0x11
     # Slave connection interval range
-    GAP_AD_TYPE_SLAVE_CONN_INT_RANGE       = 0x12
+    GAP_AD_TYPE_SLAVE_CONN_INT_RANGE = 0x12
     # Require 16 bit service UUID
-    GAP_AD_TYPE_RQRD_16_BIT_SVC_UUID       = 0x14
+    GAP_AD_TYPE_RQRD_16_BIT_SVC_UUID = 0x14
     # Require 128 bit service UUID
-    GAP_AD_TYPE_RQRD_128_BIT_SVC_UUID      = 0x15
+    GAP_AD_TYPE_RQRD_128_BIT_SVC_UUID = 0x15
     # Service data 16-bit UUID
-    GAP_AD_TYPE_SERVICE_16_BIT_DATA        = 0x16
+    GAP_AD_TYPE_SERVICE_16_BIT_DATA = 0x16
     # Public Target Address
-    GAP_AD_TYPE_PUB_TGT_ADDR               = 0x17
+    GAP_AD_TYPE_PUB_TGT_ADDR = 0x17
     # Random Target Address
-    GAP_AD_TYPE_RAND_TGT_ADDR              = 0x18
+    GAP_AD_TYPE_RAND_TGT_ADDR = 0x18
     # Appearance
-    GAP_AD_TYPE_APPEARANCE                 = 0x19
+    GAP_AD_TYPE_APPEARANCE = 0x19
     # Advertising Interval
-    GAP_AD_TYPE_ADV_INTV                   = 0x1A
+    GAP_AD_TYPE_ADV_INTV = 0x1A
     # LE Bluetooth Device Address
-    GAP_AD_TYPE_LE_BT_ADDR                 = 0x1B
+    GAP_AD_TYPE_LE_BT_ADDR = 0x1B
     # LE Role
-    GAP_AD_TYPE_LE_ROLE                    = 0x1C
+    GAP_AD_TYPE_LE_ROLE = 0x1C
     # Simple Pairing Hash C-256
-    GAP_AD_TYPE_SPAIR_HASH                 = 0x1D
+    GAP_AD_TYPE_SPAIR_HASH = 0x1D
     # Simple Pairing Randomizer R-256
-    GAP_AD_TYPE_SPAIR_RAND                 = 0x1E
+    GAP_AD_TYPE_SPAIR_RAND = 0x1E
     # Require 32 bit service UUID
-    GAP_AD_TYPE_RQRD_32_BIT_SVC_UUID       = 0x1F
+    GAP_AD_TYPE_RQRD_32_BIT_SVC_UUID = 0x1F
     # Service data 32-bit UUID
-    GAP_AD_TYPE_SERVICE_32_BIT_DATA        = 0x20
+    GAP_AD_TYPE_SERVICE_32_BIT_DATA = 0x20
     # Service data 128-bit UUID
-    GAP_AD_TYPE_SERVICE_128_BIT_DATA       = 0x21
+    GAP_AD_TYPE_SERVICE_128_BIT_DATA = 0x21
     # LE Secure Connections Confirmation Value
-    GAP_AD_TYPE_LE_SEC_CONN_CFM_VALUE      = 0x22
+    GAP_AD_TYPE_LE_SEC_CONN_CFM_VALUE = 0x22
     # LE Secure Connections Random Value
-    GAP_AD_TYPE_LE_SEC_CONN_RAND_VALUE     = 0x23
+    GAP_AD_TYPE_LE_SEC_CONN_RAND_VALUE = 0x23
     # URI
-    GAP_AD_TYPE_URI                        = 0x24
+    GAP_AD_TYPE_URI = 0x24
     # Indoor Positioning
-    GAP_AD_TYPE_INDOOR_POSITIONING         = 0x25
+    GAP_AD_TYPE_INDOOR_POSITIONING = 0x25
     # Transport Discovery Data
-    GAP_AD_TYPE_TRANSPORT_DISC_DATA        = 0x26
+    GAP_AD_TYPE_TRANSPORT_DISC_DATA = 0x26
     # LE Supported Features
-    GAP_AD_TYPE_LE_SUPP_FEATURES           = 0x27
+    GAP_AD_TYPE_LE_SUPP_FEATURES = 0x27
     # Channel Map Update Indication
-    GAP_AD_TYPE_CHNL_MAP_UPD_IND           = 0x28
+    GAP_AD_TYPE_CHNL_MAP_UPD_IND = 0x28
     # PB-ADV
-    GAP_AD_TYPE_PB_ADV                     = 0x29
+    GAP_AD_TYPE_PB_ADV = 0x29
     # Mesh Message
-    GAP_AD_TYPE_MESH_MESSAGE               = 0x2A
+    GAP_AD_TYPE_MESH_MESSAGE = 0x2A
     # Mesh Beacon
-    GAP_AD_TYPE_MESH_BEACON                = 0x2B
+    GAP_AD_TYPE_MESH_BEACON = 0x2B
     # 3D Information Data
-    GAP_AD_TYPE_3D_INFO                    = 0x3D
+    GAP_AD_TYPE_3D_INFO = 0x3D
     # Manufacturer specific data
-    GAP_AD_TYPE_MANU_SPECIFIC_DATA         = 0xFF
+    GAP_AD_TYPE_MANU_SPECIFIC_DATA = 0xFF
 
 
 # Random Address type
 class GAP_RND_ADDR_TYPE(IntEnum):
 
     # Random Static Address           - 11 (MSB->LSB)
-    GAP_STATIC_ADDR     = 0xC0
+    GAP_STATIC_ADDR = 0xC0
     # non-Resolvable Private Address  - 01 (MSB->LSB)
-    GAP_NON_RSLV_ADDR   = 0x00
+    GAP_NON_RSLV_ADDR = 0x00
     # Resolvable Private Address      - 01 (MSB->LSB)
-    GAP_RSLV_ADDR       = 0x40
+    GAP_RSLV_ADDR = 0x40
+
 
 # Boolean value set
 class GAP_ENABLE_TYPE(IntEnum):
@@ -150,7 +151,7 @@ class GAP_ENABLE_TYPE(IntEnum):
     GAP_ENABLE = auto()
 
 
-#if (BLE_ATTS)
+# if (BLE_ATTS)
 # GAP Attribute database handles
 # Generic Access Profile Service
 '''
@@ -187,30 +188,32 @@ enum
 
 '''
 
+
 # GAP Role
 class GAP_ROLE(IntEnum):
     # No role set yet
-    GAP_ROLE_NONE        = 0x00
+    GAP_ROLE_NONE = 0x00
 
     # Observer role
-    GAP_ROLE_OBSERVER    = 0x01
+    GAP_ROLE_OBSERVER = 0x01
 
     # Broadcaster role
     GAP_ROLE_BROADCASTER = 0x02
 
     # Master/Central role
-    GAP_ROLE_CENTRAL     = (0x04 | GAP_ROLE_OBSERVER)
+    GAP_ROLE_CENTRAL = (0x04 | GAP_ROLE_OBSERVER)
 
     # Peripheral/Slave role
-    GAP_ROLE_PERIPHERAL  = (0x08 | GAP_ROLE_BROADCASTER)
+    GAP_ROLE_PERIPHERAL = (0x08 | GAP_ROLE_BROADCASTER)
 
     # Device has all role both peripheral and central
-    GAP_ROLE_ALL         = (GAP_ROLE_CENTRAL | GAP_ROLE_PERIPHERAL)
+    GAP_ROLE_ALL = (GAP_ROLE_CENTRAL | GAP_ROLE_PERIPHERAL)
 
-    #if BLE_DEBUG
+    # if BLE_DEBUG
     # Debug mode used to force LL configuration on BLE 4.0
-    GAP_ROLE_DBG_LE_4_0      = 0x80
-    #endif // BLE_DEBUG
+    GAP_ROLE_DBG_LE_4_0 = 0x80
+    # endif // BLE_DEBUG
+
 
 # Advertising mode
 class GAP_ADV_MODE(IntEnum):
@@ -223,8 +226,9 @@ class GAP_ADV_MODE(IntEnum):
     # Broadcaster mode which is a non discoverable and non connectable mode.
     GAP_BROADCASTER_MODE = auto()
 
+
 # Scan mode
-class GAP_SCAN_MODE(IntEnum): 
+class GAP_SCAN_MODE(IntEnum):
     # Mode in general discovery
     GAP_GEN_DISCOVERY = 0
     # Mode in limited discovery
@@ -254,7 +258,7 @@ class GAP_IO_CAP(IntEnum):
 class GAP_TK_TYPE(IntEnum):
 
     #  TK get from out of band method
-    GAP_TK_OOB         = 0x00
+    GAP_TK_OOB = 0x00
     # TK generated and shall be displayed by local device
     GAP_TK_DISPLAY = auto()
     # TK shall be entered by user using device keyboard
@@ -286,7 +290,7 @@ class GAP_AUTH_MASK(IntEnum):
     GAP_AUTH_KEY = (1 << 4)
 
 
-#define GAP_AUTH_REQ_MASK   0x1F
+# define GAP_AUTH_REQ_MASK   0x1F
 
 # Authentication Requirements
 class GAP_AUTH(IntEnum):
@@ -294,11 +298,11 @@ class GAP_AUTH(IntEnum):
     # No MITM No Bonding
     GAP_AUTH_REQ_NO_MITM_NO_BOND = (GAP_AUTH_MASK.GAP_AUTH_NONE)
     # No MITM Bonding
-    GAP_AUTH_REQ_NO_MITM_BOND    = (GAP_AUTH_MASK.GAP_AUTH_BOND)
+    GAP_AUTH_REQ_NO_MITM_BOND = (GAP_AUTH_MASK.GAP_AUTH_BOND)
     # MITM No Bonding
-    GAP_AUTH_REQ_MITM_NO_BOND    = (GAP_AUTH_MASK.GAP_AUTH_MITM)
+    GAP_AUTH_REQ_MITM_NO_BOND = (GAP_AUTH_MASK.GAP_AUTH_MITM)
     # MITM and Bonding
-    GAP_AUTH_REQ_MITM_BOND       = (GAP_AUTH_MASK.GAP_AUTH_MITM | GAP_AUTH_MASK.GAP_AUTH_BOND)
+    GAP_AUTH_REQ_MITM_BOND = (GAP_AUTH_MASK.GAP_AUTH_MITM | GAP_AUTH_MASK.GAP_AUTH_BOND)
     # Secure Connection
     GAP_AUTH_REQ_SECURE_CONNECTION = (GAP_AUTH_MASK.GAP_AUTH_SEC)
     # Keypress Notification
@@ -315,13 +319,14 @@ class GAP_KDIST(IntEnum):
     # Encryption key in distribution
     GAP_KDIST_ENCKEY = (1 << 0)
     # IRK (ID key)in distribution
-    GAP_KDIST_IDKEY  = (1 << 1)
+    GAP_KDIST_IDKEY = (1 << 1)
     # CSRK(Signature key) in distribution
-    GAP_KDIST_SIGNKEY= (1 << 2)
+    GAP_KDIST_SIGNKEY = (1 << 2)
     # TODO add missing comment (This is from the original file, what does it mean???)
     GAP_KDIST_BR_EDR = (1 << 3)
 
-    GAP_KDIST_LAST =   (1 << 4)
+    GAP_KDIST_LAST = (1 << 4)
+
 
 # Security Defines
 class GAP_SEC_REQ(IntEnum):
@@ -340,6 +345,7 @@ class GAP_SEC_REQ(IntEnum):
     GAP_SEC1_SEC_PAIR_ENC = auto()
     # Unrecognized security
     GAP_SEC_UNDEFINED = auto()
+
 
 '''
 /// device name
@@ -402,16 +408,17 @@ struct gap_slv_pref
 '''
 # *************** GAP LittleEndianStructures ********************
 
+
 # Address information about a device address
 class gap_bdaddr(LittleEndianStructure):
-    def __init__(self, 
-                 addr: bd_addr = bd_addr(), 
+    def __init__(self,
+                 addr: bd_addr = bd_addr(),
                  # TODO: NOTE 1 Was below:
                  # addr_type: GAPM_ADDR_TYPE = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PUBLIC):
                  # Changed to generic c_types to avoid moving enum into this file or creating circular ref.
                  # When creating a gap_bdaddr assure it is a GAPM_ADDR_TYPE in the file using it??? Is there a different kind of gap_bdaddr?
-                 addr_type: c_uint8 = 0 # TODO is there an enum for this addr_type? 0 = public, 1 = random      
-                ):
+                 addr_type: c_uint8 = 0  # TODO is there an enum for this addr_type? 0 = public, 1 = random
+                 ):
         self.addr = addr
         self.addr_type = addr_type
         super().__init__(addr=self.addr, addr_type=self.addr_type)
@@ -419,29 +426,31 @@ class gap_bdaddr(LittleEndianStructure):
                 # BD Address of device
     _fields_ = [("addr", bd_addr),
                 # BD Address type of the device
-                ("addr_type", c_uint8)] 
+                ("addr_type", c_uint8)]
+
 
 # Generic Security key structure
 class gap_sec_key(LittleEndianStructure):
 
-    def __init__(self, 
-                 key: Array = (c_uint8*KEY_LEN)()):
+    def __init__(self,
+                 key: Array = (c_uint8 * KEY_LEN)()):
         assert len(key) == KEY_LEN
         self.key = key
         super().__init__(key=self.key)
 
                 # Key value MSB -> LSB
-    _fields_ = [("key", c_uint8 * KEY_LEN)] 
+    _fields_ = [("key", c_uint8 * KEY_LEN)]
+
 
 # Resolving list device information
 class gap_ral_dev_info:
 
-    # TODO: See NOTE 1 
-    def __init__(self, 
-                 addr_type: c_uint8 = 0, 
-                 addr: Array = (c_uint8*BD_ADDR_LEN)(), 
-                 peer_irk: Array = (c_uint8*KEY_LEN)(), 
-                 local_irk: Array = (c_uint8*KEY_LEN)()):
+    # TODO: See NOTE 1
+    def __init__(self,
+                 addr_type: c_uint8 = 0,
+                 addr: Array = (c_uint8 * BD_ADDR_LEN)(),
+                 peer_irk: Array = (c_uint8 * KEY_LEN)(),
+                 local_irk: Array = (c_uint8 * KEY_LEN)()):
         assert len(addr) == BD_ADDR_LEN
         assert len(peer_irk) == KEY_LEN
         assert len(local_irk) == KEY_LEN

@@ -1,6 +1,5 @@
 import asyncio
-import serial_asyncio
-from gtl_messages import *
+from gtl_messages import GtlMessageFactory, GtlMessageBase
 
 class MessageParser():
 
@@ -33,7 +32,7 @@ class MessageRouter():
             if response:
                 #print(f"MessageParser.notify. Adding Response to queue: {response}")
                 self.tx_queue.put_nowait(response) 
-                break # message hadnled, no need to send to other observers
+                break # message handled, no need to send to other observers
             
 
     def register_observer(self, observer: callable):

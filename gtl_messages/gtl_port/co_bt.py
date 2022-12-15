@@ -47,9 +47,8 @@
 #include <stdint.h>        // standard integer definitions
 '''
 
-from enum import IntEnum
-from enum import auto
-from ctypes import *
+from ctypes import Array, c_uint8, LittleEndianStructure
+from enum import auto, IntEnum
 
 #
 # BD Address format (values in bytes)
@@ -57,7 +56,7 @@ from ctypes import *
 # |      LAP       | UAP |    NAP   |
 #
 
-BD_ADDR_LEN        = 6
+BD_ADDR_LEN = 6
 '''
 #define BD_ADDR_LAP_POS     0
 #define BD_ADDR_LAP_LEN     3
@@ -75,16 +74,16 @@ BD_ADDR_LEN        = 6
 #define LE_PASSKEY_LEN      0x04
 #define BD_NAME_SIZE        0xF8 // Was 0x20 for BLE HL
 '''
-ADV_DATA_LEN        = 0x1F
+ADV_DATA_LEN = 0x1F
 '''
 #define BLE_DATA_LEN        0x1B
 '''
-SCAN_RSP_DATA_LEN   = 0x1F 
-LE_CHNL_MAP_LEN     = 0x05
+SCAN_RSP_DATA_LEN = 0x1F
+LE_CHNL_MAP_LEN = 0x05
 '''
 #define CHNL_MAP_LEN        0x0A
 '''
-KEY_LEN             = 0x10
+KEY_LEN = 0x10
 '''
 #define PIN_CODE_MIN_LEN    0x01
 #define PIN_CODE_MAX_LEN    0x10
@@ -95,8 +94,8 @@ KEY_LEN             = 0x10
 #define RAND_VAL_LEN        0x10
 
 '''
-RAND_NB_LEN         = 0x08
-LE_FEATS_LEN        = 0x08
+RAND_NB_LEN = 0x08
+LE_FEATS_LEN = 0x08
 '''
 #define SUPP_CMDS_LEN       0x40
 #define FEATS_LEN           0x08
@@ -1389,31 +1388,34 @@ enum
     ADDR_END
 };
 '''
-#Advertising channels enables
-class ADV_CHANNEL_MAP(IntEnum): 
-    #Byte value for advertising channel map for channel 37 enable
-    ADV_CHNL_37_EN                = 0x01
-    #Byte value for advertising channel map for channel 38 enable
-    ADV_CHNL_38_EN                = 0x02
-    #Byte value for advertising channel map for channel 39 enable
-    ADV_CHNL_39_EN                = 0x04
-    #Byte value for advertising channel map for channel 37, 38 and 39 enable
-    ADV_ALL_CHNLS_EN              = 0x07
-    #Enumeration end value for advertising channels enable value check
-    ADV_CHNL_END                  = auto()
+
+
+# Advertising channels enables
+class ADV_CHANNEL_MAP(IntEnum):
+    # Byte value for advertising channel map for channel 37 enable
+    ADV_CHNL_37_EN = 0x01
+    # Byte value for advertising channel map for channel 38 enable
+    ADV_CHNL_38_EN = 0x02
+    # Byte value for advertising channel map for channel 39 enable
+    ADV_CHNL_39_EN = 0x04
+    # Byte value for advertising channel map for channel 37, 38 and 39 enable
+    ADV_ALL_CHNLS_EN = 0x07
+    # Enumeration end value for advertising channels enable value check
+    ADV_CHNL_END = auto()
+
 
 # Advertising filter policy
-class ADV_FILTER_POLICY(IntEnum): 
+class ADV_FILTER_POLICY(IntEnum):
 
-    #Allow both scan and connection requests from anyone
-    ADV_ALLOW_SCAN_ANY_CON_ANY    = 0x00
-    #Allow both scan req from White List devices only and connection req from anyone
+    # Allow both scan and connection requests from anyone
+    ADV_ALLOW_SCAN_ANY_CON_ANY = 0x00
+    # Allow both scan req from White List devices only and connection req from anyone
     ADV_ALLOW_SCAN_WLST_CON_ANY = auto()
-    #Allow both scan req from anyone and connection req from White List devices only
+    # Allow both scan req from anyone and connection req from White List devices only
     ADV_ALLOW_SCAN_ANY_CON_WLST = auto()
-    #Allow scan and connection requests from White List devices only
+    # Allow scan and connection requests from White List devices only
     ADV_ALLOW_SCAN_WLST_CON_WLST = auto()
-    #Enumeration end value for advertising filter policy value check
+    # Enumeration end value for advertising filter policy value check
     ADV_ALLOW_SCAN_END = auto()
 
 
@@ -1709,18 +1711,21 @@ struct host_cmpl_pkts
     ///Number of completed packets
     uint16_t  nb_cmpl_pkts;
 };
-''' 
-#BD Address structure
+'''
+
+
+# BD Address structure
 class bd_addr(LittleEndianStructure):
 
-    def __init__(self, 
-                 addr: Array = (c_uint8*BD_ADDR_LEN)()):
+    def __init__(self,
+                 addr: Array = (c_uint8 * BD_ADDR_LEN)()):
         assert len(addr) == BD_ADDR_LEN
         self.addr = addr
         super().__init__(addr=self.addr)
 
                 # 6-byte array address value
-    _fields_ = [("addr", c_uint8 * BD_ADDR_LEN)] 
+    _fields_ = [("addr", c_uint8 * BD_ADDR_LEN)]
+
 
 '''
 ///Access Address structurev
@@ -1752,20 +1757,21 @@ struct chnl_map
 };
 '''
 
+
 # Channel map structure
 class le_chnl_map(LittleEndianStructure):
 
-    def __init__(self, 
-                 map: Array = (c_uint8*LE_CHNL_MAP_LEN)()):
+    def __init__(self,
+                 map: Array = (c_uint8 * LE_CHNL_MAP_LEN)()):
         assert len(map) == LE_CHNL_MAP_LEN
         self.map = map
         super().__init__(map=self.map)
 
                 # 5-byte channel map array
-    _fields_ = [("map", c_uint8 * LE_CHNL_MAP_LEN)] 
+    _fields_ = [("map", c_uint8 * LE_CHNL_MAP_LEN)]
+
 
 '''
-
 ///Long Term Key structure
 struct ltk
 {
@@ -1782,18 +1788,20 @@ struct bd_addr_plus_key
     struct ltk link_key;
 };
 '''
-#Random number structure
+
+
+# Random number structure
 class rand_nb(LittleEndianStructure):
-    def __init__(self, 
-                 nb: Array = (c_uint8*RAND_NB_LEN)()):
-                 
+    def __init__(self, nb: Array = (c_uint8 * RAND_NB_LEN)()):
+
         assert len(nb) == RAND_NB_LEN
         self.nb = nb
         super().__init__(nb=self.nb)
 
-                #8-byte array for random number
+                # 8-byte array for random number
     _fields_ = [("nb", c_uint8 * RAND_NB_LEN)]
-    
+
+
 '''
 ///Advertising report structure
 struct adv_report

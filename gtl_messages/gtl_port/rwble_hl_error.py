@@ -33,9 +33,7 @@
  '''
 
 from enum import IntEnum
-from enum import auto
-from ctypes import *
-from .co_version import *
+#from .co_version import *
 
 '''
 
@@ -136,6 +134,8 @@ class HOST_STACK_ERROR_CODE(IntEnum):
     #  Connection refused - unacceptable parameters
 #    L2C_ERR_UNACCEPTABLE_PARAM        = 0x3F
 #else
+
+# TODO handle RWBLE_SW_VERSION_MAJOR
 
 #if (RWBLE_SW_VERSION_MAJOR >= 8)
     #Invalid MPS length exceed MTU

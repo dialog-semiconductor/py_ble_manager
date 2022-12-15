@@ -1,6 +1,6 @@
 import unittest
-from ctypes import *
-from gtl_messages import *
+from gtl_messages.gtl_message_gattm import *
+from gtl_messages.gtl_port.gattm_task import *
 
 # Table 70
 class TestGattmAddSvcReq(unittest.TestCase):

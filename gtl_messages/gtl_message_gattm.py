@@ -1,5 +1,8 @@
-from ctypes import *
-from .gtl_message_base import *
+from .gtl_message_base import GtlMessageBase 
+from .gtl_port.gattm_task import GATTM_MSG_ID, gattm_add_svc_req, gattm_add_svc_rsp, gattm_att_set_value_req, gattm_att_set_value_rsp, \
+                                 gattm_att_get_value_req, gattm_att_get_value_rsp
+
+from .gtl_port.rwip_config import KE_API_ID
 
 class GattmAddSvcReq(GtlMessageBase):
 
@@ -68,8 +71,6 @@ class GattmAttSetValueRsp(GtlMessageBase):
                          src_id=KE_API_ID.TASK_ID_GATTM,
                          par_len=4,
                          parameters=self.parameters)
-
-        self.parameters = self.parameters
         
 class GattmAttGetValueReq(GtlMessageBase):
 
@@ -82,8 +83,6 @@ class GattmAttGetValueReq(GtlMessageBase):
                          src_id=KE_API_ID.TASK_ID_GTL,
                          par_len=2,
                          parameters=self.parameters)
-
-        self.parameters = self.parameters
 
 class GattmAttGetValueRsp(GtlMessageBase):
 

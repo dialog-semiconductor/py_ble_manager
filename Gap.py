@@ -1,7 +1,9 @@
 
-import asyncio
-import serial_asyncio
-from gtl_messages import *
+from gtl_messages import GtlMessageBase
+from gtl_messages.gtl_message_gapc import *
+from gtl_messages.gtl_port.gapc_task import * 
+from gtl_messages.gtl_message_gapm import *
+from gtl_messages.gtl_port.gapm_task import * 
 
 class GapBase():
     def __init__(self):

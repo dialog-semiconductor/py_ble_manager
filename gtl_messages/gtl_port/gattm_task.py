@@ -42,15 +42,15 @@
 #include "gattm.h"
 #include "co_utils.h"
 
-from enum import IntEnum
-from enum import auto
-from ctypes import *
+from ctypes import Array, cast, c_uint8, c_uint16, c_uint32, LittleEndianStructure, pointer, POINTER
+from enum import auto, IntEnum
 
-from .co_bt import *
-from .rwip_config import *
-from .rwble_hl_error import *
-from .att import *
-from .attm import *
+from .att import ATT_UUID_128_LEN
+from .attm import ATTM_BROADCAST, ATTM_ENC_KEY_SIZE_16_BYTES, ATTM_EXTENDED_PROPERTIES, ATTM_PERM, ATTM_SERVICE_TYPE, \
+                  ATTM_TASK_MULTI_INSTANTIATED, ATTM_TRIGGER_READ_INDICATION, ATTM_WRITE_COMMAND, ATTM_WRITE_REQUEST, ATTM_WRITE_SIGNED, ATTM_UUID_LEN
+
+from .rwble_hl_error import HOST_STACK_ERROR_CODE
+from .rwip_config import KE_API_ID
 
 '''
 /*
@@ -274,7 +274,7 @@ class gattm_svc_desc(LittleEndianStructure):
                 start_hdl: c_uint16 = 0,
                 task_id: KE_API_ID = 0, 
                 perm: attm_svc_perm = attm_svc_perm(),
-                uuid: c_uint*ATT_UUID_128_LEN = (c_uint8*ATT_UUID_128_LEN)(),
+                uuid: (c_uint8*ATT_UUID_128_LEN) = (c_uint8*ATT_UUID_128_LEN)(),
                 atts: Array[gattm_att_desc] = None, 
                 ):
         self.start_hdl = start_hdl

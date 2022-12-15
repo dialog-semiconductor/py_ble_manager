@@ -33,13 +33,14 @@
 #include "rwip_config.h"
 #include "ke_task.h"
 #include "gap.h"
-from enum import IntEnum
-from enum import auto
-from ctypes import *
 
-from .rwip_config import *
-from .gap import *
-from .rwble_hl_error import *
+from ctypes import Array, c_uint8, c_uint16, c_uint32, LittleEndianStructure, Union
+from enum import auto, IntEnum
+
+from .co_bt import bd_addr, BD_ADDR_LEN, LE_FEATS_LEN, rand_nb
+from .gap import GAP_AUTH, GAP_IO_CAP, GAP_KDIST, GAP_OOB, GAP_TK_TYPE, gap_sec_key, GAP_SEC_REQ
+from .rwble_hl_error import HOST_STACK_ERROR_CODE
+from .rwip_config import KE_API_ID
 
 '''
 

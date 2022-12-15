@@ -41,7 +41,7 @@
 #include <stdint.h>
 '''
 from enum import IntEnum
-from enum import auto
+
 '''
 /*
  * DEFINES
@@ -81,13 +81,15 @@ from enum import auto
 #define ATT_UUID_16_LEN                         0x0002
 #define ATT_UUID_32_LEN                         0x0004
 '''
-ATT_UUID_128_LEN                        = 0x0010
+ATT_UUID_128_LEN = 0x0010
 '''
 /// offset - l2cap header and ATT code
 #define ATT_PDU_DATA_OFFSET                     0x05
 
 
 '''
+
+
 # Characteristic Properties Bit
 class ATT_CHAR_PROP(IntEnum):
     BROADCAST = 0x01,
@@ -98,6 +100,7 @@ class ATT_CHAR_PROP(IntEnum):
     INDICATE = 0x20
     AUTH = 0x40
     EXT_PROP = 0x80
+
 
 '''
 /// Invalid Attribute Handle

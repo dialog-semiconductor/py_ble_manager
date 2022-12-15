@@ -825,3 +825,4 @@ void smpc_pdu_recv(uint8_t conidx, struct l2cc_pdu *pdu);
 #endif //SMPC_H_
 
 /// @} SMPC
+'''

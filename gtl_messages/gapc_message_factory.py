@@ -1,4 +1,4 @@
-from ctypes import *
+from .gtl_message_base import GTL_INITIATOR
 from .gtl_message_gapc import *
 
 

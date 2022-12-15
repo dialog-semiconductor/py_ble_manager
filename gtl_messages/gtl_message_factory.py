@@ -1,7 +1,8 @@
-from ctypes import *
-from .gtl_message_base import *
-from .gapm_message_factory import *
-from .gapc_message_factory import *
+from .gtl_message_base import GTL_INITIATOR
+from .gapc_message_factory import GapcMessageFactory
+from .gapm_message_factory import GapmMessageFactory
+from .gtl_port.rwip_config import KE_API_ID
+
 
 class GtlMessageFactory():
 
@@ -28,6 +29,6 @@ class GtlMessageFactory():
             elif message_task_id == KE_API_ID.TASK_ID_GAPC:
                 return GapcMessageFactory().create_message(msg_bytes)
            
-            raise AssertionError(f"{type(self).__name__}: Message type is unhandled or not valid. message={msg_bytes}")
+            raise AssertionError(f"{type(__class__).__name__}: Message type is unhandled or not valid. message={msg_bytes}")
         except AssertionError as e:
             print(e)

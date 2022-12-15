@@ -1,5 +1,11 @@
-from ctypes import *
-from .gtl_message_base import *
+from ctypes import c_uint8
+from .gtl_message_base import GTL_INITIATOR, GtlMessageBase 
+from .gtl_port.gattc_task import GATTC_MSG_ID, gattc_write_req_ind, gattc_write_cfm, gattc_read_req_ind, gattc_read_cfm, gattc_send_evt_cmd, \
+                                 gattc_cmp_evt, gattc_event_ind, gattc_event_req_ind, gattc_event_cfm, gattc_disc_cmd, gattc_disc_char_desc_ind, \
+                                 gattc_disc_svc_ind, gattc_disc_svc_incl_ind, gattc_disc_char_ind, gattc_sdp_svc_disc_cmd, gattc_read_cmd, \
+                                 GATTC_OPERATION, gattc_read_ind, gattc_write_cmd
+                                
+from .gtl_port.rwip_config import KE_API_ID
 
 # TODO next message GATTC_EXC_MTU_CMD, GATTC_CMP_EVT, GATTC_MTU_CHANGED_IND, GATTC_ATT_INFO_REQ_IND, GATTC_ATT_INFO_CFM
 
@@ -262,7 +268,7 @@ class GattcDiscCharInd(GtlMessageBase):
 
     par_len = property(get_par_len, set_par_len)
  
-class GattcSdpSvcDiscCmd(GtlMessageBase):
+class GattcSdpSvcDiscCmd(GtlMessageBase): 
 
     def __init__(self, conidx: c_uint8 = 0, parameters: gattc_sdp_svc_disc_cmd = None):
 
@@ -290,7 +296,7 @@ class GattcSdpSvcInd(GtlMessageBase):
 
          
 '''
-class GattcReadCmd(GtlMessageBase):
+class GattcReadCmd(GtlMessageBase): 
 
     def __init__(self, conidx: c_uint8 = 0, parameters: gattc_read_cmd = None):
 

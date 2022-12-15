@@ -1,6 +1,6 @@
 import asyncio
 import serial_asyncio
-from gtl_messages import *
+from gtl_messages import GTL_INITIATOR
 
 # TODO GAPM message handling should be in a GapManager class
 

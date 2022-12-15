@@ -1,17 +1,16 @@
 import asyncio
 import serial_asyncio
-from gtl_messages import *
-# TODO consider downsides of importing everything without namespace
-from Gap import *
-from MessageRouter import *
+from gtl_messages import GTL_INITIATOR
+import os 
+
 
 class SerialStreamManager(asyncio.Protocol):
 
     def __init__(self, tx_queue: asyncio.Queue(), rx_queue: asyncio.Queue()) -> None:
         # TODO error check queues are asyncio.Queue
-        #if(not tx_queue or not rx_queue):
-            # throw error
-        self.tx_queue = tx_queue 
+        # if(not tx_queue or not rx_queue):
+        #   throw error
+        self.tx_queue = tx_queue
         self.rx_queue = rx_queue
 
     async def open_port(self, com_port: str):
@@ -21,11 +20,11 @@ class SerialStreamManager(asyncio.Protocol):
         while True:
             buffer = bytes()
             buffer = await self.reader.readexactly(1)
-            if(buffer[0] == GTL_INITIATOR):
+            if (buffer[0] == GTL_INITIATOR):
                 # Get msg_id, dst_id, src_id, par_len. Use par_len to read rest of message
                 buffer += await self.reader.readexactly(8)
                 par_len = int.from_bytes(buffer[7:9], "little",signed=False)
-                if(par_len != 0):
+                if (par_len != 0):
                     buffer += await self.reader.readexactly(par_len)
                 
                 self.rx_queue.put_nowait(buffer)
@@ -34,8 +33,8 @@ class SerialStreamManager(asyncio.Protocol):
     
     async def send(self):
         while True:
-            #TODO how to make vs code recongnize this is an asyncio.Queue? And that it is pulling off a GtlMessageBase message?
-            # TODO instead of infinite loop, could we instead schedule this coroutine when an item is put on the queue? 
+            # TODO how to make vs code recognize this is an asyncio.Queue? And that it is pulling off a GtlMessageBase message?
+            # TODO instead of infinite loop, could we instead schedule this coroutine when an item is put on the queue?
             message = await self.tx_queue.get()
             print(f"--> Tx: {message}\n")
             self.writer.write(message.to_bytes())
