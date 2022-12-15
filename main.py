@@ -3,15 +3,15 @@ from BleManager import *
 
 
 async def user_main():
-    print("Running user main")
-    await asyncio.sleep(5)
-    print("5 Seconds elapsed")
-    await asyncio.sleep(5)
-    print("10 Seconds elapsed")
+    elapsed = 0
+    delay = 1
+    while True:
+        await asyncio.sleep(delay)
+        elapsed += delay
+        print(f"User Main. elapsed={elapsed}")
 
 async def main():
-
-    test = BlePeripheral()
+    test = BlePeripheral("COM40")
     ble_task = asyncio.create_task(test.run())
     task1 = asyncio.create_task(user_main())
     await ble_task

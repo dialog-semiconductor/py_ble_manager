@@ -21,6 +21,9 @@ class GapBase():
                 print(f"{type(self).__name__} unhandled message. message={message}")
         return response
 
+    
+        
+
 class GapManager(GapBase):
 
     def default_handler(self, message):
@@ -28,7 +31,6 @@ class GapManager(GapBase):
         return None
 
     def handle_gapm_device_ready_ind(self, message):      
-        print("Received GapmDeviceReadyInd()", message)
         return GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
 
     def handle_gapm_cmp_evt(self, message: GapmCmpEvt = None):

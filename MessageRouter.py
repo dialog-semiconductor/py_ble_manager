@@ -25,16 +25,19 @@ class MessageRouter():
             message = self.message_parser.decode_from_bytes(byte_string) 
             #self.rx_queue.put_nowait(message)
             print(f"<-- Rx: {message}\n")
-            await self.notify(message)
+            self.notify(message)
         
-    async def notify(self, message):
+    def notify(self, message):
         for observer in self.observers:
             response = observer(message)
             if response:
                 #print(f"MessageParser.notify. Adding Response to queue: {response}")
-                await self.tx_queue.put(response) 
+                self.tx_queue.put_nowait(response) 
                 break # message hadnled, no need to send to other observers
             
 
     def register_observer(self, observer: callable):
         self.observers.append(observer)
+
+    def send_message(self, message: GtlMessageBase):
+        self.tx_queue.put_nowait(message)

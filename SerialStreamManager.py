@@ -14,33 +14,21 @@ class SerialStreamManager(asyncio.Protocol):
         self.tx_queue = tx_queue 
         self.rx_queue = rx_queue
 
-    async def open_port(self):
-        # TODO pass COM port in
-        self.reader, self.writer = await serial_asyncio.open_serial_connection(url='COM40', baudrate=115200)
-        #print("SerialStreamManager.open_port Port has been opened")
+    async def open_port(self, com_port: str):
+        self.reader, self.writer = await serial_asyncio.open_serial_connection(url=com_port, baudrate=115200)
 
     async def receive(self):
         while True:
             buffer = bytes()
-            #print(f"buffer: {buffer}")
-            #print("Waiting for GTL_INITIATOR")
             buffer = await self.reader.readexactly(1)
             if(buffer[0] == GTL_INITIATOR):
-                #print("Waiting for message header")
+                # Get msg_id, dst_id, src_id, par_len. Use par_len to read rest of message
                 buffer += await self.reader.readexactly(8)
                 par_len = int.from_bytes(buffer[7:9], "little",signed=False)
                 if(par_len != 0):
-                    #print("Waiting for message params")
                     buffer += await self.reader.readexactly(par_len)
                 
-                #print(f"<-- SerialStreamManager.receive Sending: {buffer}")
-
-                # Handle it
-                # TODO awaiting here makes is so buffer is not reset and enter endless loop
                 self.rx_queue.put_nowait(buffer)
-
-                #print('Tasks count: ', len(asyncio.all_tasks()))
-                #print('Tasks: ', asyncio.all_tasks())
             else:
                 print("Received some garbage")
     
