@@ -34,20 +34,21 @@
  ****************************************************************************************
  */
  '''
-#include "rwip_config.h"
-#if (BLE_CENTRAL || BLE_PERIPHERAL)
+# include "rwip_config.h"
+# if (BLE_CENTRAL || BLE_PERIPHERAL)
 
-#include "gatt.h"
-#include "attm.h"
-#include "gattm.h"
-#include "co_utils.h"
+# include "gatt.h"
+# include "attm.h"
+# include "gattm.h"
+# include "co_utils.h"
 
 from ctypes import Array, cast, c_uint8, c_uint16, c_uint32, LittleEndianStructure, pointer, POINTER
 from enum import auto, IntEnum
 
 from .att import ATT_UUID_128_LEN
 from .attm import ATTM_BROADCAST, ATTM_ENC_KEY_SIZE_16_BYTES, ATTM_EXTENDED_PROPERTIES, ATTM_PERM, ATTM_SERVICE_TYPE, \
-                  ATTM_TASK_MULTI_INSTANTIATED, ATTM_TRIGGER_READ_INDICATION, ATTM_WRITE_COMMAND, ATTM_WRITE_REQUEST, ATTM_WRITE_SIGNED, ATTM_UUID_LEN
+    ATTM_TASK_MULTI_INSTANTIATED, ATTM_TRIGGER_READ_INDICATION, ATTM_WRITE_COMMAND, ATTM_WRITE_REQUEST, \
+    ATTM_WRITE_SIGNED, ATTM_UUID_LEN
 
 from .rwble_hl_error import HOST_STACK_ERROR_CODE
 from .rwip_config import KE_API_ID
@@ -73,12 +74,14 @@ enum gattm_state_id
     GATTM_STATE_MAX
 };
 '''
+
+
 # GATT Task messages
 class GATTM_MSG_ID(IntEnum):
 
     # Database Management */
     # Add service in database request
-    GATTM_ADD_SVC_REQ = (KE_API_ID.TASK_ID_GATTM << 8) #0B00
+    GATTM_ADD_SVC_REQ = (KE_API_ID.TASK_ID_GATTM << 8)  # 0B00
     # Add service in database response
     GATTM_ADD_SVC_RSP = auto()
 
@@ -125,9 +128,10 @@ class GATTM_MSG_ID(IntEnum):
     # DEBUG ONLY: Retrieve information of attribute response
     GATTM_ATT_GET_INFO_RSP = auto()
 
-#TODO move to att or attm
+
+# TODO move to att or attm
 class att_perm(LittleEndianStructure):
-    def __init__(self, 
+    def __init__(self,
                  read: ATTM_PERM = ATTM_PERM.DISABLE,
                  write: ATTM_PERM = ATTM_PERM.DISABLE,
                  indication: ATTM_PERM = ATTM_PERM.DISABLE,
@@ -135,13 +139,13 @@ class att_perm(LittleEndianStructure):
                  extended_properties_present: ATTM_EXTENDED_PROPERTIES = ATTM_EXTENDED_PROPERTIES.NO,
                  broadcast: ATTM_BROADCAST = ATTM_BROADCAST.NO,
                  enc_key_size: ATTM_ENC_KEY_SIZE_16_BYTES = ATTM_ENC_KEY_SIZE_16_BYTES.NO,
-                 write_command: ATTM_WRITE_COMMAND = ATTM_WRITE_COMMAND.NOT_ACCEPTED, 
+                 write_command: ATTM_WRITE_COMMAND = ATTM_WRITE_COMMAND.NOT_ACCEPTED,
                  write_signed: ATTM_WRITE_SIGNED = ATTM_WRITE_SIGNED.NOT_ACCEPTED,
                  write_request: ATTM_WRITE_REQUEST = ATTM_WRITE_REQUEST.NOT_ACCEPTED,
-                 uuid_len: ATTM_UUID_LEN = ATTM_UUID_LEN._16_BITS, 
+                 uuid_len: ATTM_UUID_LEN = ATTM_UUID_LEN._16_BITS,
                  max_len: c_uint16 = 0,
                  trigger_read_indication: ATTM_TRIGGER_READ_INDICATION = ATTM_TRIGGER_READ_INDICATION.NO,
-                ):
+                 ):
 
         self.read = read
         self.write = write
@@ -185,12 +189,14 @@ class att_perm(LittleEndianStructure):
                 ("uuid_len", c_uint32, 2),
                 ("reserved", c_uint32, 12)]
 
-#TODO move to att or attm
+
+# TODO move to att or attm
 class att_max_len_read_ind(LittleEndianStructure):
-    def __init__(self, 
+
+    def __init__(self,
                  max_len: c_uint16 = 0,
                  trigger_read_indication: ATTM_TRIGGER_READ_INDICATION = ATTM_TRIGGER_READ_INDICATION.NO,
-                ):
+                 ):
 
         self.max_len = max_len
         self.trigger_read_indication = trigger_read_indication
@@ -216,13 +222,14 @@ class att_max_len_read_ind(LittleEndianStructure):
     _fields_ = [("max_len", c_uint16, 15),
                 ("trigger_read_indication", c_uint16, 1)]
 
+
 # Attribute Description
 class gattm_att_desc(LittleEndianStructure):
-    def __init__(self, 
-                  uuid: c_uint8*ATT_UUID_128_LEN = (c_uint8*ATT_UUID_128_LEN)(), 
-                  perm: att_perm = att_perm(),
-                  max_len_read_ind: att_max_len_read_ind = att_max_len_read_ind()
-                  ):
+    def __init__(self,
+                 uuid: c_uint8 * ATT_UUID_128_LEN = (c_uint8 * ATT_UUID_128_LEN)(),
+                 perm: att_perm = att_perm(),
+                 max_len_read_ind: att_max_len_read_ind = att_max_len_read_ind()
+                 ):
 
         self.uuid = uuid
         self.perm = perm
@@ -232,22 +239,23 @@ class gattm_att_desc(LittleEndianStructure):
                          max_len_read_ind=self.max_len_read_ind,
                          padding=0)
 
-                # Attribute UUID (LSB First) 
-    _fields_ = [("uuid", c_uint8*ATT_UUID_128_LEN),
+                # Attribute UUID (LSB First)
+    _fields_ = [("uuid", c_uint8 * ATT_UUID_128_LEN),
                 # Attribute Permission (@see attm_perm_mask)
                 ("perm", att_perm),
                 ("max_len_read_ind", att_max_len_read_ind),
                 ("padding", c_uint16)]
 
-#TODO move to att or attm
+
+# TODO move to att or attm
 class attm_svc_perm(LittleEndianStructure):
-    def __init__(self, 
-                 multi: ATTM_TASK_MULTI_INSTANTIATED = ATTM_TASK_MULTI_INSTANTIATED.NO, 
-                 enc_key_16_bytes: ATTM_ENC_KEY_SIZE_16_BYTES = ATTM_ENC_KEY_SIZE_16_BYTES.NO, 
-                 svc_perm: ATTM_PERM = ATTM_PERM.UNAUTH, 
-                 uuid_len: ATTM_UUID_LEN = ATTM_UUID_LEN._16_BITS, 
+    def __init__(self,
+                 multi: ATTM_TASK_MULTI_INSTANTIATED = ATTM_TASK_MULTI_INSTANTIATED.NO,
+                 enc_key_16_bytes: ATTM_ENC_KEY_SIZE_16_BYTES = ATTM_ENC_KEY_SIZE_16_BYTES.NO,
+                 svc_perm: ATTM_PERM = ATTM_PERM.UNAUTH,
+                 uuid_len: ATTM_UUID_LEN = ATTM_UUID_LEN._16_BITS,
                  primary_svc: ATTM_SERVICE_TYPE = ATTM_SERVICE_TYPE.PRIMARY_SERVICE
-                ):
+                 ):
 
         self.multi = multi
         self.enc_key_16_bytes = enc_key_16_bytes
@@ -266,29 +274,30 @@ class attm_svc_perm(LittleEndianStructure):
                 ("enc_key_16_bytes", c_uint8, 1),
                 ("svc_perm", c_uint8, 3),
                 ("uuid_len", c_uint8, 2),
-                ("primary_svc", c_uint8, 1)] 
+                ("primary_svc", c_uint8, 1)]
+
 
 # Service description
 class gattm_svc_desc(LittleEndianStructure):
-    def __init__(self, 
-                start_hdl: c_uint16 = 0,
-                task_id: KE_API_ID = 0, 
-                perm: attm_svc_perm = attm_svc_perm(),
-                uuid: (c_uint8*ATT_UUID_128_LEN) = (c_uint8*ATT_UUID_128_LEN)(),
-                atts: Array[gattm_att_desc] = None, 
-                ):
+    def __init__(self,
+                 start_hdl: c_uint16 = 0,
+                 task_id: KE_API_ID = 0,
+                 perm: attm_svc_perm = attm_svc_perm(),
+                 uuid: (c_uint8 * ATT_UUID_128_LEN) = (c_uint8 * ATT_UUID_128_LEN)(),
+                 atts: Array[gattm_att_desc] = None,
+                 ):
         self.start_hdl = start_hdl
         self.task_id = task_id
         self.perm = perm
         self.uuid = uuid
-        self.atts = atts 
+        self.atts = atts
         super().__init__(start_hdl=self.start_hdl,
-                        task_id=self.task_id,
-                        perm=self.perm,
-                        nb_att=self.nb_att,
-                        uuid=self.uuid,
-                        __padding__=0,
-                        _atts=self._atts)
+                         task_id=self.task_id,
+                         perm=self.perm,
+                         nb_att=self.nb_att,
+                         uuid=self.uuid,
+                         __padding__=0,
+                         _atts=self._atts)
 
                 # Attribute Start Handle (0 = dynamically allocated)
     _fields_ = [("start_hdl", c_uint16),
@@ -299,25 +308,26 @@ class gattm_svc_desc(LittleEndianStructure):
                 # Number of attributes
                 ("nb_att", c_uint8),
                 # Service  UUID
-                ("uuid", c_uint8*ATT_UUID_128_LEN),
-                #if RWBLE_SW_VERSION_MAJOR >= 8
+                ("uuid", c_uint8 * ATT_UUID_128_LEN),
+                # if RWBLE_SW_VERSION_MAJOR >= 8
                 ("__padding__", c_uint16),
-                #endif
+                # endif
                 # List of attribute description present in service.
                 ("_atts", POINTER(gattm_att_desc))]
 
     def get_atts(self):
         # self._atts is a pointer to gattm_att_desc (LP_gattm_att_desc)
-        # here we 
-        # 1. cast to a pointer to an array (LP_gattm_att_desc_Array_x where x is some positive integer) 
-        # 2. return the contents, providing the underlying array 
+        # here we
+        # 1. cast to a pointer to an array (LP_gattm_att_desc_Array_x where x is some positive integer)
+        # 2. return the contents, providing the underlying array
         return cast(self._atts, POINTER(gattm_att_desc * self.nb_att)).contents
 
-    def set_atts(self, value: Array[gattm_att_desc]): 
+    def set_atts(self, value: Array[gattm_att_desc]):
         self._atts = value if value else pointer(gattm_att_desc())
         self.nb_att = len(value) if value else 1
 
-    atts = property(get_atts, set_atts) 
+    atts = property(get_atts, set_atts)
+
 
 # Add service in database request
 class gattm_add_svc_req(LittleEndianStructure):
@@ -326,18 +336,16 @@ class gattm_add_svc_req(LittleEndianStructure):
         super().__init__(svc_desc=self.svc_desc)
 
                 # service description
-    _fields_ = [("svc_desc", gattm_svc_desc)] 
-
-
+    _fields_ = [("svc_desc", gattm_svc_desc)]
 
 
 # Add service in database response
 class gattm_add_svc_rsp(LittleEndianStructure):
 
-    def __init__(self, 
+    def __init__(self,
                  start_hdl: c_uint16 = 0,
                  status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR
-                ):
+                 ):
         self.start_hdl = start_hdl
         self.status = status
         super().__init__(start_hdl=self.start_hdl,
@@ -348,7 +356,8 @@ class gattm_add_svc_rsp(LittleEndianStructure):
     _fields_ = [("start_hdl", c_uint16),
                 # Return status of service allocation in attribute database.
                 ("status", c_uint8),
-                ("padding", c_uint8)] 
+                ("padding", c_uint8)]
+
 
 '''
 /* Service management */
@@ -427,6 +436,8 @@ struct gattm_att_set_permission_rsp
 };
 
 '''
+
+
 # Get attribute value request
 class gattm_att_get_value_req(LittleEndianStructure):
 
@@ -435,13 +446,13 @@ class gattm_att_get_value_req(LittleEndianStructure):
         super().__init__(handle=self.handle)
 
                 # Handle of the attribute
-    _fields_ = [("handle", c_uint16)] 
+    _fields_ = [("handle", c_uint16)]
 
 
 # Get attribute value response
 class gattm_att_get_value_rsp(LittleEndianStructure):
 
-    def __init__(self, 
+    def __init__(self,
                  handle: c_uint16 = 0,
                  status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR,
                  value: Array[c_uint8] = 0):
@@ -462,75 +473,73 @@ class gattm_att_get_value_rsp(LittleEndianStructure):
                 ("status", c_uint8),
                 # Attribute value
                 ("_value", POINTER(c_uint8)),
-                ("paddong", c_uint8)] 
+                ("paddong", c_uint8)]
 
     def get_value(self):
         return cast(self._value, POINTER(c_uint8 * self.length)).contents
 
-    def set_value(self, new_value: Array[c_uint8]): #TODO User should pass array, how to type hint? 
-        print(new_value) 
-        #TODO raise error if length > 512
+    def set_value(self, new_value: Array[c_uint8]):  # TODO User should pass array, how to type hint?
+        print(new_value)
+        # TODO raise error if length > 512
         self._value = new_value if new_value else pointer(c_uint8(0))
         self.length = len(new_value) if new_value else 1
 
-    value = property(get_value, set_value) 
+    value = property(get_value, set_value)
+
 
 # Set attribute value request
 class gattm_att_set_value_req(LittleEndianStructure):
-    def __init__(self, 
+    def __init__(self,
                  handle: c_uint16 = 0,
-                 #length: c_uint16 = 0, # Take length from len of array
-                 value: Array[c_uint8] = None # TODO should be a ctypes array of c_uint8. how to type hint? 
-                ):
+                 value: Array[c_uint8] = None  # TODO should be a ctypes array of c_uint8. how to type hint?
+                 ):
         self.handle = handle
-        #self.length = length
-        self.value = value 
+        self.value = value
         super().__init__(handle=self.handle,
                          length=self.length,
-                         _value=self._value,
-                        )
+                         _value=self._value)
 
                 # Handle of the attribute
     _fields_ = [("handle", c_uint16),
                 # Attribute value length
                 ("length", c_uint16),
                 # Attribute value
-                ("_value", POINTER(c_uint8))] 
+                ("_value", POINTER(c_uint8))]
 
     def get_value(self):
         return cast(self._value, POINTER(c_uint8 * self.length)).contents
 
-    def set_value(self, new_value: Array[c_uint8]): #TODO User should pass array, how to type hint? 
-        print(new_value) 
-        #TODO raise error if length > 512
+    def set_value(self, new_value: Array[c_uint8]):  # TODO User should pass array, how to type hint?
+        print(new_value)
+        # TODO raise error if length > 512
         self._value = new_value if new_value else pointer(c_uint8(0))
         self.length = len(new_value) if new_value else 1
 
-    value = property(get_value, set_value) 
+    value = property(get_value, set_value)
+
 
 # Set attribute value response
 class gattm_att_set_value_rsp(LittleEndianStructure):
 
-    def __init__(self, 
+    def __init__(self,
                  handle: c_uint16 = 0,
-                 status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR  
-                ):
+                 status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR
+                 ):
 
-            self.handle = handle
-            self.status = status 
-            super().__init__(handle=self.handle,
-                             status=self.status,
-                             padding=0)
+        self.handle = handle
+        self.status = status
+        super().__init__(handle=self.handle,
+                         status=self.status,
+                         padding=0)
 
                 # Handle of the attribute
     _fields_ = [("handle", c_uint16),
                 # Return status
                 ("status", c_uint8),
-                ("padding", c_uint8)] 
+                ("padding", c_uint8)]
 
 
 '''
-
 /// DEBUG ONLY: Destroy Attribute database request
 struct gattm_destroy_db_req
 {

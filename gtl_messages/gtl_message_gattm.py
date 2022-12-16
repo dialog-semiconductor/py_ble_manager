@@ -1,8 +1,9 @@
-from .gtl_message_base import GtlMessageBase 
+from .gtl_message_base import GtlMessageBase
 from .gtl_port.gattm_task import GATTM_MSG_ID, gattm_add_svc_req, gattm_add_svc_rsp, gattm_att_set_value_req, gattm_att_set_value_rsp, \
-                                 gattm_att_get_value_req, gattm_att_get_value_rsp
+    gattm_att_get_value_req, gattm_att_get_value_rsp
 
 from .gtl_port.rwip_config import KE_API_ID
+
 
 class GattmAddSvcReq(GtlMessageBase):
 
@@ -13,17 +14,18 @@ class GattmAddSvcReq(GtlMessageBase):
         super().__init__(msg_id=GATTM_MSG_ID.GATTM_ADD_SVC_REQ,
                          dst_id=KE_API_ID.TASK_ID_GATTM,
                          src_id=KE_API_ID.TASK_ID_GTL,
-                         par_len=self.par_len, # TODO if user updates parameters.nb_att after construction, par_len automatically updated
+                         par_len=self.par_len,
                          parameters=self.parameters)
 
     def get_par_len(self):
-        self._par_len = 24*(self.parameters.svc_desc.nb_att+1)
+        self._par_len = 24 * (self.parameters.svc_desc.nb_att + 1)
         return self._par_len
 
     def set_par_len(self, value):
         self._par_len = value
 
     par_len = property(get_par_len, set_par_len)
+
 
 class GattmAddSvcRsp(GtlMessageBase):
 
@@ -37,11 +39,12 @@ class GattmAddSvcRsp(GtlMessageBase):
                          par_len=4,
                          parameters=self.parameters)
 
-# TODO GATTM_SVC_GET_PERMISSION_REQ, GATTM_SVC_GET_PERMISSION_RSP 
+# TODO GATTM_SVC_GET_PERMISSION_REQ, GATTM_SVC_GET_PERMISSION_RSP
+
 
 class GattmAttSetValueReq(GtlMessageBase):
 
-    def __init__(self, parameters:  gattm_att_set_value_req = None):
+    def __init__(self, parameters: gattm_att_set_value_req = None):
 
         self.parameters = parameters if parameters else gattm_att_set_value_req()
 
@@ -60,6 +63,7 @@ class GattmAttSetValueReq(GtlMessageBase):
 
     par_len = property(get_par_len, set_par_len)
 
+
 class GattmAttSetValueRsp(GtlMessageBase):
 
     def __init__(self, parameters: gattm_att_set_value_rsp = None):
@@ -71,7 +75,8 @@ class GattmAttSetValueRsp(GtlMessageBase):
                          src_id=KE_API_ID.TASK_ID_GATTM,
                          par_len=4,
                          parameters=self.parameters)
-        
+
+
 class GattmAttGetValueReq(GtlMessageBase):
 
     def __init__(self, parameters: gattm_att_get_value_req = None):
@@ -83,6 +88,7 @@ class GattmAttGetValueReq(GtlMessageBase):
                          src_id=KE_API_ID.TASK_ID_GTL,
                          par_len=2,
                          parameters=self.parameters)
+
 
 class GattmAttGetValueRsp(GtlMessageBase):
 
@@ -105,4 +111,4 @@ class GattmAttGetValueRsp(GtlMessageBase):
 
     par_len = property(get_par_len, set_par_len)
 
-#GATTM_ATT_GET_VALUE_RSP
+# GATTM_ATT_GET_VALUE_RSP

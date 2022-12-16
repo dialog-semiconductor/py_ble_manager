@@ -135,10 +135,11 @@ from enum import auto
  * ENUMERATIONS
  ****************************************************************************************
  */
-
 '''
+
+
 # Information source.
-class SMPC_ADDR_SRC(IntEnum): 
+class SMPC_ADDR_SRC(IntEnum):
 
     # Local info.
     SMPC_INFO_LOCAL = auto()
@@ -824,5 +825,6 @@ void smpc_pdu_recv(uint8_t conidx, struct l2cc_pdu *pdu);
 
 #endif //SMPC_H_
 
-/// @} SMPC
+///
+@} SMPC
 '''
