@@ -10,6 +10,7 @@ async def user_main():
         elapsed += delay
         print(f"User Main. elapsed={elapsed}")
 
+
 async def main():
     test = BlePeripheral("COM40")
     ble_task = asyncio.create_task(test.run())

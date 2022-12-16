@@ -1,7 +1,6 @@
 import asyncio
 import serial_asyncio
 from gtl_messages import GTL_INITIATOR
-import os 
 
 
 class SerialStreamManager(asyncio.Protocol):
@@ -23,14 +22,14 @@ class SerialStreamManager(asyncio.Protocol):
             if (buffer[0] == GTL_INITIATOR):
                 # Get msg_id, dst_id, src_id, par_len. Use par_len to read rest of message
                 buffer += await self.reader.readexactly(8)
-                par_len = int.from_bytes(buffer[7:9], "little",signed=False)
+                par_len = int.from_bytes(buffer[7:9], "little", signed=False)
                 if (par_len != 0):
                     buffer += await self.reader.readexactly(par_len)
-                
+
                 self.rx_queue.put_nowait(buffer)
             else:
                 print("Received some garbage")
-    
+
     async def send(self):
         while True:
             # TODO how to make vs code recognize this is an asyncio.Queue? And that it is pulling off a GtlMessageBase message?

@@ -5,26 +5,23 @@ from gtl_messages.gtl_port.gapc_task import *
 from gtl_messages.gtl_message_gapm import *
 from gtl_messages.gtl_port.gapm_task import * 
 
+
 class GapBase():
     def __init__(self):
-        self.func_table = {} # Child classes should override this. Best way to make this apparent in python?
-        
+        self.func_table = {}  # Child classes should override this. Best way to make this apparent in python?
+
     # TODO likely need to pass incoming message, also need to pass conidx
     def handle_message(self, message: GtlMessageBase):
-        #print("GapManager.handle_gap_message Calling function table")
-        #TODO be careful, not clear if you are calling instance func or class method
+
         response = None
-        # dict.get() will return None if no key found. Need to bass conidx?
+        # dict.get() will return None if no key found. Need to pass conidx?
         handler = self.func_table.get(message.msg_id)
-        if handler: 
-            # TODO func_table is currently a class variable, make instance var?
-            response = handler(message) # handler is a bound method, does not require passing self explicity
+        if handler:
+            response = handler(message)  # handler is a bound method, does not require passing self explicity
             if not response:
                 print(f"{type(self).__name__} unhandled message. message={message}")
         return response
 
-    
-        
 
 class GapManager(GapBase):
 
