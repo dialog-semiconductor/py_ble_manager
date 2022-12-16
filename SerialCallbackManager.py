@@ -1,3 +1,4 @@
+'''
 import asyncio
 import serial_asyncio
 from gtl_messages import GTL_INITIATOR
@@ -9,10 +10,10 @@ class SerialCallbackManager(asyncio.Protocol):
     def default_handler(self, message):
         print("default handler")
 
-    def handle_gapm_device_ready_ind(self, message):      
+    def handle_gapm_device_ready_ind(self, message):
         print("Received GapmDeviceReadyInd()", message.msg_id)
 
-        #TODO is this appropriate, should there be some async method? 
+        # TODO is this appropriate, should there be some async method?
         self.transport.serial.write(GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET)).to_bytes())
 
     def handle_gapm_cmp_evt(self,message):
@@ -21,12 +22,12 @@ class SerialCallbackManager(asyncio.Protocol):
 
     def handle_gapm_reset_completion(self, message: GapmCmpEvt):
         print("handle_gapm_reset_completion", message.msg_id)
-        
+
         if(message.parameters.operation == GAPM_OPERATION.GAPM_RESET):
             self.default_gapm_reset_callback()
         elif(message.parameters.operation == GAPM_OPERATION.GAPM_SET_DEV_CONFIG):
             print("handle_gapm_reset_completion GAPM_SET_DEV_CONFIG")
-        
+
 
     def default_gapm_reset_callback(self):
 
@@ -34,12 +35,12 @@ class SerialCallbackManager(asyncio.Protocol):
         dev_config = GapmSetDevConfigCmd()
         dev_config.parameters.operation = GAPM_OPERATION.GAPM_SET_DEV_CONFIG
         dev_config.parameters.role = GAP_ROLE.GAP_ROLE_PERIPHERAL
-        dev_config.parameters.att_cfg = 0x20 # TODO setup GAPM_MASK_ATT_SVC_CNG_EN
-        dev_config.parameters.max_mtu = 512 
+        dev_config.parameters.att_cfg = 0x20  # TODO setup GAPM_MASK_ATT_SVC_CNG_EN
+        dev_config.parameters.max_mtu = 512
         dev_config.parameters.max_txoctets = 251
         dev_config.parameters.max_txtime = 2120
 
-        # TODO 
+        # TODO
         self.transport.serial.write(dev_config.to_bytes())
 
     func_table = {
@@ -72,13 +73,12 @@ class SerialCallbackManager(asyncio.Protocol):
             print("Message received, handling i")
             # Handle it
 
-            # TODO what is message is not in the table? 
+            # TODO what is message is not in the table?
             self.run(message)
-            
+
         else:
             print("Received: ", byte_string)
 
-    
     def connection_made(self, transport):
         #TODO this belongs in a constructure
         #self.gapm_reset_complete_callack = None
@@ -90,7 +90,7 @@ class SerialCallbackManager(asyncio.Protocol):
 
     def data_received(self, data):
         print('data received', repr(data))
-        
+
         #TODO  Assumption is whole message received at once, likely it will not be
         self.decode(data)
 
@@ -114,3 +114,4 @@ coro = serial_asyncio.create_serial_connection(loop, SerialCallbackManager, 'COM
 transport, protocol = loop.run_until_complete(coro)
 loop.run_forever()
 loop.close()
+'''

@@ -13,11 +13,11 @@ The [gtl_messages/gtl_port](gtl_messages/gtl_port/) directory is a work in progr
 * rwble_hl_error.h -> rwble_hl_error.py
 * rwip_config.h -> rwip_config.py
 
-The C enums defined in these .h files are defined as Python IntEnums in the corresponding .py file. 
+The C enums defined in these .h files are defined as Python IntEnums in the corresponding .py file.
 
-For example, the c enum `gapm_addr_type` defined in `gapm_task.h`: 
+For example, the c enum `gapm_addr_type` defined in `gapm_task.h`:
 
-``` 
+```c
 /// Device Address type Configuration
 enum gapm_addr_type
 {
@@ -32,9 +32,10 @@ enum gapm_addr_type
     GAPM_CFG_ADDR_PRIVACY_CNTL = 0x4,
 };
 ```
-is now `GAPM_ADDR_TYPE` defined in `gapm_task.py`: 
 
-``` 
+is now `GAPM_ADDR_TYPE` defined in `gapm_task.py`:
+
+```python
 # Device Address type Configuration
 class GAPM_ADDR_TYPE(IntEnum):
 
@@ -53,7 +54,7 @@ The C structures are ported to python classes. Each of these classes inherits fr
 
 For example, the c structure `struct gapm_operation_cmd` in `gapm_task.h`:
 
-```
+```c
 /// Operation command structure in order to keep requested operation.
 struct gapm_operation_cmd
 {
@@ -62,9 +63,9 @@ struct gapm_operation_cmd
 };
 ```
 
-is now  `class gapm_operation_cmd(Structure)` in `gapm_task.h`: 
+is now  `class gapm_operation_cmd(Structure)` in `gapm_task.h`:
 
-```
+```python
 # Operation command structure in order to keep requested operation.
 class gapm_operation_cmd(Structure):
     def __init__(self, operation: GAPM_OPERATION = GAPM_OPERATION.GAPM_NO_OP):
@@ -83,10 +84,11 @@ Note a constructor has been added to the class definition, though this is not re
 
     ![type_hint](assets/type_hint.png)
 
-2. Using this constructor allows us to define default arguments for each Structure. This allows a developer to either create a Structure with the appropriate parameters on construction, or create the Structure and update the fields later. 
+2. Using this constructor allows us to define default arguments for each Structure. This allows a developer to either create a Structure with the appropriate parameters on construction, or create the Structure and update the fields later.
 
-    For example: 
-    ```
+    For example:
+
+    ```python
     example_1 = gapm_operation_cmd(GAPM_OPERATION.GAPM_RESET)
 
     example_2 = gapm_operation_cmd()
@@ -97,7 +99,7 @@ The [gtl_messages](gtl_messages) directory is a work in progress creating the va
 
 A generic base class for messages is defined in [gtl_messages/gtl_message_base.py](gtl_messages/gtl_message_base.py):
 
-```
+```python
 class GtlMessageBase():
 
     def __init__(self, 
@@ -120,7 +122,7 @@ This message definition is consistent with the the GTL message format from the u
 
 [gtl_messages/gtl_message_gapm.py](gtl_messages/gtl_message_gapm.py) is a work in progress porting of GAP Manager related GTL messages. As stated above, each message inherits from the GtlMessageBase() class. Each message takes care of setting the appropriate MSG_ID, DST_ID, SRC_ID, and PAR_LEN for its specific message type. A user only needs to provide the appropriate `parameters` to create a valid message. For example, below demonstrates creating a `GAPM_RESET_CMD` and `GAPM_SET_DEV_CONFIG_CMD`:
 
-```
+```python
 reset_cmd = GapmResetCmd(parameters = gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
 
 set_dev_cmd = GapmSetDevConfigCmd()
@@ -134,7 +136,7 @@ set_dev_cmd.parameters.max_txtime = 2120
 
 To transmit the command, the user need only call the `to_bytes()` method when writing to the serial port
 
-```
+```python
 import serial
 # open serial port
 ser = serial.Serial('COM13', 115200) 

@@ -1,6 +1,6 @@
 import serial
 from ctypes import *
-from gtl_messages import *
+from gtl_messages.gtl_message_gattc import GattcReadInd
 
 
 expected = "05090C10000C001801030000001201" + \
