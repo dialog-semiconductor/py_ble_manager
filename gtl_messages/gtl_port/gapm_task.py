@@ -44,9 +44,10 @@ from .rwip_config import KE_API_ID
 
 GAPM_LE_LENGTH_EXT_OCTETS_MIN = 27
 GAPM_LE_LENGTH_EXT_OCTETS_MAX = 251
-GAPM_LE_LENGTH_EXT_TIME_MIN   = 328
-GAPM_LE_LENGTH_EXT_TIME_MAX   = 2120
-GAPM_IDX_MAX                  = 0x01
+GAPM_LE_LENGTH_EXT_TIME_MIN = 328
+GAPM_LE_LENGTH_EXT_TIME_MAX = 2120
+GAPM_IDX_MAX = 0x01
+
 
 # GAPM states
 class GAPM_STATE_ID(IntEnum):
@@ -61,25 +62,25 @@ class GAPM_STATE_ID(IntEnum):
 
 # GAP Manager Message Interface
 class GAPM_MSG_ID(IntEnum):
-    # Default event 
+    # Default event
     # Command Complete event
-    GAPM_CMP_EVT = (KE_API_ID.TASK_ID_GAPM << 8) #0x0D00
+    GAPM_CMP_EVT = (KE_API_ID.TASK_ID_GAPM << 8)  # 0x0D00
     # Event triggered to inform that lower layers are ready
     GAPM_DEVICE_READY_IND = auto()
 
-    # Default commands 
+    # Default commands
     # Reset link layer and the host command
     GAPM_RESET_CMD = auto()
     # Cancel ongoing operation
     GAPM_CANCEL_CMD = auto()
 
-    # Device Configuration 
+    # Device Configuration
     # Set device configuration command
     GAPM_SET_DEV_CONFIG_CMD = auto()
     # Set device channel map
     GAPM_SET_CHANNEL_MAP_CMD = auto()
 
-    # Local device information 
+    # Local device information
     # Get local device info command
     GAPM_GET_DEV_INFO_CMD = auto()
     # Local device version indication event
@@ -91,13 +92,13 @@ class GAPM_MSG_ID(IntEnum):
     # Indication containing information about memory usage.
     GAPM_DBG_MEM_INFO_IND = auto()
 
-    # White List 
+    # White List
     # White List Management Command
     GAPM_WHITE_LIST_MGT_CMD = auto()
     # White List Size indication event
     GAPM_WHITE_LIST_SIZE_IND = auto()
 
-    # Air Operations 
+    # Air Operations
     # Set advertising mode Command
     GAPM_START_ADVERTISE_CMD = auto()
     # Update Advertising Data Command - On fly update when device is advertising
@@ -115,7 +116,7 @@ class GAPM_MSG_ID(IntEnum):
     # Confirm connection to a specific device (Connection Operation in Selective mode)
     GAPM_CONNECTION_CFM = auto()
 
-    # Security / Encryption Toolbox 
+    # Security / Encryption Toolbox
     # Resolve address command
     GAPM_RESOLV_ADDR_CMD = auto()
     # Indicate that resolvable random address has been solved
@@ -131,7 +132,7 @@ class GAPM_MSG_ID(IntEnum):
     # Random Number Indication
     GAPM_GEN_RAND_NB_IND = auto()
 
-    # Profile Management 
+    # Profile Management
     # Create new task for specific profile
     GAPM_PROFILE_TASK_ADD_CMD = auto()
     # Inform that profile task has been added.
@@ -166,6 +167,7 @@ class GAPM_MSG_ID(IntEnum):
     GAPM_USE_P256_BLOCK_CMD = auto()
     #  DHKEY P256 block result indication
     GAPM_USE_P256_BLOCK_IND = auto()
+
 
 # GAP Manager operation type - application interface
 class GAPM_OPERATION(IntEnum):
@@ -293,18 +295,19 @@ class GAPM_OPERATION(IntEnum):
     GAPM_DEVICE_MODE_RAL = auto()
 
 # TODO is GAPM_KEY_RENEW different value on 531?
-#if !defined (__DA14531__)
-    # We wanted to add one more opcode (GAPM_KEY_RENEW) and this 
+# if !defined (__DA14531__)
+    # We wanted to add one more opcode (GAPM_KEY_RENEW) and this
     # should go on all existing platforms. But since 690 already has
     # added one opcode here, we need some kind of sync
     GAPM_DUMMY = auto()
-#endif
+# endif
 
     # Implemented as a subcase of reset. Renews our private/public key.
     GAPM_KEY_RENEW = auto()
 
     # Last GAPM operation flag
     GAPM_LAST = auto()
+
 
 # Device Address type Configuration
 class GAPM_ADDR_TYPE(IntEnum):
@@ -313,36 +316,37 @@ class GAPM_ADDR_TYPE(IntEnum):
     GAPM_CFG_ADDR_PUBLIC = 0
     # Device Address is a Random Static address
     GAPM_CFG_ADDR_PRIVATE = auto()
-    GAPM_CFG_ADDR_STATIC = GAPM_CFG_ADDR_PRIVATE # TODO: this is an alias, will not show as member
+    GAPM_CFG_ADDR_STATIC = GAPM_CFG_ADDR_PRIVATE  # TODO: this is an alias, will not show as member
     # Device Address generated using Privacy feature in Host
     GAPM_CFG_ADDR_PRIVACY = auto()
     # Device Address generated using Privacy feature in Controller
     GAPM_CFG_ADDR_PRIVACY_CNTL = 0x4
 
+
 # Own BD address source of the device
-class GAPM_OWN_ADDR(IntEnum): 
-   # Public or Random Static Address according to device address configuration
-   GAPM_STATIC_ADDR = 0
-   # Generated Random Resolvable Private Address
-   GAPM_GEN_RSLV_ADDR = auto()
-   # Generated Random non-Resolvable Private Address
-   GAPM_GEN_NON_RSLV_ADDR = auto()
+class GAPM_OWN_ADDR(IntEnum):
+    # Public or Random Static Address according to device address configuration
+    GAPM_STATIC_ADDR = 0
+    # Generated Random Resolvable Private Address
+    GAPM_GEN_RSLV_ADDR = auto()
+    # Generated Random non-Resolvable Private Address
+    GAPM_GEN_NON_RSLV_ADDR = auto()
 
 
 # Device Attribute write permission requirement
 class GAPM_WRITE_ATT_PERM(IntEnum):
 
     # Disable write access
-    GAPM_WRITE_DISABLE  = 0x00
+    GAPM_WRITE_DISABLE = 0x00
     # Enable write access
-    GAPM_WRITE_ENABLE   = 0x08
+    GAPM_WRITE_ENABLE = 0x08
     # Write access requires unauthenticated link
-    GAPM_WRITE_UNAUTH   = 0x10
+    GAPM_WRITE_UNAUTH = 0x10
     # Write access requires authenticated link
-    GAPM_WRITE_AUTH     = 0x18
+    GAPM_WRITE_AUTH = 0x18
     # Write access requires secure connection authenticated link
     # TODO: not documented in GTL doc
-    #GAPM_WRITE_SECURE   = PERM(WR, SECURE)
+    # GAPM_WRITE_SECURE   = PERM(WR, SECURE)
 
 
 # Attribute database configuration
@@ -387,19 +391,21 @@ enum gapm_att_cfg_flag
 '''
 # TODO Should use LittleEndianLittleEndianStructure instead of LittleEndianStructure?
 
+
 # Operation command structure in order to keep requested operation.
 class gapm_operation_cmd(LittleEndianStructure):
     def __init__(self, operation: GAPM_OPERATION = GAPM_OPERATION.GAPM_NO_OP):
         self.operation = operation
         super().__init__(operation=self.operation)
 
-                 # GAP request type
+                # GAP request type
     _fields_ = [("operation", c_uint8)]
-   
+
+
 # Command complete event data structure
 class gapm_cmp_evt(LittleEndianStructure):
-    def __init__(self, 
-                 operation: GAPM_OPERATION = GAPM_OPERATION.GAPM_NO_OP, 
+    def __init__(self,
+                 operation: GAPM_OPERATION = GAPM_OPERATION.GAPM_NO_OP,
                  status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR):
         self.operation = operation
         self.status = status
@@ -410,6 +416,7 @@ class gapm_cmp_evt(LittleEndianStructure):
                 # Status of the request
                 ("status", c_uint8)]
 
+
 #  Reset link layer and the host command
 class gapm_reset_cmd(LittleEndianStructure):
     def __init__(self, operation: GAPM_OPERATION = GAPM_OPERATION.GAPM_NO_OP):
@@ -418,11 +425,12 @@ class gapm_reset_cmd(LittleEndianStructure):
 
                 # GAPM requested operation:
                 # - GAPM_RESET: Reset BLE subsystem: LL and HL.
-    _fields_ = [("operation", c_uint8)] 
+    _fields_ = [("operation", c_uint8)]
+
 
 # Set device configuration command
 class gapm_set_dev_config_cmd(LittleEndianStructure):
-    def __init__(self, 
+    def __init__(self,
                  operation: GAPM_OPERATION = GAPM_OPERATION.GAPM_NO_OP,
                  role: GAP_ROLE = GAP_ROLE.GAP_ROLE_NONE,
                  renew_dur: c_uint16 = 0,
@@ -434,12 +442,12 @@ class gapm_set_dev_config_cmd(LittleEndianStructure):
                  gatt_start_hdl: c_uint16 = 0,
                  max_mtu: c_uint16 = 0,
                  max_mps: c_uint16 = 0,
-                 att_cfg_: c_uint16 = 0, # Not used
+                 att_cfg_: c_uint16 = 0,  # Not used
                  max_txoctets: c_uint16 = 0,
                  max_txtime: c_uint16 = 0,
                  priv1_2: c_uint8 = 0
-                ):
-        
+                 ):
+
         self.operation = operation
         self.role = role
         self.renew_dur = renew_dur
@@ -456,21 +464,21 @@ class gapm_set_dev_config_cmd(LittleEndianStructure):
         self.max_txtime = max_txtime
         self.priv1_2 = priv1_2
         super().__init__(operation=self.operation,
-                         role = self.role,
-                         renew_dur = self.renew_dur,
-                         addr = self.addr,
-                         irk = self.irk,
-                         addr_type = self.addr_type,
-                         att_cfg = self.att_cfg,
-                         gap_start_hdl = self.gap_start_hdl,
-                         gatt_start_hdl = self.gatt_start_hdl,
-                         max_mtu = self.max_mtu,
-                         max_mps = self.max_mps,
-                         att_cfg_ = self.att_cfg_,
-                         max_txoctets = self.max_txoctets,
-                         max_txtime = self.max_txtime,
-                         priv1_2 = self.priv1_2,
-                         padding = 0)
+                         role=self.role,
+                         renew_dur=self.renew_dur,
+                         addr=self.addr,
+                         irk=self.irk,
+                         addr_type=self.addr_type,
+                         att_cfg=self.att_cfg,
+                         gap_start_hdl=self.gap_start_hdl,
+                         gatt_start_hdl=self.gatt_start_hdl,
+                         max_mtu=self.max_mtu,
+                         max_mps=self.max_mps,
+                         att_cfg_=self.att_cfg_,
+                         max_txoctets=self.max_txoctets,
+                         max_txtime=self.max_txtime,
+                         priv1_2=self.priv1_2,
+                         padding=0)
 
                 # GAPM requested operation:
                 #  - GAPM_SET_DEV_CONFIG: Set device configuration
@@ -484,7 +492,7 @@ class gapm_set_dev_config_cmd(LittleEndianStructure):
                 # Provided own Random Static Address
                 ("addr", bd_addr),
                 # Device IRK used for Random Resolvable Private Address generation (LSB first)
-                ("irk", gap_sec_key),        
+                ("irk", gap_sec_key),
                 # Device Address Type (@see gapm_addr_type)
                 # - GAPM_CFG_ADDR_PUBLIC: Device Address is a Public Static address
                 # - GAPM_CFG_ADDR_PRIVATE: Device Address is a Private Static address
@@ -492,7 +500,7 @@ class gapm_set_dev_config_cmd(LittleEndianStructure):
                 # - GAPM_CFG_ADDR_PRIVACY_CNTL: Device Address generated using Privacy feature in
                 #                               controller
                 ("addr_type", c_uint8),
-                 # -------------- ATT Database Config -----------------------
+                # -------------- ATT Database Config -----------------------
                 # Attribute database configuration (@see gapm_att_cfg_flag)
                 #    7     6    5     4     3    2    1    0
                 # +-----+-----+----+-----+-----+----+----+----+
@@ -514,7 +522,7 @@ class gapm_set_dev_config_cmd(LittleEndianStructure):
                 # Maximal MPS
                 ("max_mps", c_uint16),
                 # Not used
-                ("att_cfg_", c_uint16), 
+                ("att_cfg_", c_uint16),
                 # Maximal Tx octets
                 ("max_txoctets", c_uint16),
                 # Maximal Tx time
@@ -522,7 +530,9 @@ class gapm_set_dev_config_cmd(LittleEndianStructure):
                 # Privacy 1.2 Helper
                 ("priv1_2", c_uint8),
                 # Padding
-                ("padding", c_uint8)]   
+                ("padding", c_uint8)]
+
+
 '''
 # Set device channel map
 @dataclass
@@ -533,7 +543,7 @@ class gapm_set_channel_map_cmd:
     #    for member in members:
     #        print(type(self.__dataclass_fields__[member].type))
             #print(sizeof(self.__dataclass_fields__[member].type)) # TODO does not work for chmap
-    
+
     # GAPM requested operation:
     #  - GAPM_SET_CHANNEL_MAP: Set device channel map.
     operation: c_uint8
@@ -542,7 +552,7 @@ class gapm_set_channel_map_cmd:
 
 class gapm_set_channel_map_cmd_struct(LittleEndianStructure):
     _fields_ = [("operation", c_uint8),
-                ("chmap", le_chnl_map)] 
+                ("chmap", le_chnl_map)]
 
 # Get local device info command
 @dataclass
@@ -611,8 +621,8 @@ class gapm_white_list_mgt_cmd:
     # Number of device information present in command
     nb: c_uint8
     # Device address information that can be used to add or remove element in device list.
-    
-    # TODO: this is done to malloc block of memory. How to port for Python in ctypes? 
+
+    # TODO: this is done to malloc block of memory. How to port for Python in ctypes?
     #struct gap_bdaddr devices[__ARRAY_EMPTY];
 
 # White List Size indication event
@@ -657,8 +667,8 @@ class gapm_rslv_list_mgt_cmd:
     # Number of device information present in command
     nb: c_uint8
     # Device address information that can be used to add or remove element in device list.
-    
-    # TODO: this is done to malloc block of memory. How to port for Python in ctypes? 
+
+    # TODO: this is done to malloc block of memory. How to port for Python in ctypes?
     # struct gap_ral_dev_info devices[__ARRAY_EMPTY];
 
 # Resolving List Size indication event
@@ -666,7 +676,7 @@ class gapm_rslv_list_mgt_cmd:
 class gapm_ral_size_ind:
     # Resolving List size
     size: c_uint8
-    
+
 # Resolving Address indication event
 @dataclass
 class gapm_ral_addr_ind:
@@ -687,7 +697,7 @@ class gapm_resolv_addr_cmd:
     addr: bd_addr
     # Array of IRK used for address resolution (MSB -> LSB)
 
-    # TODO: this is done to malloc block of memory. How to port for Python in ctypes? 
+    # TODO: this is done to malloc block of memory. How to port for Python in ctypes?
     #struct gap_sec_key irk[__ARRAY_EMPTY];
 
 # Indicate that resolvable random address has been solved
@@ -699,42 +709,44 @@ class gapm_addr_solved_ind:
     irk: gap_sec_key
 '''
 
-#adv_data_array = c_uint8*ADV_DATA_LEN
+# adv_data_array = c_uint8*ADV_DATA_LEN
+
 
 # Advertising data that contains information set by host.
 class gapm_adv_host(LittleEndianStructure):
-    def __init__(self, 
-                 mode: GAP_ADV_MODE = GAP_ADV_MODE.GAP_NON_DISCOVERABLE, 
+    def __init__(self,
+                 mode: GAP_ADV_MODE = GAP_ADV_MODE.GAP_NON_DISCOVERABLE,
                  adv_filt_policy: ADV_FILTER_POLICY = ADV_FILTER_POLICY.ADV_ALLOW_SCAN_ANY_CON_ANY,
-                 adv_data_len: c_uint8 = 0, 
-                 adv_data: (c_uint8*ADV_DATA_LEN) = (c_uint8*ADV_DATA_LEN)(),
+                 adv_data_len: c_uint8 = 0,
+                 adv_data: (c_uint8 * ADV_DATA_LEN) = (c_uint8 * ADV_DATA_LEN)(),
                  # TODO custom type for this array for type hinting
-                 #adv_data: adv_data_array = adv_data_array( *([0]*ADV_DATA_LEN) ),
+                 # adv_data: adv_data_array = adv_data_array( *([0]*ADV_DATA_LEN) ),
                  scan_rsp_data_len: c_uint8 = 0,
-                 scan_rsp_data:  (c_uint8*SCAN_RSP_DATA_LEN) = (c_uint8*SCAN_RSP_DATA_LEN)(),
+                 scan_rsp_data: (c_uint8 * SCAN_RSP_DATA_LEN) = (c_uint8 * SCAN_RSP_DATA_LEN)(),
                  peer_info: gap_bdaddr = gap_bdaddr()
-                ):
-            self.mode = mode
-            self.adv_filt_policy = adv_filt_policy
-            self.adv_data_len = adv_data_len
-            self.adv_data = adv_data
-            self.scan_rsp_data_len = scan_rsp_data_len
-            self.scan_rsp_data = scan_rsp_data
-            self.peer_info = peer_info
-            super().__init__(mode=self.mode, 
-                             adv_filt_policy=self.adv_filt_policy,
-                             adv_data_len=self.adv_data_len,
-                             adv_data=self.adv_data,
-                             scan_rsp_data_len=self.scan_rsp_data_len,
-                             scan_rsp_data=self.scan_rsp_data,
-                             peer_info=self.peer_info)
+                 ):
+
+        self.mode = mode
+        self.adv_filt_policy = adv_filt_policy
+        self.adv_data_len = adv_data_len
+        self.adv_data = adv_data
+        self.scan_rsp_data_len = scan_rsp_data_len
+        self.scan_rsp_data = scan_rsp_data
+        self.peer_info = peer_info
+        super().__init__(mode=self.mode,
+                         adv_filt_policy=self.adv_filt_policy,
+                         adv_data_len=self.adv_data_len,
+                         adv_data=self.adv_data,
+                         scan_rsp_data_len=self.scan_rsp_data_len,
+                         scan_rsp_data=self.scan_rsp_data,
+                         peer_info=self.peer_info)
 
                 # Advertising mode :
                 # - GAP_NON_DISCOVERABLE: Non discoverable mode
                 # - GAP_GEN_DISCOVERABLE: General discoverable mode
                 # - GAP_LIM_DISCOVERABLE: Limited discoverable mode
-                # - GAP_BROADCASTER_MODE: Broadcaster mode          
-    _fields_ = [("mode", c_uint8),     
+                # - GAP_BROADCASTER_MODE: Broadcaster mode
+    _fields_ = [("mode", c_uint8),
                 # Advertising filter policy:
                 # - ADV_ALLOW_SCAN_ANY_CON_ANY: Allow both scan and connection requests from anyone
                 # - ADV_ALLOW_SCAN_WLST_CON_ANY: Allow both scan req from White List devices only and
@@ -747,11 +759,11 @@ class gapm_adv_host(LittleEndianStructure):
                 # Advertising data length - maximum 28 bytes, 3 bytes are reserved to set
                 # Advertising AD type flags, shall not be set in advertising data
                 ("adv_data_len", c_uint8),
-                
+
                 # Advertising data
                 ("adv_data", c_uint8 * ADV_DATA_LEN),
                 # TODO custom type for this array for type hinting
-                #("adv_data", adv_data_array),
+                # ("adv_data", adv_data_array),
 
                 # Scan response data length- maximum 31 bytes.
                 ("scan_rsp_data_len", c_uint8),
@@ -760,19 +772,20 @@ class gapm_adv_host(LittleEndianStructure):
                 # Peer Info - bdaddr
                 ("peer_info", gap_bdaddr)]
 
+
 # Air operation default parameters
 class gapm_air_operation(LittleEndianStructure):
-    def __init__(self, 
-                 code: GAPM_OPERATION = GAPM_OPERATION.GAPM_NO_OP, 
+    def __init__(self,
+                 code: GAPM_OPERATION = GAPM_OPERATION.GAPM_NO_OP,
                  addr_src: GAPM_OWN_ADDR = GAPM_OWN_ADDR.GAPM_STATIC_ADDR,
-                ):
+                 ):
         self.code = code
         self.addr_src = addr_src
-        super().__init__(code=self.code, 
+        super().__init__(code=self.code,
                          addr_src=self.addr_src,
                          state=0)
 
-                # Operation code.                             
+                # Operation code.
     _fields_ = [("code", c_uint8),
                 # Own BD address source of the device:
                 # - GAPM_STATIC_ADDR: Public or Random Static Address according to device address configuration
@@ -781,13 +794,14 @@ class gapm_air_operation(LittleEndianStructure):
                 # Dummy data use to retrieve internal operation state (should be set to 0).
                 ("state", c_uint16)]
 
-# TODO could this be defined within gapm_start_advertise_cmd      
+
+# TODO could this be defined within gapm_start_advertise_cmd
 # TODO is there way to indicate this is union with autocomplete?
 class gapm_adv_info(Union):
-    def __init__(self, 
+    def __init__(self,
                  host: gapm_adv_host = None,
                  direct: gap_bdaddr = None
-                ):
+                 ):
 
         if host:
             self.host = host
@@ -799,27 +813,28 @@ class gapm_adv_info(Union):
             self.host = gapm_adv_host()
             super().__init__(host=self.host)
 
-                # Host information advertising data (GAPM_ADV_NON_CONN and GAPM_ADV_UNDIRECT)           
+                # Host information advertising data (GAPM_ADV_NON_CONN and GAPM_ADV_UNDIRECT)
     _fields_ = [("host", gapm_adv_host),
                 #  Direct address information (GAPM_ADV_DIRECT)
                 # (used only if reconnection address isn't set or host privacy is disabled)
-                ("direct", gap_bdaddr)]  
+                ("direct", gap_bdaddr)]
+
 
 # Set advertising mode Command
 class gapm_start_advertise_cmd(LittleEndianStructure):
 
-    def __init__(self, 
-                 op: gapm_air_operation = gapm_air_operation(), 
+    def __init__(self,
+                 op: gapm_air_operation = gapm_air_operation(),
                  intv_min: c_uint16 = 0,
                  intv_max: c_uint16 = 0,
                  channel_map: ADV_CHANNEL_MAP = ADV_CHANNEL_MAP.ADV_ALL_CHNLS_EN,
-                 info = gapm_adv_info()):
+                 info: gapm_adv_info = gapm_adv_info()):
         self.op = op
         self.intv_min = intv_min
         self.intv_max = intv_max
         self.channel_map = channel_map
         self.info = info
-        super().__init__(operation=self.op, 
+        super().__init__(operation=self.op,
                          intv_min=self.intv_min,
                          intv_max=self.intv_max,
                          channel_map=self.channel_map,
@@ -835,7 +850,7 @@ class gapm_start_advertise_cmd(LittleEndianStructure):
                 ("intv_min", c_uint16),
                 # Maximum interval for advertising
                 ("intv_max", c_uint16),
-                #Advertising channel map
+                # Advertising channel map
                 ("channel_map", c_uint8),
                 # Advertising information
                 ("info", gapm_adv_info)]
@@ -896,21 +911,22 @@ struct gapm_adv_report_ind
     struct adv_report report;
 };
 '''
-                
+
+
 # Set connection initialization Command
 class gapm_start_connection_cmd(LittleEndianStructure):
-    def __init__(self, 
+    def __init__(self,
                  op: gapm_air_operation = gapm_air_operation(),
-                 scan_interval: c_uint16 = 0, 
+                 scan_interval: c_uint16 = 0,
                  scan_window: c_uint16 = 0,
                  con_intv_min: c_uint16 = 0,
                  con_intv_max: c_uint16 = 0,
                  con_latency: c_uint16 = 0,
-                 superv_to: c_uint16 = 0, 
+                 superv_to: c_uint16 = 0,
                  ce_len_min: c_uint16 = 0,
                  ce_len_max: c_uint16 = 0,
-                 peers:  Array[gap_bdaddr] = None): 
-    
+                 peers: Array[gap_bdaddr] = None):
+
         self.op = op
         self.scan_interval = scan_interval
         self.scan_window = scan_window
@@ -922,7 +938,7 @@ class gapm_start_connection_cmd(LittleEndianStructure):
         self.ce_len_max = ce_len_max
         self.peers = peers
         super().__init__(op=self.op,
-                         scan_interval=self.scan_interval, 
+                         scan_interval=self.scan_interval,
                          scan_window=self.scan_window,
                          con_intv_min=self.con_intv_min,
                          con_intv_max=self.con_intv_max,
@@ -970,16 +986,17 @@ class gapm_start_connection_cmd(LittleEndianStructure):
 
     def get_peers(self):
         # self._atts is a pointer to gattm_att_desc (LP_gattm_att_desc)
-        # here we 
-        # 1. cast to a pointer to an array (LP_gattm_att_desc_Array_x where x is some positive integer) 
-        # 2. return the contents, providing the underlying array 
+        # here we
+        # 1. cast to a pointer to an array (LP_gattm_att_desc_Array_x where x is some positive integer)
+        # 2. return the contents, providing the underlying array
         return cast(self._peers, POINTER(gap_bdaddr * self.nb_peers)).contents
 
-    def set_peers(self, value: Array[gap_bdaddr]): #TODO User should pass array, how to type hint?  
-        self._peers = value if value else pointer(gap_bdaddr()) #TODO Should create array of one?
+    def set_peers(self, value: Array[gap_bdaddr]):  # TODO User should pass array, how to type hint?
+        self._peers = value if value else pointer(gap_bdaddr())  # TODO Should create array of one?
         self.nb_peers = len(value) if value else 1
 
-    peers = property(get_peers, set_peers) 
+    peers = property(get_peers, set_peers)
+
 
 '''
 
@@ -1153,5 +1170,3 @@ struct gapm_use_p256_block_ind
 };
 
 '''
-
-

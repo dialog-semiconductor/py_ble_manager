@@ -30,9 +30,9 @@
  ****************************************************************************************
  */
 '''
-#include "rwip_config.h"
-#include "ke_task.h"
-#include "gap.h"
+# include "rwip_config.h"
+# include "ke_task.h"
+# include "gap.h"
 
 from ctypes import Array, c_uint8, c_uint16, c_uint32, LittleEndianStructure, Union
 from enum import auto, IntEnum
@@ -118,11 +118,12 @@ enum gapc_state_id
 };
 '''
 
+
 # GAP Controller Task messages
 class GAPC_MSG_ID(IntEnum):
     # Default event */
     # Command Complete event
-    GAPC_CMP_EVT = (KE_API_ID.TASK_ID_GAPC << 8) #0x0E00
+    GAPC_CMP_EVT = (KE_API_ID.TASK_ID_GAPC << 8)  # 0x0E00
 
     # Connection state information */
     # Indicate that a connection has been established
@@ -270,7 +271,7 @@ class GAPC_OPERATION(IntEnum):
     # No Operation (if nothing has been requested)     */
     # ************************************************ */
     # No operation
-    GAPC_NO_OP                                    = 0x00
+    GAPC_NO_OP = 0x00
 
     # Connection management */
     # Disconnect link
@@ -327,7 +328,7 @@ class GAPC_OPERATION(IntEnum):
 
     # Get Peer device central address resolution
     GAPC_GET_PEER_CENTRAL_RPA = auto()
-#ESR10
+# ESR10
     # Get Peer Resolvable Private Address only
     GAPC_GET_PEER_RPA_ONLY = auto()
 
@@ -340,6 +341,7 @@ class GAPC_OPERATION(IntEnum):
 
     # Last GAPC operation flag
     GAPC_LAST = auto()
+
 
 # Bond event type.
 class GAPC_BOND(IntEnum):
@@ -364,6 +366,7 @@ class GAPC_BOND(IntEnum):
 
     # Bond Pairing request issue, Repeated attempt
     GAPC_REPEATED_ATTEMPT = auto()
+
 
 '''
 # List of device info that should be provided by application
@@ -412,13 +415,14 @@ struct gapc_operation_cmd
 };
 '''
 
+
 # Command complete event data structure
 class gapc_cmp_evt(LittleEndianStructure):
 
-    def __init__(self, 
-                     operation: GAPC_OPERATION = GAPC_OPERATION.GAPC_NO_OP,
-                     status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR):
-                 
+    def __init__(self,
+                 operation: GAPC_OPERATION = GAPC_OPERATION.GAPC_NO_OP,
+                 status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR):
+
         self.operation = operation
         self.status = status
         super().__init__(operation=self.operation,
@@ -428,18 +432,19 @@ class gapc_cmp_evt(LittleEndianStructure):
     _fields_ = [("operation", c_uint8),
                 # Status of the request
                 ("status", c_uint8)]
-    
+
+
 # Indicate that a connection has been established
 class gapc_connection_req_ind(LittleEndianStructure):
-    def __init__(self, 
+    def __init__(self,
                  conhdl: c_uint16 = 0,
                  con_interval: c_uint16 = 0,
                  con_latency: c_uint16 = 0,
                  sup_to: c_uint16 = 0,
                  clk_accuracy: c_uint8 = 0,
-                 peer_addr_type: c_uint8 = 0, 
-                 peer_addr: bd_addr = bd_addr((c_uint8*BD_ADDR_LEN)())):
-                 
+                 peer_addr_type: c_uint8 = 0,
+                 peer_addr: bd_addr = bd_addr((c_uint8 * BD_ADDR_LEN)())):
+
         self.conhdl = conhdl
         self.con_interval = con_interval
         self.con_latency = con_latency
@@ -473,8 +478,8 @@ class gapc_connection_req_ind(LittleEndianStructure):
 
 # Set specific link data configuration.
 class gapc_connection_cfm(LittleEndianStructure):
-    def __init__(self, 
-                 lcsrk: gap_sec_key = gap_sec_key(), 
+    def __init__(self,
+                 lcsrk: gap_sec_key = gap_sec_key(),
                  lsign_counter: c_uint32 = 0,
                  rcsrk: gap_sec_key = gap_sec_key(),
                  rsign_counter: c_uint32 = 0,
@@ -508,10 +513,10 @@ class gapc_connection_cfm(LittleEndianStructure):
                 # Service Changed Indication enabled
                 ("svc_changed_ind_enable", c_uint8),
                 # Padding
-                ("padding", c_uint16)]   
+                ("padding", c_uint16)]
+
 
 '''
-
 # Request disconnection of current link command.
 struct gapc_disconnect_cmd
 {
@@ -534,10 +539,11 @@ struct gapc_disconnect_ind
 };
 '''
 
+
 # Retrieve information command
 class gapc_get_info_cmd(LittleEndianStructure):
 
-    def __init__(self, 
+    def __init__(self,
                  operation: GAPC_OPERATION = GAPC_OPERATION.GAPC_NO_OP):
 
         self.operation = operation
@@ -552,7 +558,8 @@ class gapc_get_info_cmd(LittleEndianStructure):
                 # - GAPC_GET_PEER_APPEARANCE: Get Peer device appearance
                 # - GAPC_GET_PEER_SLV_PREF_PARAMS: Get Peer device Slaved Preferred Parameters
                 # - GAPC_GET_LE_PING_TIMEOUT: Retrieve LE Ping Timeout Value
-    _fields_ = [("operation", c_uint8)]   
+    _fields_ = [("operation", c_uint8)]
+
 
 '''
 # device information data
@@ -601,24 +608,21 @@ struct gapc_peer_version_ind
 };
 '''
 
+
 # Indication of peer features info
 class gapc_peer_features_ind(LittleEndianStructure):
 
-    def __init__(self, 
-                 features: Array = (c_uint8*LE_FEATS_LEN)()):
+    def __init__(self,
+                 features: Array = (c_uint8 * LE_FEATS_LEN)()):
 
         self.features = features
         super().__init__(features=self.features)
 
                 # 8-byte array for LE features
-    _fields_ = [("features", c_uint8*LE_FEATS_LEN)]   
-
+    _fields_ = [("features", c_uint8 * LE_FEATS_LEN)]
 
 
 '''
-
-
-
 # Indication of ongoing connection RSSI
 struct gapc_con_rssi_ind
 {
@@ -778,9 +782,11 @@ struct gapc_param_update_cfm
     uint16_t ce_len_max;
 };
 '''
+
+
 # Pairing parameters
 class gapc_pairing(LittleEndianStructure):
-    def __init__(self, 
+    def __init__(self,
                  iocap: GAP_IO_CAP = GAP_IO_CAP.GAP_IO_CAP_DISPLAY_ONLY,
                  oob: GAP_OOB = GAP_OOB.GAP_OOB_AUTH_DATA_NOT_PRESENT,
                  auth: GAP_AUTH = GAP_AUTH.GAP_AUTH_REQ_NO_MITM_NO_BOND,
@@ -812,18 +818,18 @@ class gapc_pairing(LittleEndianStructure):
                 ("auth", c_uint8),
                 # Encryption key size (7 to 16)
                 ("key_size", c_uint8),
-                #Initiator key distribution (@see gap_kdist)
+                # Initiator key distribution (@see gap_kdist)
                 ("ikey_dist", c_uint8),
-                #Responder key distribution (@see gap_kdist)
+                # Responder key distribution (@see gap_kdist)
                 ("rkey_dist", c_uint8),
                 # Device security requirements (minimum security level). (@see gap_sec_req)
-                ("sec_req", c_uint8)]  
+                ("sec_req", c_uint8)]
 
 
 # Long Term Key information
 class gapc_ltk(LittleEndianStructure):
 
-    def __init__(self, 
+    def __init__(self,
                  ltk: gap_sec_key = gap_sec_key(),
                  ediv: c_uint16 = 0,
                  randnb: rand_nb = rand_nb(),
@@ -847,7 +853,8 @@ class gapc_ltk(LittleEndianStructure):
                 ("randnb", rand_nb),
                 # Encryption key size (7 to 16)
                 ("key_size", c_uint8),
-                ("padding", c_uint8)]  
+                ("padding", c_uint8)]
+
 
 '''
 # Identity Resolving Key information
@@ -870,10 +877,12 @@ struct gapc_bond_cmd
     struct gapc_pairing pairing;
 };
 '''
+
+
 # Bond procedure requested information data
 class gapc_bond_req_data(Union):
 
-    def __init__(self, 
+    def __init__(self,
                  auth_req: GAP_AUTH = None,
                  key_size: c_uint8 = None,
                  tk_type: GAP_TK_TYPE = None):
@@ -900,12 +909,13 @@ class gapc_bond_req_data(Union):
                 #  - GAP_TK_DISPLAY:   TK generated and shall be displayed by local device
                 #  - GAP_TK_KEY_ENTRY: TK shall be entered by user using device keyboard
                 #  - GAP_TK_KEY_CONFIRM: TK shall be displayed and confirmed
-                ("tk_type", c_uint8)]  
+                ("tk_type", c_uint8)]
+
 
 # Bonding requested by peer device indication message.
 class gapc_bond_req_ind(LittleEndianStructure):
 
-    def __init__(self, 
+    def __init__(self,
                  request: GAPC_BOND = GAPC_BOND.GAPC_PAIRING_REQ,
                  data: gapc_bond_req_data = gapc_bond_req_data(),
                  tk: gap_sec_key = gap_sec_key()):
@@ -923,10 +933,11 @@ class gapc_bond_req_ind(LittleEndianStructure):
                 ("data", gapc_bond_req_data),
                 ("tk", gap_sec_key)]
 
+
 # Bond procedure information data
 class gapc_bond_cfm_data(Union):
 
-    def __init__(self, 
+    def __init__(self,
                  pairing_feat: gapc_pairing = None,
                  ltk: gapc_ltk = None,
                  csrk: gap_sec_key = None,
@@ -955,12 +966,13 @@ class gapc_bond_cfm_data(Union):
                 # CSRK (request = GAPC_CSRK_EXCH)
                 ("csrk", gap_sec_key),
                 # TK (request = GAPC_TK_EXCH)
-                ("tk", gap_sec_key)]  
+                ("tk", gap_sec_key)]
+
 
 # Confirm requested bond information.
 class gapc_bond_cfm(LittleEndianStructure):
 
-    def __init__(self, 
+    def __init__(self,
                  request: GAPC_BOND = GAPC_BOND.GAPC_PAIRING_RSP,
                  accept: c_uint8 = 0,
                  data: gapc_bond_cfm_data = gapc_bond_cfm_data()):
@@ -1042,13 +1054,14 @@ struct gapc_encrypt_ind
 };
 '''
 
+
 # Start Security Request command procedure
 class gapc_security_cmd(LittleEndianStructure):
-    def __init__(self, 
-                  operation: GAPC_OPERATION = GAPC_OPERATION.GAPC_NO_OP,
-                  auth: c_uint16 = GAP_AUTH.GAP_AUTH_REQ_SECURE_CONNECTION,
+    def __init__(self,
+                 operation: GAPC_OPERATION = GAPC_OPERATION.GAPC_NO_OP,
+                 auth: c_uint16 = GAP_AUTH.GAP_AUTH_REQ_SECURE_CONNECTION,
                  ):
-                 
+
         self.operation = operation
         self.auth = auth
         super().__init__(operation=self.operation,
@@ -1060,8 +1073,6 @@ class gapc_security_cmd(LittleEndianStructure):
                 # Authentication level (@see gap_auth)
                 ("auth", c_uint8)]
 
-
-    
 
 '''
 # Security requested by peer device indication message
@@ -1076,10 +1087,12 @@ struct gapc_keypress_notification
     uint8_t type;
 };
 '''
+
+
 # Parameters of the @ref GAPC_SIGN_COUNTER_IND message
 class gapc_sign_counter_ind(LittleEndianStructure):
 
-    def __init__(self, 
+    def __init__(self,
                  local_sign_counter: c_uint32 = 0,
                  peer_sign_counter: c_uint32 = 0):
 
@@ -1092,9 +1105,9 @@ class gapc_sign_counter_ind(LittleEndianStructure):
     _fields_ = [("local_sign_counter", c_uint32),
                 # Peer SignCounter value
                 ("peer_sign_counter", c_uint32)]
-    
-'''
 
+
+'''
 # Parameters of the @ref GAPC_SIGN_CMD message
 struct gapc_sign_cmd
 {
@@ -1269,7 +1282,7 @@ struct gapc_set_le_pkt_size_cmd
     # a single Link Layer Data Channel PDU
     uint16_t tx_time;
 };
-    
+
 # Parameters of the @ref GAPC_LE_PKT_SIZE_IND message
 struct gapc_le_pkt_size_ind
 {
