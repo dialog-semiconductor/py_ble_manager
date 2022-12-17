@@ -5,7 +5,7 @@ from .gtl_port.gattm_task import GATTM_MSG_ID, gattm_add_svc_req, gattm_add_svc_
 from .gtl_port.rwip_config import KE_API_ID
 
 
-class GattmAddSvcReq(GtlMessageBase):
+class GattmAddSvcReq(GtlMessageBase): 
 
     def __init__(self, parameters: gattm_add_svc_req = None):
 
