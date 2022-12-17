@@ -7,7 +7,7 @@ from gtl_messages.gtl_port.gapc_task import *
 class TestGapcConnectionReqInd(unittest.TestCase):
 
     def setUp(self):
-        self.expected = "05010E10000E001000000024000000F401000002EE70CAEA81"
+        self.expected = "05010E10000E001000000024000000F401000002EE70CAEA80"
         
     def test_parameters_updated_after_construction(self):
         test_message = GapcConnectionReqInd()
