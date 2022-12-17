@@ -166,6 +166,7 @@ class ATTM_WRITE_REQUEST(IntEnum):
 
 class ATTM_TRIGGER_READ_INDICATION(IntEnum):
     NO = 0
+    YES = 1
 
 
 '''
