@@ -34,7 +34,7 @@
 # include "ke_task.h"
 # include "gap.h"
 
-from ctypes import Array, c_uint8, c_uint16, c_uint32, LittleEndianStructure, Union
+from ctypes import Array, c_bool, c_uint8, c_uint16, c_uint32, LittleEndianStructure, Union
 from enum import auto, IntEnum
 
 from .co_bt import bd_addr, BD_ADDR_LEN, LE_FEATS_LEN, rand_nb
@@ -724,42 +724,86 @@ struct gapc_conn_param
     # Supervision timeout
     uint16_t time_out;
 };
+'''
+
 
 # Perform update of connection parameters command
-struct gapc_param_update_cmd
-{
-    # GAP request type:
-    # - GAPC_UPDATE_PARAMS: Perform update of connection parameters.
-    uint8_t operation;
-    # Internal parameter used to manage internally l2cap packet identifier for signaling
-    uint8_t pkt_id;
-    # Connection interval minimum
-    uint16_t intv_min;
-    # Connection interval maximum
-    uint16_t intv_max;
-    # Latency
-    uint16_t latency;
-    # Supervision timeout
-    uint16_t time_out;
-    # Minimum Connection Event Duration
-    uint16_t ce_len_min;
-    # Maximum Connection Event Duration
-    uint16_t ce_len_max;
-};
+class gapc_param_update_cmd(LittleEndianStructure):
+
+    def __init__(self,
+                 operation: GAPC_OPERATION = GAPC_OPERATION.GAPC_UPDATE_PARAMS,
+                 pkt_id: c_uint8 = 0,
+                 intv_min: c_uint16 = 0,
+                 intv_max: c_uint16 = 0,
+                 latency: c_uint16 = 0,
+                 time_out: c_uint16 = 0,
+                 ce_len_min: c_uint16 = 0,
+                 ce_len_max: c_uint16 = 0):
+
+        self.operation = operation
+        self.pkt_id = pkt_id
+        self.intv_min = intv_min
+        self.intv_max = intv_max
+        self.latency = latency
+        self.time_out = time_out
+        self.ce_len_min = ce_len_min
+        self.ce_len_max = ce_len_max
+        super().__init__(operation=self.operation,
+                         pkt_id=self.pkt_id,
+                         intv_min=self.intv_min,
+                         intv_max=self.intv_max,
+                         latency=self.latency,
+                         time_out=self.time_out,
+                         ce_len_min=self.ce_len_min,
+                         ce_len_max=self.ce_len_max)
+
+                # GAP request type:
+                # - GAPC_UPDATE_PARAMS: Perform update of connection parameters.
+    _fields_ = [("operation", c_uint8),
+                # Internal parameter used to manage internally l2cap packet identifier for signaling
+                ("pkt_id", c_uint8),
+                # Connection interval minimum
+                ("intv_min", c_uint16),
+                # Connection interval maximum
+                ("intv_max", c_uint16),
+                # Latency
+                ("latency", c_uint16),
+                # Supervision timeout
+                ("time_out", c_uint16),
+                # Minimum Connection Event Duration
+                ("ce_len_min", c_uint16),
+                # Maximum Connection Event Duration
+                ("ce_len_max", c_uint16)]
+
 
 # Request of updating connection parameters indication
-struct gapc_param_update_req_ind
-{
-    # Connection interval minimum
-    uint16_t intv_min;
-    # Connection interval maximum
-    uint16_t intv_max;
-    # Latency
-    uint16_t latency;
-    # Supervision timeout
-    uint16_t time_out;
-};
+class gapc_param_update_req_ind(LittleEndianStructure):
+    def __init__(self,
+                 intv_min: c_uint16 = 0,
+                 intv_max: c_uint16 = 0,
+                 latency: c_uint16 = 0,
+                 time_out: c_uint16 = 0):
 
+        self.intv_min = intv_min
+        self.intv_max = intv_max
+        self.latency = latency
+        self.time_out = time_out
+        super().__init__(intv_min=self.intv_min,
+                         intv_max=self.intv_max,
+                         latency=self.latency,
+                         time_out=self.time_out)
+
+                # Connection interval minimum
+    _fields_ = [("intv_min", c_uint16),
+                # Connection interval maximum
+                ("intv_max", c_uint16),
+                # Latency
+                ("latency", c_uint16),
+                # Supervision timeout
+                ("time_out", c_uint16)]
+
+
+'''
 # Connection parameters updated indication
 struct gapc_param_updated_ind
 {
@@ -770,18 +814,32 @@ struct gapc_param_updated_ind
     #Supervision timeout
     uint16_t            sup_to;
 };
+'''
+
 
 # Master confirm or not that parameters proposed by slave are accepted or not
-struct gapc_param_update_cfm
-{
-    # True to accept slave connection parameters, False else.
-    bool accept;
-    # Minimum Connection Event Duration
-    uint16_t ce_len_min;
-    # Maximum Connection Event Duration
-    uint16_t ce_len_max;
-};
-'''
+class gapc_param_update_cfm(LittleEndianStructure):
+
+    def __init__(self,
+                 accept: c_bool = 0,
+                 ce_len_min: c_uint16 = 0,
+                 ce_len_max: c_uint16 = 0):
+
+        self.accept = accept
+        self.ce_len_min = ce_len_min
+        self.ce_len_max = ce_len_max
+        super().__init__(accept=self.accept,
+                         padding=0,
+                         ce_len_min=self.ce_len_min,
+                         ce_len_max=self.ce_len_max)
+
+                # True to accept slave connection parameters, False else.
+    _fields_ = [("accept", c_bool),
+                ("padding", c_uint8),
+                # Minimum Connection Event Duration
+                ("ce_len_min", c_uint16),
+                # Maximum Connection Event Duration
+                ("ce_len_max", c_uint16)]
 
 
 # Pairing parameters

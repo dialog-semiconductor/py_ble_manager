@@ -278,7 +278,7 @@ class TestGapcEncryptCfm(unittest.TestCase):
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
-# Table 48
+# Table 50
 class TestGapcEncryptInd(unittest.TestCase):
 
     def setUp(self):
@@ -294,6 +294,76 @@ class TestGapcEncryptInd(unittest.TestCase):
     def test_parameters_non_zero_conidx(self):
         test_message = GapcEncryptInd(conidx=1)
         test_message.parameters.auth = GAP_AUTH.GAP_AUTH_REQ_MITM_BOND
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 60
+class TestGapcParamUpdateReqInd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "050F0E10000E000800270027000000D007"
+
+    def test_parameters_updated_after_construction(self):
+        test_message = GapcParamUpdateReqInd()
+        test_message.parameters.intv_min = 39 # TODO pass ms and auto convert to intervals? 
+        test_message.parameters.intv_max = 39
+        test_message.parameters.time_out = 2000
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_non_zero_conidx(self):
+        test_message = GapcParamUpdateReqInd(conidx=1)
+        test_message.parameters.intv_min = 39 # TODO pass ms and auto convert to intervals? 
+        test_message.parameters.intv_max = 39
+        test_message.parameters.time_out = 2000
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 60
+class TestGapcParamUpdateCfm(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05100E0E001000060001000000FFFF"
+
+    def test_parameters_updated_after_construction(self):
+        test_message = GapcParamUpdateCfm()
+        test_message.parameters.accept = 1 # TODO is there an enum for this? 
+        test_message.parameters.ce_len_max = 0xFFFF
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_non_zero_conidx(self):
+        test_message = GapcParamUpdateCfm(conidx=1)
+        test_message.parameters.accept = 1 # TODO is there an enum for this? 
+        test_message.parameters.ce_len_max = 0xFFFF
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 64
+class TestGapcParamUpdateCmd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "050E0E0E0010000E0009000A000A000000E803FFFFFFFF"
+
+    def test_parameters_updated_after_construction(self):
+        test_message = GapcParamUpdateCmd()
+        test_message.parameters.operation = GAPC_OPERATION.GAPC_UPDATE_PARAMS 
+        test_message.parameters.intv_min = 10
+        test_message.parameters.intv_max = 10
+        test_message.parameters.time_out = 1000
+        test_message.parameters.ce_len_min = 0xFFFF
+        test_message.parameters.ce_len_max = 0xFFFF
+        
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_non_zero_conidx(self):
+        test_message = GapcParamUpdateCmd(conidx=1)
+        test_message.parameters.operation = GAPC_OPERATION.GAPC_UPDATE_PARAMS 
+        test_message.parameters.intv_min = 10
+        test_message.parameters.intv_max = 10
+        test_message.parameters.time_out = 1000
+        test_message.parameters.ce_len_min = 0xFFFF
+        test_message.parameters.ce_len_max = 0xFFFF
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 

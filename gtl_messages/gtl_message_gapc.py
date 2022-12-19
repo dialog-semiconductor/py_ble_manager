@@ -2,7 +2,7 @@ from ctypes import c_uint8
 from .gtl_message_base import GtlMessageBase
 from .gtl_port.gapc_task import GAPC_MSG_ID, gapc_connection_req_ind, gapc_connection_cfm, gapc_security_cmd, gapc_cmp_evt, gapc_get_info_cmd, \
     gapc_peer_features_ind, gapc_bond_req_ind, gapc_bond_cfm, gapc_sign_counter_ind, gapc_bond_ind, gapc_encrypt_req_ind, gapc_encrypt_cfm, \
-    gapc_encrypt_ind
+    gapc_encrypt_ind, gapc_param_update_req_ind, gapc_param_update_cfm, gapc_param_update_cmd
 
 from .gtl_port.rwip_config import KE_API_ID
 
@@ -163,6 +163,45 @@ class GapcEncryptInd(GtlMessageBase):
                          parameters=self.parameters)
 
 
+class GapcParamUpdateReqInd(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gapc_param_update_req_ind = None):
+
+        self.parameters = parameters if parameters else gapc_param_update_req_ind()
+
+        super().__init__(msg_id=GAPC_MSG_ID.GAPC_PARAM_UPDATE_REQ_IND,
+                         dst_id=KE_API_ID.TASK_ID_GTL,
+                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GAPC),
+                         par_len=8,
+                         parameters=self.parameters)
+
+
+class GapcParamUpdateCfm(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gapc_param_update_cfm = None):
+
+        self.parameters = parameters if parameters else gapc_param_update_cfm()
+
+        super().__init__(msg_id=GAPC_MSG_ID.GAPC_PARAM_UPDATE_CFM,
+                         dst_id=((conidx << 8) | KE_API_ID.TASK_ID_GAPC),
+                         src_id=KE_API_ID.TASK_ID_GTL,
+                         par_len=6,
+                         parameters=self.parameters)
+
+
+class GapcParamUpdateCmd(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gapc_param_update_cmd = None):
+
+        self.parameters = parameters if parameters else gapc_param_update_cmd()
+
+        super().__init__(msg_id=GAPC_MSG_ID.GAPC_PARAM_UPDATE_CMD,
+                         dst_id=((conidx << 8) | KE_API_ID.TASK_ID_GAPC),
+                         src_id=KE_API_ID.TASK_ID_GTL,
+                         par_len=14,
+                         parameters=self.parameters)
+
+
 class GapcSignCounterInd(GtlMessageBase):
 
     def __init__(self, conidx: c_uint8 = 0, parameters: gapc_sign_counter_ind = None):
@@ -175,5 +214,5 @@ class GapcSignCounterInd(GtlMessageBase):
                          par_len=8,
                          parameters=self.parameters)
 
-# TODO Next message: , ,,  GAPC_PARAM_UPDATE_REQ_IND,
-# GAPC_PARAM_UPDATE_CFM, GAPC_PARAM_UPDATE_CMD, GAPC_PARAM_UPDATED_IND,
+# TODO Next message: , ,,  ,
+#  , GAPC_PARAM_UPDATED_IND,
