@@ -38,7 +38,7 @@ from ctypes import Array, c_uint8, c_uint16, c_uint32, LittleEndianStructure, Un
 from enum import auto, IntEnum
 
 from .co_bt import bd_addr, BD_ADDR_LEN, LE_FEATS_LEN, rand_nb
-from .gap import GAP_AUTH, GAP_IO_CAP, GAP_KDIST, GAP_OOB, GAP_TK_TYPE, gap_sec_key, GAP_SEC_REQ
+from .gap import GAP_AUTH, GAP_IO_CAP, GAP_KDIST, GAP_OOB, GAP_TK_TYPE, gap_sec_key, GAP_SEC_REQ, gap_bdaddr
 from .rwble_hl_error import HOST_STACK_ERROR_CODE
 from .rwip_config import KE_API_ID
 
@@ -856,17 +856,25 @@ class gapc_ltk(LittleEndianStructure):
                 ("padding", c_uint8)]
 
 
-'''
 # Identity Resolving Key information
-struct gapc_irk
-{
-    # Identity Resolving Key
-    struct gap_sec_key irk;
-    # Device BD Address
-    struct gap_bdaddr addr;
-};
+class gapc_irk(LittleEndianStructure):
+
+    def __init__(self,
+                 irk: gap_sec_key = gap_sec_key(),
+                 addr: gap_bdaddr = gap_bdaddr()):
+
+        self.irk = irk
+        self.addr = addr
+        super().__init__(irk=self.irk,
+                         addr=self.addr)
+
+                # Identity Resolving Key
+    _fields_ = [("irk", gap_sec_key),
+                # Device BD Address
+                ("addr", gap_bdaddr)]
 
 
+'''
 # Start Bonding command procedure
 struct gapc_bond_cmd
 {
@@ -992,30 +1000,61 @@ class gapc_bond_cfm(LittleEndianStructure):
                 ("data", gapc_bond_cfm_data)]
 
 
-'''
+# Bond procedure information data
+class gapc_bond_data(Union):
+
+    def __init__(self,
+                 auth: GAP_AUTH = GAP_AUTH.GAP_AUTH_REQ_NO_MITM_NO_BOND,
+                 reason: c_uint8 = 0,  # TODO what is enum for this
+                 ltk: gapc_ltk = gapc_ltk(),
+                 irk: gapc_irk = gapc_irk(),
+                 csrk: gap_sec_key = gap_sec_key()):
+
+        self.auth = auth
+        self.reason = reason
+        self.ltk = ltk
+        self.irk = irk
+        self.csrk = csrk
+        super().__init__(auth=self.auth,
+                         reason=self.reason,
+                         ltk=self.ltk,
+                         irk=self.irk,
+                         csrk=self.csrk)
+
+                # Authentication information (@see gap_auth)
+                # (if info = GAPC_PAIRING_SUCCEED)
+    _fields_ = [("auth", c_uint8),
+                # Pairing failed reason  (if info = GAPC_PAIRING_FAILED)
+                ("reason", c_uint8),
+                # Long Term Key information (if info = GAPC_LTK_EXCH)
+                ("ltk", gapc_ltk),
+                # Identity Resolving Key information (if info = GAPC_IRK_EXCH)
+                ("irk", gapc_irk),
+                # Connection Signature Resolving Key information (if info = GAPC_CSRK_EXCH)
+                ("csrk", gap_sec_key)]
+
+
 # Bonding information indication message
-struct gapc_bond_ind
-{
-    # Bond information type (@see gapc_bond)
-    uint8_t info;
+class gapc_bond_ind(LittleEndianStructure):
 
-    # Bond procedure information data
-    union gapc_bond_data
-    {
-        # Authentication information (@see gap_auth)
-        # (if info = GAPC_PAIRING_SUCCEED)
-        uint8_t auth;
-        # Pairing failed reason  (if info = GAPC_PAIRING_FAILED)
-        uint8_t reason;
-        # Long Term Key information (if info = GAPC_LTK_EXCH)
-        struct gapc_ltk ltk;
-        # Identity Resolving Key information (if info = GAPC_IRK_EXCH)
-        struct gapc_irk irk;
-        # Connection Signature Resolving Key information (if info = GAPC_CSRK_EXCH)
-        struct gap_sec_key csrk;
-    } data;
-};
+    def __init__(self,
+                 info: GAPC_BOND = GAPC_BOND.GAPC_PAIRING_RSP,
+                 data: gapc_bond_data = gapc_bond_data()):
 
+        self.info = info
+        self.data = data
+        super().__init__(info=self.info,
+                         padding=0,
+                         data=self.data)
+
+                # Bond information type (@see gapc_bond)
+    _fields_ = [("info", c_uint8),
+                ("padding", c_uint8),
+                # Bond procedure information data
+                ("data", gapc_bond_data)]
+
+
+'''
 # Start Encryption command procedure
 struct gapc_encrypt_cmd
 {
@@ -1025,16 +1064,28 @@ struct gapc_encrypt_cmd
     # Long Term Key information
     struct gapc_ltk ltk;
 };
+'''
+
 
 # Encryption requested by peer device indication message.
-struct gapc_encrypt_req_ind
-{
-    # Encryption Diversifier
-    uint16_t ediv;
-    # Random Number
-    struct rand_nb rand_nb;
-};
+class gapc_encrypt_req_ind(LittleEndianStructure):
 
+    def __init__(self,
+                 ediv: c_uint16 = 0,
+                 rand_nb: rand_nb = rand_nb()):
+
+        self.ediv = ediv
+        self.rand_nb = rand_nb
+        super().__init__(ediv=self.ediv,
+                         rand_nb=self.rand_nb)
+
+                # Encryption Diversifier
+    _fields_ = [("ediv", c_uint16),
+                # Random Number
+                ("rand_nb", rand_nb)]
+
+
+'''
 # Confirm requested Encryption information.
 struct gapc_encrypt_cfm
 {

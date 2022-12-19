@@ -201,7 +201,54 @@ class TestGapcBondCfm(unittest.TestCase):
         test_message.parameters.data.pairing_feat.sec_req = GAP_SEC_REQ.GAP_SEC1_AUTH_PAIR_ENC # minimum security requirements, MITM is required. Peer cannot pair without MITM
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
-         
+
+# Table 37
+class TestGapcBondInd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05150E10000E001E0007009CD33293FE9B3F5A9F7A7391D5613A4A000000000000000000001000"
+
+    def test_parameters_updated_after_construction(self):
+        test_message = GapcBondInd()
+        test_message.parameters.info = GAPC_BOND.GAPC_LTK_EXCH
+        ltk = bytearray.fromhex("4A3A61D591737A9F5A3F9BFE9332D39C")
+        ltk.reverse()
+        test_message.parameters.data.ltk.ltk.key = (c_uint8 * len(ltk)).from_buffer_copy(ltk)
+        test_message.parameters.data.ltk.key_size = 16
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_non_zero_conidx(self):
+        test_message = GapcBondInd(conidx=1)
+        test_message.parameters.info = GAPC_BOND.GAPC_LTK_EXCH
+        ltk = bytearray.fromhex("4A3A61D591737A9F5A3F9BFE9332D39C")
+        ltk.reverse()
+        test_message.parameters.data.ltk.ltk.key = (c_uint8 * len(ltk)).from_buffer_copy(ltk)
+        test_message.parameters.data.ltk.key_size = 16
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 46
+class TestGapcEncryptReqInd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05170E10000E000A003962B0CB49680745C87F"
+
+    def test_parameters_updated_after_construction(self):
+        test_message = GapcEncryptReqInd()
+
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_non_zero_conidx(self):
+        test_message = GapcEncryptReqInd(conidx=1)
+        test_message.parameters.ediv = 0x6239
+        rand = bytearray.fromhex("7FC845076849CBB0")
+        rand.reverse()
+        test_message.parameters.rand_nb.nb = (c_uint8 * len(rand)).from_buffer_copy(rand)
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
 # Table 166
 class TestGapcSignCounterInd(unittest.TestCase):
 
