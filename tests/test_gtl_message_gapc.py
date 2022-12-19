@@ -236,7 +236,10 @@ class TestGapcEncryptReqInd(unittest.TestCase):
 
     def test_parameters_updated_after_construction(self):
         test_message = GapcEncryptReqInd()
-
+        test_message.parameters.ediv = 0x6239
+        rand = bytearray.fromhex("7FC845076849CBB0")
+        rand.reverse()
+        test_message.parameters.rand_nb.nb = (c_uint8 * len(rand)).from_buffer_copy(rand)
 
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 

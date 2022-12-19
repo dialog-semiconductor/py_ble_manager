@@ -175,5 +175,5 @@ class GapcSignCounterInd(GtlMessageBase):
                          par_len=8,
                          parameters=self.parameters)
 
-# TODO Next message: , ,, GAPC_ENCRYPT_IND, GAPC_PARAM_UPDATE_REQ_IND,
+# TODO Next message: , ,,  GAPC_PARAM_UPDATE_REQ_IND,
 # GAPC_PARAM_UPDATE_CFM, GAPC_PARAM_UPDATE_CMD, GAPC_PARAM_UPDATED_IND,
