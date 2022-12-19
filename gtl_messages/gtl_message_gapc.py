@@ -1,7 +1,8 @@
 from ctypes import c_uint8
 from .gtl_message_base import GtlMessageBase
 from .gtl_port.gapc_task import GAPC_MSG_ID, gapc_connection_req_ind, gapc_connection_cfm, gapc_security_cmd, gapc_cmp_evt, gapc_get_info_cmd, \
-    gapc_peer_features_ind, gapc_bond_req_ind, gapc_bond_cfm, gapc_sign_counter_ind, gapc_bond_ind, gapc_encrypt_req_ind
+    gapc_peer_features_ind, gapc_bond_req_ind, gapc_bond_cfm, gapc_sign_counter_ind, gapc_bond_ind, gapc_encrypt_req_ind, gapc_encrypt_cfm, \
+    gapc_encrypt_ind
 
 from .gtl_port.rwip_config import KE_API_ID
 
@@ -136,6 +137,32 @@ class GapcEncryptReqInd(GtlMessageBase):
                          parameters=self.parameters)
 
 
+class GapcEncryptCfm(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gapc_encrypt_cfm = None):
+
+        self.parameters = parameters if parameters else gapc_encrypt_cfm()
+
+        super().__init__(msg_id=GAPC_MSG_ID.GAPC_ENCRYPT_CFM,
+                         dst_id=((conidx << 8) | KE_API_ID.TASK_ID_GAPC),
+                         src_id=KE_API_ID.TASK_ID_GTL,
+                         par_len=18,
+                         parameters=self.parameters)
+
+
+class GapcEncryptInd(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gapc_encrypt_ind = None):
+
+        self.parameters = parameters if parameters else gapc_encrypt_ind()
+
+        super().__init__(msg_id=GAPC_MSG_ID.GAPC_ENCRYPT_IND,
+                         dst_id=KE_API_ID.TASK_ID_GTL,
+                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GAPC),
+                         par_len=1,
+                         parameters=self.parameters)
+
+
 class GapcSignCounterInd(GtlMessageBase):
 
     def __init__(self, conidx: c_uint8 = 0, parameters: gapc_sign_counter_ind = None):
@@ -148,5 +175,5 @@ class GapcSignCounterInd(GtlMessageBase):
                          par_len=8,
                          parameters=self.parameters)
 
-# TODO Next message: , GAPC_ENCRYPT_REQ_IND, GAPC_ENCRYPT_CFM, GAPC_ENCRYPT_IND, GAPC_PARAM_UPDATE_REQ_IND,
+# TODO Next message: , ,, GAPC_ENCRYPT_IND, GAPC_PARAM_UPDATE_REQ_IND,
 # GAPC_PARAM_UPDATE_CFM, GAPC_PARAM_UPDATE_CMD, GAPC_PARAM_UPDATED_IND,

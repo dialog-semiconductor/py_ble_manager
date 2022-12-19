@@ -1108,7 +1108,6 @@ class gapc_encrypt_cfm(LittleEndianStructure):
                 ("key_size", c_uint8)]
 
 
-
 # Encryption information indication message
 class gapc_encrypt_ind(LittleEndianStructure):
 

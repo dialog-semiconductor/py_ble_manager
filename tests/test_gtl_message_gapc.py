@@ -249,6 +249,51 @@ class TestGapcEncryptReqInd(unittest.TestCase):
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+# Table 48
+class TestGapcEncryptCfm(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05180E0E0010001200019CD33293FE9B3F5A9F7A7391D5613A4A10"
+
+    def test_parameters_updated_after_construction(self):
+        test_message = GapcEncryptCfm()
+        test_message.parameters.found = 1
+        ltk = bytearray.fromhex("4A3A61D591737A9F5A3F9BFE9332D39C")
+        ltk.reverse()
+        test_message.parameters.ltk.key = (c_uint8 * len(ltk)).from_buffer_copy(ltk)
+        test_message.parameters.key_size = 16
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_non_zero_conidx(self):
+        test_message = GapcEncryptCfm(conidx=1)
+        test_message.parameters.found = 1
+        ltk = bytearray.fromhex("4A3A61D591737A9F5A3F9BFE9332D39C")
+        ltk.reverse()
+        test_message.parameters.ltk.key = (c_uint8 * len(ltk)).from_buffer_copy(ltk)
+        test_message.parameters.key_size = 16
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 48
+class TestGapcEncryptInd(unittest.TestCase):
+
+    def setUp(self):
+        # TODO manual has error in byte string
+        self.expected = "05190E10000E00010005"
+
+    def test_parameters_updated_after_construction(self):
+        test_message = GapcEncryptInd()
+        test_message.parameters.auth = GAP_AUTH.GAP_AUTH_REQ_MITM_BOND
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_non_zero_conidx(self):
+        test_message = GapcEncryptInd(conidx=1)
+        test_message.parameters.auth = GAP_AUTH.GAP_AUTH_REQ_MITM_BOND
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
 # Table 166
 class TestGapcSignCounterInd(unittest.TestCase):
 
