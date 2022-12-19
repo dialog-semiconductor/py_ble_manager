@@ -1085,25 +1085,41 @@ class gapc_encrypt_req_ind(LittleEndianStructure):
                 ("rand_nb", rand_nb)]
 
 
-'''
 # Confirm requested Encryption information.
-struct gapc_encrypt_cfm
-{
-    # Indicate if a LTK has been found for the peer device
-    uint8_t found;
-    # Long Term Key
-    struct gap_sec_key ltk;
-    # LTK Key Size
-    uint8_t key_size;
-};
+class gapc_encrypt_cfm(LittleEndianStructure):
+
+    def __init__(self,
+                 found: c_uint8 = 0,
+                 ltk: gap_sec_key = gap_sec_key(),
+                 key_size: c_uint8 = 0):
+
+        self.found = found
+        self.ltk = ltk
+        self.key_size = key_size
+        super().__init__(found=self.found,
+                         ltk=self.ltk,
+                         key_size=self.key_size)
+
+                # Indicate if a LTK has been found for the peer device (0x0 = not found, 0x1 found) TODO make an enum
+    _fields_ = [("found", c_uint8),
+                # Long Term Key
+                ("ltk", gap_sec_key),
+                # LTK Key Size
+                ("key_size", c_uint8)]
+
+
 
 # Encryption information indication message
-struct gapc_encrypt_ind
-{
-    # Authentication  level (@see gap_auth)
-    uint8_t auth;
-};
-'''
+class gapc_encrypt_ind(LittleEndianStructure):
+
+    def __init__(self,
+                 auth: GAP_AUTH = GAP_AUTH.GAP_AUTH_REQ_NO_MITM_NO_BOND):
+
+        self.auth = auth
+        super().__init__(auth=self.auth)
+
+                # Authentication  level (@see gap_auth)
+    _fields_ = [("auth", c_uint8)]
 
 
 # Start Security Request command procedure
