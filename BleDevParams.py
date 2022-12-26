@@ -1,9 +1,8 @@
-from ctypes import Array, c_uint8, c_uint16, LittleEndianStructure
+from ctypes import c_uint8, c_uint16, LittleEndianStructure
 from enum import IntEnum
 from gtl_messages.gtl_port.co_bt import le_chnl_map, ADV_FILTER_POLICY, ADV_DATA_LEN, SCAN_RSP_DATA_LEN
 from gtl_messages.gtl_port.gap import GAP_ROLE, gap_bdaddr, gap_sec_key, GAP_IO_CAP, gap_slv_pref
-from gtl_messages.gtl_port.gapm_task import gapm_air_operation, GAPM_OPERATION, GAP_ADV_MODE, gapm_att_cfg_flag
-from gtl_messages.gtl_port.gattm_task import attm_svc_perm
+from gtl_messages.gtl_port.gapm_task import GAPM_OPERATION, GAP_ADV_MODE, gapm_att_cfg_flag
 
 
 # TODO belong in ble_common.h
@@ -105,6 +104,7 @@ class BleDevParams():
 
 class BleDevParamsDefault(BleDevParams):
     pass
+
 
 '''
 static const ble_dev_params_t default_ble_dev_params = {

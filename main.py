@@ -43,6 +43,6 @@ async def ble_task():
 
         # must always yeild in a task to give others a chance to run
         await asyncio.sleep(1)
-        
+
 
 asyncio.run(main())

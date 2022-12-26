@@ -365,7 +365,7 @@ class GAPM_WRITE_ATT_PERM(IntEnum):
 class gapm_att_cfg_flag(LittleEndianStructure):
 
     def __init__(self,
-                 dev_name_perm: ATTM_PERM = ATTM_PERM.DISABLE,  # TODO manual says GAPM_WRITE_ but does not align with bits 
+                 dev_name_perm: ATTM_PERM = ATTM_PERM.DISABLE,  # TODO manual says GAPM_WRITE_ but does not align with bits
                  dev_appear_perm: ATTM_PERM = ATTM_PERM.DISABLE,  # TODO manual says GAPM_WRITE_ but does not align with bits
                  slv_perf_conn_params_present: c_bool = False,
                  svc_chg_present: c_bool = False,

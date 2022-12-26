@@ -40,7 +40,7 @@ class BlePeripheral(BleBase):
             await self.ble_adapter.open_serial_port()
             print("Serial port opened. Starting always running tasks")
 
-            # TODO need to start a BleManager task 
+            # TODO need to start a BleManager task
 
             # Start always running BLE tasks
             self.ble_manager.init()

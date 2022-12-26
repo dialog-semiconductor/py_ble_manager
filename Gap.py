@@ -1,6 +1,4 @@
 
-from ctypes import c_uint8
-
 from gtl_messages.gtl_message_base import GtlMessageBase
 
 from gtl_messages.gtl_message_gapc import GapcConnectionReqInd, GapcConnectionCfm, GapcSecurityCmd, GapcCmpEvt, GapcGetInfoCmd, \
@@ -13,7 +11,7 @@ from gtl_messages.gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, gapm_re
     gapm_start_advertise_cmd, gapm_start_connection_cmd, GAPM_OWN_ADDR, gapm_adv_info, ADV_CHANNEL_MAP, ADV_DATA_LEN, ADV_FILTER_POLICY,\
     SCAN_RSP_DATA_LEN  # noqa: F401
 
-from gtl_messages.gtl_port.gap import GAP_ROLE, GAP_AUTH, GAP_ADV_MODE, gap_bdaddr
+from gtl_messages.gtl_port.gap import GAP_ROLE, GAP_AUTH, GAP_ADV_MODE, gap_bdaddr  # noqa: F401
 
 
 class GapBase():
