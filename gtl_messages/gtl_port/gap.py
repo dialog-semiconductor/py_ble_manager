@@ -372,7 +372,7 @@ class gap_slv_pref(LittleEndianStructure):
         self.con_intv_max = con_intv_max
         self.slave_latency = slave_latency
         self.conn_timeout = conn_timeout
-        super().__init__(con_intv_min=self.con_intv_min, 
+        super().__init__(con_intv_min=self.con_intv_min,
                          con_intv_max=self.con_intv_max,
                          slave_latency=self.slave_latency,
                          conn_timeout=self.conn_timeout)

@@ -76,7 +76,7 @@ class BleAdapter():
                 # print(f"response from GapManager: {response}")
                 if response is not None:
                     self.serial_tx_queue.put_nowait(response)
-                    
+
             elif msg.msg_id == GAPM_MSG_ID.GAPM_CMP_EVT:
                 self.ble_stack_initialized = True
                 self.event_q.put_nowait(msg)  # Not making an adapter msg, just forwarding to manager
@@ -86,7 +86,7 @@ class BleAdapter():
             if msg.msg_id != GAPM_MSG_ID.GAPM_CMP_EVT and msg.msg_id != GAPM_MSG_ID.GAPM_DEVICE_READY_IND:
                 self.event_q.put_nowait(msg)  # seems this could be combined with above elif. TODO combine adding to queue with setting event
                 self.event_signal.set()
-                
+
     def notify():
         pass
 

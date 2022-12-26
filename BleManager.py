@@ -56,4 +56,3 @@ class BleManager():
                 pass
             case GATTC_MSG_ID.GATTC_CMP_EVT:
                 pass
-                
