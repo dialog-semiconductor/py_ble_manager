@@ -1,7 +1,7 @@
 
 from ctypes import c_uint8
 
-from gtl_messages import GtlMessageBase
+from gtl_messages.gtl_message_base import GtlMessageBase
 
 from gtl_messages.gtl_message_gapc import GapcConnectionReqInd, GapcConnectionCfm, GapcSecurityCmd, GapcCmpEvt, GapcGetInfoCmd, \
     GapcPeerFeaturesInd, GapcBondReqInd, GapcBondCfm  # noqa: F401
@@ -40,36 +40,40 @@ class GapManager(GapBase):
         return None
 
     def handle_gapm_device_ready_ind(self, message):
+        # Reset the BLE Stack
         return GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
 
     def handle_gapm_cmp_evt(self, message: GapmCmpEvt = None):
         print(f"{type(self).__name__} handle_gapm_cmp_evt")
         response = None
-        if (message.parameters.operation == GAPM_OPERATION.GAPM_RESET):
-            response = self.handle_gapm_reset_cmd()
-        elif (message.parameters.operation == GAPM_OPERATION.GAPM_SET_DEV_CONFIG):
-            response = self.handle_gapm_set_dev_config()
+        match message.parameters.operation:
+            case GAPM_OPERATION.GAPM_RESET:
+                response = self.handle_gapm_reset_cmd()
+            case GAPM_OPERATION.GAPM_SET_DEV_CONFIG:
+                response = self.handle_gapm_set_dev_config()
         # elif(message.parameters.operation == GAPM_OPERATION.GAPM_ADV_UNDIRECT): GAPM_START_ADVERTISE_CMD
-        else:
-            print(f"{type(self).__name__}.handle_gapm_cmp_evt unhandled operation: {str(GAPM_OPERATION(message.parameters.operation))}")
+            case _:
+                print(f"{type(self).__name__}.handle_gapm_cmp_evt unhandled operation: {str(GAPM_OPERATION(message.parameters.operation))}")
             # Because this is not handled we add a GtlBaseMessage to the queue
             # print("handle_gapm_reset_completion GAPM_SET_DEV_CONFIG")
 
         return response
 
     def handle_gapm_reset_cmd(self):
-        response = GapmSetDevConfigCmd()
-        response.parameters.operation = GAPM_OPERATION.GAPM_SET_DEV_CONFIG
-        response.parameters.role = GAP_ROLE.GAP_ROLE_PERIPHERAL
-        response.parameters.att_cfg = 0x20  # TODO setup GAPM_MASK_ATT_SVC_CNG_EN
-        response.parameters.max_mtu = 512
-        response.parameters.max_txoctets = 251
-        response.parameters.max_txtime = 2120
-        return response
+        # response = GapmSetDevConfigCmd()
+        # response.parameters.operation = GAPM_OPERATION.GAPM_SET_DEV_CONFIG
+        # response.parameters.role = GAP_ROLE.GAP_ROLE_PERIPHERAL
+        # response.parameters.att_cfg = 0x20  # TODO setup GAPM_MASK_ATT_SVC_CNG_EN
+        # response.parameters.max_mtu = 512
+        # response.parameters.max_txoctets = 251
+        # response.parameters.max_txtime = 2120
+        # return response
+        return None  # call back to ble periph?
 
     def handle_gapm_set_dev_config(self):
         # TODO build databases
-
+        response = None
+        '''
         # TODO remove below, just testing to advertise
         response = GapmStartAdvertiseCmd()
         response.parameters.op.code = GAPM_OPERATION.GAPM_ADV_UNDIRECT
@@ -96,7 +100,7 @@ class GapManager(GapBase):
                                                                                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                                                                                0x00)
         response.parameters.info.host.peer_info = gap_bdaddr()
-
+        '''
         return response
 
     def __init__(self):

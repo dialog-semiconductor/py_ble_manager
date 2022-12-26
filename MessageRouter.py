@@ -1,5 +1,6 @@
 import asyncio
-from gtl_messages import GtlMessageFactory, GtlMessageBase
+from gtl_messages.gtl_message_base import GtlMessageBase
+from gtl_messages.gtl_message_factory import GtlMessageFactory
 
 
 class MessageParser():

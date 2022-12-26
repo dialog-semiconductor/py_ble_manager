@@ -1,50 +1,59 @@
 import asyncio
-from Gap import GapController, GapManager
-from MessageRouter import MessageRouter
-from SerialStreamManager import SerialStreamManager
-from gtl_messages.gtl_port.gapm_task import GAPM_OPERATION, gapm_reset_cmd  # TODO remove
-from gtl_messages.gtl_message_gapm import GapmResetCmd  # TODO remove
+from gtl_messages.gtl_message_base import GtlMessageBase
+from gtl_messages.gtl_port.gapm_task import GAPM_MSG_ID
+from gtl_messages.gtl_port.gapc_task import GAPC_MSG_ID
+from gtl_messages.gtl_port.gattc_task import GATTC_MSG_ID
 
 
-class BleBase():
-    pass
+class BleManager():
 
+    def __init__(self,
+                 app_command_q: asyncio.Queue(),
+                 app_response_q: asyncio.Queue(),
+                 app_event_q: asyncio.Queue(),
+                 adapter_command_q: asyncio.Queue(),
+                 adapter_event_q: asyncio.Queue(),
+                 event_notif: asyncio.Event()) -> None:
 
-class BleClient(BleBase):
-    pass
+        # TODO if x else y is so vscode will treat variable as that item for auto complete
+        self.app_command_q = app_command_q if app_command_q else asyncio.Queue()
+        self.app_response_q = app_response_q if app_response_q else asyncio.Queue()
+        self.app_event_q = app_event_q if app_event_q else asyncio.Queue()
+        self.adapter_commnand_q = adapter_command_q if adapter_command_q else asyncio.Queue()
+        self.adapter_event_q = adapter_event_q if adapter_event_q else asyncio.Queue()
+        self.event_notif = event_notif if event_notif else asyncio.Event()
+        self.wait_q = asyncio.Queue()
 
+        self.dev_params
 
-class BlePeripheral(BleBase):
-    def __init__(self, com_port: str):
+    def init(self):
 
-        self.com_port = com_port
-        tx_queue = asyncio.Queue()
-        rx_queue = asyncio.Queue()
+        # TODO keeping handles so these can be cancelled somehow
+        self._task = asyncio.create_task(self.manager_task(), name='BleManagerTask')
 
-        self.message_router = MessageRouter(tx_queue, rx_queue)
-        self.gap_manager = GapManager()
-        self.gap_controller = GapController()
-        self.message_router.register_observer(self.gap_manager.handle_message)
-        self.message_router.register_observer(self.gap_controller.handle_message)
-        self.serial_stream_manager = SerialStreamManager(tx_queue, rx_queue)
+        print(f"{type(self)} Exiting init")
 
-    async def run(self):
-        # TaskGroup is in 3.11
-        # async with asyncio.TaskGroup() as tg:
-        #    task1 = tg.create_task(coroutine1,)
-        #    task2 = tg.create_task(another_coroutine(...))
+    async def manager_task(self):
+        # TODO any setup needed
+        while True:
+            await self.event_notif.wait()  # Need to be careful with multiple events happening before switch to this func
+            self.event_notif.clear()
+            # get an item from the queue
+            if not self.adapter_event_q.empty():
+                item = self.adapter_event_q.get_nowait()
 
-        serial_rx_task = asyncio.create_task(self.message_router.handle_received_message(), name='StreamRx')
-        router_tx_task = asyncio.create_task(self.serial_stream_manager.send(), name='StreamTx')
-        router_handle_rx_task = asyncio.create_task(self.serial_stream_manager.receive(), name='RouterRx')
+            # if item not None:
+            print(f" Ble Manager Received event signal {item}")
 
-        # TODO this should be a call to the gap manager, but it does not currently know about the message router.
-        # Need message router register observer with GAP classes to direct outgoing traffic
-        # This assumes 531 running _ext project already. Should wait for a timeout on return message (GapmCmpEvt operation = 1)
-        self.message_router.send_message(GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET)))
-        # Wait until the port is open before starting any other coroutines
-        await asyncio.wait_for(self.serial_stream_manager.open_port(self.com_port), timeout=None)
+            # TODO check if more messages in adapter event q
 
-        await serial_rx_task
-        await router_tx_task
-        await router_handle_rx_task
+    def handle_evt_or_ind(message: GtlMessageBase):
+
+        match message.msg_id:
+            case GAPM_MSG_ID.GAPM_CMP_EVT:
+                pass
+            case GAPC_MSG_ID.GAPC_PARAM_UPDATE_CMD:
+                pass
+            case GATTC_MSG_ID.GATTC_CMP_EVT:
+                pass
+                

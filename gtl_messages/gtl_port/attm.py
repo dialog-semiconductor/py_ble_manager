@@ -46,8 +46,8 @@
 #include <string.h>
 '''
 
+from ctypes import c_uint8, LittleEndianStructure
 from enum import IntEnum
-
 
 '''
 /*
@@ -228,6 +228,7 @@ enum attm_perm_mask
  * Bit [13]   : Encryption key Size must be 16 bytes
  * Bit [15-14]: UUID Length             (0 = 16 bits, 1 = 32 bits, 2 = 128 bits, 3 = RFU)
  */
+
 enum attm_perm_mask
 {
     /// retrieve all permission info
@@ -293,21 +294,54 @@ enum attm_value_perm_mask
 };
 
 #if RWBLE_SW_VERSION_MAJOR >= 8
-/**
- *  Service permissions
- *
- *     7    6    5    4    3    2    1    0
- *  +----+----+----+----+----+----+----+----+
- *  | P  |UUID_LEN |      AUTH    |EKS | MI |
- *  +----+----+----+----+----+----+----+----+
- *
- *  Bit [0]  : Task that manage service is multi-instantiated (Connection index is conveyed)
- *  Bit [1]  : Encryption key Size must be 16 bytes
- *  Bit [2-4]: Service Permission      (0 = Disable, 1 = Enable, 2 = UNAUTH, 3 = AUTH, 4 = SECURE)
- *  Bit [5-6]: UUID Length             (0 = 16 bits, 1 = 32 bits, 2 = 128 bits, 3 = RFU)
- *  Bit [7]  : Primary Service         (1 = Primary Service, 0 = Secondary Service)
- *
- */
+'''
+
+
+#
+#  Service permissions
+#
+#     7    6    5    4    3    2    1    0
+#  +----+----+----+----+----+----+----+----+
+#  | P  |UUID_LEN |      AUTH    |EKS | MI |
+#  +----+----+----+----+----+----+----+----+
+#
+#  Bit [0]  : Task that manage service is multi-instantiated (Connection index is conveyed)
+#  Bit [1]  : Encryption key Size must be 16 bytes
+#  Bit [2-4]: Service Permission      (0 = Disable, 1 = Enable, 2 = UNAUTH, 3 = AUTH, 4 = SECURE)
+#  Bit [5-6]: UUID Length             (0 = 16 bits, 1 = 32 bits, 2 = 128 bits, 3 = RFU)
+#  Bit [7]  : Primary Service         (1 = Primary Service, 0 = Secondary Service)
+#
+#
+class attm_svc_perm(LittleEndianStructure):
+    def __init__(self,
+                 multi: ATTM_TASK_MULTI_INSTANTIATED = ATTM_TASK_MULTI_INSTANTIATED.NO,
+                 enc_key_16_bytes: ATTM_ENC_KEY_SIZE_16_BYTES = ATTM_ENC_KEY_SIZE_16_BYTES.NO,
+                 svc_perm: ATTM_PERM = ATTM_PERM.UNAUTH,
+                 uuid_len: ATTM_UUID_LEN = ATTM_UUID_LEN._16_BITS,
+                 primary_svc: ATTM_SERVICE_TYPE = ATTM_SERVICE_TYPE.PRIMARY_SERVICE
+                 ):
+
+        self.multi = multi
+        self.enc_key_16_bytes = enc_key_16_bytes
+        self.svc_perm = svc_perm
+        self.uuid_len = uuid_len
+        self.primary_svc = primary_svc
+
+        super().__init__(multi=self.multi,
+                         enc_key_16_bytes=self.enc_key_16_bytes,
+                         svc_perm=self.svc_perm,
+                         uuid_len=self.uuid_len,
+                         primary_svc=self.primary_svc)
+
+                # Service permissions (@see enum attm_svc_perm_mask)
+    _fields_ = [("multi", c_uint8, 1),
+                ("enc_key_16_bytes", c_uint8, 1),
+                ("svc_perm", c_uint8, 3),
+                ("uuid_len", c_uint8, 2),
+                ("primary_svc", c_uint8, 1)]
+
+
+'''
 enum attm_svc_perm_mask
 {
     // Task that manage service is multi-instantiated

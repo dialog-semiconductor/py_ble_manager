@@ -34,9 +34,10 @@
 
 '''
 
-from ctypes import Array, cast, c_uint8, c_uint16, LittleEndianStructure, pointer, POINTER, Union
+from ctypes import Array, cast, c_uint8, c_uint16, LittleEndianStructure, pointer, POINTER, Union, c_bool
 from enum import auto, IntEnum
 
+from .attm import ATTM_PERM
 from .co_bt import ADV_CHANNEL_MAP, ADV_DATA_LEN, ADV_FILTER_POLICY, bd_addr, SCAN_RSP_DATA_LEN
 from .gap import GAP_ADV_MODE, gap_bdaddr, GAP_ROLE, gap_sec_key
 from .rwble_hl_error import HOST_STACK_ERROR_CODE
@@ -360,8 +361,37 @@ class GAPM_WRITE_ATT_PERM(IntEnum):
 # - Bit [5]  : Service change feature present in GATT attribute database.
 # - Bit [6]  : CoC zero credit bahaviour
 # - Bit [7]  : Enable Debug Mode
+# TODO no unit test
+class gapm_att_cfg_flag(LittleEndianStructure):
 
-# TODO:  Do we need gapm_att_cfg_flag
+    def __init__(self,
+                 dev_name_perm: ATTM_PERM = ATTM_PERM.DISABLE,  # TODO manual says GAPM_WRITE_ but does not align with bits 
+                 dev_appear_perm: ATTM_PERM = ATTM_PERM.DISABLE,  # TODO manual says GAPM_WRITE_ but does not align with bits
+                 slv_perf_conn_params_present: c_bool = False,
+                 svc_chg_present: c_bool = False,
+                 enable_debug: c_bool = False):
+
+        self.dev_name_perm = dev_name_perm
+        self.dev_appear_perm = dev_appear_perm
+        self.slv_perf_conn_params_present = slv_perf_conn_params_present
+        self.svc_chg_present = svc_chg_present
+        self.enable_debug = enable_debug
+
+        super().__init__(dev_name_perm=self.dev_name_perm,
+                         dev_appear_perm=self.dev_appear_perm,
+                         slv_perf_conn_params_present=self.slv_perf_conn_params_present,
+                         svc_chg_present=self.svc_chg_present,
+                         reserved=0,
+                         enable_debug=self.enable_debug)
+
+    _fields_ = [("dev_name_perm", c_uint8, 2),
+                ("dev_appear_perm", c_uint8, 2),
+                ("slv_perf_conn_params_present", c_uint8, 1),
+                ("svc_chg_present", c_uint8, 1),
+                ("reserved", c_uint8, 1),
+                ("enable_debug", c_uint8, 1)]
+
+
 '''
 enum gapm_att_cfg_flag
 {
@@ -389,7 +419,6 @@ enum gapm_att_cfg_flag
 #endif // (BLE_DEBUG)
 };
 '''
-# TODO Should use LittleEndianLittleEndianStructure instead of LittleEndianStructure?
 
 
 # Operation command structure in order to keep requested operation.

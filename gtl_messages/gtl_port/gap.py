@@ -38,7 +38,7 @@
  */
 '''
 
-from ctypes import Array, c_uint8, LittleEndianStructure
+from ctypes import Array, c_uint8, c_uint16, LittleEndianStructure
 from enum import auto, IntEnum
 from .co_bt import BD_ADDR_LEN, KEY_LEN, bd_addr
 
@@ -356,21 +356,38 @@ struct gap_dev_name
     /// name value
     uint8_t value[__ARRAY_EMPTY];
 };
-
-/// Slave preferred connection parameters
-struct gap_slv_pref
-{
-    /// Connection interval minimum
-    uint16_t con_intv_min;
-    /// Connection interval maximum
-    uint16_t con_intv_max;
-    /// Slave latency
-    uint16_t slave_latency;
-    /// Connection supervision timeout multiplier
-    uint16_t conn_timeout;
-};
+'''
 
 
+# Slave preferred connection parameters
+class gap_slv_pref(LittleEndianStructure):
+
+    def __init__(self,
+                 con_intv_min: c_uint16 = 0,
+                 con_intv_max: c_uint16 = 0,
+                 slave_latency: c_uint16 = 0,
+                 conn_timeout: c_uint16 = 0):
+
+        self.con_intv_min = con_intv_min
+        self.con_intv_max = con_intv_max
+        self.slave_latency = slave_latency
+        self.conn_timeout = conn_timeout
+        super().__init__(con_intv_min=self.con_intv_min, 
+                         con_intv_max=self.con_intv_max,
+                         slave_latency=self.slave_latency,
+                         conn_timeout=self.conn_timeout)
+
+                # Connection interval minimum
+    _fields_ = [("con_intv_min", c_uint16),
+                # Connection interval maximum
+                ("con_intv_max", c_uint16),
+                # Slave latency
+                ("slave_latency", c_uint16),
+                # Connection supervision timeout multiplier
+                ("conn_timeout", c_uint16)]
+
+
+'''
 ///***** AD Type Flag - Bit set *******/
 /// Limited discovery flag - AD Flag
 #define GAP_LE_LIM_DISCOVERABLE_FLG             0x01

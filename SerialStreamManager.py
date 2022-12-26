@@ -1,6 +1,6 @@
 import asyncio
 import serial_asyncio
-from gtl_messages import GTL_INITIATOR
+from gtl_messages.gtl_message_base import GTL_INITIATOR
 
 
 class SerialStreamManager(asyncio.Protocol):
