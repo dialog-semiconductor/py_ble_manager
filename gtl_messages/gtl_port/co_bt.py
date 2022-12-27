@@ -72,8 +72,9 @@ BD_ADDR_LEN = 6
 #define SRES_LEN            0x04
 #define ACCESS_ADDR_LEN     0x04
 #define LE_PASSKEY_LEN      0x04
-#define BD_NAME_SIZE        0xF8 // Was 0x20 for BLE HL
 '''
+BD_NAME_SIZE = 0xF8  # Was 0x20 for BLE HL
+
 ADV_DATA_LEN = 0x1F
 '''
 #define BLE_DATA_LEN        0x1B

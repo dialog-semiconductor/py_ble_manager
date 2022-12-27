@@ -27,7 +27,7 @@ async def ble_task():
 
     print("Main Opening port")
     # Open the serial port the the 531
-    await periph.init()
+    periph.init()
 
     print("Mian Serial port opened")
 
@@ -46,3 +46,5 @@ async def ble_task():
 
 
 asyncio.run(main())
+
+# TODO unit tests fail when pushed from remote

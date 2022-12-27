@@ -30,7 +30,6 @@ class BlePeripheral(BleBase):
         event_signal = asyncio.Event()
 
         self.ble_manager = BleManager(app_command_q, app_resposne_q, app_event_q, adapter_command_q, adapter_event_q, event_signal)
-        # TODO adapter should manage stream, routing
         self.ble_adapter = BleAdapter(com_port, adapter_command_q, adapter_event_q, event_signal)
 
     async def init(self):

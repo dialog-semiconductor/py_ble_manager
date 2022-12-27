@@ -3,6 +3,7 @@ from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_port.gapm_task import GAPM_MSG_ID
 from gtl_messages.gtl_port.gapc_task import GAPC_MSG_ID
 from gtl_messages.gtl_port.gattc_task import GATTC_MSG_ID
+from BleDevParams import BleDevParamsDefault
 
 
 class BleManager():
@@ -23,8 +24,7 @@ class BleManager():
         self.adapter_event_q = adapter_event_q if adapter_event_q else asyncio.Queue()
         self.event_notif = event_notif if event_notif else asyncio.Event()
         self.wait_q = asyncio.Queue()
-
-        self.dev_params
+        self.dev_params = BleDevParamsDefault()
 
     def init(self):
 

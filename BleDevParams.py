@@ -1,8 +1,9 @@
 from ctypes import c_uint8, c_uint16, LittleEndianStructure
 from enum import IntEnum
-from gtl_messages.gtl_port.co_bt import le_chnl_map, ADV_FILTER_POLICY, ADV_DATA_LEN, SCAN_RSP_DATA_LEN
-from gtl_messages.gtl_port.gap import GAP_ROLE, gap_bdaddr, gap_sec_key, GAP_IO_CAP, gap_slv_pref
-from gtl_messages.gtl_port.gapm_task import GAPM_OPERATION, GAP_ADV_MODE, gapm_att_cfg_flag
+from gtl_messages.gtl_port.co_bt import le_chnl_map, ADV_FILTER_POLICY, ADV_DATA_LEN, SCAN_RSP_DATA_LEN, \
+    BD_ADDR_LEN, ADV_CHANNEL_MAP, BD_NAME_SIZE
+from gtl_messages.gtl_port.gap import GAP_ROLE, gap_bdaddr, gap_sec_key, GAP_IO_CAP, gap_slv_pref, GAP_AD_TYPE
+from gtl_messages.gtl_port.gapm_task import GAPM_OPERATION, GAP_ADV_MODE, gapm_att_cfg_flag, GAPM_ADDR_TYPE
 
 
 # TODO belong in ble_common.h
@@ -44,12 +45,13 @@ class gap_scan_params(LittleEndianStructure):
 
 
 # end ble_gap.h
+# TODO make this a structure so dont need to convert
 class BleDevParams():
 
     def __init__(self) -> None:
         # GAP device information
-        # TODO Max len + null char. Create a global param for this num
-        self.dev_name = (c_uint8 * 21)()  # GAP device name plus NULL char
+        # TODO Max len + null char. Should we create property
+        self.dev_name = (c_uint8 * (BD_NAME_SIZE + 1))()  # GAP device name plus NULL char # TODO F8 seems realy long
 
         # TODO do we need this gap_appearance_t   appearance;                                  # GAP device appearance
         # BLE state
@@ -70,12 +72,13 @@ class BleDevParams():
         # Attribute database configuration
 
         self.att_db_cfg = gapm_att_cfg_flag()  # Attribute DB Configuration bitmask
+        self.mtu_size = 0  # MTU size
         # Channel map (central only)
         self.channel_map = le_chnl_map()  # Channel map
         # TODO one of GAPM_ADV_NON_CONN, GAPM_ADV_UNDIRECT, GAPM_ADV_DIRECT, GAPM_ADV_DIRECT_LDC
         self.adv_type = GAPM_OPERATION.GAPM_ADV_UNDIRECT  # Advertising type
         self.adv_mode = GAP_ADV_MODE.GAP_GEN_DISCOVERABLE  # Discoverability mode for adv.
-        self.adv_channel_map = 0  # Channel map used for advertising
+        self.adv_channel_map = ADV_CHANNEL_MAP.ADV_ALL_CHNLS_EN  # Channel map used for advertising
         self.adv_intv_min = 0  # Minimum advertising interval
         self.adv_intv_max = 0  # Maximum advertising interval
         self.adv_filter_policy = ADV_FILTER_POLICY.ADV_ALLOW_SCAN_ANY_CON_ANY  # Advertising filter policy
@@ -102,8 +105,62 @@ class BleDevParams():
         self.conn_rssi = 0  # The RSSI reading reported by GAPC_CON_RSSI_IND
 
 
+# TODO any reason not to set these in BleDevParams??
 class BleDevParamsDefault(BleDevParams):
-    pass
+    def __init__(self) -> None:
+        super().__init__()
+        # GAP device information
+        name = b"Dialog BLE"
+        self.dev_name[:len(name)] = name
+        # TODO do we need this gap_appearance_t   appearance;  #    GAP device appearance
+        # BLE state
+        self.status = BLE_STATUS.BLE_IS_DISABLED
+        self.advertising = False
+        self.connecting = False
+        self.scanning = False
+        self.role = GAP_ROLE.GAP_ROLE_NONE
+        self.own_addr.addr_type = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PUBLIC
+        self.own_addr.addr.addr[:] = [0x01, 0x00, 0xF4, 0x35, 0x23, 0x48]
+        self.irk.key[:] = [0xEF, 0xCD, 0xAB, 0x89, 0x67, 0x45, 0x23, 0x01,
+                           0xEF, 0xCD, 0xAB, 0x89, 0x67, 0x45, 0x23, 0x01]
+        self.addr_resolv_req_pending = 0
+        self.att_db_cfg.slv_perf_conn_params_present = True
+        self.mtu_size = 65  # TODO 65 for secure connections, 23 otherwise. need to handle
+        self.channel_map.map[:] = [0xFF, 0xFF, 0xFF, 0xFF, 0x1F]
+
+        self.adv_type = GAPM_OPERATION.GAPM_ADV_UNDIRECT
+        self.adv_mode = GAP_ADV_MODE.GAP_GEN_DISCOVERABLE
+        self.adv_channel_map = ADV_CHANNEL_MAP.ADV_CHNL_37_EN
+        self.adv_intv_min = ((687.5) * 1000 // 625)  # TODO function for this
+        self.adv_intv_max = ((687.5) * 1000 // 625)  # TODO same as above
+        self.adv_filter_policy = ADV_FILTER_POLICY.ADV_ALLOW_SCAN_ANY_CON_ANY  # Advertising filter policy
+        self.adv_data_length = 28
+
+        self.adv_data[0] = len(self.dev_name) + 2
+        self.adv_data[1] = GAP_AD_TYPE.GAP_AD_TYPE_COMPLETE_NAME
+        self.adv_data[2: (2 + len(name))] = name
+        self.scan_rsp_data_length = 31  # Length of scan response
+        self.scan_rsp_data = (c_uint8 * SCAN_RSP_DATA_LEN)()
+        # Scan parameters used for connection procedures
+        self.scan_params.interval = (100) * 1000 // 625  # TODO make function
+        self.scan_params.window = (50) * 1000 // 625  # TODO make function
+        # Peripheral preferred connection parameters
+
+        self.gap_ppcp.con_intv_min = ((10) * 100 // 125)
+        self.gap_ppcp.con_intv_max = ((20) * 100 // 125)
+        self.gap_ppcp.con_intv_min = 1000 // 10
+        # IO Capabilities configuration
+        self.io_capabilities = GAP_IO_CAP.GAP_IO_CAP_NO_INPUT_NO_OUTPUT
+# if (dg_configBLE_PRIVACY_1_2 == 1) # TODO add privacy
+        # ble_mgr_ral_op_t  prev_privacy_operation;  # TODO add privacy enum
+# endif /* (dg_configBLE_PRIVACY_1_2 == 1)
+# if (dg_configBLE_2MBIT_PHY == 1) # TODO 2M PHY??
+        # self.tx_phy_pref_default = 0  # GAP default TX PHY preference
+        # self.rx_phy_pref_default = 0  # GAP default RX PHY preference
+        # self.phy_set_pending = False  # GAP PHY set operation pending
+        # self.phy_change_req = False  # GAP PHY change requested
+# endif /* (dg_configBLE_2MBIT_PHY == 1)
+        self.conn_rssi = 0
 
 
 '''
