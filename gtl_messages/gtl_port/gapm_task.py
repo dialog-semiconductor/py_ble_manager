@@ -460,13 +460,13 @@ class gapm_reset_cmd(LittleEndianStructure):
 # Set device configuration command
 class gapm_set_dev_config_cmd(LittleEndianStructure):
     def __init__(self,
-                 operation: GAPM_OPERATION = GAPM_OPERATION.GAPM_NO_OP,
+                 operation: GAPM_OPERATION = GAPM_OPERATION.GAPM_SET_DEV_CONFIG,
                  role: GAP_ROLE = GAP_ROLE.GAP_ROLE_NONE,
                  renew_dur: c_uint16 = 0,
                  addr: bd_addr = bd_addr(),
                  irk: gap_sec_key = gap_sec_key(),
                  addr_type: GAPM_ADDR_TYPE = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PUBLIC,
-                 att_cfg: c_uint8 = 0,
+                 att_cfg: gapm_att_cfg_flag = gapm_att_cfg_flag(),
                  gap_start_hdl: c_uint16 = 0,
                  gatt_start_hdl: c_uint16 = 0,
                  max_mtu: c_uint16 = 0,
@@ -541,7 +541,7 @@ class gapm_set_dev_config_cmd(LittleEndianStructure):
                 # - Bit [5]  : Service change feature present in GATT attribute database.
                 # - Bit [6]  : Reserved
                 # - Bit [7]  : Enable Debug Mode
-                ("att_cfg", c_uint8),
+                ("att_cfg", gapm_att_cfg_flag),
                 # GAP service start handle
                 ("gap_start_hdl", c_uint16),
                 # GATT service start handle

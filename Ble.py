@@ -3,9 +3,10 @@ import asyncio
 # from gtl_messages.gtl_port.gapm_task import GAPM_OPERATION, gapm_reset_cmd  # TODO remove
 # from gtl_messages.gtl_message_gapm import GapmResetCmd  # TODO remove
 from gtl_messages.gtl_port.gap import GAP_ROLE
+from gtl_messages.gtl_port.gapm_task import GAPM_OPERATION
 
-from BleManager import BleManager
-from BleAdapter import BleAdapter
+from BleManager import BleManager, BLE_STATUS, BLE_ERROR, ble_mgr_msg_hdr, BLE_MGR_COMMON_CMD_OPCODE
+from BleAdapter import BleAdapter, ad_ble_msg, AD_BLE_OPERATION
 
 
 # common
@@ -49,23 +50,99 @@ class BlePeripheral(BleBase):
         except asyncio.TimeoutError as e:
             raise e
 
-    def start(self):
+    async def start(self) -> BLE_ERROR:
+
+        error = BLE_ERROR.BLE_ERROR_FAILED
+
+        error = await self.ble_manager.ble_reset()
+        print(f"we have reset!!! error={error.name}, error={error}")
+        if error == BLE_ERROR.BLE_STATUS_OK:
+
+            error = await self._gap_role_set(GAP_ROLE.GAP_ROLE_PERIPHERAL)
+            print(f"start: returned from gap_role_set")
+
+        print(f"after if statement. error={error.name}")
+
+        return error
+
+    async def _gap_role_set(self, role: GAP_ROLE):
+        response = BLE_ERROR.BLE_ERROR_FAILED
+        print(f"_gap_role_set calling gap_role_set_handler")
+        response = await self.ble_manager.cmd_execute(GAP_ROLE.GAP_ROLE_PERIPHERAL, self.ble_manager.gap_role_set_handler)
+        
+        print(f"_gap_role_set returned from gap_role_set_handler. resposne={response.name}")
+
+        return response
+
+    def set_advertising_interval(self, adv_intv_min, adv_intv_max):
+        self.ble_manager.dev_params.adv_intv_min = adv_intv_min
+        self.ble_manager.dev_params.adv_intv_max = adv_intv_max
+
+        return BLE_ERROR.BLE_STATUS_OK
+
+    async def start_advertising(self, adv_type: GAPM_OPERATION = GAPM_OPERATION.GAPM_ADV_UNDIRECT):
+
+        match adv_type:
+            case GAPM_OPERATION.GAPM_ADV_NON_CONN:
+                pass
+            case GAPM_OPERATION.GAPM_ADV_UNDIRECT:
+                pass 
+            case  GAPM_OPERATION.GAPM_ADV_DIRECT:
+                pass
+            case GAPM_OPERATION.GAPM_ADV_DIRECT_LDC:
+                pass
+            case _:
+                return BLE_ERROR.BLE_ERROR_NOT_ACCEPTED
+
+        response = BLE_ERROR.BLE_ERROR_FAILED
+        print(f"start_advertising calling _gap_adv_start_cmd_handler")
+        response = await self.ble_manager.cmd_execute(adv_type, self.ble_manager.gap_adv_start_cmd_handler)
+
+        print(f"start_advertising returned from _gap_adv_start_cmd_handler. resposne={response.name}")
+
+        return response
+
+
+'''
+    def _enable(self) -> BLE_ERROR:
+
+        error = BLE_ERROR.BLE_ERROR_FAILED
+        if self.ble_manager.dev_params.status == BLE_STATUS.BLE_IS_ENABLED:
+            return BLE_ERROR.BLE_ERROR_ALREADY_DONE
+
+        command = ble_mgr_msg_hdr(opcode=BLE_MGR_COMMON_CMD_OPCODE.BLE_MGR_COMMON_ENABLE_CMD,
+                                  msg_len=0)  # TODO may be 4 or 5? shuold we create ctypes struct for ble_mgr_msg_hdr?
+        response = ble_mgr_msg_hdr()
+        # TODO create enable command
+        if not self._ble_cmd_execute(command, response, self._ble_mgr_common_enable_cmd_handler):
+            return BLE_ERROR.BLE_ERROR_BUSY
+
+        # TODO error = response->status
+        return error
+
+    async def _ble_cmd_execute(self, command: ble_mgr_msg_hdr, response: ble_mgr_msg_hdr, handler: callable):
+        ble_status = self.ble_manager.dev_params.status
+        if ble_status == BLE_STATUS.BLE_IS_BUSY or ble_status == BLE_STATUS.BLE_IS_RESET:
+            return False
+
+        op_code = command.op_code
+
+        handler(command)
+
+        response = await self.ble_manager.ble_mgr_response_queue_get()
+
+        print(f"Ble. _ble_cmd_execute: cmd={command}, cmd opcode={op_code} \
+                response={response}, rsp->opcode={response.op_code}, handler={handler}")
+        return True
+
+    # TODO move to ble_gap
+    def _ble_gap_role_set(self):
         pass
-        # status = self._enable
-        # if (status is True):
-        #    self._set_gap_role_set(GAP_ROLE.GAP_ROLE_PERIPHERAL)
 
-    def _enable():
-        # send command
-        # await for response.
-        # need a command and response queue
+    async def _ble_mgr_common_enable_cmd_handler(self, param):
 
-        pass
-
-    def _gap_role_set(role: GAP_ROLE.GAP_ROLE_NONE):
-        pass
-
-    def execute_command():
-        pass  # see ble_cmd_execute
-
+        command = ad_ble_msg(operation=AD_BLE_OPERATION.AD_BLE_OP_INIT_CMD, msg_len=5)
+        self.ble_manager.add_to_wait_q(command)
+        self.ble_manager.adapter_commnand_q.put_nowait(command)
+'''
 # TODO create ble_dev_params for default device ble database

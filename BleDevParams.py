@@ -136,7 +136,7 @@ class BleDevParamsDefault(BleDevParams):
         self.adv_filter_policy = ADV_FILTER_POLICY.ADV_ALLOW_SCAN_ANY_CON_ANY  # Advertising filter policy
         self.adv_data_length = 28
 
-        self.adv_data[0] = len(self.dev_name) + 2
+        self.adv_data[0] = len(name) + 2
         self.adv_data[1] = GAP_AD_TYPE.GAP_AD_TYPE_COMPLETE_NAME
         self.adv_data[2: (2 + len(name))] = name
         self.scan_rsp_data_length = 31  # Length of scan response

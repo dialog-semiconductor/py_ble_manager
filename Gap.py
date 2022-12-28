@@ -57,6 +57,9 @@ class GapManager(GapBase):
 
         return response
 
+    def create_reset_command(self):
+        return GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
+
     def handle_gapm_reset_cmd(self):
         # response = GapmSetDevConfigCmd()
         # response.parameters.operation = GAPM_OPERATION.GAPM_SET_DEV_CONFIG

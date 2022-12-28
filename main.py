@@ -27,12 +27,17 @@ async def ble_task():
 
     print("Main Opening port")
     # Open the serial port the the 531
-    periph.init()
+    await periph.init()
 
     print("Mian Serial port opened")
 
     # periph.register_app
-    periph.start()
+    await periph.start()
+
+    periph.set_advertising_interval((20) * 1000 // 625, (30) * 1000 // 625)
+
+    await periph.start_advertising()
+    # TODO register app
 
     print("Main After periph.init()")
 
