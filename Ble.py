@@ -5,8 +5,8 @@ import asyncio
 from gtl_messages.gtl_port.gap import GAP_ROLE
 from gtl_messages.gtl_port.gapm_task import GAPM_OPERATION
 
-from BleManager import BleManager, BLE_STATUS, BLE_ERROR, ble_mgr_msg_hdr, BLE_MGR_COMMON_CMD_OPCODE
-from BleAdapter import BleAdapter, ad_ble_msg, AD_BLE_OPERATION
+from BleManager import BleManager, BLE_STATUS, BLE_ERROR  # ble_mgr_msg_hdr, BLE_MGR_COMMON_CMD_OPCODE
+from BleAdapter import BleAdapter  # ad_ble_msg, AD_BLE_OPERATION
 
 
 # common
