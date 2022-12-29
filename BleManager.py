@@ -89,7 +89,7 @@ class ble_mgr_msg_hdr():
 '''
 
 
-class BLE_CMD_CAT(IntEnum):
+class BLE_MGR_GAP_CMD_CAT(IntEnum):
     BLE_MGR_COMMON_CMD_CAT = 0x00
     BLE_MGR_GAP_CMD_CAT = 0x01
     BLE_MGR_GATTS_CMD_CAT = 0x02
@@ -99,6 +99,7 @@ class BLE_CMD_CAT(IntEnum):
 # end FROM BLE_COMMON.h
 
 
+'''
 # from ble_mgr_cmd.h
 class BLE_MGR_COMMON_CMD_OPCODE(IntEnum):
     BLE_MGR_COMMON_STACK_MSG = BLE_CMD_CAT.BLE_MGR_COMMON_CMD_CAT << 8
@@ -108,6 +109,85 @@ class BLE_MGR_COMMON_CMD_OPCODE(IntEnum):
     BLE_MGR_COMMON_READ_TX_POWER_CMD = auto()
     BLE_MGR_COMMON_LAST_CMD = auto()
 # end ble_mgr_cmd.h
+'''
+
+
+class BleMgrMsgHeader():
+    def __init__(self, opcode) -> None:
+        self.opcode = opcode
+        # self.msg_len = 0
+        # elf.payload = None
+
+
+# TODO Move to Gap
+class BLE_CMD_GAP_OPCODE(IntEnum):
+    BLE_MGR_GAP_ADDRESS_SET_CMD = BLE_MGR_GAP_CMD_CAT.BLE_MGR_GAP_CMD_CAT << 8
+    BLE_MGR_GAP_DEVICE_NAME_SET_CMD = auto()
+    BLE_MGR_GAP_APPEARANCE_SET_CMD = auto()
+    BLE_MGR_GAP_PPCP_SET_CMD = auto()
+    BLE_MGR_GAP_ADV_START_CMD = auto()
+    BLE_MGR_GAP_ADV_STOP_CMD = auto()
+    BLE_MGR_GAP_ADV_DATA_SET_CMD = auto()
+    BLE_MGR_GAP_ADV_SET_PERMUTATION_CMD = auto()
+    BLE_MGR_GAP_SCAN_START_CMD = auto()
+    BLE_MGR_GAP_SCAN_STOP_CMD = auto()
+    BLE_MGR_GAP_CONNECT_CMD = auto()
+    BLE_MGR_GAP_CONNECT_CANCEL_CMD = auto()
+    BLE_MGR_GAP_DISCONNECT_CMD = auto()
+    BLE_MGR_GAP_PEER_VERSION_GET_CMD = auto()
+    BLE_MGR_GAP_PEER_FEATURES_GET_CMD = auto()
+    BLE_MGR_GAP_CONN_RSSI_GET_CMD = auto()
+    BLE_MGR_GAP_ROLE_SET_CMD = auto()
+    BLE_MGR_GAP_MTU_SIZE_SET_CMD = auto()
+    BLE_MGR_GAP_CHANNEL_MAP_SET_CMD = auto()
+    BLE_MGR_GAP_CONN_PARAM_UPDATE_CMD = auto()
+    BLE_MGR_GAP_CONN_PARAM_UPDATE_REPLY_CMD = auto()
+    BLE_MGR_GAP_PAIR_CMD = auto()
+    BLE_MGR_GAP_PAIR_REPLY_CMD = auto()
+    BLE_MGR_GAP_PASSKEY_REPLY_CMD = auto()
+    BLE_MGR_GAP_UNPAIR_CMD = auto()
+    BLE_MGR_GAP_SET_SEC_LEVEL_CMD = auto()
+# if (dg_configBLE_SKIP_LATENCY_API == 1) # TODO need to handle these defines
+    BLE_MGR_GAP_SKIP_LATENCY_CMD = auto()
+# endif /* (dg_configBLE_SKIP_LATENCY_API == 1) */
+    BLE_MGR_GAP_DATA_LENGTH_SET_CMD = auto()
+# if (dg_configBLE_SECURE_CONNECTIONS == 1)
+    BLE_MGR_GAP_NUMERIC_REPLY_CMD = auto()
+# endif /* (dg_configBLE_SECURE_CONNECTIONS == 1) */
+    BLE_MGR_GAP_ADDRESS_RESOLVE_CMD = auto()
+# if (dg_configBLE_2MBIT_PHY == 1)
+    BLE_MGR_GAP_PHY_SET_CMD = auto()
+# endif /* (dg_configBLE_2MBIT_PHY == 1) */
+    BLE_MGR_GAP_TX_POWER_SET_CMD = auto()
+    BLE_MGR_GAP_CONN_TX_POWER_SET_CMD = auto()
+    BLE_MGR_GAP_LOCAL_TX_POWER_GET_CMD = auto()
+    BLE_MGR_GAP_REMOTE_TX_POWER_GET_CMD = auto()
+    BLE_MGR_GAP_PATH_LOSS_REPORT_PARAMS_SET_CMD = auto()
+    BLE_MGR_GAP_PATH_LOSS_REPORT_EN_CMD = auto()
+    BLE_MGR_GAP_TX_PWR_REPORT_EN_CMD = auto()
+    BLE_MGR_GAP_RF_PATH_COMPENSATION_SET_CMD = auto()
+    # Dummy command opcode = auto() needs to be always defined after all commands
+    BLE_MGR_GAP_LAST_CMD = auto()
+
+
+# TODO Move To Gap
+class BleMgrGapRoleSetCmd(BleMgrMsgHeader):
+    def __init__(self) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ROLE_SET_CMD)
+        self.role = GAP_ROLE.GAP_ROLE_NONE
+
+
+class BleMgrGapAdvStartCmd(BleMgrMsgHeader):
+    def __init__(self) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_START_CMD)
+        self.adv_type = GAPM_OPERATION.GAPM_ADV_UNDIRECT
+'''
+class BleMgrCmdFactory():
+    @staticmethod
+    def create_command(command_type, size):
+        if  command_type in BLE_CMD_GAP_OPCODE:
+            return BleGapMgrFactory(command_type, size)
+'''
 
 
 class BleManager():
@@ -184,44 +264,46 @@ class BleManager():
         error = BLE_ERROR.BLE_STATUS_OK
         return error
 
-    async def cmd_execute(self, handler_param, handler) -> BLE_ERROR:
+    async def cmd_execute(self, command, handler) -> BLE_ERROR:
         ble_status = self.dev_params.status
         if ble_status == BLE_STATUS.BLE_IS_BUSY or ble_status == BLE_STATUS.BLE_IS_RESET:
             return BLE_ERROR.BLE_ERROR_BUSY
 
-        handler(handler_param)
+        handler(command)
+
+        #self.adapter_commnand_q.put_nowait(command)
 
         response = await self.ble_mgr_response_queue_get()
 
-        print(f"Ble. _ble_cmd_execute: handler_param={handler_param}, \
+        print(f"Ble. _ble_cmd_execute: command={command}, \
                 response={BLE_ERROR(response)}, handler={handler}")
         return response
 
-    def gap_role_set_handler(self, role: GAP_ROLE):
+    def gap_role_set_handler(self, command: BleMgrGapRoleSetCmd):
 
         print("gap_role_set_handler")
 
         dev_params_gtl = self.dev_params_to_gtl()
-        dev_params_gtl.parameters.role = role
-        self._wait_queue_add(0xFFFF, GAPM_MSG_ID.GAPM_CMP_EVT, GAPM_OPERATION.GAPM_SET_DEV_CONFIG, self._gapm_set_role_rsp, role)
+        dev_params_gtl.parameters.role = command.role
+        self._wait_queue_add(0xFFFF, GAPM_MSG_ID.GAPM_CMP_EVT, GAPM_OPERATION.GAPM_SET_DEV_CONFIG, self._gapm_set_role_rsp, command.role)
         self.adapter_commnand_q.put_nowait(dev_params_gtl)
 
-    def gap_adv_start_cmd_handler(self, adv_type: GAPM_OPERATION = GAPM_OPERATION.GAPM_ADV_UNDIRECT):
+    def gap_adv_start_cmd_handler(self, command: BleMgrGapAdvStartCmd):
 
         response = BLE_ERROR.BLE_ERROR_FAILED
         print("gap_adv_start_cmd_handler")
         # TODO error checks
         # Check if an advertising operation is already in progress
         # Check if length of advertising data is within limits
-        self.dev_params.adv_type = adv_type
+        self.dev_params.adv_type = command.adv_type
         message = GapmStartAdvertiseCmd()
-        message.parameters.op.code = adv_type
+        message.parameters.op.code = command.adv_type
         message.parameters.op.addr_src = self.dev_params.own_addr.addr_type
         message.parameters.intv_min = self.dev_params.adv_intv_min
         message.parameters.intv_max = self.dev_params.adv_intv_max
         message.parameters.channel_map = self.dev_params.adv_channel_map
 
-        if adv_type < GAPM_OPERATION.GAPM_ADV_DIRECT:  # TODO VERIFY THIS IS THE SAME
+        if command.adv_type < GAPM_OPERATION.GAPM_ADV_DIRECT:  # TODO VERIFY THIS IS THE SAME
             message.parameters.info.host.mode = self.dev_params.adv_mode
             message.parameters.info.host.adv_filt_policy = self.dev_params.adv_filter_policy
             message.parameters.info.host.adv_data_len = self.dev_params.adv_data_length
