@@ -172,15 +172,15 @@ class BLE_CMD_GAP_OPCODE(IntEnum):
 
 # TODO Move To Gap
 class BleMgrGapRoleSetCmd(BleMgrMsgHeader):
-    def __init__(self) -> None:
+    def __init__(self, role: GAP_ROLE = GAP_ROLE.GAP_ROLE_NONE) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ROLE_SET_CMD)
-        self.role = GAP_ROLE.GAP_ROLE_NONE
+        self.role = role
 
 
 class BleMgrGapAdvStartCmd(BleMgrMsgHeader):
-    def __init__(self) -> None:
+    def __init__(self, adv_type: GAPM_OPERATION = GAPM_OPERATION.GAPM_ADV_UNDIRECT) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_START_CMD)
-        self.adv_type = GAPM_OPERATION.GAPM_ADV_UNDIRECT
+        self.adv_type = adv_type # TODO raise error on bad arg
 '''
 class BleMgrCmdFactory():
     @staticmethod

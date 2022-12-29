@@ -69,8 +69,7 @@ class BlePeripheral(BleBase):
         response = BLE_ERROR.BLE_ERROR_FAILED
         print("_gap_role_set calling gap_role_set_handler")
         # TODO should have factory that creates this, doesnt make sense to manually put this enum into the already well defined class 
-        command = BleMgrGapRoleSetCmd()
-        command.role = role
+        command = BleMgrGapRoleSetCmd(role)
         response = await self.ble_manager.cmd_execute(command, self.ble_manager.gap_role_set_handler)
 
         print(f"_gap_role_set returned from gap_role_set_handler. resposne={response.name}")
@@ -99,8 +98,7 @@ class BlePeripheral(BleBase):
 
         response = BLE_ERROR.BLE_ERROR_FAILED
 
-        command = BleMgrGapAdvStartCmd()
-        command.adv_type = adv_type
+        command = BleMgrGapAdvStartCmd(adv_type)
         print("start_advertising calling _gap_adv_start_cmd_handler")
         response = await self.ble_manager.cmd_execute(command, self.ble_manager.gap_adv_start_cmd_handler)
 
