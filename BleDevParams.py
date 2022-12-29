@@ -131,8 +131,8 @@ class BleDevParamsDefault(BleDevParams):
         self.adv_type = GAPM_OPERATION.GAPM_ADV_UNDIRECT
         self.adv_mode = GAP_ADV_MODE.GAP_GEN_DISCOVERABLE
         self.adv_channel_map = ADV_CHANNEL_MAP.ADV_CHNL_37_EN
-        self.adv_intv_min = ((687.5) * 1000 // 625)  # TODO function for this
-        self.adv_intv_max = ((687.5) * 1000 // 625)  # TODO same as above
+        self.adv_intv_min = int(((687.5) * 1000 // 625))  # TODO function for this
+        self.adv_intv_max = int(((687.5) * 1000 // 625))  # TODO same as above
         self.adv_filter_policy = ADV_FILTER_POLICY.ADV_ALLOW_SCAN_ANY_CON_ANY  # Advertising filter policy
         self.adv_data_length = 28
 

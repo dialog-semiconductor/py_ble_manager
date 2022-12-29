@@ -79,8 +79,8 @@ class BlePeripheral(BleBase):
         return response
 
     def set_advertising_interval(self, adv_intv_min, adv_intv_max):
-        self.ble_manager.dev_params.adv_intv_min = adv_intv_min
-        self.ble_manager.dev_params.adv_intv_max = adv_intv_max
+        self.ble_manager.dev_params.adv_intv_min = int(adv_intv_min)
+        self.ble_manager.dev_params.adv_intv_max = int(adv_intv_max)
 
         return BLE_ERROR.BLE_STATUS_OK
 
