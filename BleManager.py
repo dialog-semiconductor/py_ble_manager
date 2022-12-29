@@ -11,31 +11,10 @@ from gtl_messages.gtl_port.gattc_task import GATTC_MSG_ID
 from gtl_messages.gtl_port.gap import GAP_ROLE
 from BleDevParams import BleDevParamsDefault
 from gtl_messages.gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
+from GtlWaitQueue import GtlWaitQueue, GtlWaitQueueElement
 
 # this is from ble_config.h
 dg_configBLE_DATA_LENGTH_TX_MAX = (251)
-
-
-class GtlWaitQueueElement():
-    def __init__(self,
-                 conn_idx: c_uint16 = 0,
-                 msg_id: c_uint16 = 0,
-                 ext_id: c_uint16 = 0,
-                 cb: callable = None,
-                 param: object = None) -> None:
-        self.conn_idx = conn_idx
-        self.msg_id = msg_id
-        self.ext_id = ext_id
-        self.cb = cb
-        self.param = param
-
-
-class GtlWaitQueue():
-    def __init__(self) -> None:
-        self.queue = []
-        self.len = 0
-
-    # TODO push/pop and match methods rather than using q and len direct
 
 
 '''
@@ -172,7 +151,7 @@ class BleManager():
                 if item.parameters.operation == GAPM_OPERATION.GAPM_RESET:
                     self._reset_signal.set()
 
-                if not self.wait_queue_match(item):
+                if not self.wait_q.match(item):
                     if not self.handle_evt_or_ind(item):
                         pass
 
@@ -224,7 +203,6 @@ class BleManager():
 
         dev_params_gtl = self.dev_params_to_gtl()
         dev_params_gtl.parameters.role = role
-        # TODO rethink how wait queue item added
         self._wait_queue_add(0xFFFF, GAPM_MSG_ID.GAPM_CMP_EVT, GAPM_OPERATION.GAPM_SET_DEV_CONFIG, self._gapm_set_role_rsp, role)
         self.adapter_commnand_q.put_nowait(dev_params_gtl)
 
@@ -288,8 +266,7 @@ class BleManager():
 
     def _wait_queue_add(self, conn_idx, msg_id, ext_id, cb, param):
         item = GtlWaitQueueElement(conn_idx=conn_idx, msg_id=msg_id, ext_id=ext_id, cb=cb, param=param)
-        self.wait_q.queue.append(item)
-        self.wait_q.len += 1
+        self.wait_q.push(item)
 
     def dev_params_to_gtl(self) -> GapmSetDevConfigCmd:
         gtl = GapmSetDevConfigCmd()
@@ -306,38 +283,6 @@ class BleManager():
         gtl.parameters.max_txtime = (dg_configBLE_DATA_LENGTH_TX_MAX + 11 + 3) * 8
 
         return gtl
-
-    def wait_queue_match(self, message: GtlMessageBase) -> bool:
-        ret = False
-
-        for item in self.wait_q.queue:
-            item: GtlWaitQueueElement
-            if item.conn_idx == 0XFFFF:  # TODO no magic number
-                match = item.msg_id == message.msg_id
-            else:
-                match = (item.conn_idx == self._task_to_connidx(message.src_id)
-                         and item.msg_id == message.msg_id)
-
-            if not match:
-                continue
-
-            match item.msg_id:
-                case GAPM_MSG_ID.GAPM_CMP_EVT:
-                    match = item.ext_id == message.parameters.operation
-                case GAPC_MSG_ID.GAPC_CMP_EVT:
-                    match = item.ext_id == message.parameters.operation
-                case _:
-                    pass
-
-            if match:
-                callback = item.cb
-                self.wait_q.len -= 1
-                self.wait_q.queue.remove(item)
-                callback(message, item.param)
-                ret = True
-                break
-
-        return ret
 
     def _task_to_connidx(self, task_id):
         return task_id >> 8
