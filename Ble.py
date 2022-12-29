@@ -59,7 +59,7 @@ class BlePeripheral(BleBase):
         if error == BLE_ERROR.BLE_STATUS_OK:
 
             error = await self._gap_role_set(GAP_ROLE.GAP_ROLE_PERIPHERAL)
-            print(f"start: returned from gap_role_set")
+            print("start: returned from gap_role_set")
 
         print(f"after if statement. error={error.name}")
 
@@ -67,9 +67,9 @@ class BlePeripheral(BleBase):
 
     async def _gap_role_set(self, role: GAP_ROLE):
         response = BLE_ERROR.BLE_ERROR_FAILED
-        print(f"_gap_role_set calling gap_role_set_handler")
+        print("_gap_role_set calling gap_role_set_handler")
         response = await self.ble_manager.cmd_execute(GAP_ROLE.GAP_ROLE_PERIPHERAL, self.ble_manager.gap_role_set_handler)
-        
+
         print(f"_gap_role_set returned from gap_role_set_handler. resposne={response.name}")
 
         return response
@@ -86,7 +86,7 @@ class BlePeripheral(BleBase):
             case GAPM_OPERATION.GAPM_ADV_NON_CONN:
                 pass
             case GAPM_OPERATION.GAPM_ADV_UNDIRECT:
-                pass 
+                pass
             case  GAPM_OPERATION.GAPM_ADV_DIRECT:
                 pass
             case GAPM_OPERATION.GAPM_ADV_DIRECT_LDC:
@@ -95,7 +95,7 @@ class BlePeripheral(BleBase):
                 return BLE_ERROR.BLE_ERROR_NOT_ACCEPTED
 
         response = BLE_ERROR.BLE_ERROR_FAILED
-        print(f"start_advertising calling _gap_adv_start_cmd_handler")
+        print("start_advertising calling _gap_adv_start_cmd_handler")
         response = await self.ble_manager.cmd_execute(adv_type, self.ble_manager.gap_adv_start_cmd_handler)
 
         print(f"start_advertising returned from _gap_adv_start_cmd_handler. resposne={response.name}")

@@ -4,25 +4,27 @@ from MessageRouter import MessageRouter
 from SerialStreamManager import SerialStreamManager
 from MessageRouter import MessageParser
 from gtl_messages.gtl_port.gapm_task import GAPM_MSG_ID
-from ctypes import LittleEndianStructure, c_uint16, c_uint8, Array, pointer, POINTER, cast
-from enum import IntEnum, auto
+# from ctypes import LittleEndianStructure, c_uint16, c_uint8, Array, pointer, POINTER, cast
+# from enum import IntEnum, auto
 
+
+'''
 # from ad_ble.h
 # Operations for BLE adapter messages
 class AD_BLE_OPCODES(IntEnum):
-        AD_BLE_OP_CODE_STACK_MSG = 0x00
-        AD_BLE_OP_CODE_ADAPTER_MSG = 0x01
-        AD_BLE_OP_CODE_LAST = auto()
+    AD_BLE_OP_CODE_STACK_MSG = 0x00
+    AD_BLE_OP_CODE_ADAPTER_MSG = 0x01
+    AD_BLE_OP_CODE_LAST = auto()
 
 
 class AD_BLE_OPERATION(IntEnum):
-        AD_BLE_OP_CMP_EVT = 0x00
-        AD_BLE_OP_INIT_CMD = 0x01
-        AD_BLE_OP_RESET_CMD = 0x02
-        AD_BLE_OP_LAST = auto()
+    AD_BLE_OP_CMP_EVT = 0x00
+    AD_BLE_OP_INIT_CMD = 0x01
+    AD_BLE_OP_RESET_CMD = 0x02
+    AD_BLE_OP_LAST = auto()
 
 
-# BLE adapter message structure 
+# BLE adapter message structure
 class ad_ble_msg(LittleEndianStructure):
     def __init__(self,
                  operation: AD_BLE_OPERATION = AD_BLE_OPERATION.AD_BLE_OP_LAST,
@@ -52,6 +54,7 @@ class ad_ble_msg(LittleEndianStructure):
     value = property(get_param, set_param)
 
 # end ad_ble.h
+'''
 
 
 class BleAdapter():
@@ -149,7 +152,5 @@ class BleAdapter():
 
     def ble_reset(self):
         self.serial_tx_queue.put_nowait(self.gap_manager.create_reset_command())
-
-
 
 # TODO get rid of message router? Send things to this class? Handle default events here. If cannot, send to BleManager to handle

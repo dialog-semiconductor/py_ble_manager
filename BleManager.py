@@ -3,13 +3,16 @@ from ctypes import c_uint16, c_uint8, Array
 from enum import IntEnum, auto
 from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gapm import GapmResetCmd, GapmSetDevConfigCmd, GapmStartAdvertiseCmd
-from gtl_messages.gtl_port.gapm_task import GAPM_MSG_ID, gapm_reset_cmd, gapm_cmp_evt, GAPM_OPERATION, gapm_set_dev_config_cmd  # TODO perhaps these Gapm messages do not belong here
+
+# TODO perhaps these Gapm messages do not belong here
+from gtl_messages.gtl_port.gapm_task import GAPM_MSG_ID, gapm_reset_cmd, gapm_cmp_evt, GAPM_OPERATION, gapm_set_dev_config_cmd
 from gtl_messages.gtl_port.gapc_task import GAPC_MSG_ID
 from gtl_messages.gtl_port.gattc_task import GATTC_MSG_ID
 from gtl_messages.gtl_port.gap import GAP_ROLE
 from BleDevParams import BleDevParamsDefault
 from gtl_messages.gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 
+# this is from ble_config.h
 dg_configBLE_DATA_LENGTH_TX_MAX = (251)
 
 
@@ -26,15 +29,23 @@ class GtlWaitQueueElement():
         self.cb = cb
         self.param = param
 
+
+class GtlWaitQueue():
+    def __init__(self) -> None:
+        self.queue = []
+        self.len = 0
+
+    # TODO push/pop and match methods rather than using q and len direct
+
+
+'''
 # from ad_ble.h
-
-
 class ad_ble_operations(IntEnum):
     AD_BLE_OP_CMP_EVT = 0x00
     AD_BLE_OP_INIT_CMD = 0x01
     AD_BLE_OP_RESET_CMD = 0x02
     AD_BLE_OP_LAST = auto()
-#end ad_ble.h
+# end ad_ble.h
 
 
 # from ble_mgr_ad_msg.c
@@ -50,12 +61,12 @@ class WaitQueueElement():
         self.param = param
 
 # end ble_mgr_ad_msg.c
+'''
 
 
 # FROM BLE_COMMON.h
 # BLE stack status
 class BLE_STATUS(IntEnum):
-
     BLE_IS_DISABLED = 0x00
     BLE_IS_ENABLED = 0x01
     BLE_IS_BUSY = 0x02
@@ -87,6 +98,7 @@ class BLE_ERROR(IntEnum):
     BLE_ERROR_DIFF_TRANS_COLLISION = 0x14,    # Different transaction collision
 
 
+'''
 class ble_mgr_msg_hdr():
     def __init__(self,
                  op_code: c_uint16,  # TODO this should be enum?
@@ -95,16 +107,16 @@ class ble_mgr_msg_hdr():
         self.op_code = op_code
         self.msg_len = msg_len
         self.payload = payload
+'''
 
 
-class BLE_CMD_CAT(IntEnum): 
+class BLE_CMD_CAT(IntEnum):
     BLE_MGR_COMMON_CMD_CAT = 0x00
     BLE_MGR_GAP_CMD_CAT = 0x01
     BLE_MGR_GATTS_CMD_CAT = 0x02
     BLE_MGR_GATTC_CMD_CAT = 0x03
     BLE_MGR_L2CAP_CMD_CAT = 0x04
     BLE_MGR_LAST_CMD_CAT = auto()
-
 # end FROM BLE_COMMON.h
 
 
@@ -117,12 +129,6 @@ class BLE_MGR_COMMON_CMD_OPCODE(IntEnum):
     BLE_MGR_COMMON_READ_TX_POWER_CMD = auto()
     BLE_MGR_COMMON_LAST_CMD = auto()
 # end ble_mgr_cmd.h
-
-
-class GtlWaitQueue():
-    def __init__(self) -> None:
-        self.queue = []
-        self.len = 0
 
 
 class BleManager():
@@ -142,7 +148,7 @@ class BleManager():
         self.adapter_commnand_q = adapter_command_q if adapter_command_q else asyncio.Queue()
         self.adapter_event_q = adapter_event_q if adapter_event_q else asyncio.Queue()
         self.event_notif = event_notif if event_notif else asyncio.Event()
-        self.wait_q = GtlWaitQueue() # asyncio.Queue()
+        self.wait_q = GtlWaitQueue()
         self.dev_params = BleDevParamsDefault()
         self.ble_stack_initialized = False
         self._reset_signal = asyncio.Event()
@@ -214,17 +220,18 @@ class BleManager():
 
     def gap_role_set_handler(self, role: GAP_ROLE):
 
-        print(f"gap_role_set_handler")
+        print("gap_role_set_handler")
 
         dev_params_gtl = self.dev_params_to_gtl()
         dev_params_gtl.parameters.role = role
-        self._wait_queue_add(0xFFFF, GAPM_MSG_ID.GAPM_CMP_EVT, GAPM_OPERATION.GAPM_SET_DEV_CONFIG, self._gapm_set_role_rsp, role)  # really need to crewate a wait queue item here to call a callback
+        # TODO rethink how wait queue item added
+        self._wait_queue_add(0xFFFF, GAPM_MSG_ID.GAPM_CMP_EVT, GAPM_OPERATION.GAPM_SET_DEV_CONFIG, self._gapm_set_role_rsp, role)
         self.adapter_commnand_q.put_nowait(dev_params_gtl)
 
     def gap_adv_start_cmd_handler(self, adv_type: GAPM_OPERATION = GAPM_OPERATION.GAPM_ADV_UNDIRECT):
 
         response = BLE_ERROR.BLE_ERROR_FAILED
-        print(f"gap_adv_start_cmd_handler")
+        print("gap_adv_start_cmd_handler")
         # TODO error checks
         # Check if an advertising operation is already in progress
         # Check if length of advertising data is within limits
@@ -259,7 +266,7 @@ class BleManager():
 
     def _gapm_set_role_rsp(self, message: GtlMessageBase, param: GAP_ROLE = GAP_ROLE.GAP_ROLE_NONE):
 
-        print(f"_gapm_set_role_rsp")
+        print("_gapm_set_role_rsp")
         event: gapm_cmp_evt = message.parameters
         response = BLE_ERROR.BLE_ERROR_FAILED
 
@@ -334,5 +341,3 @@ class BleManager():
 
     def _task_to_connidx(self, task_id):
         return task_id >> 8
-
-
