@@ -72,12 +72,12 @@ class BleMgrCommonResetCmd(BleMgrMsgHeader):
 
 class BleManagerBase():
     def __init__(self,
-                 adapter_command_q: asyncio.Queue(),
-                 app_response_q: asyncio.Queue(),
-                 wait_q: GtlWaitQueue()) -> None:
+                 adapter_command_q: asyncio.Queue[BleMgrMsgHeader],
+                 app_response_q: asyncio.Queue[BLE_ERROR],
+                 wait_q: GtlWaitQueue) -> None:
 
-        self.adapter_command_q: asyncio.Queue() = adapter_command_q
-        self.app_response_q: asyncio.Queue() = app_response_q
+        self.adapter_command_q: asyncio.Queue[BleMgrMsgHeader] = adapter_command_q
+        self.app_response_q: asyncio.Queue[BLE_ERROR] = app_response_q
         self.wait_q: GtlWaitQueue = wait_q
         self.handlers = {}
 
@@ -92,8 +92,8 @@ class BleManagerBase():
 class BleManagerCommon(BleManagerBase):
 
     def __init__(self,
-                 adapter_command_q: asyncio.Queue(),
-                 app_response_q: asyncio.Queue(),
+                 adapter_command_q: asyncio.Queue[BleMgrMsgHeader],
+                 app_response_q: asyncio.Queue[BLE_ERROR],
                  wait_q: GtlWaitQueue()) -> None:
 
         # By using base class lost queue autocomplete in other functions

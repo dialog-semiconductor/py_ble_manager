@@ -1,8 +1,6 @@
 import asyncio
-from Gap import GapController, GapManager
-from MessageRouter import MessageRouter
 from SerialStreamManager import SerialStreamManager
-from MessageRouter import MessageParser
+from MessageParser import MessageParser
 from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gapm import GapmResetCmd
 from gtl_messages.gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, gapm_reset_cmd
@@ -59,24 +57,19 @@ class ad_ble_msg(LittleEndianStructure):
 
 class BleAdapter():
 
-    def __init__(self, com_port: str, command_q: asyncio.Queue(), event_q: asyncio.Queue()) -> None:
+    def __init__(self, com_port: str, command_q: asyncio.Queue[GtlMessageBase], event_q: asyncio.Queue[GtlMessageBase]) -> None:
 
         self.event_observers = []
         self.message_parser = MessageParser()
-        self.command_q = command_q if command_q else asyncio.Queue()
-        self.event_q = event_q if event_q else asyncio.Queue()
+        self.command_q: asyncio.Queue[GtlMessageBase] = command_q
+        self.event_q: asyncio.Queue[GtlMessageBase] = event_q
         self.ble_stack_initialized = False
 
         self.com_port = com_port
-        self.serial_tx_queue = asyncio.Queue()
-        self.serial_rx_queue = asyncio.Queue()
+        self.serial_tx_queue: asyncio.Queue[bytes] = asyncio.Queue()
+        self.serial_rx_queue: asyncio.Queue[bytes] = asyncio.Queue()
 
-        self.message_router = MessageRouter(self.serial_tx_queue, self.serial_rx_queue)
         self.serial_stream_manager = SerialStreamManager(self.serial_tx_queue, self.serial_rx_queue)
-        self.gap_manager = GapManager()
-        self.gap_controller = GapController()
-        self.message_router.register_observer(self.gap_manager.handle_message)
-        self.message_router.register_observer(self.gap_controller.handle_message)
 
     async def _adapter_task(self):
 
@@ -84,14 +77,12 @@ class BleAdapter():
         self._rx_task = asyncio.create_task(self._read_serial_rx_queue(), name='BleAdapterRx')
 
         pending = [self._tx_task, self._rx_task]
-        # TODO any setup needed
+
         while True:
-            print("Ble Adapter waiting on something to happen")
             done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
 
             for task in done:
                 result = task.result()
-                print(f"Ble Adapter handling completed task {task}. result={result}")
 
                 if isinstance(result, GtlMessageBase):
                     # This is from Ble Manager command queue
@@ -105,7 +96,7 @@ class BleAdapter():
                     self._process_serial_rx_queue(result)
                     self._rx_task = asyncio.create_task(self._read_serial_rx_queue(), name='BleAdapterRx')
                     pending.add(self._rx_task)
-    
+
     def _create_reset_command(self):
         return GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
 
@@ -116,16 +107,16 @@ class BleAdapter():
         return await self.serial_rx_queue.get()
 
     def _process_command_queue(self, command: GtlMessageBase):
-        self.serial_tx_queue.put_nowait(command)
+        self._send_serial_message(command)
 
     def _process_serial_rx_queue(self, byte_string: bytes):
         msg = self.message_parser.decode_from_bytes(byte_string)
         print(f"<-- Rx: {msg}\n")
 
         if msg.msg_id == GAPM_MSG_ID.GAPM_DEVICE_READY_IND:
-            # Reset the BLE Stack
-            response = self._create_reset_command()
-            self.serial_tx_queue.put_nowait(response)
+            # Reset the BLE Stacks
+            command = self._create_reset_command()
+            self._send_serial_message(command)
 
         elif msg.msg_id == GAPM_MSG_ID.GAPM_CMP_EVT:
             self.ble_stack_initialized = True
@@ -133,6 +124,9 @@ class BleAdapter():
 
         else:
             self.event_q.put_nowait(msg)
+
+    def _send_serial_message(self, message: GtlMessageBase):
+        self.serial_tx_queue.put_nowait(message.to_bytes())
 
     def init(self):
         self._task = asyncio.create_task(self._adapter_task(), name='BleAdapterTask')
