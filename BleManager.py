@@ -12,8 +12,8 @@ from gtl_messages.gtl_port.gap import GAP_ROLE
 from BleDevParams import BleDevParamsDefault
 from gtl_messages.gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from GtlWaitQueue import GtlWaitQueue, GtlWaitQueueElement
-from BleCommon import BLE_ERROR, BLE_STATUS, BLE_MGR_CMD_CAT
-from BleManagerGap import BleManagerGap, BLE_CMD_GAP_OPCODE, BleSubManager, BleMgrMsgHeader, BleMgrGapRoleSetCmd
+from BleCommon import BLE_ERROR, BLE_STATUS, BLE_MGR_CMD_CAT, BleManagerBase
+from BleManagerGap import BleManagerGap, BLE_CMD_GAP_OPCODE, BleMgrMsgHeader, BleMgrGapRoleSetCmd
 
 # this is from ble_config.h
 dg_configBLE_DATA_LENGTH_TX_MAX = (251)
@@ -64,7 +64,7 @@ class BleMgrCmdFactory():
 '''
 
 
-class BleManager():
+class BleManager(BleManagerBase):
 
     def __init__(self,
                  app_command_q: asyncio.Queue(),
@@ -104,11 +104,10 @@ class BleManager():
 
     async def manager_task(self):
 
-        command_q_task = asyncio.create_task(self._read_command_queue(), name='BleManagerReadCommandQueueTask')
-        event_q_task = asyncio.create_task(self._read_event_queue(), name='BleManagerReadEventQueueTask')
+        self._command_q_task = asyncio.create_task(self._read_command_queue(), name='BleManagerReadCommandQueueTask')
+        self._event_q_task = asyncio.create_task(self._read_event_queue(), name='BleManagerReadEventQueueTask')
 
-        pending = [command_q_task, event_q_task]
-        # TODO any setup needed
+        pending = [self._command_q_task, self._event_q_task]
         while True:
             print("BleManager waiting on something to happen")
             done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
@@ -120,17 +119,14 @@ class BleManager():
                 if isinstance(result, GtlMessageBase):
                     # This is from the adapter_event_q
                     self._process_event_queue(result)
-                    # TODO check if more messages in adapter event q and process them.
-                    event_q_task = asyncio.create_task(self._read_event_queue(), name='BleManagerReadEventQueueTask')
-                    pending.add(event_q_task)
+                    self._event_q_task = asyncio.create_task(self._read_event_queue(), name='BleManagerReadEventQueueTask')
+                    pending.add(self._event_q_task)
 
                 elif isinstance(result, BleMgrMsgHeader):
-                    print("IS BleMgrMsgHeader")
                     # This is from the api_command_q
                     self._process_command_queue(result)
-                    # TODO check if more messages in api_command_q and process them.
-                    command_q_task = asyncio.create_task(self._read_command_queue(), name='BleManagerReadCommandQueueTask')
-                    pending.add(command_q_task)
+                    self._command_q_task = asyncio.create_task(self._read_command_queue(), name='BleManagerReadCommandQueueTask')
+                    pending.add(self._command_q_task)
 
     async def _read_command_queue(self):
         # TODO can we ditch event signal and just read queue?
@@ -165,7 +161,7 @@ class BleManager():
         category = command.opcode >> 8
 
         # handler_type: dict = self.handlers.get(category)
-        mgr: BleSubManager = self.handlers.get(category)
+        mgr: BleManagerBase = self.handlers.get(category)
         handler = mgr.handlers.get(command.opcode)
 
         print(BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ROLE_SET_CMD.value)

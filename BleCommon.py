@@ -1,4 +1,6 @@
+import asyncio
 from enum import IntEnum, auto
+from GtlWaitQueue import GtlWaitQueue, GtlWaitQueueElement
 
 
 class BLE_STATUS(IntEnum):
@@ -40,3 +42,19 @@ class BLE_MGR_CMD_CAT(IntEnum):
     BLE_MGR_GATTC_CMD_CAT = 0x03
     BLE_MGR_L2CAP_CMD_CAT = 0x04
     BLE_MGR_LAST_CMD_CAT = auto()
+
+
+class BleManagerBase():
+    def __init__(self,
+                 adapter_command_q: asyncio.Queue(),
+                 app_response_q: asyncio.Queue(),
+                 wait_q: GtlWaitQueue()) -> None:
+
+        self.adapter_command_q: asyncio.Queue() = adapter_command_q
+        self.app_response_q: asyncio.Queue() = app_response_q
+        self.wait_q: GtlWaitQueue = wait_q
+        self.handlers = {}
+
+    def _wait_queue_add(self, conn_idx, msg_id, ext_id, cb, param):
+        item = GtlWaitQueueElement(conn_idx=conn_idx, msg_id=msg_id, ext_id=ext_id, cb=cb, param=param)
+        self.wait_q.push(item)

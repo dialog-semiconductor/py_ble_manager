@@ -12,7 +12,7 @@ from gtl_messages.gtl_port.gap import GAP_ROLE
 from BleDevParams import BleDevParamsDefault
 from gtl_messages.gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from GtlWaitQueue import GtlWaitQueue, GtlWaitQueueElement
-from BleCommon import BLE_ERROR, BLE_STATUS, BLE_MGR_CMD_CAT
+from BleCommon import BLE_ERROR, BLE_STATUS, BLE_MGR_CMD_CAT, BleManagerBase
 
 
 # this is from ble_config.h
@@ -87,30 +87,15 @@ class BLE_CMD_GAP_OPCODE(IntEnum):
     BLE_MGR_GAP_LAST_CMD = auto()
 
 
-class BleSubManager():
-    def __init__(self,
-                 adapter_command_q: asyncio.Queue(),
-                 app_response_q: asyncio.Queue(),
-                 mgr_wait_q: GtlWaitQueue()) -> None:
-
-        self.adapter_command_q = adapter_command_q if adapter_command_q else asyncio.Queue()
-        self.app_response_q = app_response_q if app_response_q else asyncio.Queue()
-        self.mgr_wait_q = mgr_wait_q if mgr_wait_q else GtlWaitQueue()
-        self.handlers = {}
-
-    def _wait_queue_add(self, conn_idx, msg_id, ext_id, cb, param):
-        item = GtlWaitQueueElement(conn_idx=conn_idx, msg_id=msg_id, ext_id=ext_id, cb=cb, param=param)
-        self.mgr_wait_q.push(item)
-
-
-class BleManagerGap(BleSubManager):
+class BleManagerGap(BleManagerBase):
 
     def __init__(self,
                  adapter_command_q: asyncio.Queue(),
                  app_response_q: asyncio.Queue(),
-                 mgr_wait_q: GtlWaitQueue()) -> None:
+                 wait_q: GtlWaitQueue()) -> None:
 
-        super().__init__(adapter_command_q, app_response_q, mgr_wait_q)
+        # By using base class lost queue autocomplete in other functions
+        super().__init__(adapter_command_q, app_response_q, wait_q)
         self.dev_params = BleDevParamsDefault()
 
         self.handlers = {
@@ -123,7 +108,6 @@ class BleManagerGap(BleSubManager):
         print("gap_role_set_handler")
 
         dev_params_gtl = self.dev_params_to_gtl()
-        # TODO getting error at role
         dev_params_gtl.parameters.role = command.role
         self._wait_queue_add(0xFFFF, GAPM_MSG_ID.GAPM_CMP_EVT, GAPM_OPERATION.GAPM_SET_DEV_CONFIG, self._gapm_set_role_rsp, command.role)
         self.adapter_command_q.put_nowait(dev_params_gtl)
