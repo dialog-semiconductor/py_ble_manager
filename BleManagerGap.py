@@ -361,7 +361,7 @@ class BleManagerGap(BleManagerBase):
 
         gtl_role = GAP_ROLE.GAP_ROLE_NONE
 
-# if (dg_configBLE_CENTRAL == 1)
+# if (dg_configBLE_CENTRAL == 1)  # TODO handle if defs
         if (role & BLE_GAP_ROLE.GAP_CENTRAL_ROLE):
             gtl_role |= GAP_ROLE.GAP_ROLE_CENTRAL
 
@@ -384,7 +384,6 @@ class BleManagerGap(BleManagerBase):
 
         return gtl_role
 
-
     def _dev_params_to_gtl(self) -> GapmSetDevConfigCmd:
         gtl = GapmSetDevConfigCmd()
         gtl.parameters.role = self._ble_role_to_gtl_role(self.dev_params.role)  # TODO sdk has a function for this
@@ -401,11 +400,10 @@ class BleManagerGap(BleManagerBase):
 
         return gtl
 
-    def _set_role_rsp(self, message: GtlMessageBase, param: GAP_ROLE = GAP_ROLE.GAP_ROLE_NONE):
+    def _set_role_rsp(self, message: GtlMessageBase, param: BLE_GAP_ROLE = BLE_GAP_ROLE.GAP_NO_ROLE):
         event: gapm_cmp_evt = message.parameters
         response = BLE_ERROR.BLE_ERROR_FAILED
 
-        # TODO do we need separate BLE ERROR enum at all?
         match event.status:
             case HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
                 self.dev_params.role = param
