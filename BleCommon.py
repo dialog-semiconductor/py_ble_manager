@@ -60,23 +60,23 @@ class BLE_MGR_COMMON_CMD_OPCODE(IntEnum):
 BLE_CONN_IDX_INVALID = 0xFFFF
 
 
-class BleMgrMsgHeader():
+class BleMgrMsgBase():
     def __init__(self, opcode) -> None:
         self.opcode = opcode
 
 
-class BleMgrCommonResetCmd(BleMgrMsgHeader):
+class BleMgrCommonResetCmd(BleMgrMsgBase):
     def __init__(self) -> None:
         super().__init__(opcode=BLE_MGR_COMMON_CMD_OPCODE.BLE_MGR_COMMON_RESET_CMD)
 
 
 class BleManagerBase():
     def __init__(self,
-                 adapter_command_q: asyncio.Queue[BleMgrMsgHeader],
+                 adapter_command_q: asyncio.Queue[BleMgrMsgBase],
                  app_response_q: asyncio.Queue[BLE_ERROR],
                  wait_q: GtlWaitQueue) -> None:
 
-        self.adapter_command_q: asyncio.Queue[BleMgrMsgHeader] = adapter_command_q
+        self.adapter_command_q: asyncio.Queue[BleMgrMsgBase] = adapter_command_q
         self.app_response_q: asyncio.Queue[BLE_ERROR] = app_response_q
         self.wait_q: GtlWaitQueue = wait_q
         self.handlers = {}
@@ -92,11 +92,10 @@ class BleManagerBase():
 class BleManagerCommon(BleManagerBase):
 
     def __init__(self,
-                 adapter_command_q: asyncio.Queue[BleMgrMsgHeader],
+                 adapter_command_q: asyncio.Queue[BleMgrMsgBase],
                  app_response_q: asyncio.Queue[BLE_ERROR],
                  wait_q: GtlWaitQueue()) -> None:
 
-        # By using base class lost queue autocomplete in other functions
         super().__init__(adapter_command_q, app_response_q, wait_q)
 
         self.handlers = {
@@ -117,3 +116,16 @@ class BleManagerCommon(BleManagerBase):
         # TODO set dev_params status to BLE_IS_RESET
         self._wait_queue_add(BLE_CONN_IDX_INVALID, GAPM_MSG_ID.GAPM_CMP_EVT, GAPM_OPERATION.GAPM_RESET, self._reset_rsp_handler, None)
         self.adapter_command_q.put_nowait(self._create_reset_command())
+
+
+'''
+static const ble_mgr_cmd_handler_t h_common[BLE_MGR_CMD_GET_IDX(BLE_MGR_COMMON_LAST_CMD)] = {
+        ble_mgr_common_stack_msg_handler,
+        ble_mgr_common_register_cmd_handler,
+#ifndef BLE_STACK_PASSTHROUGH_MODE
+        ble_mgr_common_enable_cmd_handler,
+        ble_mgr_common_reset_cmd_handler,
+        ble_mgr_common_read_tx_power_cmd_handler,
+#endif
+};
+'''

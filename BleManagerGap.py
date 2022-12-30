@@ -1,31 +1,31 @@
 import asyncio
-from ctypes import c_uint16, c_uint8, Array
+# from ctypes import c_uint16, c_uint8, Array
 from enum import IntEnum, auto
 from gtl_messages.gtl_message_base import GtlMessageBase
-from gtl_messages.gtl_message_gapm import GapmResetCmd, GapmSetDevConfigCmd, GapmStartAdvertiseCmd
+from gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd  # GapmResetCmd
 
 # TODO perhaps these Gapm messages do not belong here
-from gtl_messages.gtl_port.gapm_task import GAPM_MSG_ID, gapm_reset_cmd, gapm_cmp_evt, GAPM_OPERATION, gapm_set_dev_config_cmd
-from gtl_messages.gtl_port.gapc_task import GAPC_MSG_ID
-from gtl_messages.gtl_port.gattc_task import GATTC_MSG_ID
+from gtl_messages.gtl_port.gapm_task import GAPM_MSG_ID, gapm_cmp_evt, GAPM_OPERATION  # gapm_set_dev_config_cmd, gapm_reset_cmd
+# from gtl_messages.gtl_port.gapc_task import GAPC_MSG_ID
+# from gtl_messages.gtl_port.gattc_task import GATTC_MSG_ID
 from gtl_messages.gtl_port.gap import GAP_ROLE
 from BleDevParams import BleDevParamsDefault
 from gtl_messages.gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
-from GtlWaitQueue import GtlWaitQueue, GtlWaitQueueElement
-from BleCommon import BLE_ERROR, BLE_STATUS, BLE_MGR_CMD_CAT, BleManagerBase, BleMgrMsgHeader
+from GtlWaitQueue import GtlWaitQueue  # GtlWaitQueueElement
+from BleCommon import BLE_ERROR, BLE_MGR_CMD_CAT, BleManagerBase, BleMgrMsgBase  # BLE_STATUS
 
 
 # this is from ble_config.h
 dg_configBLE_DATA_LENGTH_TX_MAX = (251)
 
 
-class BleMgrGapRoleSetCmd(BleMgrMsgHeader):
+class BleMgrGapRoleSetCmd(BleMgrMsgBase):
     def __init__(self, role: GAP_ROLE = GAP_ROLE.GAP_ROLE_NONE) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ROLE_SET_CMD)
         self.role = role
 
 
-class BleMgrGapAdvStartCmd(BleMgrMsgHeader):
+class BleMgrGapAdvStartCmd(BleMgrMsgBase):
     def __init__(self, adv_type: GAPM_OPERATION = GAPM_OPERATION.GAPM_ADV_UNDIRECT) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_START_CMD)
         self.adv_type = adv_type  # TODO raise error on bad arg
@@ -77,7 +77,6 @@ class BLE_CMD_GAP_OPCODE(IntEnum):
     BLE_MGR_GAP_PATH_LOSS_REPORT_EN_CMD = auto()
     BLE_MGR_GAP_TX_PWR_REPORT_EN_CMD = auto()
     BLE_MGR_GAP_RF_PATH_COMPENSATION_SET_CMD = auto()
-    # Dummy command opcode = auto() needs to be always defined after all commands
     BLE_MGR_GAP_LAST_CMD = auto()
 
 
@@ -88,7 +87,6 @@ class BleManagerGap(BleManagerBase):
                  app_response_q: asyncio.Queue(),
                  wait_q: GtlWaitQueue()) -> None:
 
-        # By using base class lost queue autocomplete in other functions
         super().__init__(adapter_command_q, app_response_q, wait_q)
         self.dev_params = BleDevParamsDefault()
 
@@ -175,7 +173,7 @@ class BleManagerGap(BleManagerBase):
 
 
 '''
-# TODO 
+# TODO
 static const ble_mgr_cmd_handler_t h_gap[BLE_MGR_CMD_GET_IDX(BLE_MGR_GAP_LAST_CMD)] = {
         ble_mgr_gap_address_set_cmd_handler,
         ble_mgr_gap_device_name_set_cmd_handler,
