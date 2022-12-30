@@ -126,6 +126,7 @@ class BleAdapter():
             self.event_q.put_nowait(msg)
 
     def _send_serial_message(self, message: GtlMessageBase):
+        print(f"--> Tx: {message}\n")
         self.serial_tx_queue.put_nowait(message.to_bytes())
 
     def init(self):
@@ -134,12 +135,9 @@ class BleAdapter():
         self.serial_tx_task = asyncio.create_task(self.serial_stream_manager.send(), name='SerialStreamTx')
         self.serial_rx_task = asyncio.create_task(self.serial_stream_manager.receive(), name='SerialStreamRx')
 
-        print(f"{type(self)} Exiting init")
-
     async def open_serial_port(self):
         try:
             await asyncio.wait_for(self.serial_stream_manager.open_port(self.com_port), timeout=5)
-            print(f"{type(self)} We are exiting open_serial_port")
 
         except asyncio.TimeoutError:
             print(f"{type(self)} failed to open {self.com_port}")

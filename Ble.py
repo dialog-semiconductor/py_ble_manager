@@ -49,17 +49,12 @@ class BlePeripheral(BleBase):
 
     async def init(self) -> None:
         try:
-            print("Opening serial port")
             # Open the serial port the the 531
             await self.ble_adapter.open_serial_port()
-            print("Serial port opened. Starting always running tasks")
-
-            # TODO need to start a BleManager task
 
             # Start always running BLE tasks
             self.ble_manager.init()
             self.ble_adapter.init()
-            print("Tasks started")
 
         except asyncio.TimeoutError as e:
             raise e
@@ -67,15 +62,9 @@ class BlePeripheral(BleBase):
     async def start(self) -> BLE_ERROR:
 
         error = BLE_ERROR.BLE_ERROR_FAILED
-
         error = await self._ble_reset()
-        print(f"we have reset!!! error={error.name}, error={error}")
         if error == BLE_ERROR.BLE_STATUS_OK:
-
             error = await self._gap_role_set(GAP_ROLE.GAP_ROLE_PERIPHERAL)
-            print("start: returned from gap_role_set")
-
-        print(f"after if statement. error={error.name}")
 
         return error
 
