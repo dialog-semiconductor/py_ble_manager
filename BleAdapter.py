@@ -59,15 +59,13 @@ class ad_ble_msg(LittleEndianStructure):
 
 class BleAdapter():
 
-    def __init__(self, com_port: str, command_q: asyncio.Queue(), event_q: asyncio.Queue(), event_signal: asyncio.Event()) -> None:
+    def __init__(self, com_port: str, command_q: asyncio.Queue(), event_q: asyncio.Queue()) -> None:
 
         self.event_observers = []
         self.message_parser = MessageParser()
         self.command_q = command_q if command_q else asyncio.Queue()
         self.event_q = event_q if event_q else asyncio.Queue()
-        self.event_signal = event_signal if event_signal else asyncio.Event()
         self.ble_stack_initialized = False
-        self.reset_signal = asyncio.Event()
 
         self.com_port = com_port
         self.serial_tx_queue = asyncio.Queue()
@@ -81,20 +79,6 @@ class BleAdapter():
         self.message_router.register_observer(self.gap_controller.handle_message)
 
     def init(self):
-        # TaskGroup is in 3.11
-        # async with asyncio.TaskGroup() as tg:
-        #    task1 = tg.create_task(coroutine1,)
-        #    task2 = tg.create_task(another_coroutine(...))
-
-        # TODO move these below open port???
-
-        # TODO this should be a call to the gap manager, but it does not currently know about the message router.
-        # Need message router register observer with GAP classes to direct outgoing traffic
-        # This assumes 531 running _ext project already. Should wait for a timeout on return message (GapmCmpEvt operation = 1)
-        # self.message_router.send_message(GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET)))
-        # Wait until the port is open before starting any other coroutines
-
-        # TODO keeping handles so these can be cancelled somehow
         self._task = asyncio.create_task(self.adapter_task(), name='BleAdapterTask')
 
         self.serial_tx_task = asyncio.create_task(self.serial_stream_manager.send(), name='SerialStreamTx')
@@ -138,49 +122,32 @@ class BleAdapter():
                     self._rx_task = asyncio.create_task(self._read_serial_rx_queue(), name='BleAdapterRx')
                     pending.add(self._rx_task)
 
-    async def _read_command_queue(self):
-        item = await self.command_q.get()
-        return item
+    async def _read_command_queue(self) -> GtlMessageBase:
+        return await self.command_q.get()
 
     def _process_command_queue(self, command: GtlMessageBase):
         self.serial_tx_queue.put_nowait(command)
 
-        ''' Dont think this necessary. SDK does this as it uses notifcations, cant get multiple notifications at once.
-        Can keep reading queue though 
-        while not self.command_q.empty():
-            command = self.command_q.get_nowait()
-            if command:
-                self.serial_tx_queue.put_nowait(command)
-        '''
-
-    async def _read_serial_rx_queue(self):
-        byte_string = await self.serial_rx_queue.get()
-        return byte_string
+    async def _read_serial_rx_queue(self) -> bytes:
+        return await self.serial_rx_queue.get()
 
     def _process_serial_rx_queue(self, byte_string: bytes):
-
         msg = self.message_parser.decode_from_bytes(byte_string)
         print(f"<-- Rx: {msg}\n")
 
-        # TODO these two if clauses are adapter messages (vs stack messages)
-        # this should match up with ad_ble_stack_write()?
-        # TODO GAPM_CMP_EVT should be sent to BleManager so it knows BleStack ready
         if msg.msg_id == GAPM_MSG_ID.GAPM_DEVICE_READY_IND:
             # Reset the BLE Stack
-            response = GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET)) 
+            response = self._create_reset_command()
             self.serial_tx_queue.put_nowait(response)
 
         elif msg.msg_id == GAPM_MSG_ID.GAPM_CMP_EVT:
             self.ble_stack_initialized = True
             self.event_q.put_nowait(msg)  # Not making an adapter msg, just forwarding to manager
-            self.event_signal.set()
 
-            # TODO send AD_BLE_OP_CMP_EVT to BleManager
-        if msg.msg_id != GAPM_MSG_ID.GAPM_CMP_EVT and msg.msg_id != GAPM_MSG_ID.GAPM_DEVICE_READY_IND:
-            self.event_q.put_nowait(msg)  # seems this could be combined with above elif. TODO combine adding to queue with setting event
-            self.event_signal.set()
+        else:
+            self.event_q.put_nowait(msg)
 
-    def ble_reset(self):
-        self.serial_tx_queue.put_nowait(self.gap_manager.create_reset_command())
+    def _create_reset_command(self):
+        return GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
 
 # TODO get rid of message router? Send things to this class? Handle default events here. If cannot, send to BleManager to handle

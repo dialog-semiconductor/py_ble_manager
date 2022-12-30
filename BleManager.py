@@ -12,7 +12,7 @@ from gtl_messages.gtl_port.gap import GAP_ROLE
 from BleDevParams import BleDevParamsDefault
 from gtl_messages.gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from GtlWaitQueue import GtlWaitQueue, GtlWaitQueueElement
-from BleCommon import BLE_ERROR, BLE_STATUS, BLE_MGR_CMD_CAT, BleManagerBase
+from BleCommon import BLE_ERROR, BLE_STATUS, BLE_MGR_CMD_CAT, BleManagerBase, BleManagerCommon
 from BleManagerGap import BleManagerGap, BLE_CMD_GAP_OPCODE, BleMgrMsgHeader, BleMgrGapRoleSetCmd
 
 # this is from ble_config.h
@@ -71,8 +71,7 @@ class BleManager(BleManagerBase):
                  app_response_q: asyncio.Queue(),
                  app_event_q: asyncio.Queue(),
                  adapter_command_q: asyncio.Queue(),
-                 adapter_event_q: asyncio.Queue(),
-                 event_notif: asyncio.Event()) -> None:
+                 adapter_event_q: asyncio.Queue()) -> None:
 
         # TODO if x else y is so vscode will treat variable as that item for auto complete
         self.app_command_q: asyncio.Queue = app_command_q
@@ -80,15 +79,14 @@ class BleManager(BleManagerBase):
         self.app_event_q: asyncio.Queue = app_event_q
         self.adapter_commnand_q: asyncio.Queue = adapter_command_q
         self.adapter_event_q: asyncio.Queue = adapter_event_q
-        self.event_notif: asyncio.Event = event_notif
         self.wait_q = GtlWaitQueue()
         self.dev_params = BleDevParamsDefault()
         self.ble_stack_initialized = False
-        self._reset_signal: asyncio.Event = asyncio.Event()
         self.gap_mgr = BleManagerGap(self.adapter_commnand_q, self.app_response_q, self.wait_q)
+        self.common_mgr = BleManagerCommon(self.adapter_commnand_q, self.app_response_q, self.wait_q)
 
         self.handlers = {
-            BLE_MGR_CMD_CAT.BLE_MGR_COMMON_CMD_CAT: None,
+            BLE_MGR_CMD_CAT.BLE_MGR_COMMON_CMD_CAT: self.common_mgr,
             BLE_MGR_CMD_CAT.BLE_MGR_GAP_CMD_CAT: self.gap_mgr,
             BLE_MGR_CMD_CAT.BLE_MGR_GATTS_CMD_CAT: None,
             BLE_MGR_CMD_CAT.BLE_MGR_GATTC_CMD_CAT: None,
@@ -128,28 +126,15 @@ class BleManager(BleManagerBase):
                     self._command_q_task = asyncio.create_task(self._read_command_queue(), name='BleManagerReadCommandQueueTask')
                     pending.add(self._command_q_task)
 
-    async def _read_command_queue(self):
-        # TODO can we ditch event signal and just read queue?
+    async def _read_command_queue(self) -> BleMgrMsgHeader:
+        return await self.app_command_q.get()
 
-        item = await self.app_command_q.get()
-        return item
-
-    async def _read_event_queue(self):
-        # TODO can we ditch event signal and just read queue?
-        await self.event_notif.wait()
-        self.event_notif.clear()
-        # get an item from the queue
-        if not self.adapter_event_q.empty():
-            item: GtlMessageBase = self.adapter_event_q.get_nowait()
-
-            return item
+    async def _read_event_queue(self) -> GtlMessageBase:
+        return await self.adapter_event_q.get()
 
     def _process_event_queue(self, event: GtlMessageBase):
 
         print(f"Ble Manager process_event_queue {event}")
-
-        if event.parameters.operation == GAPM_OPERATION.GAPM_RESET:
-            self._reset_signal.set()
 
         if not self.wait_q.match(event):
             if not self.handle_evt_or_ind(event):
@@ -190,15 +175,6 @@ class BleManager(BleManagerBase):
 
     async def ble_mgr_response_queue_get(self):  # add timeout ?
         return await self.app_response_q.get()
-
-    async def ble_reset(self) -> BLE_ERROR:  # TODO should return error or somethign
-        error = BLE_ERROR.BLE_ERROR_FAILED
-
-        self._reset_signal.clear()
-        self.adapter_commnand_q.put_nowait(GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET)))
-        await self._reset_signal.wait()
-        error = BLE_ERROR.BLE_STATUS_OK
-        return error
 
     async def cmd_execute(self, command, handler: None) -> BLE_ERROR:
         ble_status = self.dev_params.status

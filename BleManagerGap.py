@@ -12,17 +12,11 @@ from gtl_messages.gtl_port.gap import GAP_ROLE
 from BleDevParams import BleDevParamsDefault
 from gtl_messages.gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from GtlWaitQueue import GtlWaitQueue, GtlWaitQueueElement
-from BleCommon import BLE_ERROR, BLE_STATUS, BLE_MGR_CMD_CAT, BleManagerBase
+from BleCommon import BLE_ERROR, BLE_STATUS, BLE_MGR_CMD_CAT, BleManagerBase, BleMgrMsgHeader
 
 
 # this is from ble_config.h
 dg_configBLE_DATA_LENGTH_TX_MAX = (251)
-
-
-# TODO move header to common
-class BleMgrMsgHeader():
-    def __init__(self, opcode) -> None:
-        self.opcode = opcode
 
 
 class BleMgrGapRoleSetCmd(BleMgrMsgHeader):
@@ -99,13 +93,13 @@ class BleManagerGap(BleManagerBase):
         self.dev_params = BleDevParamsDefault()
 
         self.handlers = {
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ROLE_SET_CMD: self.gap_role_set_handler,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ROLE_SET_CMD: self.gap_role_set_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_START_CMD: self.gap_adv_start_cmd_handler
         }
 
-    def gap_role_set_handler(self, command: BleMgrGapRoleSetCmd):
+    def gap_role_set_cmd_handler(self, command: BleMgrGapRoleSetCmd):
 
-        print("gap_role_set_handler")
+        print("gap_role_set_cmd_handler")
 
         dev_params_gtl = self.dev_params_to_gtl()
         dev_params_gtl.parameters.role = command.role
@@ -185,3 +179,46 @@ class BleManagerGap(BleManagerBase):
         gtl.parameters.max_txtime = (dg_configBLE_DATA_LENGTH_TX_MAX + 11 + 3) * 8
 
         return gtl
+
+'''
+# TODO 
+static const ble_mgr_cmd_handler_t h_gap[BLE_MGR_CMD_GET_IDX(BLE_MGR_GAP_LAST_CMD)] = {
+        ble_mgr_gap_address_set_cmd_handler,
+        ble_mgr_gap_device_name_set_cmd_handler,
+        ble_mgr_gap_appearance_set_cmd_handler,
+        ble_mgr_gap_ppcp_set_cmd_handler,
+        ble_mgr_gap_adv_start_cmd_handler,
+        ble_mgr_gap_adv_stop_cmd_handler,
+        ble_mgr_gap_adv_data_set_cmd_handler,
+        ble_mgr_gap_adv_set_perm_id_cmd_handler,
+        ble_mgr_gap_scan_start_cmd_handler,
+        ble_mgr_gap_scan_stop_cmd_handler,
+        ble_mgr_gap_connect_cmd_handler,
+        ble_mgr_gap_connect_cancel_cmd_handler,
+        ble_mgr_gap_disconnect_cmd_handler,
+        ble_mgr_gap_peer_version_get_cmd_handler,
+        ble_mgr_gap_peer_features_get_cmd_handler,
+        ble_mgr_gap_conn_rssi_get_cmd_handler,
+        ble_mgr_gap_role_set_cmd_handler,
+        ble_mgr_gap_mtu_size_set_cmd_handler,
+        ble_mgr_gap_channel_map_set_cmd_handler,
+        ble_mgr_gap_conn_param_update_cmd_handler,
+        ble_mgr_gap_conn_param_update_reply_cmd_handler,
+        ble_mgr_gap_pair_cmd_handler,
+        ble_mgr_gap_pair_reply_cmd_handler,
+        ble_mgr_gap_passkey_reply_cmd_handler,
+        ble_mgr_gap_unpair_cmd_handler,
+        ble_mgr_gap_set_sec_level_cmd_handler,
+#if (dg_configBLE_SKIP_LATENCY_API == 1)
+        ble_mgr_gap_skip_latency_cmd_handler,
+#endif /* (dg_configBLE_SKIP_LATENCY_API == 1) */
+        ble_mgr_gap_data_length_set_cmd_handler,
+#if (dg_configBLE_SECURE_CONNECTIONS == 1)
+        ble_mgr_gap_numeric_reply_cmd_handler,
+#endif /* (dg_configBLE_SECURE_CONNECTIONS == 1) */
+        ble_mgr_gap_address_resolve_cmd_handler,
+#if (dg_configBLE_2MBIT_PHY == 1)
+        ble_mgr_gap_phy_set_cmd_handler,
+#endif /* (dg_configBLE_2MBIT_PHY == 1) */
+};
+'''
