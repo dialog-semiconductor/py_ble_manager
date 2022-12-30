@@ -97,17 +97,23 @@ class BleManagerGap(BleManagerBase):
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_START_CMD: self.gap_adv_start_cmd_handler
         }
 
-    def gap_role_set_cmd_handler(self, command: BleMgrGapRoleSetCmd):
+    def _dev_params_to_gtl(self) -> GapmSetDevConfigCmd:
+        gtl = GapmSetDevConfigCmd()
+        gtl.parameters.role = self.dev_params.role  # TODO sdk has a function for this
+        gtl.parameters.renew_dur = self.dev_params.addr_renew_duration
+        gtl.parameters.att_cfg = self.dev_params.att_db_cfg
+        gtl.parameters.max_mtu = self.dev_params.mtu_size
+        gtl.parameters.max_mps = self.dev_params.mtu_size
+        gtl.parameters.addr.addr[:] = self.dev_params.own_addr.addr.addr
+        # TODO switch on dev_params.addr_type
+        gtl.parameters.addr_type = self.dev_params.own_addr.addr_type
+        gtl.parameters.irk.key[:] = self.dev_params.irk.key
+        gtl.parameters.max_txoctets = dg_configBLE_DATA_LENGTH_TX_MAX
+        gtl.parameters.max_txtime = (dg_configBLE_DATA_LENGTH_TX_MAX + 11 + 3) * 8
 
-        print("gap_role_set_cmd_handler")
-
-        dev_params_gtl = self.dev_params_to_gtl()
-        dev_params_gtl.parameters.role = command.role
-        self._wait_queue_add(0xFFFF, GAPM_MSG_ID.GAPM_CMP_EVT, GAPM_OPERATION.GAPM_SET_DEV_CONFIG, self._gapm_set_role_rsp, command.role)
-        self.adapter_command_q.put_nowait(dev_params_gtl)
+        return gtl
 
     def _gapm_set_role_rsp(self, message: GtlMessageBase, param: GAP_ROLE = GAP_ROLE.GAP_ROLE_NONE):
-        print("_gapm_set_role_rsp")
         event: gapm_cmp_evt = message.parameters
         response = BLE_ERROR.BLE_ERROR_FAILED
 
@@ -127,10 +133,15 @@ class BleManagerGap(BleManagerBase):
 
         self.app_response_q.put_nowait(response)
 
+    def gap_role_set_cmd_handler(self, command: BleMgrGapRoleSetCmd):
+        dev_params_gtl = self._dev_params_to_gtl()
+        dev_params_gtl.parameters.role = command.role
+        self._wait_queue_add(0xFFFF, GAPM_MSG_ID.GAPM_CMP_EVT, GAPM_OPERATION.GAPM_SET_DEV_CONFIG, self._gapm_set_role_rsp, command.role)
+        self.adapter_command_q.put_nowait(dev_params_gtl)
+
     def gap_adv_start_cmd_handler(self, command: BleMgrGapAdvStartCmd):
 
         response = BLE_ERROR.BLE_ERROR_FAILED
-        print("gap_adv_start_cmd_handler")
         # TODO error checks
         # Check if an advertising operation is already in progress
         # Check if length of advertising data is within limits
@@ -162,23 +173,6 @@ class BleManagerGap(BleManagerBase):
 
         self.app_response_q.put_nowait(response)
 
-        print("Exiting gap_adv_start_cmd_handler")
-
-    def dev_params_to_gtl(self) -> GapmSetDevConfigCmd:
-        gtl = GapmSetDevConfigCmd()
-        gtl.parameters.role = self.dev_params.role  # TODO sdk has a function for this
-        gtl.parameters.renew_dur = self.dev_params.addr_renew_duration
-        gtl.parameters.att_cfg = self.dev_params.att_db_cfg
-        gtl.parameters.max_mtu = self.dev_params.mtu_size
-        gtl.parameters.max_mps = self.dev_params.mtu_size
-        gtl.parameters.addr.addr[:] = self.dev_params.own_addr.addr.addr
-        # TODO switch on dev_params.addr_type
-        gtl.parameters.addr_type = self.dev_params.own_addr.addr_type
-        gtl.parameters.irk.key[:] = self.dev_params.irk.key
-        gtl.parameters.max_txoctets = dg_configBLE_DATA_LENGTH_TX_MAX
-        gtl.parameters.max_txtime = (dg_configBLE_DATA_LENGTH_TX_MAX + 11 + 3) * 8
-
-        return gtl
 
 '''
 # TODO 

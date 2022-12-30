@@ -23,16 +23,6 @@ class GtlWaitQueue():
         self.queue = []
         self.len = 0
 
-    def push(self, elem: GtlWaitQueueElement) -> None:
-        if not isinstance(elem, GtlWaitQueueElement):
-            raise TypeError(f"Element must be of type GtlWaitQueueElement, was {type(elem)}")
-        self.queue.append(elem)
-        self.len += 1
-
-    def remove(self, elem) -> None:
-        self.len -= 1
-        self.queue.remove(elem)
-
     def _task_to_connidx(self, task_id):  # TODO does not seem like an appropriate method for the wait queue to have
         return task_id >> 8
 
@@ -67,3 +57,13 @@ class GtlWaitQueue():
                 break
 
         return ret
+
+    def push(self, elem: GtlWaitQueueElement) -> None:
+        if not isinstance(elem, GtlWaitQueueElement):
+            raise TypeError(f"Element must be of type GtlWaitQueueElement, was {type(elem)}")
+        self.queue.append(elem)
+        self.len += 1
+
+    def remove(self, elem) -> None:
+        self.len -= 1
+        self.queue.remove(elem)

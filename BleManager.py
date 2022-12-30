@@ -93,26 +93,30 @@ class BleManager(BleManagerBase):
             BLE_MGR_CMD_CAT.BLE_MGR_L2CAP_CMD_CAT: None,
         }
 
-    def init(self):
+    def _handle_evt_or_ind(self, message: GtlMessageBase):
 
-        # TODO keeping handles so these can be cancelled somehow
-        self._task = asyncio.create_task(self.manager_task(), name='BleManagerTask')
+        match message.msg_id:
+            case GAPM_MSG_ID.GAPM_CMP_EVT:
+                pass
+            case GAPC_MSG_ID.GAPC_PARAM_UPDATE_CMD:
+                pass
+            case GATTC_MSG_ID.GATTC_CMP_EVT:
+                pass
 
-        print(f"{type(self)} Exiting init")
+        return False
 
-    async def manager_task(self):
+    async def _manager_task(self):
 
         self._command_q_task = asyncio.create_task(self._read_command_queue(), name='BleManagerReadCommandQueueTask')
         self._event_q_task = asyncio.create_task(self._read_event_queue(), name='BleManagerReadEventQueueTask')
 
         pending = [self._command_q_task, self._event_q_task]
+
         while True:
-            print("BleManager waiting on something to happen")
             done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
 
             for task in done:
                 result = task.result()
-                print(f"Ble Manager handling completed task {task}. result={result}")
 
                 if isinstance(result, GtlMessageBase):
                     # This is from the adapter_event_q
@@ -126,55 +130,35 @@ class BleManager(BleManagerBase):
                     self._command_q_task = asyncio.create_task(self._read_command_queue(), name='BleManagerReadCommandQueueTask')
                     pending.add(self._command_q_task)
 
-    async def _read_command_queue(self) -> BleMgrMsgHeader:
-        return await self.app_command_q.get()
+    def _process_command_queue(self, command: BleMgrMsgHeader):
 
-    async def _read_event_queue(self) -> GtlMessageBase:
-        return await self.adapter_event_q.get()
+        category = command.opcode >> 8
+
+        mgr: BleManagerBase = self.handlers.get(category)
+        handler = mgr.handlers.get(command.opcode)
+
+        assert handler  # Should always have a handler
+
+        if handler:
+            handler(command)
 
     def _process_event_queue(self, event: GtlMessageBase):
 
         print(f"Ble Manager process_event_queue {event}")
 
         if not self.wait_q.match(event):
-            if not self.handle_evt_or_ind(event):
+            if not self._handle_evt_or_ind(event):
                 pass
 
-    def _process_command_queue(self, command: BleMgrMsgHeader):
+    async def _read_command_queue(self) -> BleMgrMsgHeader:
+        return await self.app_command_q.get()
 
-        print("Processing command queue")
-        category = command.opcode >> 8
+    async def _read_event_queue(self) -> GtlMessageBase:
+        return await self.adapter_event_q.get()
 
-        # handler_type: dict = self.handlers.get(category)
-        mgr: BleManagerBase = self.handlers.get(category)
-        handler = mgr.handlers.get(command.opcode)
-
-        print(BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ROLE_SET_CMD.value)
-        # print(f"opcode={command.opcode}. cat={category}, handler_type={handler_type}, handler={handler}")
-        print(f"opcode={command.opcode}. cat={category}, mgr={mgr}, handler={handler}")
-        assert handler  # Should always have a handler
-
-        if handler:
-            handler(command)
-        else:
-            print("Handler does not exist")
-
-        print("exiting _process_command_queue")
-
-    def handle_evt_or_ind(self, message: GtlMessageBase):
-
-        match message.msg_id:
-            case GAPM_MSG_ID.GAPM_CMP_EVT:
-                pass
-            case GAPC_MSG_ID.GAPC_PARAM_UPDATE_CMD:
-                pass
-            case GATTC_MSG_ID.GATTC_CMP_EVT:
-                pass
-
-        return False
-
-    async def ble_mgr_response_queue_get(self):  # add timeout ?
-        return await self.app_response_q.get()
+    def init(self):
+        # TODO keeping handles so these can be cancelled somehow
+        self._mgr_task = asyncio.create_task(self._manager_task(), name='BleManagerTask')
 
     async def cmd_execute(self, command, handler: None) -> BLE_ERROR:
         ble_status = self.dev_params.status
@@ -184,16 +168,6 @@ class BleManager(BleManagerBase):
         # handler(command)
 
         self.app_command_q.put_nowait(command)
+        response = await self.self.app_response_q.get()
 
-        response = await self.ble_mgr_response_queue_get()
-
-        print(f"Ble. _ble_cmd_execute: command={command}, \
-                response={BLE_ERROR(response)}, handler={handler}")
         return response
-
-    def _wait_queue_add(self, conn_idx, msg_id, ext_id, cb, param):
-        item = GtlWaitQueueElement(conn_idx=conn_idx, msg_id=msg_id, ext_id=ext_id, cb=cb, param=param)
-        self.wait_q.push(item)
-
-    def _task_to_connidx(self, task_id):
-        return task_id >> 8

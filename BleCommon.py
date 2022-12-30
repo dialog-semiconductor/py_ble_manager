@@ -103,20 +103,17 @@ class BleManagerCommon(BleManagerBase):
             BLE_MGR_COMMON_CMD_OPCODE.BLE_MGR_COMMON_RESET_CMD: self.reset_cmd_handler,
         }
 
-    # TODO feel like reset belongs under Gap Mgr as it is dealing with GAP messages
-    def reset_cmd_handler(self, command: BleMgrCommonResetCmd):
-        # TODO set dev_params status to BLE_IS_RESET
-        print("Running reset_cmd_handler")
-        self._wait_queue_add(BLE_CONN_IDX_INVALID, GAPM_MSG_ID.GAPM_CMP_EVT, GAPM_OPERATION.GAPM_RESET, self._reset_rsp_handler, None)
-        self.adapter_command_q.put_nowait(self._create_reset_command())
+    def _create_reset_command(self):
+        return GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
 
     def _reset_rsp_handler(self, message: GtlMessageBase, param: None):
         # TODO see ble_adapter_cmp_evt_reset
         # TODO set dev_params status to BLE_IS_ENABLE
-        print("Ble Manager Common Stack is reset")
         response = BLE_ERROR.BLE_STATUS_OK
         self.app_response_q.put_nowait(response)
-        pass
 
-    def _create_reset_command(self):
-        return GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
+        # TODO feel like reset belongs under Gap Mgr as it is dealing with GAP messages
+    def reset_cmd_handler(self, command: BleMgrCommonResetCmd):
+        # TODO set dev_params status to BLE_IS_RESET
+        self._wait_queue_add(BLE_CONN_IDX_INVALID, GAPM_MSG_ID.GAPM_CMP_EVT, GAPM_OPERATION.GAPM_RESET, self._reset_rsp_handler, None)
+        self.adapter_command_q.put_nowait(self._create_reset_command())

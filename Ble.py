@@ -33,6 +33,22 @@ class BlePeripheral(BleBase):
         self.ble_manager = BleManager(app_command_q, app_resposne_q, app_event_q, adapter_command_q, adapter_event_q)
         self.ble_adapter = BleAdapter(com_port, adapter_command_q, adapter_event_q)
 
+    async def _ble_reset(self):
+        response = BLE_ERROR.BLE_ERROR_FAILED
+        command = BleMgrCommonResetCmd()
+        # TODO remove handler arg entirely??
+        response = await self.ble_manager.cmd_execute(command, self.ble_manager.common_mgr.reset_cmd_handler)
+
+        return response
+
+    async def _gap_role_set(self, role: GAP_ROLE):
+        response = BLE_ERROR.BLE_ERROR_FAILED
+        command = BleMgrGapRoleSetCmd(role)
+        # TODO remove handler arg entirely ??
+        response = await self.ble_manager.cmd_execute(command, self.ble_manager.gap_mgr.gap_role_set_cmd_handler)
+
+        return response
+
     async def init(self):
         try:
             print("Opening serial port")
@@ -65,29 +81,6 @@ class BlePeripheral(BleBase):
 
         return error
 
-    async def _ble_reset(self):
-        response = BLE_ERROR.BLE_ERROR_FAILED
-        print("_ble_reset calling gap_role_set_handler")
-        command = BleMgrCommonResetCmd()
-        # TODO remove handler arg entirely
-        response = await self.ble_manager.cmd_execute(command, self.ble_manager.common_mgr.reset_cmd_handler)
-
-        print(f"_ble_reset returned from reset_cmd_handler. resposne={response.name}")
-
-        return response
-
-    async def _gap_role_set(self, role: GAP_ROLE):
-        response = BLE_ERROR.BLE_ERROR_FAILED
-        print("_gap_role_set calling gap_role_set_handler")
-        # TODO should have factory that creates this, doesnt make sense to manually put this enum into the already well defined class 
-        command = BleMgrGapRoleSetCmd(role)
-        # TODO remove handler arg entirely
-        response = await self.ble_manager.cmd_execute(command, self.ble_manager.gap_mgr.gap_role_set_cmd_handler)
-
-        print(f"_gap_role_set returned from gap_role_set_handler. resposne={response.name}")
-
-        return response
-
     def set_advertising_interval(self, adv_intv_min, adv_intv_max):
         self.ble_manager.dev_params.adv_intv_min = int(adv_intv_min)
         self.ble_manager.dev_params.adv_intv_max = int(adv_intv_max)
@@ -111,10 +104,7 @@ class BlePeripheral(BleBase):
         response = BLE_ERROR.BLE_ERROR_FAILED
 
         command = BleMgrGapAdvStartCmd(adv_type)
-        print("start_advertising calling _gap_adv_start_cmd_handler")
         # TODO remove handler arg entirely
         response = await self.ble_manager.cmd_execute(command, self.ble_manager.gap_mgr.gap_adv_start_cmd_handler)
-
-        print(f"start_advertising returned from _gap_adv_start_cmd_handler. resposne={response.name}")
 
         return response

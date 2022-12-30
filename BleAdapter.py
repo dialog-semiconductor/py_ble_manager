@@ -78,23 +78,7 @@ class BleAdapter():
         self.message_router.register_observer(self.gap_manager.handle_message)
         self.message_router.register_observer(self.gap_controller.handle_message)
 
-    def init(self):
-        self._task = asyncio.create_task(self.adapter_task(), name='BleAdapterTask')
-
-        self.serial_tx_task = asyncio.create_task(self.serial_stream_manager.send(), name='SerialStreamTx')
-        self.serial_rx_task = asyncio.create_task(self.serial_stream_manager.receive(), name='SerialStreamRx')
-
-        print(f"{type(self)} Exiting init")
-
-    async def open_serial_port(self):
-        try:
-            await asyncio.wait_for(self.serial_stream_manager.open_port(self.com_port), timeout=5)
-            print(f"{type(self)} We are exiting open_serial_port")
-
-        except asyncio.TimeoutError:
-            print(f"{type(self)} failed to open {self.com_port}")
-
-    async def adapter_task(self):
+    async def _adapter_task(self):
 
         self._tx_task = asyncio.create_task(self._read_command_queue(), name='BleAdapterTx')
         self._rx_task = asyncio.create_task(self._read_serial_rx_queue(), name='BleAdapterRx')
@@ -121,15 +105,18 @@ class BleAdapter():
                     self._process_serial_rx_queue(result)
                     self._rx_task = asyncio.create_task(self._read_serial_rx_queue(), name='BleAdapterRx')
                     pending.add(self._rx_task)
+    
+    def _create_reset_command(self):
+        return GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
 
     async def _read_command_queue(self) -> GtlMessageBase:
         return await self.command_q.get()
 
-    def _process_command_queue(self, command: GtlMessageBase):
-        self.serial_tx_queue.put_nowait(command)
-
     async def _read_serial_rx_queue(self) -> bytes:
         return await self.serial_rx_queue.get()
+
+    def _process_command_queue(self, command: GtlMessageBase):
+        self.serial_tx_queue.put_nowait(command)
 
     def _process_serial_rx_queue(self, byte_string: bytes):
         msg = self.message_parser.decode_from_bytes(byte_string)
@@ -147,7 +134,18 @@ class BleAdapter():
         else:
             self.event_q.put_nowait(msg)
 
-    def _create_reset_command(self):
-        return GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
+    def init(self):
+        self._task = asyncio.create_task(self._adapter_task(), name='BleAdapterTask')
 
-# TODO get rid of message router? Send things to this class? Handle default events here. If cannot, send to BleManager to handle
+        self.serial_tx_task = asyncio.create_task(self.serial_stream_manager.send(), name='SerialStreamTx')
+        self.serial_rx_task = asyncio.create_task(self.serial_stream_manager.receive(), name='SerialStreamRx')
+
+        print(f"{type(self)} Exiting init")
+
+    async def open_serial_port(self):
+        try:
+            await asyncio.wait_for(self.serial_stream_manager.open_port(self.com_port), timeout=5)
+            print(f"{type(self)} We are exiting open_serial_port")
+
+        except asyncio.TimeoutError:
+            print(f"{type(self)} failed to open {self.com_port}")
