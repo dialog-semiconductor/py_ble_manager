@@ -1,8 +1,6 @@
 import asyncio
 
-from gtl_messages.gtl_port.gap import GAP_ROLE
-from gtl_messages.gtl_port.gapm_task import GAPM_OPERATION
-
+from BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE
 from BleManager import BleManager, BLE_ERROR
 from BleAdapter import BleAdapter
 from BleManagerGap import BleMgrGapRoleSetCmd, BleMgrGapAdvStartCmd
@@ -39,11 +37,11 @@ class BlePeripheral(BleBase):
 
         return response
 
-    async def _gap_role_set(self, role: GAP_ROLE) -> BLE_ERROR:
+    async def _gap_role_set(self, role: BLE_GAP_ROLE) -> BLE_ERROR:
         response = BLE_ERROR.BLE_ERROR_FAILED
         command = BleMgrGapRoleSetCmd(role)
         # TODO remove handler arg entirely ??
-        response = await self.ble_manager.cmd_execute(command, self.ble_manager.gap_mgr.gap_role_set_cmd_handler)
+        response = await self.ble_manager.cmd_execute(command, self.ble_manager.gap_mgr.role_set_cmd_handler)
 
         return response
 
@@ -64,7 +62,7 @@ class BlePeripheral(BleBase):
         error = BLE_ERROR.BLE_ERROR_FAILED
         error = await self._ble_reset()
         if error == BLE_ERROR.BLE_STATUS_OK:
-            error = await self._gap_role_set(GAP_ROLE.GAP_ROLE_PERIPHERAL)
+            error = await self._gap_role_set(BLE_GAP_ROLE.GAP_PERIPHERAL_ROLE)
 
         return error
 
@@ -74,24 +72,12 @@ class BlePeripheral(BleBase):
 
         return BLE_ERROR.BLE_STATUS_OK
 
-    async def start_advertising(self, adv_type: GAPM_OPERATION = GAPM_OPERATION.GAPM_ADV_UNDIRECT) -> BLE_ERROR:
-
-        match adv_type:
-            case GAPM_OPERATION.GAPM_ADV_NON_CONN:
-                pass
-            case GAPM_OPERATION.GAPM_ADV_UNDIRECT:
-                pass
-            case  GAPM_OPERATION.GAPM_ADV_DIRECT:
-                pass
-            case GAPM_OPERATION.GAPM_ADV_DIRECT_LDC:
-                pass
-            case _:
-                return BLE_ERROR.BLE_ERROR_NOT_ACCEPTED
+    async def start_advertising(self, adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED) -> BLE_ERROR:
 
         response = BLE_ERROR.BLE_ERROR_FAILED
 
         command = BleMgrGapAdvStartCmd(adv_type)
         # TODO remove handler arg entirely
-        response = await self.ble_manager.cmd_execute(command, self.ble_manager.gap_mgr.gap_adv_start_cmd_handler)
+        response = await self.ble_manager.cmd_execute(command, self.ble_manager.gap_mgr.adv_start_cmd_handler)
 
         return response

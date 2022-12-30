@@ -4,6 +4,8 @@ from gtl_messages.gtl_port.co_bt import le_chnl_map, ADV_FILTER_POLICY, ADV_DATA
     BD_ADDR_LEN, ADV_CHANNEL_MAP, BD_NAME_SIZE
 from gtl_messages.gtl_port.gap import GAP_ROLE, gap_bdaddr, gap_sec_key, GAP_IO_CAP, gap_slv_pref, GAP_AD_TYPE
 from gtl_messages.gtl_port.gapm_task import GAPM_OPERATION, GAP_ADV_MODE, gapm_att_cfg_flag, GAPM_ADDR_TYPE
+from BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE
+from BleCommon import BLE_OWN_ADDR_TYPE
 
 
 # TODO belong in ble_common.h
@@ -60,7 +62,7 @@ class BleDevParams():
         self.advertising = False   # Advertising operation in progress
         self.connecting = False  # Connection operation in progress
         self.scanning = False  # Scanning operation in progress
-        self.role = GAP_ROLE.GAP_ROLE_NONE  # Enabled roles for the device # TODO redef of role_t in ble_manager
+        self.role = BLE_GAP_ROLE.GAP_NO_ROLE  # Enabled roles for the device # TODO redef of role_t in ble_manager
 
         # Privacy parameters
         self.addr_renew_duration = 0  # Random address renew duration
@@ -76,7 +78,7 @@ class BleDevParams():
         # Channel map (central only)
         self.channel_map = le_chnl_map()  # Channel map
         # TODO one of GAPM_ADV_NON_CONN, GAPM_ADV_UNDIRECT, GAPM_ADV_DIRECT, GAPM_ADV_DIRECT_LDC
-        self.adv_type = GAPM_OPERATION.GAPM_ADV_UNDIRECT  # Advertising type
+        self.adv_type = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED  # Advertising type
         self.adv_mode = GAP_ADV_MODE.GAP_GEN_DISCOVERABLE  # Discoverability mode for adv.
         self.adv_channel_map = ADV_CHANNEL_MAP.ADV_ALL_CHNLS_EN  # Channel map used for advertising
         self.adv_intv_min = 0  # Minimum advertising interval
@@ -118,8 +120,8 @@ class BleDevParamsDefault(BleDevParams):
         self.advertising = False
         self.connecting = False
         self.scanning = False
-        self.role = GAP_ROLE.GAP_ROLE_NONE
-        self.own_addr.addr_type = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PUBLIC
+        self.role = BLE_GAP_ROLE.GAP_NO_ROLE
+        self.own_addr.addr_type = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PUBLIC  # TODO use own_addr_type_class
         self.own_addr.addr.addr[:] = [0x01, 0x00, 0xF4, 0x35, 0x23, 0x48]
         self.irk.key[:] = [0xEF, 0xCD, 0xAB, 0x89, 0x67, 0x45, 0x23, 0x01,
                            0xEF, 0xCD, 0xAB, 0x89, 0x67, 0x45, 0x23, 0x01]
@@ -128,8 +130,8 @@ class BleDevParamsDefault(BleDevParams):
         self.mtu_size = 65  # TODO 65 for secure connections, 23 otherwise. need to handle
         self.channel_map.map[:] = [0xFF, 0xFF, 0xFF, 0xFF, 0x1F]
 
-        self.adv_type = GAPM_OPERATION.GAPM_ADV_UNDIRECT
-        self.adv_mode = GAP_ADV_MODE.GAP_GEN_DISCOVERABLE
+        self.adv_type = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
+        self.adv_mode = GAP_ADV_MODE.GAP_GEN_DISCOVERABLE  # TODO use BLE Enum instead of gtl
         self.adv_channel_map = ADV_CHANNEL_MAP.ADV_CHNL_37_EN
         self.adv_intv_min = int(((687.5) * 1000 // 625))  # TODO function for this
         self.adv_intv_max = int(((687.5) * 1000 // 625))  # TODO same as above
@@ -137,7 +139,7 @@ class BleDevParamsDefault(BleDevParams):
         self.adv_data_length = 28
 
         self.adv_data[0] = len(name) + 2
-        self.adv_data[1] = GAP_AD_TYPE.GAP_AD_TYPE_COMPLETE_NAME
+        self.adv_data[1] = GAP_AD_TYPE.GAP_AD_TYPE_COMPLETE_NAME  # TODO use BLE Enum instead of gtl
         self.adv_data[2: (2 + len(name))] = name
         self.scan_rsp_data_length = 31  # Length of scan response
         self.scan_rsp_data = (c_uint8 * SCAN_RSP_DATA_LEN)()
@@ -150,7 +152,7 @@ class BleDevParamsDefault(BleDevParams):
         self.gap_ppcp.con_intv_max = ((20) * 100 // 125)
         self.gap_ppcp.con_intv_min = 1000 // 10
         # IO Capabilities configuration
-        self.io_capabilities = GAP_IO_CAP.GAP_IO_CAP_NO_INPUT_NO_OUTPUT
+        self.io_capabilities = GAP_IO_CAP.GAP_IO_CAP_NO_INPUT_NO_OUTPUT  # TODO use BLE Enum instead of gtl
 # if (dg_configBLE_PRIVACY_1_2 == 1) # TODO add privacy
         # ble_mgr_ral_op_t  prev_privacy_operation;  # TODO add privacy enum
 # endif /* (dg_configBLE_PRIVACY_1_2 == 1)

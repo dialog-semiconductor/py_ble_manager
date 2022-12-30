@@ -48,7 +48,7 @@ class BleManagerGattc(BleManagerBase):
         super().__init__(adapter_command_q, app_response_q, wait_q)
 
         '''
-        self.handlers = {
+        self.cmd_handlers = {
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ROLE_SET_CMD: self.gap_role_set_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_START_CMD: self.gap_adv_start_cmd_handler
         }

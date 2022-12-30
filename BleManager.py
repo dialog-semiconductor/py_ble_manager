@@ -85,7 +85,7 @@ class BleManager(BleManagerBase):
         self.gap_mgr = BleManagerGap(self.adapter_commnand_q, self.app_response_q, self.wait_q)
         self.common_mgr = BleManagerCommon(self.adapter_commnand_q, self.app_response_q, self.wait_q)
 
-        self.handlers = {
+        self.cmd_handlers = {
             BLE_MGR_CMD_CAT.BLE_MGR_COMMON_CMD_CAT: self.common_mgr,
             BLE_MGR_CMD_CAT.BLE_MGR_GAP_CMD_CAT: self.gap_mgr,
             BLE_MGR_CMD_CAT.BLE_MGR_GATTS_CMD_CAT: None,
@@ -135,13 +135,13 @@ class BleManager(BleManagerBase):
 
         category = command.opcode >> 8
 
-        mgr: BleManagerBase = self.handlers.get(category)
-        handler = mgr.handlers.get(command.opcode)
+        mgr: BleManagerBase = self.cmd_handlers.get(category)
+        cmd_handler = mgr.cmd_handlers.get(command.opcode)
 
-        assert handler  # Should always have a handler
+        assert cmd_handler  # Should always have a handler
 
-        if handler:
-            handler(command)
+        if cmd_handler:
+            cmd_handler(command)
 
     def _process_event_queue(self, event: GtlMessageBase):
 

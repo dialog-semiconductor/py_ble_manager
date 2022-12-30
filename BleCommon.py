@@ -70,6 +70,31 @@ class BleMgrCommonResetCmd(BleMgrMsgBase):
         super().__init__(opcode=BLE_MGR_COMMON_CMD_OPCODE.BLE_MGR_COMMON_RESET_CMD)
 
 
+# BLE event categories 
+class BLE_EVT_CAT(IntEnum):
+    BLE_EVT_CAT_COMMON = auto()
+    BLE_EVT_CAT_GAP = auto()
+    BLE_EVT_CAT_GATTS = auto()
+    BLE_EVT_CAT_GATTC = auto()
+    BLE_EVT_CAT_L2CAP = auto()
+
+
+# Own Device Address type
+class BLE_OWN_ADDR_TYPE(IntEnum):
+    PUBLIC_STATIC_ADDRESS = auto()  # Public Static Address
+    PRIVATE_STATIC_ADDRESS = auto()  # Private Static Address
+    PRIVATE_RANDOM_RESOLVABLE_ADDRESS = auto()  # Private Random Resolvable Address
+    PRIVATE_RANDOM_NONRESOLVABLE_ADDRESS = auto()  # Private Random Non-resolvable Address
+# if (dg_configBLE_PRIVACY_1_2 == 1)
+    PRIVATE_CNTL = auto()  # Private Random Resolvable address using LE privacy v1.2
+# endif /* (dg_configBLE_PRIVACY_1_2 == 1) */
+
+
+class BleEventBase():
+    def __init__(self, evt_code) -> None:
+        self.evt_code = evt_code
+
+
 class BleManagerBase():
     def __init__(self,
                  adapter_command_q: asyncio.Queue[BleMgrMsgBase],
@@ -79,7 +104,7 @@ class BleManagerBase():
         self.adapter_command_q: asyncio.Queue[BleMgrMsgBase] = adapter_command_q
         self.app_response_q: asyncio.Queue[BLE_ERROR] = app_response_q
         self.wait_q: GtlWaitQueue = wait_q
-        self.handlers = {}
+        self.cmd_handlers = {}
 
         # TODO would be nice to have dev_params here and all ble managers can access same instance
 
@@ -98,7 +123,7 @@ class BleManagerCommon(BleManagerBase):
 
         super().__init__(adapter_command_q, app_response_q, wait_q)
 
-        self.handlers = {
+        self.cmd_handlers = {
             BLE_MGR_COMMON_CMD_OPCODE.BLE_MGR_COMMON_RESET_CMD: self.reset_cmd_handler,
         }
 
