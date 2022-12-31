@@ -215,4 +215,4 @@ class GapcSignCounterInd(GtlMessageBase):
                          parameters=self.parameters)
 
 # TODO Next message: , ,,  ,
-#  , GAPC_PARAM_UPDATED_IND,
+#  , GAPC_PARAM_UPDATED_IND, GAPC_GET_DEV_INFO_REQ_IND

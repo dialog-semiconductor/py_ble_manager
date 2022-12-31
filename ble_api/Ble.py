@@ -4,7 +4,7 @@ from .BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE
 from manager.BleManager import BleManager, BLE_ERROR
 from adapter.BleAdapter import BleAdapter
 from manager.BleManagerGap import BleMgrGapRoleSetCmd, BleMgrGapAdvStartCmd
-from .BleCommon import BleMgrCommonResetCmd
+from manager.BleManagerCommon import BleMgrCommonResetCmd
 
 
 # common
@@ -41,8 +41,9 @@ class BlePeripheral(BleBase):
         response = BLE_ERROR.BLE_ERROR_FAILED
         command = BleMgrGapRoleSetCmd(role)
         # TODO remove handler arg entirely ??
+        print("sending _gap_role")
         response = await self.ble_manager.cmd_execute(command, self.ble_manager.gap_mgr.role_set_cmd_handler)
-
+        print("aftger _gap_role")
         return response
 
     async def init(self) -> None:
@@ -57,18 +58,23 @@ class BlePeripheral(BleBase):
         except asyncio.TimeoutError as e:
             raise e
 
+    # async def get_event(self) -> BleEventBase:
+    #    evt = await self.ble_manager._app_event_queue_get()
+    #    pass
+
     async def start(self) -> BLE_ERROR:
 
         error = BLE_ERROR.BLE_ERROR_FAILED
         error = await self._ble_reset()
+        print("after ble reset")
         if error == BLE_ERROR.BLE_STATUS_OK:
             error = await self._gap_role_set(BLE_GAP_ROLE.GAP_PERIPHERAL_ROLE)
 
         return error
 
     def set_advertising_interval(self, adv_intv_min, adv_intv_max) -> BLE_ERROR:
-        self.ble_manager.dev_params.adv_intv_min = int(adv_intv_min)
-        self.ble_manager.dev_params.adv_intv_max = int(adv_intv_max)
+        self.ble_manager.gap_mgr.dev_params.adv_intv_min = int(adv_intv_min)
+        self.ble_manager.gap_mgr.dev_params.adv_intv_max = int(adv_intv_max)
 
         return BLE_ERROR.BLE_STATUS_OK
 

@@ -26,6 +26,7 @@ class GtlWaitQueue():
     def _task_to_connidx(self, task_id):  # TODO does not seem like an appropriate method for the wait queue to have
         return task_id >> 8
 
+    # TODO does this method belong in BleManagerBase ??
     def match(self, message: GtlMessageBase) -> bool:
         ret = False
 

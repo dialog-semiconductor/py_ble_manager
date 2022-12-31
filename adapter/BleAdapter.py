@@ -73,8 +73,8 @@ class BleAdapter():
 
     async def _adapter_task(self):
 
-        self._tx_task = asyncio.create_task(self._read_command_queue(), name='BleAdapterTx')
-        self._rx_task = asyncio.create_task(self._read_serial_rx_queue(), name='BleAdapterRx')
+        self._tx_task = asyncio.create_task(self._command_queue_get(), name='BleAdapterTx')
+        self._rx_task = asyncio.create_task(self._serial_rx_queue_get(), name='BleAdapterRx')
 
         pending = [self._tx_task, self._rx_task]
 
@@ -88,22 +88,22 @@ class BleAdapter():
                     # This is from Ble Manager command queue
                     self._process_command_queue(result)
                     # TODO check if more messages in adapter event q and process them.
-                    self._tx_task = asyncio.create_task(self._read_command_queue(), name='BleAdapterTx')
+                    self._tx_task = asyncio.create_task(self._command_queue_get(), name='BleAdapterTx')
                     pending.add(self._tx_task)
 
                 elif isinstance(result, bytes):
                     # This is from serial Rx queue
                     self._process_serial_rx_queue(result)
-                    self._rx_task = asyncio.create_task(self._read_serial_rx_queue(), name='BleAdapterRx')
+                    self._rx_task = asyncio.create_task(self._serial_rx_queue_get(), name='BleAdapterRx')
                     pending.add(self._rx_task)
 
     def _create_reset_command(self):
         return GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
 
-    async def _read_command_queue(self) -> GtlMessageBase:
+    async def _command_queue_get(self) -> GtlMessageBase:
         return await self.command_q.get()
 
-    async def _read_serial_rx_queue(self) -> bytes:
+    async def _serial_rx_queue_get(self) -> bytes:
         return await self.serial_rx_queue.get()
 
     def _process_command_queue(self, command: GtlMessageBase):

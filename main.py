@@ -1,6 +1,6 @@
 import asyncio
 from ble_api.Ble import BlePeripheral
-import gtl_port
+
 
 async def user_main():
     elapsed = 0
@@ -33,16 +33,18 @@ async def ble_task():
 
     # periph.register_app
     await periph.start()
+    print("Main after start")
 
     periph.set_advertising_interval((20) * 1000 // 625, (30) * 1000 // 625)
 
+    print(" after set interval")
     await periph.start_advertising()
     # TODO register app
 
     print("Main After periph.init()")
 
     # TODO GAP_ERR_PRIVACY_CFG_PB from adv command
-    
+
     while True:
         # handle messages
 
