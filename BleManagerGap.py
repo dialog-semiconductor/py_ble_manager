@@ -2,10 +2,11 @@ import asyncio
 # from ctypes import c_uint16, c_uint8, Array
 from enum import IntEnum, auto
 from gtl_messages.gtl_message_base import GtlMessageBase
-from gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmStartConnectionCmd  # GapmResetCmd
+from gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd  # , GapmStartConnectionCmd  # GapmResetCmd
 from gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd
 # TODO perhaps these Gapm messages do not belong here
-from gtl_messages.gtl_port.gapm_task import GAPM_MSG_ID, gapm_cmp_evt, GAPM_OPERATION, GAPM_ADDR_TYPE, GAPM_OWN_ADDR  # gapm_set_dev_config_cmd, gapm_reset_cmd
+from gtl_messages.gtl_port.gapm_task import GAPM_MSG_ID, gapm_cmp_evt, GAPM_OPERATION, GAPM_ADDR_TYPE, GAPM_OWN_ADDR
+# gapm_set_dev_config_cmd, gapm_reset_cmd
 from gtl_messages.gtl_port.gapc_task import GAPC_MSG_ID
 # from gtl_messages.gtl_port.gattc_task import GATTC_MSG_ID
 from gtl_messages.gtl_port.gap import GAP_ROLE
@@ -13,11 +14,12 @@ from BleDevParams import BleDevParamsDefault
 from gtl_messages.gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from GtlWaitQueue import GtlWaitQueue  # GtlWaitQueueElement
 from BleCommon import BLE_ERROR, BLE_MGR_CMD_CAT, BleManagerBase, BleMgrCmdBase, BLE_EVT_CAT, BleEventBase, \
-    BLE_ADDR_TYPE, bd_address, BLE_OWN_ADDR_TYPE
+    bd_address, BLE_OWN_ADDR_TYPE  # BLE_ADDR_TYPE
 from BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, gap_conn_params  # TODO dont like these files referencing eachother
 
 # this is from ble_config.h
 dg_configBLE_DATA_LENGTH_TX_MAX = (251)
+
 
 class BleMgrGapAddressSetCmd(BleMgrCmdBase):
     def __init__(self, address, renew_dur) -> None:
@@ -93,7 +95,7 @@ class BleMgrGapPeerVersionGetCmd(BleMgrCmdBase):
 class BleMgrGapPeerFeaturesGetCmd(BleMgrCmdBase):
     def __init__(self, conn_idx) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PEER_FEATURES_GET_CMD)
-        
+
 
 class BleMgrGapConnRssiGetCmd(BleMgrCmdBase):
     def __init__(self, conn_idx) -> None:
@@ -156,7 +158,7 @@ class BleMgrGapSetSecLevelCmd(BleMgrCmdBase):
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SET_SEC_LEVEL_CMD)
 
 
-# TODO ble_mgr_gap_skip_latency_cmd_t 
+# TODO ble_mgr_gap_skip_latency_cmd_t
 
 class BleMgrGapDataLengthSetCmd(BleMgrCmdBase):
     def __init__(self, conn_idx, tx_length, tx_time) -> None:
@@ -173,7 +175,7 @@ class BleMgrGapPhySetCmd(BleMgrCmdBase):
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PHY_SET_CMD)
 
 
-class BleMgrGapPhySetCmd(BleMgrCmdBase):
+class BleMgrGapTxPowerSetCmd(BleMgrCmdBase):
     def __init__(self, air_operation, tx_power) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_TX_POWER_SET_CMD)
 
@@ -183,7 +185,7 @@ class BleMgrGapConnTxPowerSetCmd(BleMgrCmdBase):
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_TX_POWER_SET_CMD)
 
 
-class BleMgrGapPhySetCmd(BleMgrCmdBase):
+class BleMgrGapLocalTxPowerGetCmd(BleMgrCmdBase):
     def __init__(self, conn_idx, phy) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_LOCAL_TX_POWER_GET_CMD)
 
@@ -242,15 +244,15 @@ class BLE_CMD_GAP_OPCODE(IntEnum):
     BLE_MGR_GAP_SET_SEC_LEVEL_CMD = auto()
 # if (dg_configBLE_SKIP_LATENCY_API == 1) # TODO need to handle these defines
     BLE_MGR_GAP_SKIP_LATENCY_CMD = auto()
-# endif /* (dg_configBLE_SKIP_LATENCY_API == 1) 
+# endif /* (dg_configBLE_SKIP_LATENCY_API == 1)
     BLE_MGR_GAP_DATA_LENGTH_SET_CMD = auto()
 # if (dg_configBLE_SECURE_CONNECTIONS == 1)
     BLE_MGR_GAP_NUMERIC_REPLY_CMD = auto()
-# endif /* (dg_configBLE_SECURE_CONNECTIONS == 1) 
+# endif /* (dg_configBLE_SECURE_CONNECTIONS == 1)
     BLE_MGR_GAP_ADDRESS_RESOLVE_CMD = auto()
 # if (dg_configBLE_2MBIT_PHY == 1)
     BLE_MGR_GAP_PHY_SET_CMD = auto()
-# endif /* (dg_configBLE_2MBIT_PHY == 1) 
+# endif /* (dg_configBLE_2MBIT_PHY == 1)
     BLE_MGR_GAP_TX_POWER_SET_CMD = auto()
     BLE_MGR_GAP_CONN_TX_POWER_SET_CMD = auto()
     BLE_MGR_GAP_LOCAL_TX_POWER_GET_CMD = auto()
@@ -489,12 +491,12 @@ class BleManagerGap(BleManagerBase):
                 message.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_GEN_NON_RSLV_ADDR
             # if (dg_configBLE_PRIVACY_1_2 == 1)
             case BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
-                # Generate AdvA using local IRK 
+                # Generate AdvA using local IRK
                 message.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_GEN_RSLV_ADDR
-                
+
                 # TODO need to handle getting public address. In adapter due to nvm>
                 # ad_ble_get_public_address(gcmd->info.host.peer_info.addr.addr);
-                # message.parameters.info.host.peer_info.addr_type = ADDR_PUBLIC;  # ADDR_PUBLIC in co_bt.py 
+                # message.parameters.info.host.peer_info.addr_type = ADDR_PUBLIC;  # ADDR_PUBLIC in co_bt.py
 
             # endif /* (dg_configBLE_PRIVACY_1_2 == 1) */
             case _:
@@ -579,7 +581,7 @@ static const ble_mgr_cmd_handler_t h_gap[BLE_MGR_CMD_GET_IDX(BLE_MGR_GAP_LAST_CM
         ble_mgr_gap_device_name_set_cmd_handler,
         ble_mgr_gap_appearance_set_cmd_handler,
         ble_mgr_gap_ppcp_set_cmd_handler,
-        
+
         ble_mgr_gap_adv_stop_cmd_handler,
         ble_mgr_gap_adv_data_set_cmd_handler,
         ble_mgr_gap_adv_set_perm_id_cmd_handler,
@@ -591,7 +593,7 @@ static const ble_mgr_cmd_handler_t h_gap[BLE_MGR_CMD_GET_IDX(BLE_MGR_GAP_LAST_CM
         ble_mgr_gap_peer_version_get_cmd_handler,
         ble_mgr_gap_peer_features_get_cmd_handler,
         ble_mgr_gap_conn_rssi_get_cmd_handler,
-        
+
         ble_mgr_gap_mtu_size_set_cmd_handler,
         ble_mgr_gap_channel_map_set_cmd_handler,
         ble_mgr_gap_conn_param_update_cmd_handler,
@@ -603,14 +605,14 @@ static const ble_mgr_cmd_handler_t h_gap[BLE_MGR_CMD_GET_IDX(BLE_MGR_GAP_LAST_CM
         ble_mgr_gap_set_sec_level_cmd_handler,
 #if (dg_configBLE_SKIP_LATENCY_API == 1)
         ble_mgr_gap_skip_latency_cmd_handler,
-#endif /* (dg_configBLE_SKIP_LATENCY_API == 1) 
+#endif /* (dg_configBLE_SKIP_LATENCY_API == 1)
         ble_mgr_gap_data_length_set_cmd_handler,
 #if (dg_configBLE_SECURE_CONNECTIONS == 1)
         ble_mgr_gap_numeric_reply_cmd_handler,
-#endif /* (dg_configBLE_SECURE_CONNECTIONS == 1) 
+#endif /* (dg_configBLE_SECURE_CONNECTIONS == 1)
         ble_mgr_gap_address_resolve_cmd_handler,
 #if (dg_configBLE_2MBIT_PHY == 1)
         ble_mgr_gap_phy_set_cmd_handler,
-#endif /* (dg_configBLE_2MBIT_PHY == 1) 
+#endif /* (dg_configBLE_2MBIT_PHY == 1)
 };
 '''

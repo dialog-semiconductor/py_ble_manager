@@ -1,12 +1,12 @@
-from ctypes import c_uint8, c_uint16, LittleEndianStructure
+from ctypes import c_uint8
 from enum import IntEnum
-from gtl_messages.gtl_port.co_bt import le_chnl_map, ADV_FILTER_POLICY, ADV_DATA_LEN, SCAN_RSP_DATA_LEN, \
-    BD_ADDR_LEN, ADV_CHANNEL_MAP, BD_NAME_SIZE
-from gtl_messages.gtl_port.gap import GAP_ROLE, gap_bdaddr, gap_sec_key, GAP_IO_CAP, gap_slv_pref, GAP_AD_TYPE
-from gtl_messages.gtl_port.gapm_task import GAPM_OPERATION, GAP_ADV_MODE, gapm_att_cfg_flag, GAPM_ADDR_TYPE
+from gtl_messages.gtl_port.co_bt import ADV_DATA_LEN, SCAN_RSP_DATA_LEN, ADV_CHANNEL_MAP  # , \
+    # BD_ADDR_LEN, BD_NAME_SIZE, le_chnl_map, ADV_FILTER_POLICY
+from gtl_messages.gtl_port.gap import GAP_AD_TYPE  # GAP_ROLE, gap_bdaddr, gap_sec_key, GAP_IO_CAP, gap_slv_pref
+from gtl_messages.gtl_port.gapm_task import gapm_att_cfg_flag  # , GAPM_ADDR_TYPE, GAPM_OPERATION, GAP_ADV_MODE
 from BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_GAP_APPEARANCE, gap_chnl_map, GAP_DISC_MODE, ADV_FILT_POL, \
     gap_scan_params, gap_conn_params, GAP_IO_CAPABILITIES
-from BleCommon import BLE_OWN_ADDR_TYPE, bd_address, BLE_ADDR_TYPE, own_address, irk
+from BleCommon import BLE_OWN_ADDR_TYPE, bd_address, own_address, irk  # BLE_ADDR_TYPE
 
 
 # TODO belong in ble_common.h
@@ -47,6 +47,7 @@ class gap_scan_params(LittleEndianStructure):
                 ("window", c_uint16)]
 '''
 
+
 # end ble_gap.h
 # TODO make this a structure so dont need to convert
 class BleDevParams():
@@ -57,7 +58,7 @@ class BleDevParams():
         # TODO just make a string, convert in dev_params to gtl
         self.dev_name = b""  # (c_uint8 * (BD_NAME_SIZE + 1))()  # GAP device name plus NULL char # TODO F8 seems realy long
 
-        self.appearance = BLE_GAP_APPEARANCE.BLE_GAP_APPEARANCE_UNKNOWN  # GAP device appearance                        
+        self.appearance = BLE_GAP_APPEARANCE.BLE_GAP_APPEARANCE_UNKNOWN  # GAP device appearance
         # BLE state
         self.status = BLE_STATUS.BLE_IS_DISABLED  # Status of the BLE stack
         # Air operations in progress
@@ -71,7 +72,7 @@ class BleDevParams():
         # TODO ble_manager seems to redefine own_addr_t
         self.own_addr = own_address()  # Provided own public address
         # TODO redefines irk_t
-        self.irk = irk()  # IRK for device resolvable address  
+        self.irk = irk()  # IRK for device resolvable address
         self.addr_resolv_req_pending = 0  # Pending address resolve requests
         # Attribute database configuration
 
@@ -152,8 +153,8 @@ class BleDevParamsDefault(BleDevParams):
         self.scan_params.window = (50) * 1000 // 625  # TODO make function
         # Peripheral preferred connection parameters
 
-        self.gap_ppcp.interval_min = ((500) * 100 // 125) 
-        self.gap_ppcp.interval_max = ((750) * 100 // 125)  
+        self.gap_ppcp.interval_min = ((500) * 100 // 125)
+        self.gap_ppcp.interval_max = ((750) * 100 // 125)
         self.gap_ppcp.slave_latency = 0
         self.gap_ppcp.sup_timeout = 6000 // 10
         # IO Capabilities configuration

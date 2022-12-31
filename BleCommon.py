@@ -1,5 +1,4 @@
 import asyncio
-from ctypes import Array, c_uint8
 from enum import IntEnum, auto
 from GtlWaitQueue import GtlWaitQueue, GtlWaitQueueElement
 from gtl_messages.gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, gapm_reset_cmd
@@ -71,7 +70,7 @@ class BleMgrCommonResetCmd(BleMgrCmdBase):
         super().__init__(opcode=BLE_MGR_COMMON_CMD_OPCODE.BLE_MGR_COMMON_RESET_CMD)
 
 
-# BLE event categories 
+# BLE event categories
 class BLE_EVT_CAT(IntEnum):
     BLE_EVT_CAT_COMMON = auto()
     BLE_EVT_CAT_GAP = auto()
@@ -99,21 +98,23 @@ class BLE_ADDR_TYPE(IntEnum):
 
 # Bluetooth Device address
 class bd_address():
-    def __init__(self, addr_type: BLE_ADDR_TYPE = BLE_ADDR_TYPE.PUBLIC_ADDRESS, addr: list[int] = None) -> None:  # TODO is ctypes array appriopriate at this layer? 
+    # TODO is ctypes array appriopriate at this layer?
+    def __init__(self, addr_type: BLE_ADDR_TYPE = BLE_ADDR_TYPE.PUBLIC_ADDRESS, addr: list[int] = None) -> None:
         self.addr_type = addr_type
         # TODO raise error on list len
         self.addr = addr if addr else []
 
 
 class own_address():
-    def __init__(self, addr_type: BLE_OWN_ADDR_TYPE = BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS, addr: list[int] = None) -> None:  # TODO is ctypes array appriopriate at this layer? 
+    # TODO is ctypes array appriopriate at this layer?
+    def __init__(self, addr_type: BLE_OWN_ADDR_TYPE = BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS, addr: list[int] = None) -> None:
         self.addr_type = addr_type
         # TODO raise error on list len
         self.addr = addr if addr else []
 
 
 class irk():
-    def __init__(self, key: list[int] = None) -> None:  # TODO is ctypes array appriopriate at this layer? 
+    def __init__(self, key: list[int] = None) -> None:  # TODO is ctypes array appriopriate at this layer?
         # TODO raise error on list len
         self.key = key if key else []
 

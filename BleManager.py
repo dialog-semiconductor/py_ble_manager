@@ -149,7 +149,7 @@ class BleManager(BleManagerBase):
 
         if not self.wait_q.match(event):
             if not self._handle_evt_or_ind(event):
-                print(f"BleManager._process_event_queue. Unhandled event={event}")     
+                print(f"BleManager._process_event_queue. Unhandled event={event}")
 
     async def _read_command_queue(self) -> BleMgrCmdBase:
         return await self.app_command_q.get()

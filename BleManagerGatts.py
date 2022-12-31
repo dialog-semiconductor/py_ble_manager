@@ -1,19 +1,8 @@
 import asyncio
-from ctypes import c_uint16, c_uint8, Array
 from enum import IntEnum, auto
-from gtl_messages.gtl_message_base import GtlMessageBase
-from gtl_messages.gtl_message_gapm import GapmResetCmd, GapmSetDevConfigCmd, GapmStartAdvertiseCmd
 
-# TODO perhaps these Gapm messages do not belong here
-from gtl_messages.gtl_port.gapm_task import GAPM_MSG_ID, gapm_reset_cmd, gapm_cmp_evt, GAPM_OPERATION, gapm_set_dev_config_cmd
-from gtl_messages.gtl_port.gapc_task import GAPC_MSG_ID
-from gtl_messages.gtl_port.gattc_task import GATTC_MSG_ID
-from gtl_messages.gtl_port.gap import GAP_ROLE
-from BleDevParams import BleDevParamsDefault
-from gtl_messages.gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
-from GtlWaitQueue import GtlWaitQueue, GtlWaitQueueElement
-from BleCommon import BLE_ERROR, BLE_STATUS, BLE_MGR_CMD_CAT, BleManagerBase, BleMgrCmdBase
-
+from GtlWaitQueue import GtlWaitQueue
+from BleCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleMgrCmdBase  # BLE_ERROR, BLE_STATUS,
 
 # this is from ble_config.h
 dg_configBLE_DATA_LENGTH_TX_MAX = (251)
@@ -24,7 +13,7 @@ class BleMgrGattsServceAddCmd(BleMgrCmdBase):
         super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_ADD_CMD)
 
 
-class BLE_CMD_GATTS_OPCODE(IntEnum): 
+class BLE_CMD_GATTS_OPCODE(IntEnum):
     BLE_MGR_GATTS_SERVICE_ADD_CMD = BLE_MGR_CMD_CAT.BLE_MGR_GATTS_CMD_CAT << 8
     BLE_MGR_GATTS_SERVICE_INCLUDE_ADD_CMD = auto()
     BLE_MGR_GATTS_SERVICE_CHARACTERISTIC_ADD_CMD = auto()

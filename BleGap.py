@@ -40,14 +40,15 @@ class ADV_FILT_POL():
 
 # GAP scan parameters
 class gap_scan_params():
-    def __init__(self, interval: int = 0, window: int = 0) -> None:  # TODO is ctypes array appriopriate at this layer? 
+    def __init__(self, interval: int = 0, window: int = 0) -> None:  # TODO is ctypes array appriopriate at this layer?
         self.interval = interval  # Scan interval
         self.window = window  # Scan window
 
 
 # GAP connection parameters
 class gap_conn_params():
-    def __init__(self, interval_min: int = 0, interval_max: int = 0, slave_latency: int = 0, sup_timeout: int = 0) -> None:  # TODO is ctypes array appriopriate at this layer? 
+    # TODO is ctypes array appriopriate at this layer?
+    def __init__(self, interval_min: int = 0, interval_max: int = 0, slave_latency: int = 0, sup_timeout: int = 0) -> None:
         self.interval_min = interval_min  # Minimum connection interval
         self.interval_max = interval_max  # Maximum connection interval
         self.slave_latency = slave_latency  # Slave latency
@@ -119,6 +120,6 @@ class BLE_GAP_APPEARANCE(IntEnum):
 
 # Link Layer channel map
 class gap_chnl_map():
-    def __init__(self, map: list[int] = None) -> None:  # TODO is ctypes array appriopriate at this layer? 
+    def __init__(self, map: list[int] = None) -> None:  # TODO is ctypes array appriopriate at this layer?
         # TODO raise error on list len
         self.map = map if map else []
