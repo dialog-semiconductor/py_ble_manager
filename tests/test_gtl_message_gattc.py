@@ -1,6 +1,6 @@
 import unittest
 from gtl_messages.gtl_message_gattc import *
-from gtl_messages.gtl_port.gattc_task import *
+from gtl_port.gattc_task import *
 
 # Table 95
 class TestGattcWriteReqInd(unittest.TestCase):

@@ -1,7 +1,7 @@
 import unittest
 from gtl_messages.gtl_message_gapm import *
-from gtl_messages.gtl_port.co_bt import BD_ADDR_LEN
-from gtl_messages.gtl_port.gapm_task import *
+from gtl_port.co_bt import BD_ADDR_LEN
+from gtl_port.gapm_task import *
 
 
 # Table 3
