@@ -42,9 +42,7 @@ class BlePeripheral(BleBase):
         response = BLE_ERROR.BLE_ERROR_FAILED
         command = BleMgrGapRoleSetCmd(role)
         # TODO remove handler arg entirely ??
-        print("sending _gap_role")
         response = await self.ble_manager.cmd_execute(command, self.ble_manager.gap_mgr.role_set_cmd_handler)
-        print("aftger _gap_role")
         return response
 
     async def init(self) -> None:
@@ -73,7 +71,6 @@ class BlePeripheral(BleBase):
 
         error = BLE_ERROR.BLE_ERROR_FAILED
         error = await self._ble_reset()
-        print("after ble reset")
         if error == BLE_ERROR.BLE_STATUS_OK:
             error = await self._gap_role_set(BLE_GAP_ROLE.GAP_PERIPHERAL_ROLE)
 

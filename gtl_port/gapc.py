@@ -36,7 +36,7 @@
  ****************************************************************************************
  */
 '''
-from enum import IntEnum, auto
+from enum import IntEnum
 
 '''
 #include "rwip_config.h"
