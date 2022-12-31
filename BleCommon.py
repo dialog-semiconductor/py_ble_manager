@@ -1,4 +1,5 @@
 import asyncio
+from ctypes import Array, c_uint8
 from enum import IntEnum, auto
 from GtlWaitQueue import GtlWaitQueue, GtlWaitQueueElement
 from gtl_messages.gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, gapm_reset_cmd
@@ -60,12 +61,12 @@ class BLE_MGR_COMMON_CMD_OPCODE(IntEnum):
 BLE_CONN_IDX_INVALID = 0xFFFF
 
 
-class BleMgrMsgBase():
+class BleMgrCmdBase():
     def __init__(self, opcode) -> None:
         self.opcode = opcode
 
 
-class BleMgrCommonResetCmd(BleMgrMsgBase):
+class BleMgrCommonResetCmd(BleMgrCmdBase):
     def __init__(self) -> None:
         super().__init__(opcode=BLE_MGR_COMMON_CMD_OPCODE.BLE_MGR_COMMON_RESET_CMD)
 
@@ -90,6 +91,33 @@ class BLE_OWN_ADDR_TYPE(IntEnum):
 # endif /* (dg_configBLE_PRIVACY_1_2 == 1) */
 
 
+# Bluetooth Address type
+class BLE_ADDR_TYPE(IntEnum):
+    PUBLIC_ADDRESS = 0x00  # Public Static Address
+    PRIVATE_ADDRESS = 0x01  # Private Random Address
+
+
+# Bluetooth Device address
+class bd_address():
+    def __init__(self, addr_type: BLE_ADDR_TYPE = BLE_ADDR_TYPE.PUBLIC_ADDRESS, addr: list[int] = None) -> None:  # TODO is ctypes array appriopriate at this layer? 
+        self.addr_type = addr_type
+        # TODO raise error on list len
+        self.addr = addr if addr else []
+
+
+class own_address():
+    def __init__(self, addr_type: BLE_OWN_ADDR_TYPE = BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS, addr: list[int] = None) -> None:  # TODO is ctypes array appriopriate at this layer? 
+        self.addr_type = addr_type
+        # TODO raise error on list len
+        self.addr = addr if addr else []
+
+
+class irk():
+    def __init__(self, key: list[int] = None) -> None:  # TODO is ctypes array appriopriate at this layer? 
+        # TODO raise error on list len
+        self.key = key if key else []
+
+
 class BleEventBase():
     def __init__(self, evt_code) -> None:
         self.evt_code = evt_code
@@ -97,13 +125,15 @@ class BleEventBase():
 
 class BleManagerBase():
     def __init__(self,
-                 adapter_command_q: asyncio.Queue[BleMgrMsgBase],
                  app_response_q: asyncio.Queue[BLE_ERROR],
+                 app_event_q: asyncio.Queue[BleEventBase],
+                 adapter_command_q: asyncio.Queue[BleMgrCmdBase],
                  wait_q: GtlWaitQueue) -> None:
 
-        self.adapter_command_q: asyncio.Queue[BleMgrMsgBase] = adapter_command_q
-        self.app_response_q: asyncio.Queue[BLE_ERROR] = app_response_q
-        self.wait_q: GtlWaitQueue = wait_q
+        self.app_response_q = app_response_q
+        self.app_event_q = app_event_q
+        self.adapter_command_q = adapter_command_q
+        self.wait_q = wait_q
         self.cmd_handlers = {}
 
         # TODO would be nice to have dev_params here and all ble managers can access same instance
@@ -117,11 +147,12 @@ class BleManagerBase():
 class BleManagerCommon(BleManagerBase):
 
     def __init__(self,
-                 adapter_command_q: asyncio.Queue[BleMgrMsgBase],
                  app_response_q: asyncio.Queue[BLE_ERROR],
-                 wait_q: GtlWaitQueue()) -> None:
+                 app_event_q: asyncio.Queue[BleEventBase],
+                 adapter_command_q: asyncio.Queue[BleMgrCmdBase],
+                 wait_q: GtlWaitQueue) -> None:
 
-        super().__init__(adapter_command_q, app_response_q, wait_q)
+        super().__init__(app_response_q, app_event_q, adapter_command_q, wait_q)
 
         self.cmd_handlers = {
             BLE_MGR_COMMON_CMD_OPCODE.BLE_MGR_COMMON_RESET_CMD: self.reset_cmd_handler,

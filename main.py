@@ -41,6 +41,8 @@ async def ble_task():
 
     print("Main After periph.init()")
 
+    # TODO GAP_ERR_PRIVACY_CFG_PB from adv command
+
     while True:
         # handle messages
 

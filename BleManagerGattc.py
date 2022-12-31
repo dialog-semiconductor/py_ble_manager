@@ -12,14 +12,14 @@ from gtl_messages.gtl_port.gap import GAP_ROLE
 from BleDevParams import BleDevParamsDefault
 from gtl_messages.gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from GtlWaitQueue import GtlWaitQueue, GtlWaitQueueElement
-from BleCommon import BLE_ERROR, BLE_STATUS, BLE_MGR_CMD_CAT, BleManagerBase, BleMgrMsgBase
+from BleCommon import BLE_ERROR, BLE_STATUS, BLE_MGR_CMD_CAT, BleManagerBase, BleMgrCmdBase
 
 
 # this is from ble_config.h
 dg_configBLE_DATA_LENGTH_TX_MAX = (251)
 
 
-class BleMgrGattcDiscoverSvcCmd(BleMgrMsgBase):
+class BleMgrGattcDiscoverSvcCmd(BleMgrCmdBase):
     def __init__(self, conn_idx, uuid) -> None:
         super().__init__(opcode=BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_SVC_CMD)
 
