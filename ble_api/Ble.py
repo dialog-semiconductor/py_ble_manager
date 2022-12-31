@@ -5,6 +5,7 @@ from manager.BleManager import BleManager, BLE_ERROR
 from adapter.BleAdapter import BleAdapter
 from manager.BleManagerGap import BleMgrGapRoleSetCmd, BleMgrGapAdvStartCmd
 from manager.BleManagerCommon import BleMgrCommonResetCmd
+from .BleCommon import BleEventBase
 
 
 # common
@@ -58,9 +59,15 @@ class BlePeripheral(BleBase):
         except asyncio.TimeoutError as e:
             raise e
 
-    # async def get_event(self) -> BleEventBase:
-    #    evt = await self.ble_manager._app_event_queue_get()
-    #    pass
+    async def get_event(self, timeout_seconds: float = 0) -> BleEventBase:  # TODO add timeout?
+        evt = None
+        try:
+            timeout = timeout_seconds if timeout_seconds > 0 else None
+            evt = await asyncio.wait_for(self.ble_manager._api_event_queue_get(), timeout)
+        except asyncio.TimeoutError:
+            pass
+
+        return evt
 
     async def start(self) -> BLE_ERROR:
 

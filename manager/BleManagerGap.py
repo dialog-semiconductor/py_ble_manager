@@ -426,7 +426,7 @@ class BleManagerGap(BleManagerBase):
             case _:
                 evt.status = gtl.parameters.status
 
-        self._api_api_event_queue_send(evt)
+        self._api_event_queue_send(evt)
 
     def _ble_role_to_gtl_role(self, role: BLE_GAP_ROLE):
 
