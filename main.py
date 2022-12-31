@@ -47,7 +47,7 @@ async def ble_task():
 
     while True:
         # handle messages
-        evt = await periph.get_event(timeout_seconds=1)
+        evt = await periph.get_event()
         print(f"Main rx'd event: {evt}")
 
         # other stuff
