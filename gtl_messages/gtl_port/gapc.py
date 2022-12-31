@@ -35,6 +35,10 @@
  * INCLUDE FILES
  ****************************************************************************************
  */
+'''
+from enum import IntEnum, auto
+
+'''
 #include "rwip_config.h"
 
 #if (BLE_CENTRAL || BLE_PERIPHERAL)
@@ -87,25 +91,25 @@ enum gapc_fields
     /// LTK present
     GAPC_LTK          = 7,
 };
+'''
 
 
-/// fields mask definitions.
-enum gapc_fields_mask
-{
-    /// Bit[0]
-    GAPC_ROLE_MASK        = 0x01,
-    /// Bit[1]
-    GAPC_ENCRYPTED_MASK   = 0x02,
-    /// Bit[5-2]
-    GAPC_AUTH_MASK        = 0x3C,
+# fields mask definitions.
+class GAPC_FIELDS_MASK(IntEnum):
 
-    /// Bit[6]
-    GAPC_SVC_CHG_CCC_MASK = 0x40,
-    /// Bit[7]
-    GAPC_LTK_MASK         = 0x80,
-};
+    # Bit[0]
+    GAPC_ROLE_MASK = 0x01
+    # Bit[1]
+    GAPC_ENCRYPTED_MASK = 0x02
+    # Bit[5-2]
+    GAPC_AUTH_MASK = 0x3C
+    # Bit[6]
+    GAPC_SVC_CHG_CCC_MASK = 0x40
+    # Bit[7]
+    GAPC_LTK_MASK = 0x80
 
 
+'''
 /// fields mask definitions.
 enum gapc_env_values
 {

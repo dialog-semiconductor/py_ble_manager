@@ -95,14 +95,14 @@ class BleManager(BleManagerBase):
 
     def _handle_evt_or_ind(self, message: GtlMessageBase):
 
-        match message.msg_id:
-            case GAPM_MSG_ID.GAPM_CMP_EVT:
-                pass
-            case GAPC_MSG_ID.GAPC_PARAM_UPDATE_CMD:
-                pass
-            case GATTC_MSG_ID.GATTC_CMP_EVT:
-                pass
+        # TODO make list of handlers from all avail classes. If get back a handler, call it
+        event_handlers = [self.gap_mgr.evt_handlers]
 
+        for handlers in event_handlers:
+            handler = handlers.get(message.msg_id)
+            if handler:
+                handler(message)
+                return True
         return False
 
     async def _manager_task(self):

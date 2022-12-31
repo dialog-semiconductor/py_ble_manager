@@ -123,3 +123,19 @@ class gap_chnl_map():
     def __init__(self, map: list[int] = None) -> None:  # TODO is ctypes array appriopriate at this layer?
         # TODO raise error on list len
         self.map = map if map else []
+
+
+# GAP security levels
+class GAP_SEC_LEVEL(IntEnum):
+    GAP_SEC_LEVEL_1 = 0x00,  # No security
+    GAP_SEC_LEVEL_2 = 0x01  # Unauthenticated pairing with encryption
+    GAP_SEC_LEVEL_3 = 0x02  # Authenticated pairing with encryption
+    GAP_SEC_LEVEL_4 = 0x03  # Authenticated LE Secure Connections pairing with
+                            # encryption using a 128-bit strength encryption key
+
+
+# GAP PHY
+class BLE_GAP_PHY(IntEnum):
+    BLE_GAP_PHY_1M = 0x01  # Bit rate of 1 megabit per second (Mb/s)
+    BLE_GAP_PHY_2M = 0x02  # Bit rate of 2 megabit per second (Mb/s)
+    BLE_GAP_PHY_CODED = 0x03  # LE Coded PHY (bit rate of 125 or 500 Kbit/s)

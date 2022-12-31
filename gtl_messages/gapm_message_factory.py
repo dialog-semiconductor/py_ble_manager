@@ -8,7 +8,7 @@ from .gtl_port.gapm_task import GAPM_MSG_ID, gapm_reset_cmd, gapm_cmp_evt, gapm_
 class GapmMessageFactory():
 
     @staticmethod
-    def create_message(msg_bytes):
+    def create_message(msg_bytes: bytes):
 
         # TODO this section will be same for each factory except for the msg_id enum, dont rewrite it everytime
         assert (len(msg_bytes) >= 9)
@@ -41,6 +41,6 @@ class GapmMessageFactory():
             elif msg_id == GAPM_MSG_ID.GAPM_START_ADVERTISE_CMD:
                 return GapmStartAdvertiseCmd(gapm_start_advertise_cmd.from_buffer_copy(params_buf))
 
-            raise AssertionError(f"{type(__class__).__name__}: Message type is unhandled or not valid. message={msg_bytes}")
+            raise AssertionError(f"GapmMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")
         except AssertionError as e:
             print(e)

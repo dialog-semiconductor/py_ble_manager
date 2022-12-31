@@ -7,7 +7,7 @@ from .gtl_port.rwip_config import KE_API_ID
 class GtlMessageFactory():
 
     @staticmethod
-    def create_message(msg_bytes):
+    def create_message(msg_bytes: bytes):
         assert (len(msg_bytes) >= 9)
         assert (int.from_bytes(msg_bytes[:1], "little", signed=False) == GTL_INITIATOR)
 
@@ -26,6 +26,6 @@ class GtlMessageFactory():
             elif message_task_id == KE_API_ID.TASK_ID_GAPC:
                 return GapcMessageFactory().create_message(msg_bytes)
 
-            raise AssertionError(f"{type(__class__).__name__}: Message type is unhandled or not valid. message={msg_bytes}")
+            raise AssertionError(f"GtlMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")
         except AssertionError as e:
             print(e)
