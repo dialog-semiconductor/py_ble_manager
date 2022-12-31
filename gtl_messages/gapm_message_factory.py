@@ -1,7 +1,7 @@
 from .gtl_message_base import GTL_INITIATOR
 from .gtl_message_gapm import GapmDeviceReadyInd, GapmResetCmd, GapmCmpEvt, GapmSetDevConfigCmd, GapmStartAdvertiseCmd
 
-from .gtl_port.gapm_task import GAPM_MSG_ID, gapm_reset_cmd, gapm_cmp_evt, gapm_set_dev_config_cmd, gapm_start_advertise_cmd
+from gtl_port.gapm_task import GAPM_MSG_ID, gapm_reset_cmd, gapm_cmp_evt, gapm_set_dev_config_cmd, gapm_start_advertise_cmd
     # gapm_start_connection_cmd
 
 

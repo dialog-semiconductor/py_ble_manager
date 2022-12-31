@@ -1,6 +1,6 @@
 import asyncio
 from ble_api.Ble import BlePeripheral
-
+import gtl_port
 
 async def user_main():
     elapsed = 0
@@ -42,7 +42,7 @@ async def ble_task():
     print("Main After periph.init()")
 
     # TODO GAP_ERR_PRIVACY_CFG_PB from adv command
-
+    
     while True:
         # handle messages
 

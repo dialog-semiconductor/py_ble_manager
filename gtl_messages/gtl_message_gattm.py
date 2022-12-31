@@ -2,7 +2,7 @@ from .gtl_message_base import GtlMessageBase
 from .gtl_port.gattm_task import GATTM_MSG_ID, gattm_add_svc_req, gattm_add_svc_rsp, gattm_att_set_value_req, gattm_att_set_value_rsp, \
     gattm_att_get_value_req, gattm_att_get_value_rsp
 
-from .gtl_port.rwip_config import KE_API_ID
+from gtl_port.rwip_config import KE_API_ID
 
 
 class GattmAddSvcReq(GtlMessageBase):

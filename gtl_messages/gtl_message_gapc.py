@@ -1,10 +1,10 @@
 from ctypes import c_uint8
 from .gtl_message_base import GtlMessageBase
-from .gtl_port.gapc_task import GAPC_MSG_ID, gapc_connection_req_ind, gapc_connection_cfm, gapc_security_cmd, gapc_cmp_evt, gapc_get_info_cmd, \
+from gtl_port.gapc_task import GAPC_MSG_ID, gapc_connection_req_ind, gapc_connection_cfm, gapc_security_cmd, gapc_cmp_evt, gapc_get_info_cmd, \
     gapc_peer_features_ind, gapc_bond_req_ind, gapc_bond_cfm, gapc_sign_counter_ind, gapc_bond_ind, gapc_encrypt_req_ind, gapc_encrypt_cfm, \
     gapc_encrypt_ind, gapc_param_update_req_ind, gapc_param_update_cfm, gapc_param_update_cmd
 
-from .gtl_port.rwip_config import KE_API_ID
+from gtl_port.rwip_config import KE_API_ID
 
 
 class GapcConnectionReqInd(GtlMessageBase):

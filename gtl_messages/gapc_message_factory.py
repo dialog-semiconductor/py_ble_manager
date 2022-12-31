@@ -2,11 +2,11 @@ from .gtl_message_base import GTL_INITIATOR
 from .gtl_message_gapc import GapcConnectionReqInd, GapcConnectionCfm, GapcSecurityCmd, GapcCmpEvt, GapcGetInfoCmd, \
     GapcPeerFeaturesInd, GapcBondReqInd, GapcBondCfm
 
-from .gtl_port.gapc_task import GAPC_MSG_ID, gapc_connection_req_ind, gapc_connection_cfm, gapc_security_cmd, gapc_cmp_evt, gapc_get_info_cmd, \
+from gtl_port.gapc_task import GAPC_MSG_ID, gapc_connection_req_ind, gapc_connection_cfm, gapc_security_cmd, gapc_cmp_evt, gapc_get_info_cmd, \
     gapc_peer_features_ind, gapc_bond_req_ind, gapc_bond_cfm  # , gapc_sign_counter_ind
 
 
-from .gtl_port.rwip_config import KE_API_ID
+from gtl_port.rwip_config import KE_API_ID
 
 
 class GapcMessageFactory():

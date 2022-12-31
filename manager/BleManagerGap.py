@@ -5,14 +5,14 @@ from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd  # , GapmStartConnectionCmd  # GapmResetCmd
 from gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd
 # TODO perhaps these Gapm messages do not belong here
-from gtl_messages.gtl_port.gapm_task import GAPM_MSG_ID, gapm_cmp_evt, GAPM_OPERATION, GAPM_ADDR_TYPE, GAPM_OWN_ADDR
+from gtl_port.gapm_task import GAPM_MSG_ID, gapm_cmp_evt, GAPM_OPERATION, GAPM_ADDR_TYPE, GAPM_OWN_ADDR
 # gapm_set_dev_config_cmd, gapm_reset_cmd
-from gtl_messages.gtl_port.gapc_task import GAPC_MSG_ID
-from gtl_messages.gtl_port.gapc import GAPC_FIELDS_MASK
+from gtl_port.gapc_task import GAPC_MSG_ID
+from gtl_port.gapc import GAPC_FIELDS_MASK
 # from gtl_messages.gtl_port.gattc_task import GATTC_MSG_ID
-from gtl_messages.gtl_port.gap import GAP_ROLE, GAP_AUTH, GAP_AUTH_MASK
+from gtl_port.gap import GAP_ROLE, GAP_AUTH, GAP_AUTH_MASK
 from .BleDevParams import BleDevParamsDefault
-from gtl_messages.gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
+from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from .GtlWaitQueue import GtlWaitQueue  # GtlWaitQueueElement
 from ble_api.BleCommon import BLE_ERROR, BLE_MGR_CMD_CAT, BleManagerBase, BleMgrCmdBase, BLE_EVT_CAT, BleEventBase, \
     bd_address, BLE_OWN_ADDR_TYPE, BLE_ADDR_TYPE

@@ -1,7 +1,7 @@
 import asyncio
 from enum import IntEnum, auto
 from manager.GtlWaitQueue import GtlWaitQueue, GtlWaitQueueElement
-from gtl_messages.gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, gapm_reset_cmd
+from gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, gapm_reset_cmd
 from gtl_messages.gtl_message_gapm import GapmResetCmd
 from gtl_messages.gtl_message_base import GtlMessageBase
 

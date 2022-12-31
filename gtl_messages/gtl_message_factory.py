@@ -1,7 +1,7 @@
 from .gtl_message_base import GTL_INITIATOR
 from .gapc_message_factory import GapcMessageFactory
 from .gapm_message_factory import GapmMessageFactory
-from .gtl_port.rwip_config import KE_API_ID
+from gtl_port.rwip_config import KE_API_ID
 
 
 class GtlMessageFactory():
