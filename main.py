@@ -1,5 +1,5 @@
 import asyncio
-from Ble import BlePeripheral
+from ble_api.Ble import BlePeripheral
 
 
 async def user_main():

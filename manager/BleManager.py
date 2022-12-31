@@ -9,11 +9,11 @@ from gtl_messages.gtl_port.gapm_task import GAPM_MSG_ID  # , gapm_reset_cmd, gap
 from gtl_messages.gtl_port.gapc_task import GAPC_MSG_ID
 from gtl_messages.gtl_port.gattc_task import GATTC_MSG_ID
 # from gtl_messages.gtl_port.gap import GAP_ROLE
-from BleDevParams import BleDevParamsDefault
+from .BleDevParams import BleDevParamsDefault
 # from gtl_messages.gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
-from GtlWaitQueue import GtlWaitQueue  # , GtlWaitQueueElement
-from BleCommon import BLE_ERROR, BLE_STATUS, BLE_MGR_CMD_CAT, BleManagerBase, BleManagerCommon, BleEventBase
-from BleManagerGap import BleManagerGap, BleMgrCmdBase  # , BleMgrGapRoleSetCmd, BLE_CMD_GAP_OPCODE
+from .GtlWaitQueue import GtlWaitQueue  # , GtlWaitQueueElement
+from ble_api.BleCommon import BLE_ERROR, BLE_STATUS, BLE_MGR_CMD_CAT, BleManagerBase, BleManagerCommon, BleEventBase
+from .BleManagerGap import BleManagerGap, BleMgrCmdBase  # , BleMgrGapRoleSetCmd, BLE_CMD_GAP_OPCODE
 
 # this is from ble_config.h
 dg_configBLE_DATA_LENGTH_TX_MAX = (251)

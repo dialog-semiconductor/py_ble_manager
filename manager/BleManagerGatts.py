@@ -1,8 +1,8 @@
 import asyncio
 from enum import IntEnum, auto
 
-from GtlWaitQueue import GtlWaitQueue
-from BleCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleMgrCmdBase  # BLE_ERROR, BLE_STATUS,
+from .GtlWaitQueue import GtlWaitQueue
+from ble_api.BleCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleMgrCmdBase  # BLE_ERROR, BLE_STATUS,
 
 # this is from ble_config.h
 dg_configBLE_DATA_LENGTH_TX_MAX = (251)

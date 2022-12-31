@@ -6,9 +6,9 @@ from gtl_messages.gtl_port.co_bt import ADV_DATA_LEN, SCAN_RSP_DATA_LEN, ADV_CHA
     # BD_ADDR_LEN, BD_NAME_SIZE, le_chnl_map, ADV_FILTER_POLICY
 from gtl_messages.gtl_port.gap import GAP_AD_TYPE  # GAP_ROLE, gap_bdaddr, gap_sec_key, GAP_IO_CAP, gap_slv_pref
 from gtl_messages.gtl_port.gapm_task import gapm_att_cfg_flag  # , GAPM_ADDR_TYPE, GAPM_OPERATION, GAP_ADV_MODE
-from BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_GAP_APPEARANCE, gap_chnl_map, GAP_DISC_MODE, ADV_FILT_POL, \
+from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_GAP_APPEARANCE, gap_chnl_map, GAP_DISC_MODE, ADV_FILT_POL, \
     gap_scan_params, gap_conn_params, GAP_IO_CAPABILITIES, GAP_SEC_LEVEL, BLE_GAP_PHY
-from BleCommon import BLE_OWN_ADDR_TYPE, bd_address, own_address, irk  # BLE_ADDR_TYPE
+from ble_api.BleCommon import BLE_OWN_ADDR_TYPE, bd_address, own_address, irk  # BLE_ADDR_TYPE
 
 
 

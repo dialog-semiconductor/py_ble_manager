@@ -11,13 +11,13 @@ from gtl_messages.gtl_port.gapc_task import GAPC_MSG_ID
 from gtl_messages.gtl_port.gapc import GAPC_FIELDS_MASK
 # from gtl_messages.gtl_port.gattc_task import GATTC_MSG_ID
 from gtl_messages.gtl_port.gap import GAP_ROLE, GAP_AUTH, GAP_AUTH_MASK
-from BleDevParams import BleDevParamsDefault
+from .BleDevParams import BleDevParamsDefault
 from gtl_messages.gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
-from GtlWaitQueue import GtlWaitQueue  # GtlWaitQueueElement
-from BleCommon import BLE_ERROR, BLE_MGR_CMD_CAT, BleManagerBase, BleMgrCmdBase, BLE_EVT_CAT, BleEventBase, \
+from .GtlWaitQueue import GtlWaitQueue  # GtlWaitQueueElement
+from ble_api.BleCommon import BLE_ERROR, BLE_MGR_CMD_CAT, BleManagerBase, BleMgrCmdBase, BLE_EVT_CAT, BleEventBase, \
     bd_address, BLE_OWN_ADDR_TYPE, BLE_ADDR_TYPE
-from BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, gap_conn_params, BLE_GAP_PHY # TODO dont like these files referencing eachother
-from BleManagerStorage import device, key_ltk, key_irk, key_csrk
+from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, gap_conn_params, BLE_GAP_PHY # TODO dont like these files referencing eachother
+from .BleManagerStorage import device, key_ltk, key_irk, key_csrk
 
 
 # this is from ble_config.h

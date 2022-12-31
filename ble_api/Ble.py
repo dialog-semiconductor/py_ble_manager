@@ -1,10 +1,10 @@
 import asyncio
 
-from BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE
-from BleManager import BleManager, BLE_ERROR
-from BleAdapter import BleAdapter
-from BleManagerGap import BleMgrGapRoleSetCmd, BleMgrGapAdvStartCmd
-from BleCommon import BleMgrCommonResetCmd
+from .BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE
+from manager.BleManager import BleManager, BLE_ERROR
+from adapter.BleAdapter import BleAdapter
+from manager.BleManagerGap import BleMgrGapRoleSetCmd, BleMgrGapAdvStartCmd
+from .BleCommon import BleMgrCommonResetCmd
 
 
 # common
