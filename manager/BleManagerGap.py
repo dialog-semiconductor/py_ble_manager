@@ -503,16 +503,17 @@ class BleManagerGap(BleManagerBase):
 
         return gtl
 
-    def _set_role_rsp(self, message: GtlMessageBase, param: BLE_GAP_ROLE = BLE_GAP_ROLE.GAP_NO_ROLE):
+    # TODO sdk passes rsp in as param. you have passed in command params
+    def _set_role_rsp(self, message: GtlMessageBase, new_role: BLE_GAP_ROLE = BLE_GAP_ROLE.GAP_NO_ROLE):
         event: gapm_cmp_evt = message.parameters
         response = BleMgrGapRoleSetRsp()
         response.prev_role = self.dev_params.role
-        response.new_role = param
+        response.new_role = new_role
         response.status = BLE_ERROR.BLE_ERROR_FAILED
 
         match event.status:
             case HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
-                self.dev_params.role = param
+                self.dev_params.role = new_role
                 response.status = BLE_ERROR.BLE_STATUS_OK
             case HOST_STACK_ERROR_CODE.GAP_ERR_INVALID_PARAM:
                 response.status = BLE_ERROR.BLE_ERROR_INVALID_PARAM
