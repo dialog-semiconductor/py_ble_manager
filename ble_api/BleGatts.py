@@ -1,5 +1,5 @@
 from enum import IntEnum, auto
-from .BleAtt import ATT_UUID_TYPE, att_uuid, ATT_ERROR
+from .BleAtt import att_uuid  # ATT_ERROR, ATT_UUID_TYPE
 
 
 class GATT_SERVICE(IntEnum):

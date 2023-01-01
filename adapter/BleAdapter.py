@@ -126,7 +126,6 @@ class BleAdapter():
         else:
             print("BleAdapter unhandled serial message")
 
-
     def _send_serial_message(self, message: GtlMessageBase):
         print(f"--> Tx: {message}\n")
         self.serial_tx_queue.put_nowait(message.to_bytes())
