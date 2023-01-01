@@ -38,7 +38,7 @@ class BleGatts(BleApiBase):
 
         response = await self.ble_manager.cmd_execute(command)
 
-        # TODO need get h_offset and h_val_offset from resposne 
+        # TODO need get h_offset and h_val_offset from resposne
 
         return response
 
