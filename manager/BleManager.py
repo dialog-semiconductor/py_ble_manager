@@ -14,51 +14,6 @@ from .BleManagerGap import BleManagerGap   # , BleMgrGapRoleSetCmd, BLE_CMD_GAP_
 dg_configBLE_DATA_LENGTH_TX_MAX = (251)
 
 
-'''
-# from ad_ble.h
-class ad_ble_operations(IntEnum):
-    AD_BLE_OP_CMP_EVT = 0x00
-    AD_BLE_OP_INIT_CMD = 0x01
-    AD_BLE_OP_RESET_CMD = 0x02
-    AD_BLE_OP_LAST = auto()
-# end ad_ble.h
-
-
-# from ble_mgr_ad_msg.c
-class WaitQueueElement():
-    def __init__(self,
-                 rsp_op: ad_ble_operations,
-                 cmd_op: ad_ble_operations,
-                 cb: callable,
-                 param) -> None:
-        self.rsp_op = rsp_op
-        self.cmd_op = cmd_op
-        self.cb = cb
-        self.param = param
-
-# end ble_mgr_ad_msg.c
-'''
-
-'''
-# from ble_mgr_cmd.h
-class BLE_MGR_COMMON_CMD_OPCODE(IntEnum):
-    BLE_MGR_COMMON_STACK_MSG = BLE_CMD_CAT.BLE_MGR_COMMON_CMD_CAT << 8
-    BLE_MGR_COMMON_REGISTER_CMD = auto()
-    BLE_MGR_COMMON_ENABLE_CMD = auto()
-    BLE_MGR_COMMON_RESET_CMD = auto()
-    BLE_MGR_COMMON_READ_TX_POWER_CMD = auto()
-    BLE_MGR_COMMON_LAST_CMD = auto()
-# end ble_mgr_cmd.h
-'''
-'''
-class BleMgrCmdFactory():
-    @staticmethod
-    def create_command(command_type, size):
-        if  command_type in BLE_CMD_GAP_OPCODE:
-            return BleGapMgrFactory(command_type, size)
-'''
-
-
 class BleManager(BleManagerBase):
 
     def __init__(self,
@@ -120,17 +75,15 @@ class BleManager(BleManagerBase):
             done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
 
             for task in done:
-                result = task.result()
-
-                if isinstance(result, GtlMessageBase):
+                if task is self._event_q_task:
                     # This is from the adapter_event_q
-                    self._process_event_queue(result)
+                    self._process_event_queue(task.result())
                     self._event_q_task = asyncio.create_task(self._adapter_event_queue_get(), name='BleMgrReadEventQueueTask')
                     pending.add(self._event_q_task)
 
-                elif isinstance(result, BleMgrCmdBase):
+                elif task is self._command_q_task:
                     # This is from the api_command_q
-                    self._process_command_queue(result)
+                    self._process_command_queue(task.result())
                     self._command_q_task = asyncio.create_task(self._api_commmand_queue_get(), name='BleMgrReadCommandQueueTask')
                     pending.add(self._command_q_task)
 

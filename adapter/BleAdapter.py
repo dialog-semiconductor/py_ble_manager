@@ -82,18 +82,16 @@ class BleAdapter():
             done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
 
             for task in done:
-                result = task.result()
-
-                if isinstance(result, GtlMessageBase):
+                if task is self._tx_task:
                     # This is from Ble Manager command queue
-                    self._process_command_queue(result)
+                    self._process_command_queue(task.result())
                     # TODO check if more messages in adapter event q and process them.
                     self._tx_task = asyncio.create_task(self._command_queue_get(), name='BleAdapterTx')
                     pending.add(self._tx_task)
 
-                elif isinstance(result, bytes):
+                elif self._rx_task:
                     # This is from serial Rx queue
-                    self._process_serial_rx_queue(result)
+                    self._process_serial_rx_queue(task.result())
                     self._rx_task = asyncio.create_task(self._serial_rx_queue_get(), name='BleAdapterRx')
                     pending.add(self._rx_task)
 

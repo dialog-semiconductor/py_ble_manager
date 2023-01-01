@@ -386,7 +386,6 @@ class BleManagerGap(BleManagerBase):
         }
 
     def _adv_cmp_evt_hanlder(self, gtl: GapmCmpEvt):
-        print("_adv_cmp_evt_hanlder")
         self.dev_params.advertising = False
         evt = BleEventGapAdvCompleted()
 

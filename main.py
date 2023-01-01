@@ -35,6 +35,8 @@ async def ble_task():
     await periph.start()
     print("Main after start")
 
+    # TODO call to setup database
+
     periph.set_advertising_interval((20) * 1000 // 625, (30) * 1000 // 625)
 
     print(" after set interval")

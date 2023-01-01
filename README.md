@@ -147,3 +147,5 @@ ser.write(cmd.to_bytes())
 ```
 
 The [tests/test_gtl_message_gapm.py](test_gtl_message_gapm.py) file is a work in progress unit test file for the messages defined in [gtl_messages/gtl_message_gapm.py](gtl_messages/gtl_message_gapm.py). For each message, the example message defined in the [GTL User Manual](https://www.renesas.com/us/en/document/mat/um-b-143-renesas-external-processor-interface-gtl-interface?language=en&r=1564826) is created and checked against the expected result.
+
+Necessary HW setup: [link](http://lpccs-docs.renesas.com/UM-140-DA145x-CodeLess/howToUse.html#hardware-setup)
