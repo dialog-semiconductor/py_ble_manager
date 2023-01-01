@@ -29,21 +29,27 @@ class BLE_MGR_COMMON_CMD_OPCODE(IntEnum):
 BLE_CONN_IDX_INVALID = 0xFFFF
 
 
-class BleMgrCmdBase():
+class BleMgrMsgBase():
     def __init__(self, opcode) -> None:
         self.opcode = opcode
 
 
-class BleMgrCommonResetCmd(BleMgrCmdBase):
+class BleMgrCommonResetCmd(BleMgrMsgBase):
     def __init__(self) -> None:
         super().__init__(opcode=BLE_MGR_COMMON_CMD_OPCODE.BLE_MGR_COMMON_RESET_CMD)
+
+
+class BleMgrCommonResetRsp(BleMgrMsgBase):
+    def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
+        super().__init__(opcode=BLE_MGR_COMMON_CMD_OPCODE.BLE_MGR_COMMON_RESET_CMD)
+        self.status = status
 
 
 class BleManagerBase():
     def __init__(self,
                  api_response_q: asyncio.Queue[BLE_ERROR],
                  api_event_q: asyncio.Queue[BleEventBase],
-                 adapter_command_q: asyncio.Queue[BleMgrCmdBase],
+                 adapter_command_q: asyncio.Queue[BleMgrMsgBase],
                  wait_q: GtlWaitQueue) -> None:
 
         self._api_response_q = api_response_q
@@ -58,16 +64,16 @@ class BleManagerBase():
     def _adapter_command_queue_send(self, command: GtlMessageBase):
         self._adapter_command_q.put_nowait(command)
 
-    async def _api_event_queue_get(self) -> BleMgrCmdBase:
+    async def _api_event_queue_get(self) -> BleMgrMsgBase:
         return await self._api_event_q.get()
 
     def _api_event_queue_send(self, evt: BleEventBase):
         self._api_event_q.put_nowait(evt)
 
-    async def _api_response_queue_get(self) -> BLE_ERROR:
+    async def _api_response_queue_get(self) -> BleMgrCommonResetCmd:
         return await self._api_response_q.get()
 
-    def _api_response_queue_send(self, response: BLE_ERROR):
+    def _api_response_queue_send(self, response: BleMgrCommonResetCmd):
         self._api_response_q.put_nowait(response)
 
     def _wait_queue_add(self, conn_idx, msg_id, ext_id, cb, param):
@@ -81,7 +87,7 @@ class BleManagerCommon(BleManagerBase):
     def __init__(self,
                  api_response_q: asyncio.Queue[BLE_ERROR],
                  api_event_q: asyncio.Queue[BleEventBase],
-                 adapter_command_q: asyncio.Queue[BleMgrCmdBase],
+                 adapter_command_q: asyncio.Queue[BleMgrMsgBase],
                  wait_q: GtlWaitQueue) -> None:
 
         super().__init__(api_response_q, api_event_q, adapter_command_q, wait_q)
@@ -96,7 +102,7 @@ class BleManagerCommon(BleManagerBase):
     def _reset_rsp_handler(self, message: GtlMessageBase, param: None):
         # TODO see ble_adapter_cmp_evt_reset
         # TODO set dev_params status to BLE_IS_ENABLE
-        response = BLE_ERROR.BLE_STATUS_OK
+        response = BleMgrCommonResetRsp(BLE_ERROR.BLE_STATUS_OK)
         self._api_response_queue_send(response)
 
         # TODO feel like reset belongs under Gap Mgr as it is dealing with GAP messages

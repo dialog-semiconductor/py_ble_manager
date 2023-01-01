@@ -7,7 +7,7 @@ from gtl_messages.gtl_message_base import GtlMessageBase
 # from gtl_messages.gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from .GtlWaitQueue import GtlWaitQueue  # , GtlWaitQueueElement
 from ble_api.BleCommon import BLE_ERROR, BLE_STATUS, BleEventBase
-from .BleManagerCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleManagerCommon, BleMgrCmdBase
+from .BleManagerCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleManagerCommon, BleMgrMsgBase
 from .BleManagerGap import BleManagerGap   # , BleMgrGapRoleSetCmd, BLE_CMD_GAP_OPCODE
 
 # this is from ble_config.h
@@ -17,14 +17,14 @@ dg_configBLE_DATA_LENGTH_TX_MAX = (251)
 class BleManager(BleManagerBase):
 
     def __init__(self,
-                 api_command_q: asyncio.Queue[BleMgrCmdBase],
+                 api_command_q: asyncio.Queue[BleMgrMsgBase],
                  api_response_q: asyncio.Queue[BLE_ERROR],
                  api_event_q: asyncio.Queue[BleEventBase],
-                 adapter_command_q: asyncio.Queue[BleMgrCmdBase],
+                 adapter_command_q: asyncio.Queue[BleMgrMsgBase],
                  adapter_event_q: asyncio.Queue[GtlMessageBase]) -> None:
 
         # TODO if x else y is so vscode will treat variable as that item for auto complete
-        self._api_command_q: asyncio.Queue[BleMgrCmdBase] = api_command_q
+        self._api_command_q: asyncio.Queue[BleMgrMsgBase] = api_command_q
         self._api_response_q: asyncio.Queue[BLE_ERROR] = api_response_q
         self._api_event_q: asyncio.Queue = api_event_q
         self._adapter_commnand_q: asyncio.Queue[GtlMessageBase] = adapter_command_q
@@ -45,10 +45,10 @@ class BleManager(BleManagerBase):
     async def _adapter_event_queue_get(self) -> BleEventBase:
         return await self._adapter_event_q.get()
 
-    def _api_command_queue_send(self, command: BleMgrCmdBase):
+    def _api_command_queue_send(self, command: BleMgrMsgBase):
         self._api_command_q.put_nowait(command)
 
-    async def _api_commmand_queue_get(self) -> BleMgrCmdBase:
+    async def _api_commmand_queue_get(self) -> BleMgrMsgBase:
         return await self._api_command_q.get()
 
     def _handle_evt_or_ind(self, message: GtlMessageBase):
@@ -87,7 +87,7 @@ class BleManager(BleManagerBase):
                     self._command_q_task = asyncio.create_task(self._api_commmand_queue_get(), name='BleMgrReadCommandQueueTask')
                     pending.add(self._command_q_task)
 
-    def _process_command_queue(self, command: BleMgrCmdBase):
+    def _process_command_queue(self, command: BleMgrMsgBase):
 
         category = command.opcode >> 8
 
@@ -111,7 +111,7 @@ class BleManager(BleManagerBase):
         # TODO keeping handles so these can be cancelled somehow
         self._mgr_task = asyncio.create_task(self._manager_task(), name='BleManagerTask')
 
-    async def cmd_execute(self, command, handler: None) -> BLE_ERROR:
+    async def cmd_execute(self, command) -> BLE_ERROR:
         ble_status = self.gap_mgr.dev_params.status
         if ble_status == BLE_STATUS.BLE_IS_BUSY or ble_status == BLE_STATUS.BLE_IS_RESET:
             return BLE_ERROR.BLE_ERROR_BUSY

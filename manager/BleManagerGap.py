@@ -18,7 +18,7 @@ from ble_api.BleCommon import BLE_ERROR, BLE_EVT_CAT, BleEventBase, \
     bd_address, BLE_OWN_ADDR_TYPE, BLE_ADDR_TYPE
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, gap_conn_params, BLE_GAP_PHY  # TODO dont like these files referencing eachother
 from .BleManagerStorage import device
-from .BleManagerCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleMgrCmdBase
+from .BleManagerCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleMgrMsgBase
 
 
 # this is from ble_config.h
@@ -28,196 +28,213 @@ dg_configBLE_DATA_LENGTH_TX_MAX = (251)
 ATT_DEFAULT_MTU = (23)
 
 
-class BleMgrGapAddressSetCmd(BleMgrCmdBase):
+class BleMgrGapAddressSetCmd(BleMgrMsgBase):
     def __init__(self, address, renew_dur) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADDRESS_SET_CMD)
 
 
-class BleMgrGapDeviceNameSetCmd(BleMgrCmdBase):
+class BleMgrGapDeviceNameSetCmd(BleMgrMsgBase):
     def __init__(self, name, perm) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DEVICE_NAME_SET_CMD)
 
 
-class BleMgrGapAppearanceSetCmd(BleMgrCmdBase):
+class BleMgrGapAppearanceSetCmd(BleMgrMsgBase):
     def __init__(self, appearance, perm) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_APPEARANCE_SET_CMD)
 
 
-class BleMgrGapPpcpSetCmd(BleMgrCmdBase):
+class BleMgrGapPpcpSetCmd(BleMgrMsgBase):
     def __init__(self, gap_ppcp) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PPCP_SET_CMD)
 
 
-class BleMgrGapAdvStartCmd(BleMgrCmdBase):
+class BleMgrGapAdvStartCmd(BleMgrMsgBase):
     def __init__(self, adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_START_CMD)
         self.adv_type = adv_type  # TODO raise error on bad arg
 
 
-class BleMgrGapAdvStopCmd(BleMgrCmdBase):
+class BleMgrGapAdvStartRsp(BleMgrMsgBase):
+    def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_START_CMD)
+        self.status = status
+
+
+class BleMgrGapAdvStopCmd(BleMgrMsgBase):
     def __init__(self) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_STOP_CMD)
 
 
-class BleMgrGapAdvDataSetCmd(BleMgrCmdBase):
+class BleMgrGapAdvDataSetCmd(BleMgrMsgBase):
     def __init__(self, adv_data_len, adv_data, scan_rsp_data_len, scan_rsp_data) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_DATA_SET_CMD)
 
 
-class BleMgrGapAdvSetPermIdCmd(BleMgrCmdBase):
+class BleMgrGapAdvSetPermIdCmd(BleMgrMsgBase):
     def __init__(self, permutation_idx) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_SET_PERMUTATION_CMD)
 
 
-class BleMgrGapScanStartCmd(BleMgrCmdBase):
+class BleMgrGapScanStartCmd(BleMgrMsgBase):
     def __init__(self, type, mode, interval, window, filt_wlist, filt_dupl) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SCAN_START_CMD)
 
 
-class BleMgrGapScanStopCmd(BleMgrCmdBase):
+class BleMgrGapScanStopCmd(BleMgrMsgBase):
     def __init__(self) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SCAN_STOP_CMD)
 
 
-class BleMgrGapConnectCmd(BleMgrCmdBase):
+class BleMgrGapConnectCmd(BleMgrMsgBase):
     def __init__(self, peer_addr, conn_params, ce_len_min, ce_len_max) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CMD)
 
 
-class BleMgrGapConnectCancelCmd(BleMgrCmdBase):
+class BleMgrGapConnectCancelCmd(BleMgrMsgBase):
     def __init__(self) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CANCEL_CMD)
 
 
-class BleMgrGapDisconnectCmd(BleMgrCmdBase):
+class BleMgrGapDisconnectCmd(BleMgrMsgBase):
     def __init__(self, conn_idx, reason) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DISCONNECT_CMD)
 
 
-class BleMgrGapPeerVersionGetCmd(BleMgrCmdBase):
+class BleMgrGapPeerVersionGetCmd(BleMgrMsgBase):
     def __init__(self, conn_idx) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PEER_VERSION_GET_CMD)
 
 
-class BleMgrGapPeerFeaturesGetCmd(BleMgrCmdBase):
+class BleMgrGapPeerFeaturesGetCmd(BleMgrMsgBase):
     def __init__(self, conn_idx) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PEER_FEATURES_GET_CMD)
 
 
-class BleMgrGapConnRssiGetCmd(BleMgrCmdBase):
+class BleMgrGapConnRssiGetCmd(BleMgrMsgBase):
     def __init__(self, conn_idx) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_RSSI_GET_CMD)
 
 
-class BleMgrGapRoleSetCmd(BleMgrCmdBase):
+class BleMgrGapRoleSetCmd(BleMgrMsgBase):
     def __init__(self, role: BLE_GAP_ROLE = BLE_GAP_ROLE.GAP_NO_ROLE) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ROLE_SET_CMD)
         self.role = role
 
 
-class BleMgrGapMtuSizeSetCmd(BleMgrCmdBase):
+class BleMgrGapRoleSetRsp(BleMgrMsgBase):
+    def __init__(self,
+                 new_role: BLE_GAP_ROLE = BLE_GAP_ROLE.GAP_NO_ROLE,
+                 prev_role: BLE_GAP_ROLE = BLE_GAP_ROLE.GAP_NO_ROLE,
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ROLE_SET_CMD)
+        self.new_role = new_role
+        self.prev_role = prev_role
+        self.status = status
+
+
+class BleMgrGapMtuSizeSetCmd(BleMgrMsgBase):
     def __init__(self, mtu_size) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_MTU_SIZE_SET_CMD)
 
 
-class BleMgrGapChannelMapSetCmd(BleMgrCmdBase):
+class BleMgrGapChannelMapSetCmd(BleMgrMsgBase):
     def __init__(self, channel_map) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CHANNEL_MAP_SET_CMD)
 
 
-class BleMgrGapConnParamUpdateCmd(BleMgrCmdBase):
+class BleMgrGapConnParamUpdateCmd(BleMgrMsgBase):
     def __init__(self, conn_idx, conn_params) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_PARAM_UPDATE_CMD)
 
 
-class BleMgrGapConnParamUpdateReplyCmd(BleMgrCmdBase):
+class BleMgrGapConnParamUpdateReplyCmd(BleMgrMsgBase):
     def __init__(self, conn_idx, accept) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_PARAM_UPDATE_REPLY_CMD)
 
 
-class BleMgrGapPairCmd(BleMgrCmdBase):
+class BleMgrGapPairCmd(BleMgrMsgBase):
     def __init__(self, conn_idx, bond) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PAIR_CMD)
 
 
-class BleMgrGapPairReplyCmd(BleMgrCmdBase):
+class BleMgrGapPairReplyCmd(BleMgrMsgBase):
     def __init__(self, conn_idx, accept, bond) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PAIR_REPLY_CMD)
 
 
-class BleMgrGapPasskeyReplyCmd(BleMgrCmdBase):
+class BleMgrGapPasskeyReplyCmd(BleMgrMsgBase):
     def __init__(self, conn_idx, accept, passkey) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PASSKEY_REPLY_CMD)
 
 
-class BleMgrGapNumericReplyCmd(BleMgrCmdBase):
+class BleMgrGapNumericReplyCmd(BleMgrMsgBase):
     def __init__(self, conn_idx, accept) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_NUMERIC_REPLY_CMD)
 
 
-class BleMgrGapUnpairCmd(BleMgrCmdBase):
+class BleMgrGapUnpairCmd(BleMgrMsgBase):
     def __init__(self, addr) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_UNPAIR_CMD)
 
 
-class BleMgrGapSetSecLevelCmd(BleMgrCmdBase):
+class BleMgrGapSetSecLevelCmd(BleMgrMsgBase):
     def __init__(self, conn_idx, level) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SET_SEC_LEVEL_CMD)
 
 
 # TODO ble_mgr_gap_skip_latency_cmd_t
 
-class BleMgrGapDataLengthSetCmd(BleMgrCmdBase):
+class BleMgrGapDataLengthSetCmd(BleMgrMsgBase):
     def __init__(self, conn_idx, tx_length, tx_time) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DATA_LENGTH_SET_CMD)
 
 
-class BleMgrGapAddressResolveCmd(BleMgrCmdBase):
+class BleMgrGapAddressResolveCmd(BleMgrMsgBase):
     def __init__(self, address) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADDRESS_RESOLVE_CMD)
 
 
-class BleMgrGapPhySetCmd(BleMgrCmdBase):
+class BleMgrGapPhySetCmd(BleMgrMsgBase):
     def __init__(self, conn_idx, tx_phy, rx_phy) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PHY_SET_CMD)
 
 
-class BleMgrGapTxPowerSetCmd(BleMgrCmdBase):
+class BleMgrGapTxPowerSetCmd(BleMgrMsgBase):
     def __init__(self, air_operation, tx_power) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_TX_POWER_SET_CMD)
 
 
-class BleMgrGapConnTxPowerSetCmd(BleMgrCmdBase):
+class BleMgrGapConnTxPowerSetCmd(BleMgrMsgBase):
     def __init__(self, conn_idx, tx_power) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_TX_POWER_SET_CMD)
 
 
-class BleMgrGapLocalTxPowerGetCmd(BleMgrCmdBase):
+class BleMgrGapLocalTxPowerGetCmd(BleMgrMsgBase):
     def __init__(self, conn_idx, phy) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_LOCAL_TX_POWER_GET_CMD)
 
 
-class BleMgrGapReadRemoteTxPowerLevelCmd(BleMgrCmdBase):
+class BleMgrGapReadRemoteTxPowerLevelCmd(BleMgrMsgBase):
     def __init__(self, air_operation, phy) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_REMOTE_TX_POWER_GET_CMD)
 
 
-class BleMgrGapSetPathLossReportParamsCmd(BleMgrCmdBase):
+class BleMgrGapSetPathLossReportParamsCmd(BleMgrMsgBase):
     def __init__(self, conn_idx, high_thres, high_hyst, low_thres, low_hyst, min_time_spent) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PATH_LOSS_REPORT_PARAMS_SET_CMD)
 
 
-class BleMgrGapSetPathLossReportEnableCmd(BleMgrCmdBase):
+class BleMgrGapSetPathLossReportEnableCmd(BleMgrMsgBase):
     def __init__(self, conn_idx, enable) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PATH_LOSS_REPORT_EN_CMD)
 
 
-class BleMgrGapSetTxPowerReportEnableCmd(BleMgrCmdBase):
+class BleMgrGapSetTxPowerReportEnableCmd(BleMgrMsgBase):
     def __init__(self, conn_idx, loc_en, rem_en) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_TX_PWR_REPORT_EN_CMD)
 
 
-class BleMgrGapRfPathCompensationSetCmd(BleMgrCmdBase):
+class BleMgrGapRfPathCompensationSetCmd(BleMgrMsgBase):
     def __init__(self, conn_idx, rf_tx_path_compens, rf_rx_path_compens) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_RF_PATH_COMPENSATION_SET_CMD)
 
@@ -364,7 +381,7 @@ class BleManagerGap(BleManagerBase):
     def __init__(self,
                  api_response_q: asyncio.Queue[BLE_ERROR],
                  api_event_q: asyncio.Queue[BleEventBase],
-                 adapter_command_q: asyncio.Queue[BleMgrCmdBase],
+                 adapter_command_q: asyncio.Queue[BleMgrMsgBase],
                  wait_q: GtlWaitQueue) -> None:
 
         super().__init__(api_response_q, api_event_q, adapter_command_q, wait_q)
@@ -488,20 +505,23 @@ class BleManagerGap(BleManagerBase):
 
     def _set_role_rsp(self, message: GtlMessageBase, param: BLE_GAP_ROLE = BLE_GAP_ROLE.GAP_NO_ROLE):
         event: gapm_cmp_evt = message.parameters
-        response = BLE_ERROR.BLE_ERROR_FAILED
+        response = BleMgrGapRoleSetRsp()
+        response.prev_role = self.dev_params.role
+        response.new_role = param
+        response.status = BLE_ERROR.BLE_ERROR_FAILED
 
         match event.status:
             case HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
                 self.dev_params.role = param
-                response = BLE_ERROR.BLE_STATUS_OK
+                response.status = BLE_ERROR.BLE_STATUS_OK
             case HOST_STACK_ERROR_CODE.GAP_ERR_INVALID_PARAM:
-                response = BLE_ERROR.BLE_ERROR_INVALID_PARAM
+                response.status = BLE_ERROR.BLE_ERROR_INVALID_PARAM
             case HOST_STACK_ERROR_CODE.GAP_ERR_NOT_SUPPORTED:
-                response = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
+                response.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
             case HOST_STACK_ERROR_CODE.GAP_ERR_COMMAND_DISALLOWED:
-                response = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
+                response.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
             case _:
-                response = event.status
+                response.status = event.status
 
         self._api_response_queue_send(response)
 
@@ -577,8 +597,7 @@ class BleManagerGap(BleManagerBase):
         self.dev_params.advertising = True
         self._adapter_command_queue_send(message)
 
-        response = BLE_ERROR.BLE_STATUS_OK
-
+        response = BleMgrGapAdvStartRsp(BLE_ERROR.BLE_STATUS_OK)
         self._api_response_queue_send(response)
 
     def cmp_evt_handler(self, gtl: GapmCmpEvt):

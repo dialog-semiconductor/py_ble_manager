@@ -2,12 +2,10 @@ import asyncio
 from enum import IntEnum, auto
 
 from .GtlWaitQueue import GtlWaitQueue
-from .BleManagerCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleMgrCmdBase
-
-
-class BleMgrGattsServceAddCmd(BleMgrCmdBase):
-    def __init__(self, uuid, type, num_attrs) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_ADD_CMD)
+from .BleManagerCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleMgrMsgBase
+from ble_api.BleAtt import att_uuid, ATT_PERM
+from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
+from ble_api.BleGatts import GATTS_FLAGS
 
 
 class BLE_CMD_GATTS_OPCODE(IntEnum):
@@ -28,6 +26,33 @@ class BLE_CMD_GATTS_OPCODE(IntEnum):
     BLE_MGR_GATTS_SEND_EVENT_CMD = auto()
     BLE_MGR_GATTS_SERVICE_CHANGED_IND_CMD = auto()
     BLE_MGR_GATTS_LAST_CMD = auto()
+
+
+class BleMgrGattsServiceAddCmd(BleMgrMsgBase):
+    def __init__(self,
+                 uuid: att_uuid = att_uuid(),
+                 type: GATT_SERVICE = GATT_SERVICE.GATT_SERVICE_PRIMARY,
+                 num_attrs: int = 0) -> None:
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_ADD_CMD)
+        self.uuid = uuid
+        self.type = type
+        self.num_attrs = num_attrs
+
+
+class BleMgrGattsServiceAddCharacteristicCmd(BleMgrMsgBase):
+    def __init__(self,
+                 uuid: att_uuid = att_uuid(),
+                 prop: GATT_PROP = GATT_PROP.GATT_PROP_NONE,
+                 perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
+                 max_len: int = 0,
+                 flags: GATTS_FLAGS = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ,
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_CHARACTERISTIC_ADD_CMD)
+        self.uuid = uuid
+        self.prop = prop
+        self.perm = perm
+        self.max_len = max_len
+        self.flags = flags
 
 
 class BleManagerGattc(BleManagerBase):

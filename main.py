@@ -32,18 +32,18 @@ async def ble_task():
     print("Mian Serial port opened")
 
     # periph.register_app
-    await periph.start()
-    print("Main after start")
+    response = await periph.start()
+    print(f"Main after start {response}")
 
     # TODO call to setup database
 
     periph.set_advertising_interval((20) * 1000 // 625, (30) * 1000 // 625)
 
     print(" after set interval")
-    await periph.start_advertising()
+    response = await periph.start_advertising()
     # TODO register app
 
-    print("Main After periph.init()")
+    print(f"Main After periph.init(). response={response}")
 
     # TODO GAP_ERR_PRIVACY_CFG_PB from adv command
 

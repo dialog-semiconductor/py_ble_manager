@@ -3,21 +3,23 @@ import asyncio
 from .BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE
 from manager.BleManager import BleManager, BLE_ERROR
 from adapter.BleAdapter import BleAdapter
-from manager.BleManagerGap import BleMgrGapRoleSetCmd, BleMgrGapAdvStartCmd
-from manager.BleManagerCommon import BleMgrCommonResetCmd
+from manager.BleManagerGap import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp
+from manager.BleManagerCommon import BleMgrCommonResetCmd, BleMgrCommonResetRsp, BleMgrMsgBase
 from .BleCommon import BleEventBase
 
 
 # common
-class BleBase():
+class BleApiBase():
+    def __init__(self, ble_manager: BleManager, ble_adapter: BleAdapter):
+        self.ble_manager = ble_manager
+        self.ble_adapter = ble_adapter
+
+
+class BleClient(BleApiBase):
     pass
 
 
-class BleClient(BleBase):
-    pass
-
-
-class BlePeripheral(BleBase):
+class BlePeripheral(BleApiBase):
     def __init__(self, com_port: str):
 
         app_command_q = asyncio.Queue()
@@ -30,19 +32,17 @@ class BlePeripheral(BleBase):
         self.ble_manager = BleManager(app_command_q, app_resposne_q, app_event_q, adapter_command_q, adapter_event_q)
         self.ble_adapter = BleAdapter(com_port, adapter_command_q, adapter_event_q)
 
-    async def _ble_reset(self) -> BLE_ERROR:
+    async def _ble_reset(self) -> BleMgrCommonResetRsp:
         response = BLE_ERROR.BLE_ERROR_FAILED
         command = BleMgrCommonResetCmd()
         # TODO remove handler arg entirely??
-        response = await self.ble_manager.cmd_execute(command, self.ble_manager.common_mgr.reset_cmd_handler)
+        response = await self.ble_manager.cmd_execute(command)
 
         return response
 
-    async def _gap_role_set(self, role: BLE_GAP_ROLE) -> BLE_ERROR:
-        response = BLE_ERROR.BLE_ERROR_FAILED
+    async def _gap_role_set(self, role: BLE_GAP_ROLE) -> BleMgrGapRoleSetRsp:
         command = BleMgrGapRoleSetCmd(role)
-        # TODO remove handler arg entirely ??
-        response = await self.ble_manager.cmd_execute(command, self.ble_manager.gap_mgr.role_set_cmd_handler)
+        response = await self.ble_manager.cmd_execute(command)
         return response
 
     async def init(self) -> None:
@@ -67,27 +67,23 @@ class BlePeripheral(BleBase):
 
         return evt
 
-    async def start(self) -> BLE_ERROR:
+    async def start(self) -> BleMgrMsgBase:
 
-        error = BLE_ERROR.BLE_ERROR_FAILED
         error = await self._ble_reset()
-        if error == BLE_ERROR.BLE_STATUS_OK:
+        if error.status == BLE_ERROR.BLE_STATUS_OK:
             error = await self._gap_role_set(BLE_GAP_ROLE.GAP_PERIPHERAL_ROLE)
 
         return error
 
-    def set_advertising_interval(self, adv_intv_min, adv_intv_max) -> BLE_ERROR:
+    def set_advertising_interval(self, adv_intv_min, adv_intv_max) -> None:
         self.ble_manager.gap_mgr.dev_params.adv_intv_min = int(adv_intv_min)
         self.ble_manager.gap_mgr.dev_params.adv_intv_max = int(adv_intv_max)
+        # TODO save current setting in local?
 
-        return BLE_ERROR.BLE_STATUS_OK
-
-    async def start_advertising(self, adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED) -> BLE_ERROR:
-
-        response = BLE_ERROR.BLE_ERROR_FAILED
+    async def start_advertising(self,
+                                adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
+                                ) -> BleMgrGapAdvStartRsp:
 
         command = BleMgrGapAdvStartCmd(adv_type)
-        # TODO remove handler arg entirely
-        response = await self.ble_manager.cmd_execute(command, self.ble_manager.gap_mgr.adv_start_cmd_handler)
-
+        response = await self.ble_manager.cmd_execute(command)
         return response

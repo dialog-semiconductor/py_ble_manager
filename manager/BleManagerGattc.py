@@ -2,10 +2,10 @@ import asyncio
 from enum import IntEnum, auto
 
 from .GtlWaitQueue import GtlWaitQueue
-from .BleManagerCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleMgrCmdBase
+from .BleManagerCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleMgrMsgBase
 
 
-class BleMgrGattcDiscoverSvcCmd(BleMgrCmdBase):
+class BleMgrGattcDiscoverSvcCmd(BleMgrMsgBase):
     def __init__(self, conn_idx, uuid) -> None:
         super().__init__(opcode=BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_SVC_CMD)
 
