@@ -108,20 +108,24 @@ class BleAdapter():
         self._send_serial_message(command)
 
     def _process_serial_rx_queue(self, byte_string: bytes):
-        msg = self.message_parser.decode_from_bytes(byte_string)
+        msg = self.message_parser.decode_from_bytes(byte_string)  # # TODO catch error
         print(f"<-- Rx: {msg}\n")
 
-        if msg.msg_id == GAPM_MSG_ID.GAPM_DEVICE_READY_IND:
-            # Reset the BLE Stacks
-            command = self._create_reset_command()
-            self._send_serial_message(command)
+        if msg:
+            if msg.msg_id == GAPM_MSG_ID.GAPM_DEVICE_READY_IND:
+                # Reset the BLE Stacks
+                command = self._create_reset_command()
+                self._send_serial_message(command)
 
-        elif msg.msg_id == GAPM_MSG_ID.GAPM_CMP_EVT:
-            self.ble_stack_initialized = True
-            self.event_q.put_nowait(msg)  # Not making an adapter msg, just forwarding to manager
+            elif msg.msg_id == GAPM_MSG_ID.GAPM_CMP_EVT:
+                self.ble_stack_initialized = True
+                self.event_q.put_nowait(msg)  # Not making an adapter msg, just forwarding to manager
 
+            else:
+                self.event_q.put_nowait(msg)
         else:
-            self.event_q.put_nowait(msg)
+            print("BleAdapter unhandled serial message")
+
 
     def _send_serial_message(self, message: GtlMessageBase):
         print(f"--> Tx: {message}\n")
