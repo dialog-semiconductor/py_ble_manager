@@ -142,7 +142,7 @@ class att_perm(LittleEndianStructure):
                  write_command: ATTM_WRITE_COMMAND = ATTM_WRITE_COMMAND.NOT_ACCEPTED,
                  write_signed: ATTM_WRITE_SIGNED = ATTM_WRITE_SIGNED.NOT_ACCEPTED,
                  write_request: ATTM_WRITE_REQUEST = ATTM_WRITE_REQUEST.NOT_ACCEPTED,
-                 uuid_len: ATTM_UUID_LEN = ATTM_UUID_LEN._16_BITS,
+                 uuid_len: ATTM_UUID_LEN = ATTM_UUID_LEN.BITS_16,
                  max_len: c_uint16 = 0,
                  trigger_read_indication: ATTM_TRIGGER_READ_INDICATION = ATTM_TRIGGER_READ_INDICATION.NO,
                  ):
@@ -190,7 +190,6 @@ class att_perm(LittleEndianStructure):
                 ("reserved", c_uint32, 12)]
 
 
-# TODO move to att or attm
 class att_max_len_read_ind(LittleEndianStructure):
 
     def __init__(self,
@@ -251,7 +250,7 @@ class gattm_att_desc(LittleEndianStructure):
 class gattm_svc_desc(LittleEndianStructure):
     def __init__(self,
                  start_hdl: c_uint16 = 0,
-                 task_id: KE_API_ID = 0,
+                 task_id: KE_API_ID = KE_API_ID.TASK_ID_GTL,
                  perm: attm_svc_perm = attm_svc_perm(),
                  uuid: (c_uint8 * ATT_UUID_128_LEN) = (c_uint8 * ATT_UUID_128_LEN)(),
                  atts: Array[gattm_att_desc] = None,

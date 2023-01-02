@@ -69,10 +69,10 @@ class BlePeripheral(BleApiBase):
     async def start(self) -> BLE_ERROR:
 
         error = await self._ble_reset()
-        if error.status == BLE_ERROR.BLE_STATUS_OK:
+        if error == BLE_ERROR.BLE_STATUS_OK:
             error = await self._gap_role_set(BLE_GAP_ROLE.GAP_PERIPHERAL_ROLE)
 
-        return error.status
+        return error
 
     def set_advertising_interval(self, adv_intv_min, adv_intv_max) -> None:
         self.ble_manager.gap_mgr.dev_params.adv_intv_min = int(adv_intv_min)

@@ -117,9 +117,9 @@ class ATTM_SERVICE_TYPE(IntEnum):
 
 
 class ATTM_UUID_LEN(IntEnum):
-    _16_BITS = 0
-    _32_BITS = 1
-    _128_BITS = 2
+    BITS_16 = 0
+    BITS_32 = 1
+    BITS_128 = 2
 
 
 class ATTM_PERM(IntEnum):
@@ -317,7 +317,7 @@ class attm_svc_perm(LittleEndianStructure):
                  multi: ATTM_TASK_MULTI_INSTANTIATED = ATTM_TASK_MULTI_INSTANTIATED.NO,
                  enc_key_16_bytes: ATTM_ENC_KEY_SIZE_16_BYTES = ATTM_ENC_KEY_SIZE_16_BYTES.NO,
                  svc_perm: ATTM_PERM = ATTM_PERM.UNAUTH,
-                 uuid_len: ATTM_UUID_LEN = ATTM_UUID_LEN._16_BITS,
+                 uuid_len: ATTM_UUID_LEN = ATTM_UUID_LEN.BITS_16,
                  primary_svc: ATTM_SERVICE_TYPE = ATTM_SERVICE_TYPE.PRIMARY_SERVICE
                  ):
 

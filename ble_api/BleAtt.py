@@ -28,6 +28,13 @@ class att_uuid():
         self.type = type
         self.uuid = uuid if uuid else []  # TODO raise error if list too long or conflicts with type?
 
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            if self.type == other.type:
+                if self.uuid == other.uuid:
+                    return True
+        return False
+
 
 class ATT_ERROR(IntEnum):
     pass

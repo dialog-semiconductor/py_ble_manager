@@ -56,7 +56,7 @@ class TestGattmAddSvcReq(unittest.TestCase):
         
         test_message = GattmAddSvcReq()
         test_message.parameters.svc_desc.task_id = KE_API_ID.TASK_ID_GTL
-        test_message.parameters.svc_desc.perm.uuid_len = ATTM_UUID_LEN._128_BITS
+        test_message.parameters.svc_desc.perm.uuid_len = ATTM_UUID_LEN.BITS_128
         test_message.parameters.svc_desc.perm.svc_perm = ATTM_PERM.AUTH
         test_message.parameters.svc_desc.perm.enc_key_16_bytes = ATTM_ENC_KEY_SIZE_16_BYTES.NO
         test_message.parameters.svc_desc.nb_att = 7
@@ -85,7 +85,7 @@ class TestGattmAddSvcReq(unittest.TestCase):
         att.perm.read = ATTM_PERM.ENABLE
         att.perm.write=ATTM_PERM.ENABLE
         att.perm.write_request=ATTM_WRITE_REQUEST.ACCEPTED
-        att.perm.uuid_len=ATTM_UUID_LEN._128_BITS
+        att.perm.uuid_len=ATTM_UUID_LEN.BITS_128
         att.max_len_read_ind.max_len=100
         att.max_len_read_ind.trigger_read_indication = ATTM_TRIGGER_READ_INDICATION.YES
         att_list.append(att)
@@ -101,7 +101,7 @@ class TestGattmAddSvcReq(unittest.TestCase):
         att_list.append(att)
 
         # att 4
-        uuid_str =  bytearray.fromhex("00")*(ATT_UUID_128_LEN-2) + bytearray.fromhex("2803")
+        uuid_str = bytearray.fromhex("00")*(ATT_UUID_128_LEN-2) + bytearray.fromhex("2803")
         uuid_str.reverse()
         att = gattm_att_desc()
         att.uuid=(c_uint8*ATT_UUID_128_LEN).from_buffer_copy(uuid_str)
@@ -116,7 +116,7 @@ class TestGattmAddSvcReq(unittest.TestCase):
         att.perm.read=ATTM_PERM.ENABLE
         att.perm.write=ATTM_PERM.ENABLE
         att.perm.write_request=ATTM_WRITE_REQUEST.ACCEPTED
-        att.perm.uuid_len=ATTM_UUID_LEN._128_BITS
+        att.perm.uuid_len=ATTM_UUID_LEN.BITS_128
         att.max_len_read_ind.max_len=100
         att_list.append(att)
 
@@ -137,7 +137,7 @@ class TestGattmAddSvcReq(unittest.TestCase):
         att.perm.read=ATTM_PERM.ENABLE
         att.perm.write=ATTM_PERM.ENABLE
         att.perm.write_request=ATTM_WRITE_REQUEST.ACCEPTED
-        att.perm.uuid_len=ATTM_UUID_LEN._128_BITS
+        att.perm.uuid_len=ATTM_UUID_LEN.BITS_128
         att.max_len_read_ind.max_len=2
         att_list.append(att)
 

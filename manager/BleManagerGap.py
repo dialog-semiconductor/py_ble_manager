@@ -16,7 +16,7 @@ from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from .GtlWaitQueue import GtlWaitQueue  # GtlWaitQueueElement
 from ble_api.BleCommon import BLE_ERROR, BLE_EVT_CAT, BleEventBase, \
     bd_address, BLE_OWN_ADDR_TYPE, BLE_ADDR_TYPE
-from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, gap_conn_params, BLE_GAP_PHY  # TODO dont like these files referencing eachother
+from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, gap_conn_params, BLE_GAP_PHY, BLE_CONN_IDX_INVALID  # TODO dont like these files referencing eachother
 from .BleManagerStorage import device
 from .BleManagerCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleMgrMsgBase
 
@@ -504,8 +504,8 @@ class BleManagerGap(BleManagerBase):
         return gtl
 
     # TODO sdk passes rsp in as param. you have passed in command params
-    def _set_role_rsp(self, message: GtlMessageBase, new_role: BLE_GAP_ROLE = BLE_GAP_ROLE.GAP_NO_ROLE):
-        event: gapm_cmp_evt = message.parameters
+    def _set_role_rsp(self, gtl: GapmCmpEvt, new_role: BLE_GAP_ROLE = BLE_GAP_ROLE.GAP_NO_ROLE):
+        event = gtl.parameters
         response = BleMgrGapRoleSetRsp()
         response.prev_role = self.dev_params.role
         response.new_role = new_role
@@ -701,7 +701,12 @@ class BleManagerGap(BleManagerBase):
     def role_set_cmd_handler(self, command: BleMgrGapRoleSetCmd):
         dev_params_gtl = self._dev_params_to_gtl()
         dev_params_gtl.parameters.role = self._ble_role_to_gtl_role(command.role)
-        self._wait_queue_add(0xFFFF, GAPM_MSG_ID.GAPM_CMP_EVT, GAPM_OPERATION.GAPM_SET_DEV_CONFIG, self._set_role_rsp, command.role)
+        self._wait_queue_add(BLE_CONN_IDX_INVALID,
+                             GAPM_MSG_ID.GAPM_CMP_EVT,
+                             GAPM_OPERATION.GAPM_SET_DEV_CONFIG,
+                             self._set_role_rsp,
+                             command.role)
+
         self._adapter_command_queue_send(dev_params_gtl)
 
 

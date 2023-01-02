@@ -1,5 +1,7 @@
 from enum import IntEnum, auto
 
+BLE_CONN_IDX_INVALID = 0xFFFF
+
 
 # GAP roles
 class BLE_GAP_ROLE(IntEnum):

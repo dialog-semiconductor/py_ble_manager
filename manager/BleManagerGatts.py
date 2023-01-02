@@ -1,13 +1,24 @@
 import asyncio
+from ctypes import c_uint8
 from enum import IntEnum, auto
 
 from .GtlWaitQueue import GtlWaitQueue
 from .BleManagerCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleMgrMsgBase
-from ble_api.BleAtt import att_uuid, ATT_PERM
+from ble_api.BleAtt import att_uuid, ATT_PERM, ATT_UUID_TYPE
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
 from ble_api.BleGatts import GATTS_FLAGS
+from ble_api.BleCommon import BLE_ERROR
+from ble_api.BleGap import BLE_CONN_IDX_INVALID
+from gtl_messages.gtl_message_gattm import GattmAddSvcReq, GattmAddSvcRsp
+from gtl_port.attm import ATTM_PERM, ATTM_UUID_LEN, ATTM_SERVICE_TYPE, ATTM_BROADCAST, ATTM_ENC_KEY_SIZE_16_BYTES, \
+     ATTM_TASK_MULTI_INSTANTIATED, ATTM_EXTENDED_PROPERTIES, ATTM_WRITE_COMMAND,ATTM_WRITE_SIGNED, ATTM_WRITE_REQUEST, ATTM_TRIGGER_READ_INDICATION
 
-
+from gtl_port.gattm_task import gattm_att_desc, att_perm, att_max_len_read_ind, GATTM_MSG_ID
+from gtl_port.att import ATT_UUID_128_LEN
+from ble_api.BleUuid import UUID_GATT_CHAR_EXT_PROPERTIES
+from gtl_messages.gtl_message_base import GtlMessageBase
+from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
+ 
 class BLE_CMD_GATTS_OPCODE(IntEnum):
     BLE_MGR_GATTS_SERVICE_ADD_CMD = BLE_MGR_CMD_CAT.BLE_MGR_GATTS_CMD_CAT << 8
     BLE_MGR_GATTS_SERVICE_INCLUDE_ADD_CMD = auto()
@@ -39,13 +50,19 @@ class BleMgrGattsServiceAddCmd(BleMgrMsgBase):
         self.num_attrs = num_attrs
 
 
+class BleMgrGattsServiceAddRsp(BleMgrMsgBase):
+    def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_ADD_CMD)
+        self.status = status
+
+
 class BleMgrGattsServiceAddCharacteristicCmd(BleMgrMsgBase):
     def __init__(self,
                  uuid: att_uuid = att_uuid(),
                  prop: GATT_PROP = GATT_PROP.GATT_PROP_NONE,
                  perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
                  max_len: int = 0,
-                 flags: GATTS_FLAGS = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ,
+                 flags: GATTS_FLAGS = GATTS_FLAGS.GATTS_FLAG_CHAR_NO_READ_REQ,
                  ) -> None:
         super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_CHARACTERISTIC_ADD_CMD)
         self.uuid = uuid
@@ -55,22 +72,55 @@ class BleMgrGattsServiceAddCharacteristicCmd(BleMgrMsgBase):
         self.flags = flags
 
 
-class BleManagerGattc(BleManagerBase):
-
+class BleMgrGattsServiceAddCharacteristicRsp(BleMgrMsgBase):
     def __init__(self,
-                 adapter_command_q: asyncio.Queue(),
-                 app_response_q: asyncio.Queue(),
-                 wait_q: GtlWaitQueue()) -> None:
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
+                 h_offset: int = 0,
+                 h_val_offset: int = 0
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_CHARACTERISTIC_ADD_CMD)
+        self.status = status
+        self.h_offset = h_offset
+        self.h_val_offset = h_val_offset
 
-        super().__init__(adapter_command_q, app_response_q, wait_q)
 
-        '''
-        self.cmd_handlers = {
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ROLE_SET_CMD: self.gap_role_set_cmd_handler,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_START_CMD: self.gap_adv_start_cmd_handler
-        }
-        '''
+class BleMgrGattsServiceAddDescriptorCmd(BleMgrMsgBase):
+    def __init__(self,
+                 uuid: att_uuid = att_uuid(),
+                 perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
+                 max_len: int = 0,
+                 flags: GATTS_FLAGS = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ,
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_DESCRIPTOR_ADD_CMD)
+        self.uuid = uuid
+        self.perm = perm
+        self.max_len = max_len
+        self.flags = flags
 
+
+class BleMgrGattsServiceAddDescriptorRsp(BleMgrMsgBase):
+    def __init__(self,
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
+                 h_offset: int = 0,
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_DESCRIPTOR_ADD_CMD)
+        self.status = status
+        self.h_offset = h_offset
+
+
+class BleMgrGattsServiceRegisterCmd(BleMgrMsgBase):
+    def __init__(self) -> None:
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_REGISTER_CMD)
+
+
+class BleMgrGattsServiceRegisterRsp(BleMgrMsgBase):
+    def __init__(self,
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
+                 handle: int = 0) -> None:
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_REGISTER_CMD)
+        self.status = status
+        self.handle = handle
+        
 
 class BleManagerGatts(BleManagerBase):
 
@@ -81,17 +131,177 @@ class BleManagerGatts(BleManagerBase):
 
         super().__init__(adapter_command_q, app_response_q, wait_q)
 
-        '''
-        self.handlers = {
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ROLE_SET_CMD: self.gap_role_set_cmd_handler,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_START_CMD: self.gap_adv_start_cmd_handler
+        self.cmd_handlers = {
+            BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_ADD_CMD: self.service_add_cmd_handler,
+            BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_CHARACTERISTIC_ADD_CMD: self.service_add_characteristic_cmd_handler,
+            BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_DESCRIPTOR_ADD_CMD: None,  # self.service_add_descriptor_cmd_handler,
+            BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_REGISTER_CMD: self.service_register_cmd_handler
         }
-        '''
+
+        self._add_svc_msg = None
+        self._attr_idx = 0
+        self._extended_prop = 0
+
+    def _api_to_rwperm(self, prop: GATT_PROP, perm: ATTM_PERM, uuid_type: ATT_UUID_TYPE):
+
+        rwperm = att_perm()
+
+        if (prop & GATT_PROP.GATT_PROP_BROADCAST):
+            rwperm.broadcast = ATTM_BROADCAST.YES
+
+        # NOTE: READ property is set when proper READ permission is set in perm_to_perm
+        #        if (prop & GATTS_PROP_READ) {
+        #                perm_out |= (1 << PERM_POS_RD);
+        #        }
+
+        if (prop & GATT_PROP.GATT_PROP_WRITE_NO_RESP):
+            rwperm.write = ATTM_PERM.ENABLE
+
+        if (prop & GATT_PROP.GATT_PROP_WRITE):
+            rwperm.write_request = ATTM_WRITE_REQUEST.ACCEPTED
+
+        if (prop & GATT_PROP.GATT_PROP_NOTIFY):
+            rwperm.notification = ATTM_PERM.ENABLE
+
+        if (prop & GATT_PROP.GATT_PROP_INDICATE):
+            rwperm.indication = ATTM_PERM.ENABLE
+
+        if (prop & GATT_PROP.GATT_PROP_WRITE_SIGNED):
+            rwperm.write_signed = ATTM_WRITE_SIGNED.ACCEPTED
+
+        if (prop & GATT_PROP.GATT_PROP_EXTENDED):
+            rwperm.extended_properties_present = ATTM_EXTENDED_PROPERTIES.YES
+
+        # Translate read permissions
+        if (perm & ATT_PERM.ATT_PERM_READ_AUTH):
+            rwperm.read = ATTM_PERM.AUTH
+        elif (perm & ATT_PERM.ATT_PERM_READ_ENCRYPT):
+            rwperm.read = ATTM_PERM.UNAUTH
+        elif (perm & ATT_PERM.ATT_PERM_READ):
+            rwperm.read = ATTM_PERM.ENABLE
+
+        # Translate write permissions
+        if (perm & ATT_PERM.ATT_PERM_WRITE_AUTH):
+            rwperm.write = ATTM_PERM.AUTH
+        elif (perm & ATT_PERM.ATT_PERM_WRITE_ENCRYPT):
+            rwperm.write = ATTM_PERM.UNAUTH
+        elif (perm & ATT_PERM.ATT_PERM_WRITE):
+            rwperm.write = ATTM_PERM.ENABLE
+
+        # Translate keysize permissions
+        if (perm & ATT_PERM.ATT_PERM_KEYSIZE_16):
+            rwperm.enc_key_size = ATTM_ENC_KEY_SIZE_16_BYTES.YES
+
+        if uuid_type == ATT_UUID_TYPE.ATT_UUID_128:
+            rwperm.uuid_len = ATTM_UUID_LEN.BITS_128  # TODO confusing which ATT/ATTM is coming from where. Consider renaming
+
+        return rwperm
+
+    def _service_register_rsp(self, gtl: GattmAddSvcRsp):
+        response = BleMgrGattsServiceRegisterRsp()
+        response.handle = gtl.parameters.start_hdl
+
+        response.status = BLE_ERROR.BLE_STATUS_OK \
+            if gtl.parameters.status == HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR \
+            else BLE_ERROR.BLE_ERROR_FAILED
+
+        self._api_response_queue_send(response)
+
+    def service_add_characteristic_cmd_handler(self, command: BleMgrGattsServiceAddCharacteristicCmd) -> None:
+
+        response = BleMgrGattsServiceAddCharacteristicRsp(BLE_ERROR.BLE_ERROR_FAILED)
+
+        # Check if there is a pending GLT message set, there should be
+        if self._add_svc_msg:
+            if self._add_svc_msg.parameters.svc_desc.nb_att - self._attr_idx >= 2:
+
+                self._extended_prop = command.prop & (GATT_PROP.GATT_PROP_EXTENDED_RELIABLE_WRITE | GATT_PROP.GATT_PROP_EXTENDED_WRITABLE_AUXILIARIES)
+
+                # Characteristic Attribute
+                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].uuid[:2] = [0x03, 0x28]
+                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].perm = att_perm()
+                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].max_len_read_ind = att_max_len_read_ind()
+                h_offset = self._attr_idx
+                self._attr_idx += 1
+
+                # Characteristic value attribute
+                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].uuid[:] = command.uuid.uuid
+                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].perm = self._api_to_rwperm(command.prop, command.perm, command.uuid.type)
+                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].max_len_read_ind.max_len = command.max_len
+                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].max_len_read_ind.trigger_read_indication = command.flags
+                h_val_offset = self._attr_idx
+                self._attr_idx += 1
+
+                response.status = BLE_ERROR.BLE_STATUS_OK
+                response.h_offset = h_offset
+                response.h_val_offset = h_val_offset
+
+        self._api_response_queue_send(response)
+
+    def service_add_cmd_handler(self, command: BleMgrGattsServiceAddCmd) -> None:
+
+        response = BleMgrGattsServiceAddRsp(BLE_ERROR.BLE_ERROR_FAILED)
+
+        # Check if there is a pending GLT message set, there should not be
+        if not self._add_svc_msg:
+            self._add_svc_msg = GattmAddSvcReq()
+            self._attr_idx = 0
+            self._add_svc_msg.parameters.svc_desc.atts = (gattm_att_desc * command.num_attrs)()
+            self._add_svc_msg.parameters.svc_desc.perm.svc_perm = ATTM_PERM.ENABLE
+            self._add_svc_msg.parameters.svc_desc.perm.uuid_len \
+                = ATTM_UUID_LEN.BITS_128 if command.uuid.type == ATT_UUID_TYPE.ATT_UUID_128 else ATTM_UUID_LEN.BITS_16
+            self._add_svc_msg.parameters.svc_desc.perm.primary_svc \
+                = ATTM_SERVICE_TYPE.PRIMARY_SERVICE if command.type == GATT_SERVICE.GATT_SERVICE_PRIMARY else ATTM_SERVICE_TYPE.SECONDARY_SERVICE
+            self._add_svc_msg.parameters.svc_desc.nb_att = command.num_attrs
+            if command.uuid.type == ATT_UUID_TYPE.ATT_UUID_16:
+                self._add_svc_msg.parameters.svc_desc.uuid[:2] = command.uuid.uuid
+            else:
+                self._add_svc_msg.parameters.svc_desc.uuid[:] = command.uuid.uuid
+
+            response.status = BLE_ERROR.BLE_STATUS_OK
+        self._api_response_queue_send(response)
+
+    def service_register_cmd_handler(self, command: BleMgrGattsServiceRegisterCmd) -> None:
+
+        response = BleMgrGattsServiceRegisterRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        if(self._add_svc_msg):
+            self._wait_queue_add(BLE_CONN_IDX_INVALID, )
+            self._wait_queue_add(BLE_CONN_IDX_INVALID,
+                                 GATTM_MSG_ID.GATTM_ADD_SVC_RSP,
+                                 0,
+                                 self._service_register_rsp,
+                                 command.role)
+
+        self._api_response_queue_send(response)
+
+    '''
+    def service_add_descriptor_cmd_handler(self, command: BleMgrGattsServiceAddDescriptorCmd):
+
+        response = BleMgrGattsServiceAddDescriptorRsp(BLE_ERROR.BLE_ERROR_FAILED)
+
+        # Check if there is a pending GLT message set, there should be
+        if self._add_svc_msg:
+
+            # Check if there are enough free attributes left
+            if (self._add_svc_msg.parameters.svc_desc.nb_att - self._attr_idx) >= 1:
+                # Check if it is Extended properties descriptor and set it's value 
+                # TODO create method to compare att_uuid class
+                if command.uuid.type == att_uuid(ATT_UUID_TYPE.ATT_UUID_16, UUID_GATT_CHAR_EXT_PROPERTIES):
+
+                #    and command.uuid.uuid[0] = UUID_GATT_CHAR_EXT_PROPERTIES &
+                    pass
+
+                if command.uuid.type == ATT_UUID_TYPE.ATT_UUID_16:
+                    self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].uuid[:2] = command.uuid.uuid
+                else:
+                    self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].uuid[:] = command.uuid.uuid
+        self._api_response_queue_send(response)
+    '''
 
 
 '''
 static const ble_mgr_cmd_handler_t h_gatts[BLE_MGR_CMD_GET_IDX(BLE_MGR_GATTS_LAST_CMD)] = {
-        ble_mgr_gatts_service_add_cmd_handler,
+        ,
         ble_mgr_gatts_service_add_include_cmd_handler,
         ble_mgr_gatts_service_add_characteristic_cmd_handler,
         ble_mgr_gatts_service_add_descriptor_cmd_handler,
@@ -109,16 +319,4 @@ static const ble_mgr_cmd_handler_t h_gatts[BLE_MGR_CMD_GET_IDX(BLE_MGR_GATTS_LAS
         ble_mgr_gatts_service_changed_ind_cmd_handler,
 };
 
-static const ble_mgr_cmd_handler_t h_gattc[BLE_MGR_CMD_GET_IDX(BLE_MGR_GATTC_LAST_CMD)] = {
-        ble_mgr_gattc_browse_cmd_handler,
-        ble_mgr_gattc_browse_range_cmd_handler,
-        ble_mgr_gattc_discover_svc_cmd_handler,
-        ble_mgr_gattc_discover_include_cmd_handler,
-        ble_mgr_gattc_discover_char_cmd_handler,
-        ble_mgr_gattc_discover_desc_cmd_handler,
-        ble_mgr_gattc_read_cmd_handler,
-        ble_mgr_gattc_write_generic_cmd_handler,
-        ble_mgr_gattc_write_execute_cmd_handler,
-        ble_mgr_gattc_exchange_mtu_cmd_handler,
-};
 '''
