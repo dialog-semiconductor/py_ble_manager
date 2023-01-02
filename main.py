@@ -17,7 +17,7 @@ class CustomBleService(BleServiceBase):
         # TODO this is confusing, simplify it
         self.gatt_service.uuid.uuid = self._uuid_from_str("7c37cbdc-12a2-11ed-861d-0242ac120002")
         self.gatt_service.type = GATT_SERVICE.GATT_SERVICE_PRIMARY
-        self.gatt_service.num_attrs = self._get_num_attr(0, 1, 0)  # TODO need function for this (take  ble_gatts_get_num_attr)
+        self.gatt_service.num_attrs = self._get_num_attr(0, 1, 0)
 
         self.gatt_characteristics = []
         my_char = GattCharacteristic()
@@ -28,7 +28,7 @@ class CustomBleService(BleServiceBase):
         my_char.char.flags = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ
 
         self.gatt_characteristics.append(my_char)
-        
+
     def connected_evt(self, evt: BleEventGapConnected):
         print("CustomBleService connected_evt")
 
@@ -98,7 +98,7 @@ async def ble_task():
 
     # TODO call to setup database
 
-    periph.set_advertising_interval((20) * 1000 // 625, (30) * 1000 // 625)
+    periph.set_advertising_interval(20, 30)
 
     print(" after set interval")
     response = await periph.start_advertising()

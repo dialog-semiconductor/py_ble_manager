@@ -69,9 +69,9 @@ class BlePeripheral(BleApiBase):
 
         return error
 
-    def set_advertising_interval(self, adv_intv_min, adv_intv_max) -> None:
-        self.ble_manager.gap_mgr.dev_params.adv_intv_min = int(adv_intv_min)
-        self.ble_manager.gap_mgr.dev_params.adv_intv_max = int(adv_intv_max)
+    def set_advertising_interval(self, adv_intv_min_ms, adv_intv_max_ms) -> None:
+        self.ble_manager.gap_mgr.dev_params.adv_intv_min = self._ms_to_adv_slots(adv_intv_min_ms)
+        self.ble_manager.gap_mgr.dev_params.adv_intv_max = self._ms_to_adv_slots(adv_intv_max_ms)
         # TODO save current setting in local?
 
     async def start_advertising(self,
@@ -101,3 +101,6 @@ class BlePeripheral(BleApiBase):
             print("returned from registger")
 
         return error
+
+    def _ms_to_adv_slots(self, time_ms) -> int:
+        return int((time_ms) * 1000 // 625)
