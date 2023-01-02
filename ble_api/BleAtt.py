@@ -24,9 +24,9 @@ class ATT_PERM(IntEnum):
 
 class att_uuid():
     # TODO ctypes array instead of list?
-    def __init__(self, type: ATT_UUID_TYPE = ATT_UUID_TYPE.ATT_UUID_16, uuid: list[int] = None) -> None:
-        self.type = type
-        self.uuid = uuid if uuid else []  # TODO raise error if list too long or conflicts with type?
+    def __init__(self, uuid: list[int] = None) -> None:
+        if uuid:
+            self.uuid = uuid if uuid else []  # TODO raise error if list too long or conflicts with type?
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
@@ -34,6 +34,18 @@ class att_uuid():
                 if self.uuid == other.uuid:
                     return True
         return False
+
+    def _get_uuid(self) -> list[int]:
+        return self._uuid
+
+    def _set_uuid(self, uuid: list[int] = None):
+        if len(uuid) == 2 or len(uuid) == 16:
+            self._uuid = uuid
+            self.type = ATT_UUID_TYPE.ATT_UUID_128 if len(uuid) == 16 else ATT_UUID_TYPE.ATT_UUID_16
+        else:
+            raise ValueError("UUID length must be 2 or 16")
+
+    uuid = property(_get_uuid, _set_uuid)
 
 
 class ATT_ERROR(IntEnum):

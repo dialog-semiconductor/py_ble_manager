@@ -104,9 +104,7 @@ class BleManager(BleManagerBase):
 
     def _process_event_queue(self, event: GtlMessageBase):
 
-        print(f"processing event={event}\n")
         if not self._wait_q.match(event):
-            print(f"was not a match: {event}\n")
             if not self._handle_evt_or_ind(event):
                 print(f"BleManager._process_event_queue. Unhandled event={event}\n")
 

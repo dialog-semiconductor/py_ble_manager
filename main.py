@@ -16,14 +16,12 @@ class CustomBleService(BleServiceBase):
         self.gatt_service = GattService()
         # TODO this is confusing, simplify it
         self.gatt_service.uuid.uuid = self._uuid_from_str("7c37cbdc-12a2-11ed-861d-0242ac120002")
-        self.gatt_service.uuid.type = ATT_UUID_TYPE.ATT_UUID_128  # TODO make this a prop of att_uuid that is set based on len of uuid
         self.gatt_service.type = GATT_SERVICE.GATT_SERVICE_PRIMARY
         self.gatt_service.num_attrs = 2  # TODO need function for this (take  ble_gatts_get_num_attr)
 
         self.gatt_characteristics = []
         my_char = GattCharacteristic()
         my_char.char.uuid.uuid = self._uuid_from_str("8e716a7e-12a2-11ed-861d-0242ac120002")
-        my_char.char.uuid.type = ATT_UUID_TYPE.ATT_UUID_128
         my_char.char.prop = GATT_PROP.GATT_PROP_READ | GATT_PROP.GATT_PROP_WRITE
         my_char.char.perm = ATT_PERM.ATT_PERM_RW
         my_char.char.max_len = 2
@@ -55,6 +53,7 @@ class CustomBleService(BleServiceBase):
     def _uuid_from_str(self, uuid_str: str):
         uuid_str = uuid_str.replace("-", "")
         uuid_list = [int(uuid_str[idx:idx + 2], 16) for idx in range(0, len(uuid_str), 2)]
+        uuid_list.reverse()  # mcu is little endian
         return uuid_list
 
 
