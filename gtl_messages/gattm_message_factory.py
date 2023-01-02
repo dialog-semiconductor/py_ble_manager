@@ -22,6 +22,8 @@ class GattmMessageFactory():
             if msg_id == GATTM_MSG_ID.GATTM_ADD_SVC_RSP:
                 return GattmAddSvcRsp(parameters=gattm_add_svc_rsp.from_buffer_copy(params_buf))
 
-            raise AssertionError(f"GattmMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")
+            else:
+                raise AssertionError(f"GattmMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")
         except AssertionError as e:
             print(e)
+            raise e

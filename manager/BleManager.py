@@ -64,6 +64,10 @@ class BleManager(BleManagerBase):
                 return True
         return False
 
+    def _task_done_handler(self, task: asyncio.Task):
+        if task.exception():
+            task.result()  # Raise the exception
+
     async def _manager_task(self):
 
         # TODO function for creating these tasks so dont have in two spots
@@ -111,6 +115,7 @@ class BleManager(BleManagerBase):
     def init(self):
         # TODO keeping handles so these can be cancelled somehow
         self._mgr_task = asyncio.create_task(self._manager_task(), name='BleManagerTask')
+        self._mgr_task.add_done_callback(self._task_done_handler)
 
     async def cmd_execute(self, command) -> BLE_ERROR:
         ble_status = self.gap_mgr.dev_params.status

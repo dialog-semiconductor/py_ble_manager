@@ -132,9 +132,17 @@ class BleAdapter():
 
     def init(self):
         self._task = asyncio.create_task(self._adapter_task(), name='BleAdapterTask')
+        self._task.add_done_callback(self._task_done_handler)
 
         self.serial_tx_task = asyncio.create_task(self.serial_stream_manager.send(), name='SerialStreamTx')
+        self.serial_tx_task.add_done_callback(self._task_done_handler)
         self.serial_rx_task = asyncio.create_task(self.serial_stream_manager.receive(), name='SerialStreamRx')
+        self.serial_rx_task.add_done_callback(self._task_done_handler)
+
+    def _task_done_handler(self, task: asyncio.Task):
+        print(f"INSIDE TASK DONE task={task}")
+        if task.exception():
+            task.result()  # Raise the exception
 
     async def open_serial_port(self):
         try:

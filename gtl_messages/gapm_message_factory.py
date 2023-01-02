@@ -41,6 +41,8 @@ class GapmMessageFactory():
             elif msg_id == GAPM_MSG_ID.GAPM_START_ADVERTISE_CMD:
                 return GapmStartAdvertiseCmd(gapm_start_advertise_cmd.from_buffer_copy(params_buf))
 
-            raise AssertionError(f"GapmMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")
+            else:
+                raise AssertionError(f"GapmMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")
         except AssertionError as e:
             print(e)
+            raise e

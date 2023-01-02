@@ -29,8 +29,8 @@ class GtlMessageFactory():
 
             elif message_task_id == KE_API_ID.TASK_ID_GATTM:
                 return GattmMessageFactory().create_message(msg_bytes)
-
             else:
                 raise AssertionError(f"GtlMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")
         except AssertionError as e:
-            print(e)
+            #raise e
+            pass
