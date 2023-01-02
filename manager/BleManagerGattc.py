@@ -2,7 +2,7 @@ import asyncio
 from enum import IntEnum, auto
 
 from .GtlWaitQueue import GtlWaitQueue
-from .BleManagerCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleMgrMsgBase
+from .BleManagerCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleMgrMsgBase, BleEventBase, BLE_ERROR
 
 
 class BleMgrGattcDiscoverSvcCmd(BleMgrMsgBase):
@@ -27,11 +27,12 @@ class BLE_CMD_GATTC_OPCODE(IntEnum):
 class BleManagerGattc(BleManagerBase):
 
     def __init__(self,
-                 adapter_command_q: asyncio.Queue(),
-                 app_response_q: asyncio.Queue(),
-                 wait_q: GtlWaitQueue()) -> None:
+                 mgr_response_q: asyncio.Queue[BLE_ERROR],
+                 mgr_event_q: asyncio.Queue[BleEventBase],
+                 adapter_command_q: asyncio.Queue[BleMgrMsgBase],
+                 wait_q: GtlWaitQueue) -> None:
 
-        super().__init__(adapter_command_q, app_response_q, wait_q)
+        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q)
 
         '''
         self.cmd_handlers = {

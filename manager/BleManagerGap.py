@@ -379,12 +379,12 @@ class BleEventGapAdvCompleted(BleEventBase):
 class BleManagerGap(BleManagerBase):
 
     def __init__(self,
-                 api_response_q: asyncio.Queue[BLE_ERROR],
-                 api_event_q: asyncio.Queue[BleEventBase],
+                 mgr_response_q: asyncio.Queue[BLE_ERROR],
+                 mgr_event_q: asyncio.Queue[BleEventBase],
                  adapter_command_q: asyncio.Queue[BleMgrMsgBase],
                  wait_q: GtlWaitQueue) -> None:
 
-        super().__init__(api_response_q, api_event_q, adapter_command_q, wait_q)
+        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q)
         self.dev_params = BleDevParamsDefault()
 
         self.cmd_handlers = {
@@ -442,7 +442,7 @@ class BleManagerGap(BleManagerBase):
             case _:
                 evt.status = gtl.parameters.status
 
-        self._api_event_queue_send(evt)
+        self._mgr_event_queue_send(evt)
 
     def _ble_role_to_gtl_role(self, role: BLE_GAP_ROLE):
 
@@ -524,7 +524,7 @@ class BleManagerGap(BleManagerBase):
             case _:
                 response.status = event.status
 
-        self._api_response_queue_send(response)
+        self._mgr_response_queue_send(response)
 
     def _task_to_connidx(self, task_id):  # TODO this is repeated from GtlWaitQueue. Do not have in two places
         return task_id >> 8
@@ -599,7 +599,7 @@ class BleManagerGap(BleManagerBase):
         self._adapter_command_queue_send(message)
 
         response = BleMgrGapAdvStartRsp(BLE_ERROR.BLE_STATUS_OK)
-        self._api_response_queue_send(response)
+        self._mgr_response_queue_send(response)
 
     def cmp_evt_handler(self, gtl: GapmCmpEvt):
 
@@ -664,7 +664,7 @@ class BleManagerGap(BleManagerBase):
         if self._resolve_address_from_connected_evt(gtl, evt):  # Note passed in gtl instead of gtl.params
             pass
 
-        self._api_event_queue_send(evt)
+        self._mgr_event_queue_send(evt)
 
         cfm = GapcConnectionCfm(conidx=evt.conn_idx)
         # TODO should this be GAP_AUTH_MASK

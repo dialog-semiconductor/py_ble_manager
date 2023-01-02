@@ -60,7 +60,7 @@ class BlePeripheral(BleApiBase):
         evt = None
         try:
             timeout = timeout_seconds if timeout_seconds > 0 else None
-            evt = await asyncio.wait_for(self.ble_manager._api_event_queue_get(), timeout)
+            evt = await asyncio.wait_for(self.ble_manager._mgr_event_queue_get(), timeout)
         except asyncio.TimeoutError:
             pass
 

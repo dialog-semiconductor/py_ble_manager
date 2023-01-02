@@ -7,7 +7,7 @@ from .BleManagerCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleMgrMsgBase
 from ble_api.BleAtt import att_uuid, ATT_PERM, ATT_UUID_TYPE
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
 from ble_api.BleGatts import GATTS_FLAGS
-from ble_api.BleCommon import BLE_ERROR
+from ble_api.BleCommon import BLE_ERROR, BleEventBase
 from ble_api.BleGap import BLE_CONN_IDX_INVALID
 from gtl_messages.gtl_message_gattm import GattmAddSvcReq, GattmAddSvcRsp
 from gtl_port.attm import ATTM_PERM, ATTM_UUID_LEN, ATTM_SERVICE_TYPE, ATTM_BROADCAST, ATTM_ENC_KEY_SIZE_16_BYTES, \
@@ -125,11 +125,12 @@ class BleMgrGattsServiceRegisterRsp(BleMgrMsgBase):
 class BleManagerGatts(BleManagerBase):
 
     def __init__(self,
-                 adapter_command_q: asyncio.Queue(),
-                 app_response_q: asyncio.Queue(),
-                 wait_q: GtlWaitQueue()) -> None:
+                 mgr_response_q: asyncio.Queue[BLE_ERROR],
+                 mgr_event_q: asyncio.Queue[BleEventBase],
+                 adapter_command_q: asyncio.Queue[BleMgrMsgBase],
+                 wait_q: GtlWaitQueue) -> None:
 
-        super().__init__(adapter_command_q, app_response_q, wait_q)
+        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q)
 
         self.cmd_handlers = {
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_ADD_CMD: self.service_add_cmd_handler,
@@ -205,7 +206,7 @@ class BleManagerGatts(BleManagerBase):
             if gtl.parameters.status == HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR \
             else BLE_ERROR.BLE_ERROR_FAILED
 
-        self._api_response_queue_send(response)
+        self._mgr_response_queue_send(response)
 
     def service_add_characteristic_cmd_handler(self, command: BleMgrGattsServiceAddCharacteristicCmd) -> None:
 
@@ -236,7 +237,7 @@ class BleManagerGatts(BleManagerBase):
                 response.h_offset = h_offset
                 response.h_val_offset = h_val_offset
 
-        self._api_response_queue_send(response)
+        self._mgr_response_queue_send(response)
 
     def service_add_cmd_handler(self, command: BleMgrGattsServiceAddCmd) -> None:
 
@@ -259,7 +260,7 @@ class BleManagerGatts(BleManagerBase):
                 self._add_svc_msg.parameters.svc_desc.uuid[:] = command.uuid.uuid
 
             response.status = BLE_ERROR.BLE_STATUS_OK
-        self._api_response_queue_send(response)
+        self._mgr_response_queue_send(response)
 
     def service_register_cmd_handler(self, command: BleMgrGattsServiceRegisterCmd) -> None:
 
@@ -272,7 +273,7 @@ class BleManagerGatts(BleManagerBase):
                                  self._service_register_rsp,
                                  command.role)
 
-        self._api_response_queue_send(response)
+        self._mgr_response_queue_send(response)
 
     '''
     def service_add_descriptor_cmd_handler(self, command: BleMgrGattsServiceAddDescriptorCmd):
@@ -295,7 +296,7 @@ class BleManagerGatts(BleManagerBase):
                     self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].uuid[:2] = command.uuid.uuid
                 else:
                     self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].uuid[:] = command.uuid.uuid
-        self._api_response_queue_send(response)
+        self._mgr_response_queue_send(response)
     '''
 
 
