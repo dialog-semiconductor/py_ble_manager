@@ -84,3 +84,6 @@ class BleServiceBase():
 
     def cleanup(self):
         pass
+
+    def _get_num_attr(self, num_included_svcs: int = 0, num_chars: int = 0, num_descriptors: int = 0) -> int:
+        return (1 * num_included_svcs) + (2 * num_chars) + (1 * num_descriptors)

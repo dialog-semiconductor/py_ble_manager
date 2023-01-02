@@ -129,9 +129,6 @@ class BleGatts(BleApiBase):
 
         return response.status
 
-    def get_num_attr(num_included_svcs: int = 0, num_chars: int = 0, num_descriptors: int = 0) -> int:
-        return (1 * num_included_svcs) + (2 * num_chars) + (1 * num_descriptors)
-
     async def register_service(self, *handles) -> BLE_ERROR:
 
         response = BLE_ERROR.BLE_ERROR_FAILED
