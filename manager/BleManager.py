@@ -9,7 +9,7 @@ from .GtlWaitQueue import GtlWaitQueue  # , GtlWaitQueueElement
 from ble_api.BleCommon import BLE_ERROR, BLE_STATUS, BleEventBase
 from .BleManagerCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleManagerCommon, BleMgrMsgBase
 from .BleManagerGap import BleManagerGap   # , BleMgrGapRoleSetCmd, BLE_CMD_GAP_OPCODE
-
+from .BleManagerGatts import BleManagerGatts
 # this is from ble_config.h
 dg_configBLE_DATA_LENGTH_TX_MAX = (251)
 
@@ -33,11 +33,12 @@ class BleManager(BleManagerBase):
         self._ble_stack_initialized = False
         self.gap_mgr = BleManagerGap(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q)
         self.common_mgr = BleManagerCommon(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q)
+        self.gatts_mgr = BleManagerGatts(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q)
 
         self.cmd_handlers = {
             BLE_MGR_CMD_CAT.BLE_MGR_COMMON_CMD_CAT: self.common_mgr,
             BLE_MGR_CMD_CAT.BLE_MGR_GAP_CMD_CAT: self.gap_mgr,
-            BLE_MGR_CMD_CAT.BLE_MGR_GATTS_CMD_CAT: None,
+            BLE_MGR_CMD_CAT.BLE_MGR_GATTS_CMD_CAT: self.gatts_mgr,
             BLE_MGR_CMD_CAT.BLE_MGR_GATTC_CMD_CAT: None,
             BLE_MGR_CMD_CAT.BLE_MGR_L2CAP_CMD_CAT: None,
         }
@@ -54,7 +55,7 @@ class BleManager(BleManagerBase):
     def _handle_evt_or_ind(self, message: GtlMessageBase):
 
         # TODO make list of handlers from all avail classes. If get back a handler, call it
-        event_handlers = [self.gap_mgr.evt_handlers]
+        event_handlers = [self.gap_mgr.evt_handlers, self.gatts_mgr]
 
         for handlers in event_handlers:
             handler = handlers.get(message.msg_id)
@@ -99,13 +100,15 @@ class BleManager(BleManagerBase):
         if cmd_handler:
             cmd_handler(command)
         else:
-            print(f"BleManager._process_command_queue. Unhandled command={command}")
+            print(f"BleManager._process_command_queue. Unhandled command={command}\n")
 
     def _process_event_queue(self, event: GtlMessageBase):
 
+        print(f"processing event={event}\n")
         if not self._wait_q.match(event):
+            print(f"was not a match: {event}\n")
             if not self._handle_evt_or_ind(event):
-                print(f"BleManager._process_event_queue. Unhandled event={event}")
+                print(f"BleManager._process_event_queue. Unhandled event={event}\n")
 
     def init(self):
         # TODO keeping handles so these can be cancelled somehow
@@ -117,7 +120,7 @@ class BleManager(BleManagerBase):
             return BLE_ERROR.BLE_ERROR_BUSY
 
         # handler(command)
-
+        print(f"CMD_EXECUTE: cmd={command}\n")
         self._mgr_command_queue_send(command)
         response = await self._mgr_response_queue_get()
 

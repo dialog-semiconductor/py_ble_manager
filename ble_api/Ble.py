@@ -1,19 +1,13 @@
 import asyncio
-
-from .BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE
-from manager.BleManager import BleManager, BLE_ERROR
-from adapter.BleAdapter import BleAdapter
+from .BleApiBase import BleApiBase, BleManager, BleAdapter
+# from adapter.BleAdapter import BleAdapter
+# from manager.BleManager import BleManager
 from manager.BleManagerGap import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp
 from manager.BleManagerCommon import BleMgrCommonResetCmd, BleMgrCommonResetRsp
-from .BleCommon import BleEventBase
-
-
-# common
-class BleApiBase():
-    def __init__(self, ble_manager: BleManager, ble_adapter: BleAdapter):
-        self.ble_manager = ble_manager
-        self.ble_adapter = ble_adapter
-
+from services.BleService import BleServiceBase
+from .BleCommon import BleEventBase, BLE_ERROR
+from .BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE
+from .BleGatts import BleGatts
 
 class BleClient(BleApiBase):
     pass
@@ -31,6 +25,7 @@ class BlePeripheral(BleApiBase):
 
         self.ble_manager = BleManager(app_command_q, app_resposne_q, app_event_q, adapter_command_q, adapter_event_q)
         self.ble_adapter = BleAdapter(com_port, adapter_command_q, adapter_event_q)
+        self.ble_gatts = BleGatts(self.ble_manager, self.ble_adapter)
 
     async def _ble_reset(self) -> BLE_ERROR:
         response = BLE_ERROR.BLE_ERROR_FAILED
@@ -87,3 +82,22 @@ class BlePeripheral(BleApiBase):
         command = BleMgrGapAdvStartCmd(adv_type)
         response: BleMgrGapAdvStartRsp = await self.ble_manager.cmd_execute(command)
         return response.status
+
+    async def register_service(self, svc: BleServiceBase) -> BLE_ERROR:
+
+        error = await self.ble_gatts.add_service(svc.gatt_service.uuid,
+                                                 svc.gatt_service.type,
+                                                 svc.gatt_service.num_attrs)
+        if error == BLE_ERROR.BLE_STATUS_OK:
+            for char in svc.gatt_characteristics:
+                error, h_offset, h_val_offset = await self.ble_gatts.add_characteristic(char.char.uuid, char.char.prop, char.char.perm, char.char.max_len, char.char.flags)
+                if error == BLE_ERROR.BLE_STATUS_OK:
+                    # error = await self.ble_gatts.add_descriptor(char.descriptor)
+                    # if error == BLE_ERROR.BLE_STATUS_OK:
+                    pass
+                else:
+                    break
+            error = await self.ble_gatts.register_service()
+            print("returned from registger")
+
+        return error

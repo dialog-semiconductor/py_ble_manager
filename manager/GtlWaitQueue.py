@@ -53,7 +53,7 @@ class GtlWaitQueue():
             if match:
                 callback = item.cb
                 self.remove(item)
-                callback(message, item.param)
+                callback(message, item.param)  # TODO use **kwargs for functions that dont use params
                 ret = True
                 break
 

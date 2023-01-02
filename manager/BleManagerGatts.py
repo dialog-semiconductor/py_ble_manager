@@ -6,7 +6,6 @@ from .GtlWaitQueue import GtlWaitQueue
 from .BleManagerCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleMgrMsgBase
 from ble_api.BleAtt import att_uuid, ATT_PERM, ATT_UUID_TYPE
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
-from ble_api.BleGatts import GATTS_FLAGS
 from ble_api.BleCommon import BLE_ERROR, BleEventBase
 from ble_api.BleGap import BLE_CONN_IDX_INVALID
 from gtl_messages.gtl_message_gattm import GattmAddSvcReq, GattmAddSvcRsp
@@ -18,7 +17,8 @@ from gtl_port.att import ATT_UUID_128_LEN
 from ble_api.BleUuid import UUID_GATT_CHAR_EXT_PROPERTIES
 from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
- 
+
+
 class BLE_CMD_GATTS_OPCODE(IntEnum):
     BLE_MGR_GATTS_SERVICE_ADD_CMD = BLE_MGR_CMD_CAT.BLE_MGR_GATTS_CMD_CAT << 8
     BLE_MGR_GATTS_SERVICE_INCLUDE_ADD_CMD = auto()
@@ -39,13 +39,21 @@ class BLE_CMD_GATTS_OPCODE(IntEnum):
     BLE_MGR_GATTS_LAST_CMD = auto()
 
 
+# TODO this resulted in circular import, need to reorganzie imports and redefine where certain enums classes located
+# GATT Server flags
+class GATTS_FLAGS(IntEnum):
+    GATTS_FLAG_CHAR_NO_READ_REQ = 0x00  # TODO need better name
+    GATTS_FLAG_CHAR_READ_REQ = 0x01        # enable ::BLE_EVT_GATTS_READ_REQ for attribute
+
+
+
 class BleMgrGattsServiceAddCmd(BleMgrMsgBase):
     def __init__(self,
-                 uuid: att_uuid = att_uuid(),
+                 uuid: att_uuid = None,
                  type: GATT_SERVICE = GATT_SERVICE.GATT_SERVICE_PRIMARY,
                  num_attrs: int = 0) -> None:
         super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_ADD_CMD)
-        self.uuid = uuid
+        self.uuid = uuid if uuid else []  # TODO raise error is length off
         self.type = type
         self.num_attrs = num_attrs
 
@@ -198,7 +206,8 @@ class BleManagerGatts(BleManagerBase):
 
         return rwperm
 
-    def _service_register_rsp(self, gtl: GattmAddSvcRsp):
+    def _service_register_rsp(self, gtl: GattmAddSvcRsp, param: None): 
+        print("APP REGISTERED")
         response = BleMgrGattsServiceRegisterRsp()
         response.handle = gtl.parameters.start_hdl
 
@@ -247,13 +256,19 @@ class BleManagerGatts(BleManagerBase):
         if not self._add_svc_msg:
             self._add_svc_msg = GattmAddSvcReq()
             self._attr_idx = 0
+
+            # init array of attributes to appropriate size
             self._add_svc_msg.parameters.svc_desc.atts = (gattm_att_desc * command.num_attrs)()
+
             self._add_svc_msg.parameters.svc_desc.perm.svc_perm = ATTM_PERM.ENABLE
+
             self._add_svc_msg.parameters.svc_desc.perm.uuid_len \
                 = ATTM_UUID_LEN.BITS_128 if command.uuid.type == ATT_UUID_TYPE.ATT_UUID_128 else ATTM_UUID_LEN.BITS_16
+
             self._add_svc_msg.parameters.svc_desc.perm.primary_svc \
                 = ATTM_SERVICE_TYPE.PRIMARY_SERVICE if command.type == GATT_SERVICE.GATT_SERVICE_PRIMARY else ATTM_SERVICE_TYPE.SECONDARY_SERVICE
             self._add_svc_msg.parameters.svc_desc.nb_att = command.num_attrs
+
             if command.uuid.type == ATT_UUID_TYPE.ATT_UUID_16:
                 self._add_svc_msg.parameters.svc_desc.uuid[:2] = command.uuid.uuid
             else:
@@ -265,15 +280,19 @@ class BleManagerGatts(BleManagerBase):
     def service_register_cmd_handler(self, command: BleMgrGattsServiceRegisterCmd) -> None:
 
         response = BleMgrGattsServiceRegisterRsp(BLE_ERROR.BLE_ERROR_FAILED)
-        if(self._add_svc_msg):
-            self._wait_queue_add(BLE_CONN_IDX_INVALID, )
+
+        if self._add_svc_msg:
             self._wait_queue_add(BLE_CONN_IDX_INVALID,
                                  GATTM_MSG_ID.GATTM_ADD_SVC_RSP,
                                  0,
                                  self._service_register_rsp,
-                                 command.role)
+                                 None)
 
-        self._mgr_response_queue_send(response)
+            self._adapter_command_queue_send(self._add_svc_msg)
+            self._add_svc_msg = None  # Does this cause issue?
+
+        else:
+            self._mgr_response_queue_send(response)
 
     '''
     def service_add_descriptor_cmd_handler(self, command: BleMgrGattsServiceAddDescriptorCmd):

@@ -16,7 +16,9 @@ from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from .GtlWaitQueue import GtlWaitQueue  # GtlWaitQueueElement
 from ble_api.BleCommon import BLE_ERROR, BLE_EVT_CAT, BleEventBase, \
     bd_address, BLE_OWN_ADDR_TYPE, BLE_ADDR_TYPE
-from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, gap_conn_params, BLE_GAP_PHY, BLE_CONN_IDX_INVALID  # TODO dont like these files referencing eachother
+from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, gap_conn_params, BLE_GAP_PHY, BleEventGapConnected, \
+    BleEventGapAdvCompleted, BLE_CONN_IDX_INVALID, BLE_EVT_GAP
+
 from .BleManagerStorage import device
 from .BleManagerCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleMgrMsgBase
 
@@ -286,94 +288,6 @@ class BLE_CMD_GAP_OPCODE(IntEnum):
     BLE_MGR_GAP_TX_PWR_REPORT_EN_CMD = auto()
     BLE_MGR_GAP_RF_PATH_COMPENSATION_SET_CMD = auto()
     BLE_MGR_GAP_LAST_CMD = auto()
-
-
-class BLE_EVT_GAP(IntEnum):
-    # Connection established
-    BLE_EVT_GAP_CONNECTED = BLE_EVT_CAT.BLE_EVT_CAT_GAP << 8
-    # Advertising report
-    BLE_EVT_GAP_ADV_REPORT = auto()
-    # Disconnection event
-    BLE_EVT_GAP_DISCONNECTED = auto()
-    # Disconnect failed event
-    BLE_EVT_GAP_DISCONNECT_FAILED = auto()
-    # Advertising operation completed
-    BLE_EVT_GAP_ADV_COMPLETED = auto()
-    # Scan operation completed
-    BLE_EVT_GAP_SCAN_COMPLETED = auto()
-    # Connection parameter update request from peer
-    BLE_EVT_GAP_CONN_PARAM_UPDATE_REQ = auto()
-    # Connection parameters updated
-    BLE_EVT_GAP_CONN_PARAM_UPDATED = auto()
-    # Pairing request
-    BLE_EVT_GAP_PAIR_REQ = auto()
-    # Pairing completed
-    BLE_EVT_GAP_PAIR_COMPLETED = auto()
-    # Security request from peer
-    BLE_EVT_GAP_SECURITY_REQUEST = auto()
-    # Passkey notification
-    BLE_EVT_GAP_PASSKEY_NOTIFY = auto()
-    # Passkey request
-    BLE_EVT_GAP_PASSKEY_REQUEST = auto()
-    # Security level changed indication
-    BLE_EVT_GAP_SEC_LEVEL_CHANGED = auto()
-    # Random address resolved
-    BLE_EVT_GAP_ADDRESS_RESOLVED = auto()
-    # Set security level failed
-    BLE_EVT_GAP_SET_SEC_LEVEL_FAILED = auto()
-    # Connection parameters update completed
-    BLE_EVT_GAP_CONN_PARAM_UPDATE_COMPLETED = auto()
-    # Data length changed
-    BLE_EVT_GAP_DATA_LENGTH_CHANGED = auto()
-    # Data length set failed
-    BLE_EVT_GAP_DATA_LENGTH_SET_FAILED = auto()
-    # Connection operation completed
-    BLE_EVT_GAP_CONNECTION_COMPLETED = auto()
-    # Numeric request
-    BLE_EVT_GAP_NUMERIC_REQUEST = auto()
-    # Address resolution failed
-    BLE_EVT_GAP_ADDRESS_RESOLUTION_FAILED = auto()
-    # Long Term Key missing
-    BLE_EVT_GAP_LTK_MISSING = auto()
-    # Air Operation BD Address
-    BLE_EVT_GAP_AIR_OP_BDADDR = auto()
-# if (dg_configBLE_2MBIT_PHY == 1)
-    # PHY set completed event
-    BLE_EVT_GAP_PHY_SET_COMPLETED = auto()
-    # PHY changed
-    BLE_EVT_GAP_PHY_CHANGED = auto()
-# endif /* (dg_configBLE_2MBIT_PHY == 1)
-    # Peer version
-    BLE_EVT_GAP_PEER_VERSION = auto()
-    # Peer features
-    BLE_EVT_GAP_PEER_FEATURES = auto()
-    # Local Transmit Power Level event
-    BLE_EVT_GAP_LOCAL_TX_PWR = auto()
-    # Transmit Power Reporting
-    BLE_EVT_GAP_TX_PWR_REPORT = auto()
-    # Path Loss Threshold
-    BLE_EVT_GAP_PATH_LOSS_THRES = auto()
-# if BLE_SSP_DEBUG
-    # LTK
-    BLE_EVT_GAP_LTK = auto()
-# endif
-
-
-# TODO in sdk this is in ble_gap
-class BleEventGapConnected(BleEventBase):
-    def __init__(self, conn_idx: int = 0, own_addr: bd_address = None, peer_address: bd_address = None, conn_params: gap_conn_params = None) -> None:
-        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED)
-        self.conn_idx = conn_idx
-        self.own_addr = own_addr if own_addr else bd_address()
-        self.peer_address = peer_address if peer_address else bd_address()
-        self.conn_params = conn_params if conn_params else gap_conn_params()
-
-
-class BleEventGapAdvCompleted(BleEventBase):
-    def __init__(self, adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED, status: BLE_ERROR = BLE_ERROR.BLE_STATUS_OK) -> None:
-        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_ADV_COMPLETED)
-        self.adv_type = adv_type  # Advertising type
-        self.status = status  # Completion status
 
 
 class BleManagerGap(BleManagerBase):
