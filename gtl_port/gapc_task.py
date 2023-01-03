@@ -566,7 +566,7 @@ class gapc_dev_info_val(Union):
 
     def __init__(self,
                  name: gap_dev_name = None,
-                 appearance: c_uint16 = None,  # TODO is there an ENUM for this? 
+                 appearance: c_uint16 = None,  # TODO is there an ENUM for this?
                  slv_params: gap_slv_pref = None,
                  central_rpa: c_uint8 = None,
                  rpa_only: c_uint8 = None

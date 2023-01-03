@@ -140,7 +140,6 @@ class BleAdapter():
         self.serial_rx_task.add_done_callback(self._task_done_handler)
 
     def _task_done_handler(self, task: asyncio.Task):
-        print(f"INSIDE TASK DONE task={task}")
         if task.exception():
             task.result()  # Raise the exception
 

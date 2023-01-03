@@ -17,3 +17,5 @@ print(expected)
 
 print(test_message.to_hex())
 print(test_message.parameters.info.name.value)
+
+test = gapc_get_dev_info_cfm().from_buffer_copy("010000")

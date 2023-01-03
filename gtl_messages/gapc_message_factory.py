@@ -1,9 +1,9 @@
 from .gtl_message_base import GTL_INITIATOR
 from .gtl_message_gapc import GapcConnectionReqInd, GapcConnectionCfm, GapcSecurityCmd, GapcCmpEvt, GapcGetInfoCmd, \
-    GapcPeerFeaturesInd, GapcBondReqInd, GapcBondCfm
+    GapcPeerFeaturesInd, GapcBondReqInd, GapcBondCfm, GapcGetDevInfoReqInd, GapcGetDevInfoCfm
 
 from gtl_port.gapc_task import GAPC_MSG_ID, gapc_connection_req_ind, gapc_connection_cfm, gapc_security_cmd, gapc_cmp_evt, gapc_get_info_cmd, \
-    gapc_peer_features_ind, gapc_bond_req_ind, gapc_bond_cfm  # , gapc_sign_counter_ind
+    gapc_peer_features_ind, gapc_bond_req_ind, gapc_bond_cfm, gapc_get_dev_info_req_ind, gapc_get_dev_info_cfm  # , gapc_sign_counter_ind
 
 
 from gtl_port.rwip_config import KE_API_ID
@@ -43,19 +43,22 @@ class GapcMessageFactory():
                 return GapcSecurityCmd(conidx=conidx, parameters=gapc_security_cmd.from_buffer_copy(params_buf))
 
             elif msg_id == GAPC_MSG_ID.GAPC_CMP_EVT:
-                return GapcCmpEvt(conidx=conidx, parameters=gapc_cmp_evt().from_buffer_copy(params_buf))
+                return GapcCmpEvt(conidx=conidx, parameters=gapc_cmp_evt.from_buffer_copy(params_buf))
 
             elif msg_id == GAPC_MSG_ID.GAPC_GET_INFO_CMD:
-                return GapcGetInfoCmd(conidx=conidx, parameters=gapc_get_info_cmd().from_buffer_copy(params_buf))
+                return GapcGetInfoCmd(conidx=conidx, parameters=gapc_get_info_cmd.from_buffer_copy(params_buf))
 
             elif msg_id == GAPC_MSG_ID.GAPC_PEER_FEATURES_IND:
-                return GapcPeerFeaturesInd(conidx=conidx, parameters=gapc_peer_features_ind().from_buffer_copy(params_buf))
+                return GapcPeerFeaturesInd(conidx=conidx, parameters=gapc_peer_features_ind.from_buffer_copy(params_buf))
 
             elif msg_id == GAPC_MSG_ID.GAPC_BOND_REQ_IND:
-                return GapcBondReqInd(conidx=conidx, parameters=gapc_bond_req_ind().from_buffer_copy(params_buf))
+                return GapcBondReqInd(conidx=conidx, parameters=gapc_bond_req_ind.from_buffer_copy(params_buf))
 
             elif msg_id == GAPC_MSG_ID.GAPC_BOND_CFM:
-                return GapcBondCfm(conidx=conidx, parameters=gapc_bond_cfm().from_buffer_copy(params_buf))
+                return GapcBondCfm(conidx=conidx, parameters=gapc_bond_cfm.from_buffer_copy(params_buf))
+
+            elif msg_id == GAPC_MSG_ID.GAPC_GET_DEV_INFO_REQ_IND:
+                return GapcGetDevInfoReqInd(conidx=conidx, parameters=gapc_get_dev_info_req_ind.from_buffer_copy(params_buf))
 
             else:
                 raise AssertionError(f"GapcMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")

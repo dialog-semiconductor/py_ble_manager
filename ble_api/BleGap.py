@@ -224,7 +224,7 @@ class BleEventGapConnected(BleEventBase):
                  conn_params: gap_conn_params = None
                  ) -> None:
         super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED)
-        self.conn_idx = conn_idx 
+        self.conn_idx = conn_idx
         self.own_addr = own_addr if own_addr else bd_address()
         self.peer_address = peer_address if peer_address else bd_address()
         self.conn_params = conn_params if conn_params else gap_conn_params()

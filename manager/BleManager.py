@@ -55,7 +55,7 @@ class BleManager(BleManagerBase):
     def _handle_evt_or_ind(self, message: GtlMessageBase):
 
         # TODO make list of handlers from all avail classes. If get back a handler, call it
-        event_handlers = [self.gap_mgr.evt_handlers, self.gatts_mgr]
+        event_handlers = [self.gap_mgr.evt_handlers, self.gatts_mgr.evt_handlers]
 
         for handlers in event_handlers:
             handler = handlers.get(message.msg_id)

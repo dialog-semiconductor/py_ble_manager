@@ -1,13 +1,13 @@
 import asyncio
-# from ctypes import c_uint16, c_uint8, Array
+from ctypes import c_uint8
 from enum import IntEnum, auto
 from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt  # , GapmStartConnectionCmd  # GapmResetCmd
-from gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd
+from gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd, GapcGetDevInfoReqInd, GapcGetDevInfoCfm
 # TODO perhaps these Gapm messages do not belong here
 from gtl_port.gapm_task import GAPM_MSG_ID, gapm_cmp_evt, GAPM_OPERATION, GAPM_ADDR_TYPE, GAPM_OWN_ADDR
 # gapm_set_dev_config_cmd, gapm_reset_cmd
-from gtl_port.gapc_task import GAPC_MSG_ID
+from gtl_port.gapc_task import GAPC_MSG_ID, GAPC_DEV_INFO
 from gtl_port.gapc import GAPC_FIELDS_MASK
 # from gtl_messages.gtl_port.gattc_task import GATTC_MSG_ID
 from gtl_port.gap import GAP_ROLE, GAP_AUTH_MASK
@@ -312,6 +312,7 @@ class BleManagerGap(BleManagerBase):
         self.evt_handlers = {
             GAPM_MSG_ID.GAPM_CMP_EVT: self.cmp_evt_handler,
             GAPC_MSG_ID.GAPC_CONNECTION_REQ_IND: self.connected_evt_handler,
+            GAPC_MSG_ID.GAPC_GET_DEV_INFO_REQ_IND: self.get_device_info_req_evt_handler,
             # BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_STOP_CMD: self.gap_adv_stop_cmd_handler,
             # BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CMD: self.connect_cmd_handler,
         }
@@ -527,7 +528,30 @@ class BleManagerGap(BleManagerBase):
             case _:
                 pass
 
+    def get_device_info_req_evt_handler(self, gtl: GapcGetDevInfoReqInd):
+
+        cfm = GapcGetDevInfoCfm(conidx=self._task_to_connidx(gtl.src_id))
+        cfm.parameters.req = gtl.parameters.req
+        match gtl.parameters.req:
+            case GAPC_DEV_INFO.GAPC_DEV_NAME:
+                # TODO is there an elegant way to remove ctypes c_uint8 dependency here
+                name_list = []
+                name_list[:0] = self.dev_params.dev_name
+                cfm.parameters.info.name.value = (c_uint8 * len(self.dev_params.dev_name))(*name_list)
+            case GAPC_DEV_INFO.GAPC_DEV_APPEARANCE:
+                cfm.parameters.info.appearance = self.dev_params.appearance
+            case GAPC_DEV_INFO.GAPC_DEV_SLV_PREF_PARAMS:
+                cfm.parameters.info.slv_params.con_intv_min = self.dev_params.gap_ppcp.interval_min
+                cfm.parameters.info.slv_params.con_intv_max = self.dev_params.gap_ppcp.interval_max
+                cfm.parameters.info.slv_params.slave_latency = self.dev_params.gap_ppcp.slave_latency
+                cfm.parameters.info.slv_params.conn_timeout = self.dev_params.gap_ppcp.sup_timeout
+            case _:
+                pass
+
+        self._adapter_command_queue_send(cfm)
+
     def connected_evt_handler(self, gtl: GapcConnectionReqInd):
+        print("connected_evt_handler\n")
         evt = BleEventGapConnected()
         evt.conn_idx = self._task_to_connidx(gtl.src_id)
         evt.own_addr.addr_type = self.dev_params.own_addr.addr_type
