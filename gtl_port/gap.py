@@ -38,7 +38,7 @@
  */
 '''
 
-from ctypes import Array, c_uint8, c_uint16, LittleEndianStructure
+from ctypes import Array, c_uint8, c_uint16, LittleEndianStructure, pointer, POINTER, cast
 from enum import auto, IntEnum
 from .co_bt import BD_ADDR_LEN, KEY_LEN, bd_addr
 
@@ -347,16 +347,28 @@ class GAP_SEC_REQ(IntEnum):
     GAP_SEC_UNDEFINED = auto()
 
 
-'''
-/// device name
-struct gap_dev_name
-{
-    /// name length
-    uint16_t length;
-    /// name value
-    uint8_t value[__ARRAY_EMPTY];
-};
-'''
+# device name
+class gap_dev_name(LittleEndianStructure):
+
+    def __init__(self, value: Array[c_uint8] = None) -> None:
+        self.value = value
+        super().__init__(_value=self._value)
+
+                # name length
+    _fields_ = [("length", c_uint16),
+                # name value
+                ("_value", POINTER(c_uint8))]
+
+    def get_value(self):
+        return cast(self._value, POINTER(c_uint8 * self.length)).contents
+
+    def set_value(self, new_value: Array[c_uint8]):
+        self._value = new_value if new_value else pointer(c_uint8())
+        self.length = len(new_value) if new_value else 1
+        print(self.length)
+
+    value = property(get_value, set_value)
+
 
 
 # Slave preferred connection parameters

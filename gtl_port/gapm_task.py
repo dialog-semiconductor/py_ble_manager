@@ -976,7 +976,7 @@ class gapm_start_connection_cmd(LittleEndianStructure):
                          e_len_min=self.ce_len_min,
                          ce_len_max=self.ce_len_max,
                          nb_peers=self.nb_peers,
-                         peers=self.peers,
+                         _peers=self._peers,
                          padding=0)
 
     # TODO check if any other structures need to be packed: https://docs.python.org/3/library/ctypes.html#structure-union-alignment-and-byte-order

@@ -1,9 +1,9 @@
-from ctypes import c_uint8
+from ctypes import c_uint8, Union, Array
 from .gtl_message_base import GtlMessageBase
 from gtl_port.gapc_task import GAPC_MSG_ID, gapc_connection_req_ind, gapc_connection_cfm, gapc_security_cmd, gapc_cmp_evt, gapc_get_info_cmd, \
     gapc_peer_features_ind, gapc_bond_req_ind, gapc_bond_cfm, gapc_sign_counter_ind, gapc_bond_ind, gapc_encrypt_req_ind, gapc_encrypt_cfm, \
-    gapc_encrypt_ind, gapc_param_update_req_ind, gapc_param_update_cfm, gapc_param_update_cmd
-
+    gapc_encrypt_ind, gapc_param_update_req_ind, gapc_param_update_cfm, gapc_param_update_cmd, gapc_get_dev_info_req_ind, \
+    gapc_get_dev_info_cfm, GAPC_DEV_INFO
 from gtl_port.rwip_config import KE_API_ID
 
 
@@ -214,5 +214,104 @@ class GapcSignCounterInd(GtlMessageBase):
                          par_len=8,
                          parameters=self.parameters)
 
+
+class GapcGetDevInfoReqInd(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gapc_get_dev_info_req_ind = None):
+
+        self.parameters = parameters if parameters else gapc_get_dev_info_req_ind()
+
+        super().__init__(msg_id=GAPC_MSG_ID.GAPC_GET_DEV_INFO_REQ_IND,
+                         dst_id=KE_API_ID.TASK_ID_GTL,
+                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GAPC),
+                         par_len=1,
+                         parameters=self.parameters)
+
+
+class GapcGetDevInfoCfm(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gapc_get_dev_info_cfm = None):
+
+        self.parameters = parameters if parameters else gapc_get_dev_info_cfm()
+
+        super().__init__(msg_id=GAPC_MSG_ID.GAPC_GET_DEV_INFO_CFM,
+                         dst_id=((conidx << 8) | KE_API_ID.TASK_ID_GAPC),
+                         src_id=KE_API_ID.TASK_ID_GTL,
+                         par_len=self.par_len,
+                         parameters=self.parameters)
+
+    def get_par_len(self):
+        if self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_NAME:
+            self._par_len = 10 + self.parameters.info.name.length
+        elif self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_APPEARANCE:
+            self._par_len = 10 + 2
+        elif self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_SLV_PREF_PARAMS:
+            self._par_len = 10 + 8
+        elif self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_CENTRAL_RPA:
+            self._par_len = 10 + 1
+        elif self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_RPA_ONLY:
+            self._par_len = 10 + 1
+        return self._par_len
+
+    def set_par_len(self, value):
+        self._par_len = value
+
+    par_len = property(get_par_len, set_par_len)
+
+    def _struct_to_bytearray(self, struct):
+        return_array = bytearray()
+        param_array = bytearray()
+
+        # Expect a ctypes structure
+        if struct:
+
+            # TODO had issue with GapcBondCfm in general case, Union handling needs to be fixed for general case
+            if issubclass(type(struct), Union):
+                has_pointer = False
+                for field in struct._fields_:
+                    sub_attr = getattr(struct, field[0])
+                    if hasattr(sub_attr, '_fields_'):
+                        return self._struct_to_bytearray(sub_attr)
+                    if hasattr(sub_attr, 'contents'):
+                        has_pointer = True
+                        pointer_public_field_name = field[0].split('_')[1]
+
+                if has_pointer:
+                    underlying_array = getattr(struct, pointer_public_field_name)
+                    return bytearray(underlying_array)
+                else:
+                    return bytearray(struct)
+
+            # for each field in the structure
+            for field in struct._fields_:
+                # get the attribute for that field
+                sub_attr = getattr(struct, field[0])
+
+                # if the sub attribute has is also a structure, call this function recursively
+                if hasattr(sub_attr, '_fields_'):
+                    param_array += self._struct_to_bytearray(sub_attr)
+
+                # if sub attribute is a POINTER, convert its contents
+                elif sub_attr and hasattr(sub_attr, 'contents'):
+                    public_field_name = field[0].split('_')[1]
+                    underlying_array = getattr(struct, public_field_name)
+                    param_array += bytearray(underlying_array)
+
+                elif issubclass(type(sub_attr), Array):
+                    param_array += bytearray(sub_attr)
+
+                # bit field, Need to short circuit to not add other bitfields as additional bytes as they are already included
+                elif len(field) == 3:
+                    return bytearray(struct)
+
+                # otherwise if sub attribute is not a structure or POINTER, convert it directly
+                else:
+                    param_array += bytearray(field[1](sub_attr))
+
+            return_array += param_array
+        return return_array
+
+    # TODO issue with _struct_to_bytearray due to union with pointer
+
 # TODO Next message: , ,,  ,
-#  , GAPC_PARAM_UPDATED_IND, GAPC_GET_DEV_INFO_REQ_IND
+#  , GAPC_PARAM_UPDATED_IND,

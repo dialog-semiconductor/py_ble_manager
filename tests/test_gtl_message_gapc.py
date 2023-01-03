@@ -384,7 +384,46 @@ class TestGapcSignCounterInd(unittest.TestCase):
         test_message.parameters.local_sign_counter = 2
         
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
-         
 
+# Table 201
+class TestGapcGetDevInfoReqInd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "050A0E10000E00010000"
+
+    def test_parameters_updated_after_construction(self):
+        test_message = GapcGetDevInfoReqInd()
+        test_message.parameters.req = GAPC_DEV_INFO.GAPC_DEV_NAME
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_non_zero_conidx(self):
+        test_message = GapcGetDevInfoReqInd(conidx=1)
+        test_message.parameters.req = GAPC_DEV_INFO.GAPC_DEV_NAME
+        
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+        
+# Table 203
+class TestGapcGetDevInfoCfm(unittest.TestCase):
+
+    def setUp(self):
+        # TODO believe table is wrong as it includes a null character in the name
+        self.expected = "050B0E0E001000260000001C004469616C6F672047544C206F76657220535049484444522044656D6F000000000000"
+    def test_parameters_updated_after_construction(self):
+        test_message = GapcGetDevInfoCfm()
+        test_message.parameters.req = GAPC_DEV_INFO.GAPC_DEV_NAME
+        name = b"Dialog GTL over SPIHDDR Demo"
+        test_message.parameters.info.name.value = (c_uint8 * len(name)).from_buffer_copy(name)
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_non_zero_conidx(self):
+        test_message = GapcGetDevInfoCfm(conidx=1)
+        test_message.parameters.req = GAPC_DEV_INFO.GAPC_DEV_NAME
+        name = b"Dialog GTL over SPIHDDR Demo"
+        test_message.parameters.info.name.value = (c_uint8 * len(name)).from_buffer_copy(name)
+        
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+        
 if __name__ == '__main__':
     unittest.main()

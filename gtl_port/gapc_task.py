@@ -38,7 +38,8 @@ from ctypes import Array, c_bool, c_uint8, c_uint16, c_uint32, LittleEndianStruc
 from enum import auto, IntEnum
 
 from .co_bt import bd_addr, BD_ADDR_LEN, LE_FEATS_LEN, rand_nb
-from .gap import GAP_AUTH, GAP_IO_CAP, GAP_KDIST, GAP_OOB, GAP_TK_TYPE, gap_sec_key, GAP_SEC_REQ, gap_bdaddr
+from .gap import GAP_AUTH, GAP_IO_CAP, GAP_KDIST, GAP_OOB, GAP_TK_TYPE, gap_sec_key, GAP_SEC_REQ, gap_bdaddr, \
+    gap_dev_name, gap_slv_pref
 from .rwble_hl_error import HOST_STACK_ERROR_CODE
 from .rwip_config import KE_API_ID
 
@@ -368,25 +369,24 @@ class GAPC_BOND(IntEnum):
     GAPC_REPEATED_ATTEMPT = auto()
 
 
-'''
 # List of device info that should be provided by application
-enum gapc_dev_info
-{
+class GAPC_DEV_INFO(IntEnum):
     # Device Name
-    GAPC_DEV_NAME,
+    GAPC_DEV_NAME = 0
     # Device Appearance Icon
-    GAPC_DEV_APPEARANCE,
+    GAPC_DEV_APPEARANCE = auto()
     # Device Slave preferred parameters
-    GAPC_DEV_SLV_PREF_PARAMS,
+    GAPC_DEV_SLV_PREF_PARAMS = auto()
     # Device Central Address Resolution parameters
-    GAPC_DEV_CENTRAL_RPA,
-//ESR10
+    GAPC_DEV_CENTRAL_RPA = auto()
+# ESR10
     # Device Resolvable Private Address Only parameters
-    GAPC_DEV_RPA_ONLY,
+    GAPC_DEV_RPA_ONLY = auto()
     # maximum device info parameter
-    GAPC_DEV_INFO_MAX,
-};
+    GAPC_DEV_INFO_MAX = auto()
 
+
+'''
 # List of features available on a device
 enum gapc_features_list
 {
@@ -561,23 +561,50 @@ class gapc_get_info_cmd(LittleEndianStructure):
     _fields_ = [("operation", c_uint8)]
 
 
-'''
 # device information data
-union gapc_dev_info_val
-{
-    # Device name
-    struct gap_dev_name name;
-    # Appearance Icon
-    uint16_t appearance;
-    # Slave preferred parameters
-    struct gap_slv_pref slv_params;
-    # Central Address Resolution
-    uint8_t central_rpa;
-//ESR10
-    # Resolvable Private Address Only
-    uint8_t rpa_only;
-};
+class gapc_dev_info_val(Union):
 
+    def __init__(self,
+                 name: gap_dev_name = None,
+                 appearance: c_uint16 = None,  # TODO is there an ENUM for this? 
+                 slv_params: gap_slv_pref = None,
+                 central_rpa: c_uint8 = None,
+                 rpa_only: c_uint8 = None
+                 ):
+
+        if name:
+            self.name = name
+            super().__init__(name=self.name)
+        elif appearance:
+            self.appearance = appearance
+            super().__init__(appearance=self.appearance)
+        elif slv_params:
+            self.slv_params = slv_params
+            super().__init__(slv_params=self.slv_params)
+        elif central_rpa:
+            self.central_rpa = central_rpa
+            super().__init__(central_rpa=self.central_rpa)
+        elif rpa_only:
+            self.rpa_only = rpa_only
+            super().__init__(rpa_only=self.rpa_only)
+        else:
+            self.name = gap_dev_name()
+            super().__init__(name=self.name)
+
+                # Device name
+    _fields_ = [("name", gap_dev_name),
+                # Appearance Icon
+                ("appearance", c_uint16),
+                # Slave preferred parameters
+                ("slv_params", gap_slv_pref),
+                # Central Address Resolution
+                ("central_rpa", c_uint8),
+                # ESR10
+                # Resolvable Private Address Only
+                ("rpa_only", c_uint8)]
+    
+    
+'''
 # Peer device attribute DB info such as Device Name, Appearance or Slave Preferred Parameters
 struct gapc_peer_att_info_ind
 {
@@ -652,36 +679,55 @@ struct gapc_le_ping_to_val_ind
     uint16_t     timeout;
 };
 
+'''
+
 
 # Peer device request local device info such as name, appearance or slave preferred parameters
-struct gapc_get_dev_info_req_ind
-{
-    # Requested information
-    # - GAPC_DEV_NAME: Device Name
-    # - GAPC_DEV_APPEARANCE: Device Appearance Icon
-    # - GAPC_DEV_SLV_PREF_PARAMS: Device Slave preferred parameters
-    # - GAPC_DEV_CENTRAL_RPA: Device Central Address Resolution
-    # - GAPC_DEV_RPA_ONLY: Device Resolvable Private Address Only
-    uint8_t req;
-};
+class gapc_get_dev_info_req_ind(LittleEndianStructure):
 
+    def __init__(self,
+                 req: GAPC_DEV_INFO = GAPC_DEV_INFO.GAPC_DEV_NAME):
+
+        self.req = req
+        super().__init__(req=self.req)
+
+                # Requested information
+                # - GAPC_DEV_NAME: Device Name
+                # - GAPC_DEV_APPEARANCE: Device Appearance Icon
+                # - GAPC_DEV_SLV_PREF_PARAMS: Device Slave preferred parameters
+                # - GAPC_DEV_CENTRAL_RPA: Device Central Address Resolution
+                # - GAPC_DEV_RPA_ONLY: Device Resolvable Private Address Only
+    _fields_ = [("req", c_uint8)]
 
 
 # Send requested info to peer device
-struct gapc_get_dev_info_cfm
-{
-    # Requested information
-    # - GAPC_DEV_NAME: Device Name
-    # - GAPC_DEV_APPEARANCE: Device Appearance Icon
-    # - GAPC_DEV_SLV_PREF_PARAMS: Device Slave preferred parameters
-    # - GAPC_DEV_CENTRAL_RPA: Device Central Address Resolution
-    # - GAPC_DEV_RPA_ONLY: Device Resolvable Private Address Only
-    uint8_t req;
+class gapc_get_dev_info_cfm(LittleEndianStructure):
 
-    # Peer device information data
-    union gapc_dev_info_val info;
-};
+    def __init__(self,
+                 req: GAPC_DEV_INFO = GAPC_DEV_INFO.GAPC_DEV_NAME,
+                 info: gapc_dev_info_val = None):
 
+        self.req = req
+        self.info = info if info else gapc_dev_info_val()
+        super().__init__(req=self.req,
+                         padding=0,
+                         info=self.info,
+                         more_padding=(c_uint8 * 6)())
+
+                # Requested information
+                # - GAPC_DEV_NAME: Device Name
+                # - GAPC_DEV_APPEARANCE: Device Appearance Icon
+                # - GAPC_DEV_SLV_PREF_PARAMS: Device Slave preferred parameters
+                # - GAPC_DEV_CENTRAL_RPA: Device Central Address Resolution
+                # - GAPC_DEV_RPA_ONLY: Device Resolvable Private Address Only
+    _fields_ = [("req", c_uint8),
+                ("padding", c_uint8),
+                # Peer device information data
+                ("info", gapc_dev_info_val),
+                ("more_padding", (c_uint8 * 6))]
+
+
+'''
 # Peer device request to modify local device info such as name or appearance
 struct gapc_set_dev_info_req_ind
 {
