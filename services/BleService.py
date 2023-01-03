@@ -47,11 +47,11 @@ class Descriptor():
 class GattCharacteristic():
     def __init__(self,
                  char: Characteristic = None,
-                 descriptor: Descriptor = None,
+                 descriptor: list[Descriptor] = None,
                  ) -> None:
 
         self.char = char if char else Characteristic()
-        self.descriptor = descriptor if descriptor else Descriptor()
+        self.descriptor = descriptor if descriptor else [Descriptor()]
 
 
 class BleServiceBase():
@@ -60,14 +60,26 @@ class BleServiceBase():
         self.end_h = 0  # Service end handle
 
         self.gatt_service = GattService()
+        # TODO included services
         self.gatt_characteristics = [GattCharacteristic()]
 
-    # TODO could hace dictionary with handle pointing to a characteristic Class
+    # TODO num_attr should be a property. Should auto calculate num attr
+    def _get_num_attr(self, num_included_svcs: int = 0, num_chars: int = 0, num_descriptors: int = 0) -> int:
+        return (1 * num_included_svcs) + (2 * num_chars) + (1 * num_descriptors)
 
     def connected_evt(self, evt: BleEventGapConnected):
         pass
 
+    def cleanup(self):
+        pass
+
+    def event_sent(self, evt: BleEventGattsEventSent):
+        pass
+
     def disconnected_evt(self, evt: BleEventGapDisconnected):
+        pass
+
+    def prepare_write_req(self, evt: BleEventGattsPrepareWriteReq):
         pass
 
     def read_req(self, evt: BleEventGattsReadReq):
@@ -75,15 +87,3 @@ class BleServiceBase():
 
     def write_req(self, evt: BleEventGattsWriteReq):
         pass
-
-    def prepare_write_req(self, evt: BleEventGattsPrepareWriteReq):
-        pass
-
-    def event_sent(self, evt: BleEventGattsEventSent):
-        pass
-
-    def cleanup(self):
-        pass
-
-    def _get_num_attr(self, num_included_svcs: int = 0, num_chars: int = 0, num_descriptors: int = 0) -> int:
-        return (1 * num_included_svcs) + (2 * num_chars) + (1 * num_descriptors)

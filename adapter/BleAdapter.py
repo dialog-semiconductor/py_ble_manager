@@ -6,55 +6,6 @@ from gtl_messages.gtl_message_gapm import GapmResetCmd
 from gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, gapm_reset_cmd
 
 
-'''
-# from ad_ble.h
-# Operations for BLE adapter messages
-class AD_BLE_OPCODES(IntEnum):
-    AD_BLE_OP_CODE_STACK_MSG = 0x00
-    AD_BLE_OP_CODE_ADAPTER_MSG = 0x01
-    AD_BLE_OP_CODE_LAST = auto()
-
-
-class AD_BLE_OPERATION(IntEnum):
-    AD_BLE_OP_CMP_EVT = 0x00
-    AD_BLE_OP_INIT_CMD = 0x01
-    AD_BLE_OP_RESET_CMD = 0x02
-    AD_BLE_OP_LAST = auto()
-
-
-# BLE adapter message structure
-class ad_ble_msg(LittleEndianStructure):
-    def __init__(self,
-                 operation: AD_BLE_OPERATION = AD_BLE_OPERATION.AD_BLE_OP_LAST,
-                 msg_len: c_uint16 = 0
-                 ):
-
-        self.op_code = AD_BLE_OPCODES.AD_BLE_OP_CODE_ADAPTER_MSG
-        self.operation = operation
-        self.param = (c_uint8 * msg_len)()
-        super().__init__(op_code=self.op_code,
-                         msg_size=self.msg_size,
-                         operation=self.operation,
-                         _param=self._param)
-
-    _fields_ = [("op_code", c_uint16),
-                ("msg_size", c_uint16),
-                ("operation", c_uint8),
-                ("_param", POINTER(c_uint8))]
-
-    def get_param(self):
-        return cast(self._param, POINTER(c_uint8 * self.msg_size)).contents
-
-    def set_param(self, new_param: Array[c_uint8]):
-        self._param = new_param if new_param else pointer(c_uint8(0))
-        self.msg_size = len(new_param) if new_param else 0
-
-    value = property(get_param, set_param)
-
-# end ad_ble.h
-'''
-
-
 class BleAdapter():
 
     def __init__(self, com_port: str, command_q: asyncio.Queue[GtlMessageBase], event_q: asyncio.Queue[GtlMessageBase]) -> None:
@@ -95,14 +46,11 @@ class BleAdapter():
                     self._rx_task = asyncio.create_task(self._serial_rx_queue_get(), name='BleAdapterRx')
                     pending.add(self._rx_task)
 
-    def _create_reset_command(self):
-        return GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
-
     async def _command_queue_get(self) -> GtlMessageBase:
         return await self.command_q.get()
 
-    async def _serial_rx_queue_get(self) -> bytes:
-        return await self.serial_rx_queue.get()
+    def _create_reset_command(self):
+        return GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
 
     def _process_command_queue(self, command: GtlMessageBase):
         self._send_serial_message(command)
@@ -114,7 +62,7 @@ class BleAdapter():
         if msg:
             if msg.msg_id == GAPM_MSG_ID.GAPM_DEVICE_READY_IND:
                 # Reset the BLE Stacks
-                command = self._create_reset_command()
+                command = self._create_reset_command()  # TODO thin this should go to mgr instead to give it a chance to clean up
                 self._send_serial_message(command)
 
             elif msg.msg_id == GAPM_MSG_ID.GAPM_CMP_EVT:
@@ -130,6 +78,13 @@ class BleAdapter():
         print(f"--> Tx: {message}\n")
         self.serial_tx_queue.put_nowait(message.to_bytes())
 
+    async def _serial_rx_queue_get(self) -> bytes:
+        return await self.serial_rx_queue.get()
+
+    def _task_done_handler(self, task: asyncio.Task):
+        if task.exception():
+            task.result()  # Raise the exception
+
     def init(self):
         self._task = asyncio.create_task(self._adapter_task(), name='BleAdapterTask')
         self._task.add_done_callback(self._task_done_handler)
@@ -138,10 +93,6 @@ class BleAdapter():
         self.serial_tx_task.add_done_callback(self._task_done_handler)
         self.serial_rx_task = asyncio.create_task(self.serial_stream_manager.receive(), name='SerialStreamRx')
         self.serial_rx_task.add_done_callback(self._task_done_handler)
-
-    def _task_done_handler(self, task: asyncio.Task):
-        if task.exception():
-            task.result()  # Raise the exception
 
     async def open_serial_port(self):
         try:

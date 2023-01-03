@@ -40,7 +40,6 @@
 /* GATT descriptors UUIDs */
 '''
 
-from ble_api.BleAtt import att_uuid, ATT_UUID_TYPE
 UUID_GATT_CHAR_EXT_PROPERTIES = (0x2900)
 # define UUID_GATT_CHAR_USER_DESCRIPTION         (0x2901)
 # define UUID_GATT_CLIENT_CHAR_CONFIGURATION     (0x2902)
@@ -49,7 +48,7 @@ UUID_GATT_CHAR_EXT_PROPERTIES = (0x2900)
 # define UUID_GATT_CHAR_AGGREGATE_FORMAT         (0x2905)
 
 
-#def ble_uuid_create16(uuid16, uuid: att_uuid):
+# def ble_uuid_create16(uuid16, uuid: att_uuid):
 #        uuid->type = ATT_UUID_TYPE.ATT_UUID_16;
 #        uuid->uuid16 = uuid16;
-#}
+# }

@@ -1,9 +1,9 @@
 import asyncio
 from ble_api.Ble import BlePeripheral
-from services.BleService import BleServiceBase, GattService, GattCharacteristic, Descriptor, Characteristic
+from services.BleService import BleServiceBase, GattService, GattCharacteristic
 from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatts import BleEventGattsReadReq, BleEventGattsWriteReq, BleEventGattsPrepareWriteReq, BleEventGattsEventSent
-from ble_api.BleAtt import ATT_PERM, ATT_UUID_TYPE
+from ble_api.BleAtt import ATT_PERM
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
 from manager.BleManagerGatts import GATTS_FLAGS
 
@@ -25,7 +25,7 @@ class CustomBleService(BleServiceBase):
         my_char.char.prop = GATT_PROP.GATT_PROP_READ | GATT_PROP.GATT_PROP_WRITE
         my_char.char.perm = ATT_PERM.ATT_PERM_RW
         my_char.char.max_len = 2
-        my_char.char.flags = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ
+        my_char.char.flags = GATTS_FLAGS.GATTS_FLAG_CHAR_NO_READ_REQ
 
         self.gatt_characteristics.append(my_char)
 

@@ -1,11 +1,10 @@
 from enum import IntEnum, auto
 
 
-class BLE_STATUS(IntEnum):
-    BLE_IS_DISABLED = 0x00
-    BLE_IS_ENABLED = 0x01
-    BLE_IS_BUSY = 0x02
-    BLE_IS_RESET = 0x03
+# Bluetooth Address type
+class BLE_ADDR_TYPE(IntEnum):
+    PUBLIC_ADDRESS = 0x00  # Public Static Address
+    PRIVATE_ADDRESS = 0x01  # Private Random Address
 
 
 # BLE error code
@@ -53,14 +52,15 @@ class BLE_OWN_ADDR_TYPE(IntEnum):
 # endif /* (dg_configBLE_PRIVACY_1_2 == 1) */
 
 
-# Bluetooth Address type
-class BLE_ADDR_TYPE(IntEnum):
-    PUBLIC_ADDRESS = 0x00  # Public Static Address
-    PRIVATE_ADDRESS = 0x01  # Private Random Address
+class BLE_STATUS(IntEnum):
+    BLE_IS_DISABLED = 0x00
+    BLE_IS_ENABLED = 0x01
+    BLE_IS_BUSY = 0x02
+    BLE_IS_RESET = 0x03
 
 
 # Bluetooth Device address
-class bd_address():
+class bd_address():  # TODO rename BdAddress to differentiate from ctypes structures?
     # TODO is ctypes array appriopriate at this layer?
     def __init__(self, addr_type: BLE_ADDR_TYPE = BLE_ADDR_TYPE.PUBLIC_ADDRESS, addr: list[int] = None) -> None:
         self.addr_type = addr_type
@@ -68,12 +68,9 @@ class bd_address():
         self.addr = addr if addr else []
 
 
-class own_address():
-    # TODO is ctypes array appriopriate at this layer?
-    def __init__(self, addr_type: BLE_OWN_ADDR_TYPE = BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS, addr: list[int] = None) -> None:
-        self.addr_type = addr_type
-        # TODO raise error on list len
-        self.addr = addr if addr else []
+class BleEventBase():
+    def __init__(self, evt_code) -> None:
+        self.evt_code = evt_code
 
 
 class irk():
@@ -82,8 +79,9 @@ class irk():
         self.key = key if key else []
 
 
-class BleEventBase():
-    def __init__(self, evt_code) -> None:
-        self.evt_code = evt_code
-
-
+class own_address():
+    # TODO is ctypes array appriopriate at this layer?
+    def __init__(self, addr_type: BLE_OWN_ADDR_TYPE = BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS, addr: list[int] = None) -> None:
+        self.addr_type = addr_type
+        # TODO raise error on list len
+        self.addr = addr if addr else []

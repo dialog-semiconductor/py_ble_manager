@@ -10,8 +10,6 @@ from ble_api.BleCommon import BLE_ERROR, BLE_STATUS, BleEventBase
 from .BleManagerCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleManagerCommon, BleMgrMsgBase
 from .BleManagerGap import BleManagerGap   # , BleMgrGapRoleSetCmd, BLE_CMD_GAP_OPCODE
 from .BleManagerGatts import BleManagerGatts
-# this is from ble_config.h
-dg_configBLE_DATA_LENGTH_TX_MAX = (251)
 
 
 class BleManager(BleManagerBase):
@@ -23,7 +21,6 @@ class BleManager(BleManagerBase):
                  adapter_command_q: asyncio.Queue[BleMgrMsgBase],
                  adapter_event_q: asyncio.Queue[GtlMessageBase]) -> None:
 
-        # TODO if x else y is so vscode will treat variable as that item for auto complete
         self._mgr_command_q: asyncio.Queue[BleMgrMsgBase] = mgr_command_q
         self._mgr_response_q: asyncio.Queue[BLE_ERROR] = mgr_response_q
         self._mgr_event_q: asyncio.Queue = mgr_event_q
@@ -46,9 +43,6 @@ class BleManager(BleManagerBase):
     async def _adapter_event_queue_get(self) -> BleEventBase:
         return await self._adapter_event_q.get()
 
-    def _mgr_command_queue_send(self, command: BleMgrMsgBase):
-        self._mgr_command_q.put_nowait(command)
-
     async def _api_commmand_queue_get(self) -> BleMgrMsgBase:
         return await self._mgr_command_q.get()
 
@@ -64,11 +58,10 @@ class BleManager(BleManagerBase):
                 return True
         return False
 
-    def _task_done_handler(self, task: asyncio.Task):
-        if task.exception():
-            task.result()  # Raise the exception
+    def _mgr_command_queue_send(self, command: BleMgrMsgBase):
+        self._mgr_command_q.put_nowait(command)
 
-    async def _manager_task(self):
+    async def _mgr_task(self):
 
         # TODO function for creating these tasks so dont have in two spots
         self._command_q_task = asyncio.create_task(self._api_commmand_queue_get(), name='BleMgrReadCommandQueueTask')
@@ -112,10 +105,9 @@ class BleManager(BleManagerBase):
             if not self._handle_evt_or_ind(event):
                 print(f"BleManager._process_event_queue. Unhandled event={event}\n")
 
-    def init(self):
-        # TODO keeping handles so these can be cancelled somehow
-        self._mgr_task = asyncio.create_task(self._manager_task(), name='BleManagerTask')
-        self._mgr_task.add_done_callback(self._task_done_handler)
+    def _task_done_handler(self, task: asyncio.Task):
+        if task.exception():
+            task.result()  # Raise the exception
 
     async def cmd_execute(self, command) -> BLE_ERROR:
         ble_status = self.gap_mgr.dev_params.status
@@ -128,3 +120,8 @@ class BleManager(BleManagerBase):
         response = await self._mgr_response_queue_get()
 
         return response
+
+    def init(self):
+        # TODO need to be able to cancel
+        self._mgr_task = asyncio.create_task(self._mgr_task(), name='BleManagerTask')
+        self._mgr_task.add_done_callback(self._task_done_handler)

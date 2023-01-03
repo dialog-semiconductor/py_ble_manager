@@ -5,11 +5,6 @@ from .GtlWaitQueue import GtlWaitQueue
 from .BleManagerCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleMgrMsgBase, BleEventBase, BLE_ERROR
 
 
-class BleMgrGattcDiscoverSvcCmd(BleMgrMsgBase):
-    def __init__(self, conn_idx, uuid) -> None:
-        super().__init__(opcode=BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_SVC_CMD)
-
-
 class BLE_CMD_GATTC_OPCODE(IntEnum):
     BLE_MGR_GATTC_BROWSE_CMD = BLE_MGR_CMD_CAT.BLE_MGR_GATTC_CMD_CAT << 8
     BLE_MGR_GATTC_BROWSE_RANGE_CMD = auto()
@@ -22,6 +17,11 @@ class BLE_CMD_GATTC_OPCODE(IntEnum):
     BLE_MGR_GATTC_WRITE_EXECUTE_CMD = auto()
     BLE_MGR_GATTC_EXCHANGE_MTU_CMD = auto()
     BLE_MGR_GATTC_LAST_CMD = auto()
+
+
+class BleMgrGattcDiscoverSvcCmd(BleMgrMsgBase):
+    def __init__(self, conn_idx, uuid) -> None:
+        super().__init__(opcode=BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_SVC_CMD)
 
 
 class BleManagerGattc(BleManagerBase):

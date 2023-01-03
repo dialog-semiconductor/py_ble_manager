@@ -365,7 +365,6 @@ class gap_dev_name(LittleEndianStructure):
     def set_value(self, new_value: Array[c_uint8]):
         self._value = new_value if new_value else pointer(c_uint8())
         self.length = len(new_value) if new_value else 1
-        print(self.length)
 
     value = property(get_value, set_value)
 

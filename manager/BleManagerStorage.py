@@ -3,25 +3,6 @@ from ble_api.BleGap import GAP_SEC_LEVEL, BLE_GAP_PHY
 from ble_api.BleCommon import bd_address
 
 
-class key_ltk():
-    def __init__(self, rand: int = 0, ediv: int = 0, key: list[int] = None, key_size: int = 0) -> None:
-        self.rand = rand
-        self.ediv = ediv
-        self.key = key if key else []  # TODO raise error on list size?
-        self.key_size = key_size
-
-
-class key_irk():
-    def __init__(self, key: list[int] = None) -> None:
-        self.key = key if key else []  # TODO raise error on list size?
-
-
-class key_csrk():
-    def __init__(self, key: list[int] = None, sign_cnt: int = 0) -> None:
-        self.key = key if key else []  # TODO raise error on list size?
-        self.sign_cnt = sign_cnt
-
-
 class device():
     def __init__(self) -> None:
 
@@ -71,3 +52,22 @@ class device():
 
         # disconnection status (disconnection event is pending if other than zero)
         self.discon_reason: int = 0
+
+
+class key_csrk():
+    def __init__(self, key: list[int] = None, sign_cnt: int = 0) -> None:
+        self.key = key if key else []  # TODO raise error on list size?
+        self.sign_cnt = sign_cnt
+
+
+class key_irk():
+    def __init__(self, key: list[int] = None) -> None:
+        self.key = key if key else []  # TODO raise error on list size?
+
+
+class key_ltk():
+    def __init__(self, rand: int = 0, ediv: int = 0, key: list[int] = None, key_size: int = 0) -> None:
+        self.rand = rand
+        self.ediv = ediv
+        self.key = key if key else []  # TODO raise error on list size?
+        self.key_size = key_size

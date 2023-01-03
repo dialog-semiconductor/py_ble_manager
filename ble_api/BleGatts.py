@@ -25,6 +25,30 @@ class BLE_EVT_GATTS(IntEnum):
     BLE_EVT_GATTS_EVENT_SENT = auto()
 
 
+class BleEventGattsEventSent(BleEventBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 handle: int = 0,
+                 type: GATT_EVENT = GATT_EVENT.GATT_EVENT_NOTIFICATION,
+                 status: bool = False
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GATTS.BLE_EVT_GATTS_EVENT_SENT)
+        self.conn_idx = conn_idx
+        self.handle = handle
+        self.type = type
+        self.status = status
+
+
+class BleEventGattsPrepareWriteReq(BleEventBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 handle: int = 0,
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GATTS.BLE_EVT_GATTS_PREPARE_WRITE_REQ)
+        self.conn_idx = conn_idx
+        self.handle = handle
+
+
 class BleEventGattsReadReq(BleEventBase):
     def __init__(self,
                  conn_idx: int = 0,
@@ -53,30 +77,6 @@ class BleEventGattsWriteReq(BleEventBase):
         self.value = value if value else []
 
 
-class BleEventGattsPrepareWriteReq(BleEventBase):
-    def __init__(self,
-                 conn_idx: int = 0,
-                 handle: int = 0,
-                 ) -> None:
-        super().__init__(evt_code=BLE_EVT_GATTS.BLE_EVT_GATTS_PREPARE_WRITE_REQ)
-        self.conn_idx = conn_idx
-        self.handle = handle
-
-
-class BleEventGattsEventSent(BleEventBase):
-    def __init__(self,
-                 conn_idx: int = 0,
-                 handle: int = 0,
-                 type: GATT_EVENT = GATT_EVENT.GATT_EVENT_NOTIFICATION,
-                 status: bool = False
-                 ) -> None:
-        super().__init__(evt_code=BLE_EVT_GATTS.BLE_EVT_GATTS_EVENT_SENT)
-        self.conn_idx = conn_idx
-        self.handle = handle
-        self.type = type
-        self.status = status
-
-
 class BleGatts(BleApiBase):
 
     def __init__(self, ble_manager: BleManager, ble_adapter: BleAdapter):
@@ -91,9 +91,7 @@ class BleGatts(BleApiBase):
                                  ) -> tuple[BLE_ERROR, int, int]:
 
         response = BLE_ERROR.BLE_ERROR_FAILED
-
         command = BleMgrGattsServiceAddCharacteristicCmd(uuid, prop, perm, max_len, flags)
-
         response: BleMgrGattsServiceAddCharacteristicRsp = await self.ble_manager.cmd_execute(command)
 
         # TODO just return response instead?

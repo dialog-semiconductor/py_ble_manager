@@ -1,4 +1,4 @@
-from ctypes import c_uint8, Union, Array
+from ctypes import c_uint8
 from .gtl_message_base import GtlMessageBase
 from gtl_port.gapc_task import GAPC_MSG_ID, gapc_connection_req_ind, gapc_connection_cfm, gapc_security_cmd, gapc_cmp_evt, gapc_get_info_cmd, \
     gapc_peer_features_ind, gapc_bond_req_ind, gapc_bond_cfm, gapc_sign_counter_ind, gapc_bond_ind, gapc_encrypt_req_ind, gapc_encrypt_cfm, \
@@ -258,57 +258,28 @@ class GapcGetDevInfoCfm(GtlMessageBase):
 
     par_len = property(get_par_len, set_par_len)
 
+    # TODO issue converting Union to bytearray, revisit to see if generalizeable
     def _struct_to_bytearray(self, struct):
+
         return_array = bytearray()
-        param_array = bytearray()
+        return_array = bytearray(self.parameters.req.to_bytes(length=1, byteorder='little'))
+        padding = 0
+        return_array += bytearray(padding.to_bytes(length=1, byteorder='little'))  # padding
+        return_array += bytearray(self.parameters.info.name.length.to_bytes(length=2, byteorder='little'))
 
-        # Expect a ctypes structure
-        if struct:
+        if self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_NAME:
+            return_array += bytearray(self.parameters.info.name.value)
+        elif self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_APPEARANCE:
+            return_array += bytearray(self.parameters.info.appearance)
+        elif self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_SLV_PREF_PARAMS:
+            return_array += bytearray(self.parameters.info.slv_params)
+        elif self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_CENTRAL_RPA:
+            return_array += bytearray(self.parameters.info.central_rpa)
+        elif self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_RPA_ONLY:
+            return_array += bytearray(self.parameters.info.rpa_only)
 
-            # TODO had issue with GapcBondCfm in general case, Union handling needs to be fixed for general case
-            if issubclass(type(struct), Union):
-                has_pointer = False
-                for field in struct._fields_:
-                    sub_attr = getattr(struct, field[0])
-                    if hasattr(sub_attr, '_fields_'):
-                        return self._struct_to_bytearray(sub_attr)
-                    if hasattr(sub_attr, 'contents'):
-                        has_pointer = True
-                        pointer_public_field_name = field[0].split('_')[1]
+        return_array += bytearray((c_uint8 * 6)())  # more padding
 
-                if has_pointer:
-                    underlying_array = getattr(struct, pointer_public_field_name)
-                    return bytearray(underlying_array)
-                else:
-                    return bytearray(struct)
-
-            # for each field in the structure
-            for field in struct._fields_:
-                # get the attribute for that field
-                sub_attr = getattr(struct, field[0])
-
-                # if the sub attribute has is also a structure, call this function recursively
-                if hasattr(sub_attr, '_fields_'):
-                    param_array += self._struct_to_bytearray(sub_attr)
-
-                # if sub attribute is a POINTER, convert its contents
-                elif sub_attr and hasattr(sub_attr, 'contents'):
-                    public_field_name = field[0].split('_')[1]
-                    underlying_array = getattr(struct, public_field_name)
-                    param_array += bytearray(underlying_array)
-
-                elif issubclass(type(sub_attr), Array):
-                    param_array += bytearray(sub_attr)
-
-                # bit field, Need to short circuit to not add other bitfields as additional bytes as they are already included
-                elif len(field) == 3:
-                    return bytearray(struct)
-
-                # otherwise if sub attribute is not a structure or POINTER, convert it directly
-                else:
-                    param_array += bytearray(field[1](sub_attr))
-
-            return_array += param_array
         return return_array
 
     # TODO issue with _struct_to_bytearray due to union with pointer

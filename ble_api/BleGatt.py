@@ -1,9 +1,9 @@
 from enum import IntEnum, auto
 
 
-class GATT_SERVICE(IntEnum):
-    GATT_SERVICE_PRIMARY = 0
-    GATT_SERVICE_SECONDARY = auto()
+class GATT_EVENT(IntEnum):
+    GATT_EVENT_NOTIFICATION = 0
+    GATT_EVENT_INDICATION = 1
 
 
 # GATT characteristic properties
@@ -21,6 +21,6 @@ class GATT_PROP(IntEnum):
     GATT_PROP_EXTENDED_WRITABLE_AUXILIARIES = 0x0200
 
 
-class GATT_EVENT(IntEnum):
-    GATT_EVENT_NOTIFICATION = 0
-    GATT_EVENT_INDICATION = 1
+class GATT_SERVICE(IntEnum):
+    GATT_SERVICE_PRIMARY = 0
+    GATT_SERVICE_SECONDARY = auto()

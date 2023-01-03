@@ -1,5 +1,4 @@
 import asyncio
-from ctypes import c_uint8
 from enum import IntEnum, auto
 
 from .GtlWaitQueue import GtlWaitQueue
@@ -10,12 +9,9 @@ from ble_api.BleCommon import BLE_ERROR, BleEventBase
 from ble_api.BleGap import BLE_CONN_IDX_INVALID
 from gtl_messages.gtl_message_gattm import GattmAddSvcReq, GattmAddSvcRsp
 from gtl_port.attm import ATTM_PERM, ATTM_UUID_LEN, ATTM_SERVICE_TYPE, ATTM_BROADCAST, ATTM_ENC_KEY_SIZE_16_BYTES, \
-     ATTM_TASK_MULTI_INSTANTIATED, ATTM_EXTENDED_PROPERTIES, ATTM_WRITE_COMMAND,ATTM_WRITE_SIGNED, ATTM_WRITE_REQUEST, ATTM_TRIGGER_READ_INDICATION
+    ATTM_EXTENDED_PROPERTIES, ATTM_WRITE_SIGNED, ATTM_WRITE_REQUEST
 
 from gtl_port.gattm_task import gattm_att_desc, att_perm, att_max_len_read_ind, GATTM_MSG_ID
-from gtl_port.att import ATT_UUID_128_LEN
-from ble_api.BleUuid import UUID_GATT_CHAR_EXT_PROPERTIES
-from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 
 
@@ -46,24 +42,6 @@ class GATTS_FLAGS(IntEnum):
     GATTS_FLAG_CHAR_READ_REQ = 0x01        # enable ::BLE_EVT_GATTS_READ_REQ for attribute
 
 
-
-class BleMgrGattsServiceAddCmd(BleMgrMsgBase):
-    def __init__(self,
-                 uuid: att_uuid = None,
-                 type: GATT_SERVICE = GATT_SERVICE.GATT_SERVICE_PRIMARY,
-                 num_attrs: int = 0) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_ADD_CMD)
-        self.uuid = uuid if uuid else []  # TODO raise error is length off
-        self.type = type
-        self.num_attrs = num_attrs
-
-
-class BleMgrGattsServiceAddRsp(BleMgrMsgBase):
-    def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_ADD_CMD)
-        self.status = status
-
-
 class BleMgrGattsServiceAddCharacteristicCmd(BleMgrMsgBase):
     def __init__(self,
                  uuid: att_uuid = att_uuid(),
@@ -90,6 +68,23 @@ class BleMgrGattsServiceAddCharacteristicRsp(BleMgrMsgBase):
         self.status = status
         self.h_offset = h_offset
         self.h_val_offset = h_val_offset
+
+
+class BleMgrGattsServiceAddCmd(BleMgrMsgBase):
+    def __init__(self,
+                 uuid: att_uuid = None,
+                 type: GATT_SERVICE = GATT_SERVICE.GATT_SERVICE_PRIMARY,
+                 num_attrs: int = 0) -> None:
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_ADD_CMD)
+        self.uuid = uuid if uuid else []  # TODO raise error is length off
+        self.type = type
+        self.num_attrs = num_attrs
+
+
+class BleMgrGattsServiceAddRsp(BleMgrMsgBase):
+    def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_ADD_CMD)
+        self.status = status
 
 
 class BleMgrGattsServiceAddDescriptorCmd(BleMgrMsgBase):
@@ -128,7 +123,7 @@ class BleMgrGattsServiceRegisterRsp(BleMgrMsgBase):
         super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_REGISTER_CMD)
         self.status = status
         self.handle = handle
-        
+
 
 class BleManagerGatts(BleManagerBase):
 
@@ -157,11 +152,6 @@ class BleManagerGatts(BleManagerBase):
 
         if (prop & GATT_PROP.GATT_PROP_BROADCAST):
             rwperm.broadcast = ATTM_BROADCAST.YES
-
-        # NOTE: READ property is set when proper READ permission is set in perm_to_perm
-        #        if (prop & GATTS_PROP_READ) {
-        #                perm_out |= (1 << PERM_POS_RD);
-        #        }
 
         if (prop & GATT_PROP.GATT_PROP_WRITE_NO_RESP):
             rwperm.write = ATTM_PERM.ENABLE
@@ -206,8 +196,7 @@ class BleManagerGatts(BleManagerBase):
 
         return rwperm
 
-    def _service_register_rsp(self, gtl: GattmAddSvcRsp, param: None): 
-        print("APP REGISTERED")
+    def _service_register_rsp(self, gtl: GattmAddSvcRsp, param: None):
         response = BleMgrGattsServiceRegisterRsp()
         response.handle = gtl.parameters.start_hdl
 
@@ -304,7 +293,7 @@ class BleManagerGatts(BleManagerBase):
 
             # Check if there are enough free attributes left
             if (self._add_svc_msg.parameters.svc_desc.nb_att - self._attr_idx) >= 1:
-                # Check if it is Extended properties descriptor and set it's value 
+                # Check if it is Extended properties descriptor and set it's value
                 # TODO create method to compare att_uuid class
                 if command.uuid.type == att_uuid(ATT_UUID_TYPE.ATT_UUID_16, UUID_GATT_CHAR_EXT_PROPERTIES):
 

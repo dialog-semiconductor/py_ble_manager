@@ -1,51 +1,11 @@
 from ctypes import c_uint8
-from enum import IntEnum
 from gtl_port.co_bt import ADV_DATA_LEN, SCAN_RSP_DATA_LEN, ADV_CHANNEL_MAP  # , \
     # BD_ADDR_LEN, BD_NAME_SIZE, le_chnl_map, ADV_FILTER_POLICY
 from gtl_port.gap import GAP_AD_TYPE  # GAP_ROLE, gap_bdaddr, gap_sec_key, GAP_IO_CAP, gap_slv_pref
 from gtl_port.gapm_task import gapm_att_cfg_flag  # , GAPM_ADDR_TYPE, GAPM_OPERATION, GAP_ADV_MODE
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_GAP_APPEARANCE, gap_chnl_map, GAP_DISC_MODE, ADV_FILT_POL, \
     gap_scan_params, gap_conn_params, GAP_IO_CAPABILITIES
-from ble_api.BleCommon import BLE_OWN_ADDR_TYPE, bd_address, own_address, irk  # BLE_ADDR_TYPE
-
-
-# TODO belong in ble_common.h
-# BLE stack status
-class BLE_STATUS(IntEnum):
-    BLE_IS_DISABLED = 0x00,
-    BLE_IS_ENABLED = 0x01,
-    BLE_IS_BUSY = 0x02,
-    BLE_IS_RESET = 0x03,
-# end ble_common.h
-
-
-# TODO belong in ble_gap.h
-# GAP roles
-# TODO why is this seprate def needed ?
-'''
-class GAP_ROLE(IntEnum):
-        GAP_NO_ROLE = 0x00,  # No role
-        GAP_OBSERVER_ROLE = 0x01,  # Observer role
-        GAP_BROADCASTER_ROLE = 0x02,  # Broadcaster role
-        GAP_CENTRAL_ROLE = 0x04,  # Central role
-        GAP_PERIPHERAL_ROLE = 0x08,  # Peripheral role
-        GAP_ALL_ROLES = (GAP_OBSERVER_ROLE|GAP_BROADCASTER_ROLE|GAP_CENTRAL_ROLE|GAP_PERIPHERAL_ROLE),  # All roles
-'''
-
-'''
-# GAP scan parameters
-class gap_scan_params(LittleEndianStructure):
-
-    def __init__(self,
-                 interval: c_uint16 = 0,
-                 window: c_uint16 = 0):
-        self.interval = interval
-        self.window = window
-        super().__init__(interval=self.interval, window=self.window)
-
-    _fields_ = [("interval", c_uint16),
-                ("window", c_uint16)]
-'''
+from ble_api.BleCommon import BLE_OWN_ADDR_TYPE, bd_address, own_address, irk, BLE_STATUS  # BLE_ADDR_TYPE
 
 
 # end ble_gap.h

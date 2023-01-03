@@ -5,6 +5,7 @@ from gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, gapm_reset_cmd
 from gtl_messages.gtl_message_gapm import GapmResetCmd
 from gtl_messages.gtl_message_base import GtlMessageBase
 from ble_api.BleCommon import BLE_ERROR, BleEventBase
+from ble_api.BleGap import BLE_CONN_IDX_INVALID
 
 
 class BLE_MGR_CMD_CAT(IntEnum):
@@ -24,9 +25,6 @@ class BLE_MGR_COMMON_CMD_OPCODE(IntEnum):
     BLE_MGR_COMMON_READ_TX_POWER_CMD = auto()
     # Dummy command opcode, needs to be always defined after all commands
     BLE_MGR_COMMON_LAST_CMD = auto()
-
-
-BLE_CONN_IDX_INVALID = 0xFFFF
 
 
 class BleMgrMsgBase():
@@ -81,7 +79,7 @@ class BleManagerBase():
         self._wait_q.push(item)
 
 
-# TODO This class name is somewhat confusing given base class. Consider rename, or merge with another class
+# TODO This class name is somewhat confusing given base class. Consider rename, or merge  possibly merge in BleMgrGap
 class BleManagerCommon(BleManagerBase):
 
     def __init__(self,

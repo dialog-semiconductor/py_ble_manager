@@ -9,6 +9,7 @@ from .BleCommon import BleEventBase, BLE_ERROR
 from .BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE
 from .BleGatts import BleGatts
 
+
 class BleClient(BleApiBase):
     pass
 
@@ -39,6 +40,16 @@ class BlePeripheral(BleApiBase):
         response: BleMgrGapRoleSetRsp = await self.ble_manager.cmd_execute(command)
         return response.status
 
+    async def get_event(self, timeout_seconds: float = 0) -> BleEventBase:  # TODO add timeout?
+        evt = None
+        try:
+            timeout = timeout_seconds if timeout_seconds > 0 else None
+            evt = await asyncio.wait_for(self.ble_manager._mgr_event_queue_get(), timeout)
+        except asyncio.TimeoutError:
+            pass
+
+        return evt
+
     async def init(self) -> None:
         try:
             # Open the serial port the the 531
@@ -51,15 +62,27 @@ class BlePeripheral(BleApiBase):
         except asyncio.TimeoutError as e:
             raise e
 
-    async def get_event(self, timeout_seconds: float = 0) -> BleEventBase:  # TODO add timeout?
-        evt = None
-        try:
-            timeout = timeout_seconds if timeout_seconds > 0 else None
-            evt = await asyncio.wait_for(self.ble_manager._mgr_event_queue_get(), timeout)
-        except asyncio.TimeoutError:
-            pass
+    async def register_service(self, svc: BleServiceBase) -> BLE_ERROR:
 
-        return evt
+        error = await self.ble_gatts.add_service(svc.gatt_service.uuid,
+                                                 svc.gatt_service.type,
+                                                 svc.gatt_service.num_attrs)
+        if error == BLE_ERROR.BLE_STATUS_OK:
+            for item in svc.gatt_characteristics:
+                error, h_offset, h_val_offset = await self.ble_gatts.add_characteristic(item.char.uuid,
+                                                                                        item.char.prop,
+                                                                                        item.char.perm,
+                                                                                        item.char.max_len,
+                                                                                        item.char.flags)
+                if error == BLE_ERROR.BLE_STATUS_OK:
+                    # error = await self.ble_gatts.add_descriptor(item.descriptor)
+                    # if error == BLE_ERROR.BLE_STATUS_OK:
+                    pass
+                else:
+                    break
+            error = await self.ble_gatts.register_service()
+
+        return error
 
     async def start(self) -> BLE_ERROR:
 
@@ -68,11 +91,6 @@ class BlePeripheral(BleApiBase):
             error = await self._gap_role_set(BLE_GAP_ROLE.GAP_PERIPHERAL_ROLE)
 
         return error
-
-    def set_advertising_interval(self, adv_intv_min_ms, adv_intv_max_ms) -> None:
-        self.ble_manager.gap_mgr.dev_params.adv_intv_min = self._ms_to_adv_slots(adv_intv_min_ms)
-        self.ble_manager.gap_mgr.dev_params.adv_intv_max = self._ms_to_adv_slots(adv_intv_max_ms)
-        # TODO save current setting in local?
 
     async def start_advertising(self,
                                 adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
@@ -83,24 +101,10 @@ class BlePeripheral(BleApiBase):
         response: BleMgrGapAdvStartRsp = await self.ble_manager.cmd_execute(command)
         return response.status
 
-    async def register_service(self, svc: BleServiceBase) -> BLE_ERROR:
-
-        error = await self.ble_gatts.add_service(svc.gatt_service.uuid,
-                                                 svc.gatt_service.type,
-                                                 svc.gatt_service.num_attrs)
-        if error == BLE_ERROR.BLE_STATUS_OK:
-            for char in svc.gatt_characteristics:
-                error, h_offset, h_val_offset = await self.ble_gatts.add_characteristic(char.char.uuid, char.char.prop, char.char.perm, char.char.max_len, char.char.flags)
-                if error == BLE_ERROR.BLE_STATUS_OK:
-                    # error = await self.ble_gatts.add_descriptor(char.descriptor)
-                    # if error == BLE_ERROR.BLE_STATUS_OK:
-                    pass
-                else:
-                    break
-            error = await self.ble_gatts.register_service()
-            print("returned from registger")
-
-        return error
+    def set_advertising_interval(self, adv_intv_min_ms, adv_intv_max_ms) -> None:
+        self.ble_manager.gap_mgr.dev_params.adv_intv_min = self._ms_to_adv_slots(adv_intv_min_ms)
+        self.ble_manager.gap_mgr.dev_params.adv_intv_max = self._ms_to_adv_slots(adv_intv_max_ms)
+        # TODO save current setting in local?
 
     def _ms_to_adv_slots(self, time_ms) -> int:
         return int((time_ms) * 1000 // 625)

@@ -1,11 +1,6 @@
 from enum import IntEnum
 
 
-class ATT_UUID_TYPE(IntEnum):
-    ATT_UUID_16 = 0
-    ATT_UUID_128 = 1
-
-
 # ATT attribute permission
 class ATT_PERM(IntEnum):
     ATT_PERM_NONE = 0
@@ -22,11 +17,15 @@ class ATT_PERM(IntEnum):
     ATT_PERM_RW_ENCRYPT = ATT_PERM_READ_ENCRYPT | ATT_PERM_WRITE_ENCRYPT
 
 
+class ATT_UUID_TYPE(IntEnum):
+    ATT_UUID_16 = 0
+    ATT_UUID_128 = 1
+
+
 class att_uuid():
-    # TODO ctypes array instead of list?
     def __init__(self, uuid: list[int] = None) -> None:
         if uuid:
-            self.uuid = uuid if uuid else []  # TODO raise error if list too long or conflicts with type?
+            self.uuid = uuid if uuid else []
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
@@ -46,7 +45,3 @@ class att_uuid():
             raise ValueError("UUID length must be 2 or 16")
 
     uuid = property(_get_uuid, _set_uuid)
-
-
-class ATT_ERROR(IntEnum):
-    pass
