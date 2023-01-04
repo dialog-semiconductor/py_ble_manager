@@ -39,16 +39,6 @@ class BLE_CMD_GATTS_OPCODE(IntEnum):
     BLE_MGR_GATTS_LAST_CMD = auto()
 
 
-class BLE_EVT_GATTS(IntEnum):
-    # Read request from peer
-    BLE_EVT_GATTS_READ_REQ = BLE_EVT_CAT.BLE_EVT_CAT_GATTS << 8
-    # Write request from peer
-    BLE_EVT_GATTS_WRITE_REQ = auto()
-    # Prepare write request from peer
-    BLE_EVT_GATTS_PREPARE_WRITE_REQ = auto()
-    # Event (notification or indication) sent
-    BLE_EVT_GATTS_EVENT_SENT = auto()
-
 
 # TODO this resulted in circular import, need to reorganzie imports and redefine where certain enums classes located
 # GATT Server flags

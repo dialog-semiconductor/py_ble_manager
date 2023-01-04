@@ -7,7 +7,8 @@ from manager.BleManagerCommon import BleMgrCommonResetCmd, BleMgrCommonResetRsp
 from manager.BleManagerGatts import BleEventGattsReadReq
 from .BleCommon import BleEventBase, BLE_ERROR
 from .BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_EVT_GAP
-from .BleGatts import BleGatts, BLE_EVT_GATTS
+from .BleGatts import BLE_EVT_GATTS
+from .BleGattsApi import BleGattsApi
 from services.BleService import BleServiceBase
 
 
@@ -27,7 +28,7 @@ class BlePeripheral(BleApiBase):
 
         self.ble_manager = BleManager(app_command_q, app_resposne_q, app_event_q, adapter_command_q, adapter_event_q)
         self.ble_adapter = BleAdapter(com_port, adapter_command_q, adapter_event_q)
-        self.ble_gatts = BleGatts(self.ble_manager, self.ble_adapter)
+        self.ble_gatts = BleGattsApi(self.ble_manager, self.ble_adapter)
 
         self._services: list[BleServiceBase] = []
 
