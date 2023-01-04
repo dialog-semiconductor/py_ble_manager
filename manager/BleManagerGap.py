@@ -451,9 +451,6 @@ class BleManagerGap(BleManagerBase):
 
         self._mgr_response_queue_send(response)
 
-    def _task_to_connidx(self, task_id):  # TODO this is repeated from GtlWaitQueue. Do not have in two places
-        return task_id >> 8
-
     def adv_start_cmd_handler(self, command: BleMgrGapAdvStartCmd):
 
         response = BLE_ERROR.BLE_ERROR_FAILED

@@ -2,12 +2,13 @@ import asyncio
 from .BleApiBase import BleApiBase, BleManager, BleAdapter
 # from adapter.BleAdapter import BleAdapter
 # from manager.BleManager import BleManager
-from manager.BleManagerGap import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp
+from manager.BleManagerGap import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp, BleEventGapConnected
 from manager.BleManagerCommon import BleMgrCommonResetCmd, BleMgrCommonResetRsp
-from services.BleService import BleServiceBase
+from manager.BleManagerGatts import BleEventGattsReadReq
 from .BleCommon import BleEventBase, BLE_ERROR
-from .BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE
-from .BleGatts import BleGatts
+from .BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_EVT_GAP
+from .BleGatts import BleGatts, BLE_EVT_GATTS
+from services.BleService import BleServiceBase
 
 
 class BleClient(BleApiBase):
@@ -28,17 +29,39 @@ class BlePeripheral(BleApiBase):
         self.ble_adapter = BleAdapter(com_port, adapter_command_q, adapter_event_q)
         self.ble_gatts = BleGatts(self.ble_manager, self.ble_adapter)
 
+        self._services: list[BleServiceBase] = []
+
     async def _ble_reset(self) -> BLE_ERROR:
         response = BLE_ERROR.BLE_ERROR_FAILED
         command = BleMgrCommonResetCmd()
         response: BleMgrCommonResetRsp = await self.ble_manager.cmd_execute(command)
         return response.status
 
+    def _find_service_by_handle(self, handle: int) -> BleServiceBase:
+        for service in self._services:
+            if service and handle >= service.start_h and handle <= service.end_h:
+                return service
+        return None
+
     async def _gap_role_set(self, role: BLE_GAP_ROLE) -> BLE_ERROR:
         response = BLE_ERROR.BLE_ERROR_FAILED
         command = BleMgrGapRoleSetCmd(role)
         response: BleMgrGapRoleSetRsp = await self.ble_manager.cmd_execute(command)
         return response.status
+
+    def _handle_connected_evt(self, evt: BleEventGapConnected) -> None:
+        for service in self._services:
+            if service and service.connected_evt:
+                service.connected_evt(evt)
+
+    def _handle_read_req_evt(self, evt: BleEventGattsReadReq) -> bool:
+        service = self._find_service_by_handle(evt.handle)
+        if service:
+            if service.read_req:
+                service.read_req(evt)
+            return True
+
+        return False
 
     async def get_event(self, timeout_seconds: float = 0) -> BleEventBase:  # TODO add timeout?
         evt = None
@@ -62,28 +85,60 @@ class BlePeripheral(BleApiBase):
         except asyncio.TimeoutError as e:
             raise e
 
-    async def register_service(self, svc: BleServiceBase) -> BLE_ERROR:
+    async def register_service(self, svc: BleServiceBase) -> tuple[BLE_ERROR, BleServiceBase]:
 
         error = await self.ble_gatts.add_service(svc.gatt_service.uuid,
                                                  svc.gatt_service.type,
                                                  svc.gatt_service.num_attrs)
         if error == BLE_ERROR.BLE_STATUS_OK:
-            for item in svc.gatt_characteristics:
-                error, h_offset, h_val_offset = await self.ble_gatts.add_characteristic(item.char.uuid,
-                                                                                        item.char.prop,
-                                                                                        item.char.perm,
-                                                                                        item.char.max_len,
-                                                                                        item.char.flags)
+            for i in range(0, len(svc.gatt_characteristics)):
+                print(f"Adding char: {i}, {svc.gatt_characteristics[i]}")
+                item = svc.gatt_characteristics[i]
+                # TODO is there a case where you need the char declartion handle offset (h_offset)?
+                error, char_decl, svc.gatt_characteristics[i].char.handle = await self.ble_gatts.add_characteristic(item.char.uuid,
+                                                                                                            item.char.prop,
+                                                                                                            item.char.perm,
+                                                                                                            item.char.max_len,
+                                                                                                            item.char.flags)
+                print(f"ChAR ADDEDE. {i}, error={error}, decl={char_decl}, handle={svc.gatt_characteristics[i].char.handle}")
                 if error == BLE_ERROR.BLE_STATUS_OK:
                     # error = await self.ble_gatts.add_descriptor(item.descriptor)
                     # if error == BLE_ERROR.BLE_STATUS_OK:
                     pass
                 else:
                     break
-            error = await self.ble_gatts.register_service()
+            error, registerd_svc = await self.ble_gatts.register_service(svc)
 
-        return error
+            if error == BLE_ERROR.BLE_STATUS_OK:
+                self._services.append(registerd_svc)
 
+        return error, registerd_svc
+
+    def service_handle_event(self, evt: BleEventBase) -> bool:
+        match evt.evt_code:
+            case BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED:
+                self._handle_connected_evt(evt)
+                return False  # make it "not handled" so app can handle _find_service_by_handle. TODO dont use multiple returns
+            
+            case BLE_EVT_GATTS.BLE_EVT_GATTS_READ_REQ:
+                return self._handle_read_req_evt(evt)
+
+        return False
+
+        '''
+        case BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED:
+                disconnected_evt((const ble_evt_gap_disconnected_t *) evt);
+                return false; // make it "not handled" so app can handle
+
+        case return.BLE_EVT_GATTS_WRITE_REQ:
+                return write_req((const ble_evt_gatts_write_req_t *) evt);
+        case return.BLE_EVT_GATTS_PREPARE_WRITE_REQ:
+                return prepare_write_req((const ble_evt_gatts_prepare_write_req_t *) evt);
+        case return.BLE_EVT_GATTS_EVENT_SENT:
+                return event_sent((const ble_evt_gatts_event_sent_t *) evt);
+        '''
+
+    
     async def start(self) -> BLE_ERROR:
 
         error = await self._ble_reset()

@@ -2,6 +2,7 @@ from .gtl_message_base import GTL_INITIATOR
 from .gapc_message_factory import GapcMessageFactory
 from .gapm_message_factory import GapmMessageFactory
 from .gattm_message_factory import GattmMessageFactory
+from .gattc_message_factory import GattcMessageFactory
 from gtl_port.rwip_config import KE_API_ID
 
 
@@ -29,6 +30,10 @@ class GtlMessageFactory():
 
             elif message_task_id == KE_API_ID.TASK_ID_GATTM:
                 return GattmMessageFactory().create_message(msg_bytes)
+
+            elif message_task_id == KE_API_ID.TASK_ID_GATTC:
+                return GattcMessageFactory().create_message(msg_bytes)
+
             else:
                 raise AssertionError(f"GtlMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")
         except AssertionError as e:

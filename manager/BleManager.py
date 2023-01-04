@@ -115,7 +115,7 @@ class BleManager(BleManagerBase):
             return BLE_ERROR.BLE_ERROR_BUSY
 
         # handler(command)
-        print(f"CMD_EXECUTE: cmd={command}\n")
+
         self._mgr_command_queue_send(command)
         response = await self._mgr_response_queue_get()
 

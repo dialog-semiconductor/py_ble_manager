@@ -1,14 +1,15 @@
 from ble_api.BleAtt import att_uuid, ATT_PERM
 from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
-from ble_api.BleGatts import BleEventGattsReadReq, BleEventGattsWriteReq, BleEventGattsPrepareWriteReq, BleEventGattsEventSent
-from manager.BleManagerGatts import GATTS_FLAGS
+from ble_api.BleCommon import BleEventBase
+# from ble_api.BleGatts import BleEventGattsWriteReq, BleEventGattsPrepareWriteReq, BleEventGattsEventSent
+from manager.BleManagerGatts import GATTS_FLAGS, BleEventGattsReadReq
 # TODO service Factory -> pass in num attributes, creates class based on ServiceBase?
 
 
 class GattService():
     def __init__(self,
-                 uuid: att_uuid = None,
+                 uuid : att_uuid = None,
                  type: GATT_SERVICE = GATT_SERVICE.GATT_SERVICE_PRIMARY,
                  num_attrs: int = 0) -> None:
         self.uuid = uuid if uuid else att_uuid()
@@ -29,6 +30,7 @@ class Characteristic():
         self.perm = perm
         self.max_len = max_len
         self.flags = flags
+        self.handle = 0
 
 
 class Descriptor():
@@ -42,6 +44,7 @@ class Descriptor():
         self.perm = perm
         self.max_len = max_len
         self.flags = flags
+        self.handle = 0
 
 
 class GattCharacteristic():
@@ -50,14 +53,21 @@ class GattCharacteristic():
                  descriptor: list[Descriptor] = None,
                  ) -> None:
 
-        self.char = char if char else Characteristic()
-        self.descriptor = descriptor if descriptor else [Descriptor()]
+        self.char = char if char else Characteristic()  # TODO change to attribute or value??
+        self.descriptors = descriptor if descriptor else [Descriptor()]
+
+
+class BleServiceCallbacks():
+    def __init__(self) -> None:
+        pass
 
 
 class BleServiceBase():
     def __init__(self) -> None:
         self.start_h = 0  # Service start handle
         self.end_h = 0  # Service end handle
+
+        self.callbacks = {}
 
         self.gatt_service = GattService()
         # TODO included services
@@ -67,23 +77,23 @@ class BleServiceBase():
     def _get_num_attr(self, num_included_svcs: int = 0, num_chars: int = 0, num_descriptors: int = 0) -> int:
         return (1 * num_included_svcs) + (2 * num_chars) + (1 * num_descriptors)
 
-    def connected_evt(self, evt: BleEventGapConnected):
+    def connected_evt(self, evt: BleEventGapConnected) -> None:
         pass
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         pass
 
-    def event_sent(self, evt: BleEventGattsEventSent):
+    def event_sent(self, evt: BleEventBase) -> None:  # TODO BleEventGattsEventSent
         pass
 
-    def disconnected_evt(self, evt: BleEventGapDisconnected):
+    def disconnected_evt(self, evt: BleEventGapDisconnected) -> None:
         pass
 
-    def prepare_write_req(self, evt: BleEventGattsPrepareWriteReq):
+    def prepare_write_req(self, evt: BleEventBase) -> None:  # BleEventGattsPrepareWriteReq
         pass
 
-    def read_req(self, evt: BleEventGattsReadReq):
+    def read_req(self, evt: BleEventGattsReadReq) -> None:
         pass
 
-    def write_req(self, evt: BleEventGattsWriteReq):
+    def write_req(self, evt: BleEventBase) -> None:  # BleEventGattsWriteReq
         pass

@@ -5,7 +5,7 @@ from .GtlWaitQueue import GtlWaitQueue
 from .BleManagerCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleMgrMsgBase
 from ble_api.BleAtt import att_uuid, ATT_PERM, ATT_UUID_TYPE
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
-from ble_api.BleCommon import BLE_ERROR, BleEventBase
+from ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_EVT_CAT
 from ble_api.BleGap import BLE_CONN_IDX_INVALID
 from gtl_messages.gtl_message_gattm import GattmAddSvcReq, GattmAddSvcRsp
 from gtl_port.attm import ATTM_PERM, ATTM_UUID_LEN, ATTM_SERVICE_TYPE, ATTM_BROADCAST, ATTM_ENC_KEY_SIZE_16_BYTES, \
@@ -13,6 +13,9 @@ from gtl_port.attm import ATTM_PERM, ATTM_UUID_LEN, ATTM_SERVICE_TYPE, ATTM_BROA
 
 from gtl_port.gattm_task import gattm_att_desc, att_perm, att_max_len_read_ind, GATTM_MSG_ID
 from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
+
+from gtl_messages.gtl_message_gattc import GattcReadReqInd
+from gtl_port.gattc_task import GATTC_MSG_ID  
 
 
 class BLE_CMD_GATTS_OPCODE(IntEnum):
@@ -33,6 +36,17 @@ class BLE_CMD_GATTS_OPCODE(IntEnum):
     BLE_MGR_GATTS_SEND_EVENT_CMD = auto()
     BLE_MGR_GATTS_SERVICE_CHANGED_IND_CMD = auto()
     BLE_MGR_GATTS_LAST_CMD = auto()
+
+
+class BLE_EVT_GATTS(IntEnum):
+    # Read request from peer
+    BLE_EVT_GATTS_READ_REQ = BLE_EVT_CAT.BLE_EVT_CAT_GATTS << 8
+    # Write request from peer
+    BLE_EVT_GATTS_WRITE_REQ = auto()
+    # Prepare write request from peer
+    BLE_EVT_GATTS_PREPARE_WRITE_REQ = auto()
+    # Event (notification or indication) sent
+    BLE_EVT_GATTS_EVENT_SENT = auto()
 
 
 # TODO this resulted in circular import, need to reorganzie imports and redefine where certain enums classes located
@@ -125,6 +139,32 @@ class BleMgrGattsServiceRegisterRsp(BleMgrMsgBase):
         self.handle = handle
 
 
+class BleEventGattsReadReq(BleEventBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 handle: int = 0,
+                 offset: int = 0,
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GATTS.BLE_EVT_GATTS_READ_REQ)
+        self.conn_idx = conn_idx
+        self.handle = handle
+        self.offset = offset
+
+
+class BleEventGattsReadCfmCmd(BleEventBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 handle: int = 0,
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
+                 value: list[int] = None
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GATTS.BLE_EVT_GATTS_READ_REQ)
+        self.conn_idx = conn_idx
+        self.handle = handle
+        self.status = status
+        self.value = value
+
+
 class BleManagerGatts(BleManagerBase):
 
     def __init__(self,
@@ -140,6 +180,10 @@ class BleManagerGatts(BleManagerBase):
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_CHARACTERISTIC_ADD_CMD: self.service_add_characteristic_cmd_handler,
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_DESCRIPTOR_ADD_CMD: None,  # self.service_add_descriptor_cmd_handler,
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_REGISTER_CMD: self.service_register_cmd_handler
+        }
+
+        self.evt_handlers = {
+            GATTC_MSG_ID.GATTC_READ_REQ_IND: self.read_value_req_evt_handler,  # TODO why is this in Gatts and not Gattc???
         }
 
         self._add_svc_msg = None
@@ -197,7 +241,7 @@ class BleManagerGatts(BleManagerBase):
         return rwperm
 
     def _service_register_rsp(self, gtl: GattmAddSvcRsp, param: None):
-        response = BleMgrGattsServiceRegisterRsp()
+        response = BleMgrGattsServiceRegisterRsp(self._task_to_connidx(gtl.src_id))
         response.handle = gtl.parameters.start_hdl
 
         response.status = BLE_ERROR.BLE_STATUS_OK \
@@ -205,6 +249,13 @@ class BleManagerGatts(BleManagerBase):
             else BLE_ERROR.BLE_ERROR_FAILED
 
         self._mgr_response_queue_send(response)
+
+    def read_value_req_evt_handler(self, gtl: GattcReadReqInd):
+        evt = BleEventGattsReadReq(self._task_to_connidx(gtl.src_id))
+        evt.handle = gtl.parameters.handle
+        evt.offset = 0  # // stack always requires full value  # TODO I don't know what this means
+
+        self._mgr_event_queue_send(evt)
 
     def service_add_characteristic_cmd_handler(self, command: BleMgrGattsServiceAddCharacteristicCmd) -> None:
 
@@ -220,16 +271,16 @@ class BleManagerGatts(BleManagerBase):
                 self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].uuid[:2] = [0x03, 0x28]
                 self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].perm = att_perm()
                 self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].max_len_read_ind = att_max_len_read_ind()
-                h_offset = self._attr_idx
                 self._attr_idx += 1
+                h_offset = self._attr_idx
 
                 # Characteristic value attribute
                 self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].uuid[:] = command.uuid.uuid
                 self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].perm = self._api_to_rwperm(command.prop, command.perm, command.uuid.type)
                 self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].max_len_read_ind.max_len = command.max_len
                 self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].max_len_read_ind.trigger_read_indication = command.flags
-                h_val_offset = self._attr_idx
                 self._attr_idx += 1
+                h_val_offset = self._attr_idx
 
                 response.status = BLE_ERROR.BLE_STATUS_OK
                 response.h_offset = h_offset

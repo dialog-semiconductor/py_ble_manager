@@ -1,10 +1,10 @@
 from enum import IntEnum, auto
-from .BleAtt import att_uuid, ATT_PERM  # ATT_ERROR, ATT_UUID_TYPE
+from .BleAtt import att_uuid, ATT_PERM, ATT_ERROR  # , ATT_UUID_TYPE
 from .BleGatt import GATT_SERVICE, GATT_PROP, GATT_EVENT
 from manager.BleManagerGatts import BleMgrGattsServiceAddCmd, BleMgrGattsServiceAddRsp, \
     BleMgrGattsServiceAddCharacteristicCmd, BleMgrGattsServiceAddCharacteristicRsp, \
     BleMgrGattsServiceAddDescriptorCmd, BleMgrGattsServiceAddDescriptorRsp, \
-    BleMgrGattsServiceRegisterCmd, BleMgrGattsServiceRegisterRsp
+    BleMgrGattsServiceRegisterCmd, BleMgrGattsServiceRegisterRsp, BLE_EVT_GATTS, BleEventGattsReadCfmCmd
 from manager.BleManager import BLE_ERROR  # BleManager
 from manager.BleManagerGatts import GATTS_FLAGS
 # from adapter.BleAdapter import BleAdapter
@@ -12,17 +12,7 @@ from .BleCommon import BleEventBase, BLE_EVT_CAT
 from .BleApiBase import BleApiBase
 from manager.BleManager import BleManager
 from adapter.BleAdapter import BleAdapter
-
-
-class BLE_EVT_GATTS(IntEnum):
-    # Read request from peer
-    BLE_EVT_GATTS_READ_REQ = BLE_EVT_CAT.BLE_EVT_CAT_GATTS << 8
-    # Write request from peer
-    BLE_EVT_GATTS_WRITE_REQ = auto()
-    # Prepare write request from peer
-    BLE_EVT_GATTS_PREPARE_WRITE_REQ = auto()
-    # Event (notification or indication) sent
-    BLE_EVT_GATTS_EVENT_SENT = auto()
+from services.BleService import BleServiceBase
 
 
 class BleEventGattsEventSent(BleEventBase):
@@ -47,18 +37,6 @@ class BleEventGattsPrepareWriteReq(BleEventBase):
         super().__init__(evt_code=BLE_EVT_GATTS.BLE_EVT_GATTS_PREPARE_WRITE_REQ)
         self.conn_idx = conn_idx
         self.handle = handle
-
-
-class BleEventGattsReadReq(BleEventBase):
-    def __init__(self,
-                 conn_idx: int = 0,
-                 handle: int = 0,
-                 offset: int = 0,
-                 ) -> None:
-        super().__init__(evt_code=BLE_EVT_GATTS.BLE_EVT_GATTS_READ_REQ)
-        self.conn_idx = conn_idx
-        self.handle = handle
-        self.offset = offset
 
 
 class BleEventGattsWriteReq(BleEventBase):
@@ -127,7 +105,7 @@ class BleGatts(BleApiBase):
 
         return response.status
 
-    async def register_service(self, *handles) -> BLE_ERROR:
+    async def register_service(self, svc: BleServiceBase) -> BLE_ERROR:
 
         response = BLE_ERROR.BLE_ERROR_FAILED
 
@@ -135,9 +113,27 @@ class BleGatts(BleApiBase):
 
         response: BleMgrGattsServiceRegisterRsp = await self.ble_manager.cmd_execute(command)
 
-        if handles:
-            handles[0] = response.handle
-            for i in range(1, len(handles)):
-                handles[i] = handles[i] + response.handle
+        if svc:
+            svc.start_h = response.handle
+            for char in svc.gatt_characteristics:
+                char.char.handle += response.handle
+                print(f"Register Service. char={char}, handle={char.char.handle}. response.handle={response.handle}")
+                for desc in char.descriptors:
+                    desc.handle += response.handle
+
+            svc.end_h = svc.start_h + svc.gatt_service.num_attrs
+
+        return response.status, svc
+
+    async def send_read_cfm(self, 
+                            conn_idx: int = 0,
+                            handle: int = 0, 
+                            status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK, 
+                            value = None):
+        
+        response = BLE_ERROR.BLE_ERROR_FAILED
+        command = BleMgrGattsServiceAddCmd(uuid, type, num_attrs)
+        response: BleMgrGattsServiceAddRsp = await self.ble_manager.cmd_execute(command)
 
         return response.status
+        pass
