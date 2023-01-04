@@ -24,3 +24,8 @@ test_message2.parameters.info.appearance = 0
 
 
 print(test_message2.to_hex())
+print(len(test_message2.to_bytes()))
+test_message2 = GapcGetDevInfoCfm()
+test_message2.parameters.req = GAPC_DEV_INFO.GAPC_DEV_SLV_PREF_PARAMS
+
+print(len(test_message2.to_bytes()))
