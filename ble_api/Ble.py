@@ -54,11 +54,16 @@ class BlePeripheral(BleApiBase):
             if service and service.connected_evt:
                 service.connected_evt(evt)
 
-    def _handle_read_req_evt(self, evt: BleEventGattsReadReq) -> bool:
+    async def _handle_read_req_evt(self, evt: BleEventGattsReadReq) -> bool:
         service = self._find_service_by_handle(evt.handle)
         if service:
             if service.read_req:
-                service.read_req(evt)
+                status, data = service.read_req(evt)
+
+                error = await self.ble_gatts.send_read_cfm(evt.conn_idx, evt.handle, status, data)
+                if error != BLE_ERROR.BLE_STATUS_OK:
+                    # TODO raise error? Return additional value? 
+                    pass
             return True
 
         return False
@@ -114,14 +119,14 @@ class BlePeripheral(BleApiBase):
 
         return error, registerd_svc
 
-    def service_handle_event(self, evt: BleEventBase) -> bool:
+    async def service_handle_event(self, evt: BleEventBase) -> bool:
         match evt.evt_code:
             case BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED:
                 self._handle_connected_evt(evt)
                 return False  # make it "not handled" so app can handle _find_service_by_handle. TODO dont use multiple returns
             
             case BLE_EVT_GATTS.BLE_EVT_GATTS_READ_REQ:
-                return self._handle_read_req_evt(evt)
+                return await self._handle_read_req_evt(evt)
 
         return False
 

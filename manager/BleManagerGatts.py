@@ -1,4 +1,5 @@
 import asyncio
+from ctypes import c_uint8
 from enum import IntEnum, auto
 
 from .GtlWaitQueue import GtlWaitQueue
@@ -14,7 +15,7 @@ from gtl_port.attm import ATTM_PERM, ATTM_UUID_LEN, ATTM_SERVICE_TYPE, ATTM_BROA
 from gtl_port.gattm_task import gattm_att_desc, att_perm, att_max_len_read_ind, GATTM_MSG_ID
 from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 
-from gtl_messages.gtl_message_gattc import GattcReadReqInd
+from gtl_messages.gtl_message_gattc import GattcReadReqInd, GattcReadCfm
 from gtl_port.gattc_task import GATTC_MSG_ID  
 
 
@@ -151,18 +152,26 @@ class BleEventGattsReadReq(BleEventBase):
         self.offset = offset
 
 
-class BleEventGattsReadCfmCmd(BleEventBase):
+class BleMgrGattsReadCfmCmd(BleMgrMsgBase):
     def __init__(self,
                  conn_idx: int = 0,
                  handle: int = 0,
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
                  value: list[int] = None
                  ) -> None:
-        super().__init__(evt_code=BLE_EVT_GATTS.BLE_EVT_GATTS_READ_REQ)
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_READ_CFM_CMD)
         self.conn_idx = conn_idx
         self.handle = handle
         self.status = status
         self.value = value
+
+
+class BleMgrGattsReadCfmRsp(BleMgrMsgBase):
+    def __init__(self,
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_READ_CFM_CMD)
+        self.status = status
 
 
 class BleManagerGatts(BleManagerBase):
@@ -179,7 +188,8 @@ class BleManagerGatts(BleManagerBase):
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_ADD_CMD: self.service_add_cmd_handler,
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_CHARACTERISTIC_ADD_CMD: self.service_add_characteristic_cmd_handler,
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_DESCRIPTOR_ADD_CMD: None,  # self.service_add_descriptor_cmd_handler,
-            BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_REGISTER_CMD: self.service_register_cmd_handler
+            BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_REGISTER_CMD: self.service_register_cmd_handler,
+            BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_READ_CFM_CMD: self.read_cfm_cmd_handler,
         }
 
         self.evt_handlers = {
@@ -247,6 +257,21 @@ class BleManagerGatts(BleManagerBase):
         response.status = BLE_ERROR.BLE_STATUS_OK \
             if gtl.parameters.status == HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR \
             else BLE_ERROR.BLE_ERROR_FAILED
+
+        self._mgr_response_queue_send(response)
+
+    def read_cfm_cmd_handler(self, command: BleMgrGattsReadCfmCmd):
+
+        response = BleMgrGattsReadCfmRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        # TODO find device by connection ID
+
+        cfm = GattcReadCfm(conidx=self._task_to_connidx(command.conn_idx))
+        cfm.parameters.handle = command.handle
+        cfm.parameters.status = command.status
+        cfm.parameters.value = (c_uint8 * len(command.value))(*command.value)
+        self._adapter_command_queue_send(cfm)
+
+        response.status = BLE_ERROR.BLE_STATUS_OK
 
         self._mgr_response_queue_send(response)
 

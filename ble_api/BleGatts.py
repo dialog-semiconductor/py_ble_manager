@@ -4,7 +4,7 @@ from .BleGatt import GATT_SERVICE, GATT_PROP, GATT_EVENT
 from manager.BleManagerGatts import BleMgrGattsServiceAddCmd, BleMgrGattsServiceAddRsp, \
     BleMgrGattsServiceAddCharacteristicCmd, BleMgrGattsServiceAddCharacteristicRsp, \
     BleMgrGattsServiceAddDescriptorCmd, BleMgrGattsServiceAddDescriptorRsp, \
-    BleMgrGattsServiceRegisterCmd, BleMgrGattsServiceRegisterRsp, BLE_EVT_GATTS, BleEventGattsReadCfmCmd
+    BleMgrGattsServiceRegisterCmd, BleMgrGattsServiceRegisterRsp, BLE_EVT_GATTS, BleMgrGattsReadCfmCmd, BleMgrGattsReadCfmRsp
 from manager.BleManager import BLE_ERROR  # BleManager
 from manager.BleManagerGatts import GATTS_FLAGS
 # from adapter.BleAdapter import BleAdapter
@@ -128,12 +128,11 @@ class BleGatts(BleApiBase):
     async def send_read_cfm(self, 
                             conn_idx: int = 0,
                             handle: int = 0, 
-                            status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK, 
-                            value = None):
-        
+                            status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK,
+                            value: list[int] = None):
+
         response = BLE_ERROR.BLE_ERROR_FAILED
-        command = BleMgrGattsServiceAddCmd(uuid, type, num_attrs)
-        response: BleMgrGattsServiceAddRsp = await self.ble_manager.cmd_execute(command)
+        command = BleMgrGattsReadCfmCmd(conn_idx, handle, status, value)
+        response: BleMgrGattsReadCfmRsp = await self.ble_manager.cmd_execute(command)
 
         return response.status
-        pass

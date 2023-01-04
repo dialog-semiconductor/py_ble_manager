@@ -3,7 +3,7 @@ from ble_api.Ble import BlePeripheral
 from services.BleService import BleServiceBase, GattService, GattCharacteristic
 from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatts import BleEventGattsWriteReq, BleEventGattsPrepareWriteReq, BleEventGattsEventSent
-from manager.BleManagerGatts import BleEventGattsReadReq, BleEventGattsReadCfmCmd
+from manager.BleManagerGatts import BleEventGattsReadReq
 from ble_api.BleAtt import ATT_PERM, ATT_ERROR
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
 from manager.BleManagerGatts import GATTS_FLAGS
@@ -36,7 +36,7 @@ class CustomBleService(BleServiceBase):
         my_char.char.prop = GATT_PROP.GATT_PROP_READ | GATT_PROP.GATT_PROP_WRITE
         my_char.char.perm = ATT_PERM.ATT_PERM_RW
         my_char.char.max_len = 2
-        my_char.char.flags = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ
+        my_char.char.flags = GATTS_FLAGS.GATTS_FLAG_CHAR_NO_READ_REQ
         self.gatt_characteristics.append(my_char)
 
         self.char1_read_callback = None
@@ -59,6 +59,8 @@ class CustomBleService(BleServiceBase):
 
         print(f"CustomBleService read_req. evt.handle={evt.handle}. char1.handle={self.gatt_characteristics[0].char.handle}"
             f"char2.handle={self.gatt_characteristics[1].char.handle}")
+
+        return status, data
 
     def write_req(self, evt: BleEventGattsWriteReq):
         print("CustomBleService write_req")
@@ -141,7 +143,7 @@ async def ble_task():
     while True:
         # handle messages
         evt = await periph.get_event()
-        handled = periph.service_handle_event(evt)
+        handled = await periph.service_handle_event(evt)
         if not handled:
             pass
         print(f"Main rx'd event: {evt}. hanlded={handled} \n")
