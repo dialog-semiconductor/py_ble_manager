@@ -270,13 +270,13 @@ class GapcGetDevInfoCfm(GtlMessageBase):
         if self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_NAME:
             return_array += bytearray(self.parameters.info.name.value)
         elif self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_APPEARANCE:
-            return_array += bytearray(self.parameters.info.appearance)
+            return_array += bytearray(self.parameters.info.appearance.to_bytes(length=2, byteorder='little'))
         elif self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_SLV_PREF_PARAMS:
-            return_array += bytearray(self.parameters.info.slv_params)
+            return_array += bytearray(self.parameters.info.slv_params)  # TODO need to test this
         elif self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_CENTRAL_RPA:
-            return_array += bytearray(self.parameters.info.central_rpa)
+            return_array += bytearray(self.parameters.info.central_rpa.to_bytes(length=1, byteorder='little'))
         elif self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_RPA_ONLY:
-            return_array += bytearray(self.parameters.info.rpa_only)
+            return_array += bytearray(self.parameters.info.rpa_only.to_bytes(length=1, byteorder='little'))
 
         return_array += bytearray((c_uint8 * 6)())  # more padding
 

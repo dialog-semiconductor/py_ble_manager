@@ -16,5 +16,11 @@ expected = "050B0E0E001000260000001C004469616C6F672047544C206F766572205350494844
 print(expected)
 
 print(test_message.to_hex())
-print(test_message.parameters.info.name.value)
 
+
+test_message2 = GapcGetDevInfoCfm()
+test_message2.parameters.req = GAPC_DEV_INFO.GAPC_DEV_APPEARANCE
+test_message2.parameters.info.appearance = 0
+
+
+print(test_message2.to_hex())
