@@ -85,13 +85,13 @@ class BleDevParamsDefault(BleDevParams):
         self.role = BLE_GAP_ROLE.GAP_NO_ROLE
         self.addr_renew_duration = 900
         self.own_addr.addr_type = BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS
-        self.own_addr.addr = [0x01, 0x00, 0xF4, 0x35, 0x23, 0x48]
-        self.irk.key[:] = [0xEF, 0xCD, 0xAB, 0x89, 0x67, 0x45, 0x23, 0x01,
-                           0xEF, 0xCD, 0xAB, 0x89, 0x67, 0x45, 0x23, 0x01]
+        self.own_addr.addr = bytes([0x01, 0x00, 0xF4, 0x35, 0x23, 0x48])
+        self.irk.key = bytes([0xEF, 0xCD, 0xAB, 0x89, 0x67, 0x45, 0x23, 0x01,
+                              0xEF, 0xCD, 0xAB, 0x89, 0x67, 0x45, 0x23, 0x01])
         self.addr_resolv_req_pending = 0
         self.att_db_cfg.slv_perf_conn_params_present = True
         self.mtu_size = 65  # TODO 65 for secure connections, 23 otherwise. need to handle
-        self.channel_map.map[:] = [0xFF, 0xFF, 0xFF, 0xFF, 0x1F]
+        self.channel_map.map = bytes([0xFF, 0xFF, 0xFF, 0xFF, 0x1F])
 
         self.adv_type = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
         self.adv_mode = GAP_DISC_MODE.GAP_DISC_MODE_GEN_DISCOVERABLE

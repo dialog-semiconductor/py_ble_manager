@@ -1048,7 +1048,7 @@ class gattc_read_cfm(LittleEndianStructure):
 
 # Inform that a modification of database has been requested by peer device.
 class gattc_write_req_ind(LittleEndianStructure):
-
+    
     def __init__(self,
                  handle: c_uint16 = 0,
                  offset: c_uint16 = 0,

@@ -125,7 +125,6 @@ class BleManagerGap(BleManagerBase):
         gtl.parameters.max_mtu = self.dev_params.mtu_size
         gtl.parameters.max_mps = self.dev_params.mtu_size
         gtl.parameters.addr.addr[:] = self.dev_params.own_addr.addr
-
         # TODO function for this conversion?
         match self.dev_params.own_addr.addr_type:
             case BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS:
@@ -271,12 +270,12 @@ class BleManagerGap(BleManagerBase):
         evt = BleEventGapConnected()
         evt.conn_idx = self._task_to_connidx(gtl.src_id)
         evt.own_addr.addr_type = self.dev_params.own_addr.addr_type
-        evt.own_addr.addr[:] = self.dev_params.own_addr.addr
+        evt.own_addr.addr = self.dev_params.own_addr.addr 
         # if (dg_configBLE_PRIVACY_1_2 == 1)
         # evt.peer_address.addr_type = gtl.parameters.peer_addr_type & 0x01
         # else
         evt.peer_address.addr_type = gtl.parameters.peer_addr_type
-        evt.peer_address.addr[:] = gtl.parameters.peer_addr.addr[:]
+        evt.peer_address.addr = bytes(gtl.parameters.peer_addr.addr)
         evt.conn_params.interval_min = gtl.parameters.con_interval
         evt.conn_params.interval_max = gtl.parameters.con_interval
         evt.conn_params.slave_latency = gtl.parameters.con_latency
@@ -347,10 +346,7 @@ class BleManagerGap(BleManagerBase):
         cfm.parameters.req = gtl.parameters.req
         match gtl.parameters.req:
             case GAPC_DEV_INFO.GAPC_DEV_NAME:
-                # TODO is there an elegant way to remove ctypes c_uint8 dependency here
-                name_list = []
-                name_list[:0] = self.dev_params.dev_name
-                cfm.parameters.info.name.value = (c_uint8 * len(self.dev_params.dev_name))(*name_list)
+                cfm.parameters.info.name.value = (c_uint8 * len(self.dev_params.dev_name)).from_buffer_copy(self.dev_params.dev_name)
             case GAPC_DEV_INFO.GAPC_DEV_APPEARANCE:
                 cfm.parameters.info.appearance = self.dev_params.appearance
             case GAPC_DEV_INFO.GAPC_DEV_SLV_PREF_PARAMS:

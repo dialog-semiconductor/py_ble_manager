@@ -64,12 +64,12 @@ class BleEventGattsWriteReq(BleEventBase):
                  conn_idx: int = 0,
                  handle: int = 0,
                  offset: int = 0,
-                 length: int = 0,
-                 value: list = 0,
+                 # length: int = 0,
+                 value: bytes = None,
                  ) -> None:
         super().__init__(evt_code=BLE_EVT_GATTS.BLE_EVT_GATTS_WRITE_REQ)
         self.conn_idx = conn_idx
         self.handle = handle
         self.offset = offset
-        self.length = length
-        self.value = value if value else []
+        # self.length = length
+        self.value = value if value else bytes()

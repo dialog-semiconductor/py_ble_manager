@@ -197,9 +197,9 @@ class GAP_SEC_LEVEL(IntEnum):
 
 # Link Layer channel map
 class gap_chnl_map():
-    def __init__(self, map: list[int] = None) -> None:  # TODO is ctypes array appriopriate at this layer?
-        # TODO raise error on list len
-        self.map = map if map else []
+    def __init__(self, map: bytes = None) -> None:  # TODO is ctypes array appriopriate at this layer?
+        # TODO raise error on bytes len
+        self.map = map if map else bytes()
 
 
 # GAP connection parameters

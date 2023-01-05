@@ -5,8 +5,8 @@ from ble_api.BleAtt import ATT_PERM, ATT_UUID_TYPE
 from ble_api.BleCommon import BLE_ERROR, BleEventBase
 from ble_api.BleGap import BLE_CONN_IDX_INVALID
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
-from ble_api.BleGatts import BleEventGattsReadReq
-from gtl_messages.gtl_message_gattc import GattcReadReqInd, GattcReadCfm
+from ble_api.BleGatts import BleEventGattsReadReq, BleEventGattsWriteReq
+from gtl_messages.gtl_message_gattc import GattcReadReqInd, GattcReadCfm, GattcWriteCfm, GattcWriteReqInd
 from gtl_messages.gtl_message_gattm import GattmAddSvcReq, GattmAddSvcRsp, GattmAttSetValueReq, GattmAttSetValueRsp
 from gtl_port.attm import ATTM_PERM, ATTM_UUID_LEN, ATTM_SERVICE_TYPE, ATTM_BROADCAST, ATTM_ENC_KEY_SIZE_16_BYTES, \
     ATTM_EXTENDED_PROPERTIES, ATTM_WRITE_SIGNED, ATTM_WRITE_REQUEST
@@ -18,7 +18,7 @@ from manager.BleManagerCommonMsgs import BleMgrMsgBase
 from manager.BleManagerGattsMsgs import BLE_CMD_GATTS_OPCODE, BleMgrGattsReadCfmCmd, BleMgrGattsServiceRegisterRsp, \
     BleMgrGattsReadCfmRsp, BleMgrGattsServiceAddCharacteristicCmd, BleMgrGattsServiceAddCharacteristicRsp, \
     BleMgrGattsServiceAddCmd, BleMgrGattsServiceAddRsp, BleMgrGattsServiceRegisterCmd, BleMgrGattsSetValueCmd, \
-    BleMgrGattsSetValueRsp
+    BleMgrGattsSetValueRsp, BleMgrGattsWriteCfmCmd, BleMgrGattsWriteCfmRsp
 from manager.GtlWaitQueue import GtlWaitQueue
 
 
@@ -39,10 +39,12 @@ class BleManagerGatts(BleManagerBase):
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_REGISTER_CMD: self.service_register_cmd_handler,
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_READ_CFM_CMD: self.read_cfm_cmd_handler,
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SET_VALUE_CMD: self.set_value_cmd_handler,
+            BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_WRITE_CFM_CMD: self.write_cfm_cmd_handler, 
         }
 
         self.evt_handlers = {
             GATTC_MSG_ID.GATTC_READ_REQ_IND: self.read_value_req_evt_handler,  # TODO why is this in Gatts and not Gattc???
+            GATTC_MSG_ID.GATTC_WRITE_REQ_IND: self.write_value_req_evt_handler,   # TODO why is this in Gatts and not Gattc???
         }
 
         self._add_svc_msg = None
@@ -226,6 +228,25 @@ class BleManagerGatts(BleManagerBase):
                              None)
         self._adapter_command_queue_send(req)
 
+    def write_cfm_cmd_handler(self, command: BleMgrGattsWriteCfmCmd):
+
+        response = BleMgrGattsWriteCfmRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        # TODO need to get device from storage
+
+        req = GattcWriteCfm()
+        req.parameters.handle = command.handle
+        req.parameters.status = command.status
+        self._adapter_command_queue_send(req)
+
+        response.status = BLE_ERROR.BLE_STATUS_OK
+        self._mgr_response_queue_send(response)
+
+    def write_value_req_evt_handler(self, gtl: GattcWriteReqInd):
+        evt = BleEventGattsWriteReq(self._task_to_connidx(gtl.src_id))
+        evt.handle = gtl.parameters.handle
+        evt.offset = gtl.parameters.offset
+        evt.value = bytes(gtl.parameters.value)
+        self._mgr_event_queue_send(evt)
 
     '''
     def service_add_descriptor_cmd_handler(self, command: BleMgrGattsServiceAddDescriptorCmd):

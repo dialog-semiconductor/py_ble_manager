@@ -50,9 +50,9 @@ class ATT_UUID_TYPE(IntEnum):
 
 
 class att_uuid():
-    def __init__(self, uuid: list[int] = None) -> None:
+    def __init__(self, uuid: bytes = None) -> None:
         if uuid:
-            self.uuid = uuid if uuid else []
+            self.uuid = uuid if uuid else bytes()
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
@@ -61,10 +61,10 @@ class att_uuid():
                     return True
         return False
 
-    def _get_uuid(self) -> list[int]:
+    def _get_uuid(self) -> bytes:
         return self._uuid
 
-    def _set_uuid(self, uuid: list[int] = None):
+    def _set_uuid(self, uuid: bytes = None):
         if len(uuid) == 2 or len(uuid) == 16:
             self._uuid = uuid
             self.type = ATT_UUID_TYPE.ATT_UUID_128 if len(uuid) == 16 else ATT_UUID_TYPE.ATT_UUID_16

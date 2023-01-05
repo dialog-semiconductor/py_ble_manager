@@ -127,13 +127,13 @@ class BleMgrGattsReadCfmCmd(BleMgrMsgBase):
                  conn_idx: int = 0,
                  handle: int = 0,
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
-                 value: list[int] = None
+                 value: bytes = None
                  ) -> None:
         super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_READ_CFM_CMD)
         self.conn_idx = conn_idx
         self.handle = handle
         self.status = status
-        self.value = value
+        self.value = value if value else bytes()
 
 
 class BleMgrGattsReadCfmRsp(BleMgrMsgBase):
@@ -151,7 +151,7 @@ class BleMgrGattsSetValueCmd(BleMgrMsgBase):
                  ) -> None:
         super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SET_VALUE_CMD)
         self.handle = handle
-        self.value = value
+        self.value = value if value else bytes()
 
 
 class BleMgrGattsSetValueRsp(BleMgrMsgBase):
@@ -159,4 +159,24 @@ class BleMgrGattsSetValueRsp(BleMgrMsgBase):
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
                  ) -> None:
         super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SET_VALUE_CMD)
+        self.status = status
+
+
+class BleMgrGattsWriteCfmCmd(BleMgrMsgBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 handle: int = 0,
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_WRITE_CFM_CMD)
+        self.conn_idx = conn_idx
+        self.handle = handle
+        self.status = status
+
+
+class BleMgrGattsWriteCfmRsp(BleMgrMsgBase):
+    def __init__(self,
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_WRITE_CFM_CMD)
         self.status = status

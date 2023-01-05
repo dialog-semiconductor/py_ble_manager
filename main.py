@@ -59,7 +59,17 @@ class CustomBleService(BleServiceBase):
         return status, data
 
     def write_req(self, evt: BleEventGattsWriteReq):
-        print("CustomBleService write_req")
+        print(f"CustomBleService write_req")
+        status = ATT_ERROR.ATT_ERROR_APPLICATION_ERROR
+        for item in self.gatt_characteristics:
+            if evt.handle == item.char.handle:
+                status = ATT_ERROR.ATT_ERROR_OK
+                print(f"CustomBleService write_req. handle={evt.handle} value={evt.value}")
+                # TODO update value in CustomBleService?
+
+                #if self.char1_read_callback:
+                #    status, data = self.char1_read_callback(self)
+        return status
 
     def prepare_write_req(self, evt: BleEventGattsPrepareWriteReq):
         print("CustomBleService prepare_write_req")

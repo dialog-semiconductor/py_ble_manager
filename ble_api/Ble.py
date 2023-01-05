@@ -4,7 +4,7 @@ from adapter.BleAdapter import BleAdapter
 from ble_api.BleApiBase import BleApiBase
 from ble_api.BleCommon import BleEventBase, BLE_ERROR
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_EVT_GAP, BleEventGapConnected
-from ble_api.BleGatts import BLE_EVT_GATTS, BleEventGattsReadReq
+from ble_api.BleGatts import BLE_EVT_GATTS, BleEventGattsReadReq, BleEventGattsWriteReq
 from ble_api.BleGattsApi import BleGattsApi
 from manager.BleManager import BleManager
 from manager.BleManagerCommonMsgs import BleMgrCommonResetCmd, BleMgrCommonResetRsp
@@ -60,8 +60,20 @@ class BlePeripheral(BleApiBase):
         if service:
             if service.read_req:
                 status, data = service.read_req(evt)
-
                 error = await self.ble_gatts.send_read_cfm(evt.conn_idx, evt.handle, status, data)
+                if error != BLE_ERROR.BLE_STATUS_OK:
+                    # TODO raise error? Return additional value?
+                    pass
+            return True
+
+        return False
+
+    async def _handle_write_req_evt(self, evt: BleEventGattsWriteReq) -> bool:
+        service = self._find_service_by_handle(evt.handle)
+        if service:
+            if service.write_req:
+                status = service.write_req(evt)
+                error = await self.ble_gatts.send_write_cfm(evt.conn_idx, evt.handle, status)
                 if error != BLE_ERROR.BLE_STATUS_OK:
                     # TODO raise error? Return additional value?
                     pass
@@ -128,6 +140,9 @@ class BlePeripheral(BleApiBase):
 
             case BLE_EVT_GATTS.BLE_EVT_GATTS_READ_REQ:
                 return await self._handle_read_req_evt(evt)
+
+            case BLE_EVT_GATTS.BLE_EVT_GATTS_WRITE_REQ:
+                return await self._handle_write_req_evt(evt)
 
         return False
 

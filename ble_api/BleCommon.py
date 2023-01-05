@@ -62,10 +62,10 @@ class BLE_STATUS(IntEnum):
 # Bluetooth Device address
 class bd_address():  # TODO rename BdAddress to differentiate from ctypes structures?
     # TODO is ctypes array appriopriate at this layer?
-    def __init__(self, addr_type: BLE_ADDR_TYPE = BLE_ADDR_TYPE.PUBLIC_ADDRESS, addr: list[int] = None) -> None:
+    def __init__(self, addr_type: BLE_ADDR_TYPE = BLE_ADDR_TYPE.PUBLIC_ADDRESS, addr: bytes() = None) -> None:
         self.addr_type = addr_type
-        # TODO raise error on list len
-        self.addr = addr if addr else []
+        # TODO raise error on bytes len
+        self.addr = addr if addr else bytes()
 
 
 class BleEventBase():
@@ -74,14 +74,14 @@ class BleEventBase():
 
 
 class irk():
-    def __init__(self, key: list[int] = None) -> None:  # TODO is ctypes array appriopriate at this layer?
-        # TODO raise error on list len
-        self.key = key if key else []
+    def __init__(self, key: bytes = None) -> None:
+        # TODO raise error on key len
+        self.key = key if key else bytes()
 
 
 class own_address():
     # TODO is ctypes array appriopriate at this layer?
-    def __init__(self, addr_type: BLE_OWN_ADDR_TYPE = BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS, addr: list[int] = None) -> None:
+    def __init__(self, addr_type: BLE_OWN_ADDR_TYPE = BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS, addr: bytes = None) -> None:
         self.addr_type = addr_type
-        # TODO raise error on list len
-        self.addr = addr if addr else []
+        # TODO raise error on bytes len
+        self.addr = addr if addr else bytes()

@@ -1,4 +1,4 @@
-from ble_api.BleAtt import att_uuid, ATT_PERM
+from ble_api.BleAtt import att_uuid, ATT_PERM, ATT_ERROR
 from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
 from ble_api.BleGatts import GATTS_FLAGS
@@ -91,8 +91,9 @@ class BleServiceBase():
     def prepare_write_req(self, evt: BleEventBase) -> None:  # BleEventGattsPrepareWriteReq
         pass
 
-    def read_req(self, evt: BleEventGattsReadReq) -> None:
+    def read_req(self, evt: BleEventGattsReadReq) -> tuple[ATT_ERROR, bytes]:
+        # Service implementations should return a status indicating any error, and the data to be read in bytes
         pass
 
-    def write_req(self, evt: BleEventBase) -> None:  # BleEventGattsWriteReq
+    def write_req(self, evt: BleEventBase) -> ATT_ERROR:  # BleEventGattsWriteReq
         pass

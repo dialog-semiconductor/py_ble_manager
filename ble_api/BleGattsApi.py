@@ -9,7 +9,7 @@ from manager.BleManagerGattsMsgs import BleMgrGattsServiceAddCmd, BleMgrGattsSer
     BleMgrGattsServiceAddCharacteristicCmd, BleMgrGattsServiceAddCharacteristicRsp, \
     BleMgrGattsServiceAddDescriptorCmd, BleMgrGattsServiceAddDescriptorRsp, \
     BleMgrGattsServiceRegisterCmd, BleMgrGattsServiceRegisterRsp, BleMgrGattsReadCfmCmd, BleMgrGattsReadCfmRsp, \
-    BleMgrGattsSetValueCmd, BleMgrGattsSetValueRsp
+    BleMgrGattsSetValueCmd, BleMgrGattsSetValueRsp, BleMgrGattsWriteCfmCmd, BleMgrGattsWriteCfmRsp
 from services.BleService import BleServiceBase
 
 
@@ -87,11 +87,22 @@ class BleGattsApi(BleApiBase):
                             conn_idx: int = 0,
                             handle: int = 0,
                             status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK,
-                            value: list[int] = None):
+                            value: bytes = None):
 
         response = BLE_ERROR.BLE_ERROR_FAILED
         command = BleMgrGattsReadCfmCmd(conn_idx, handle, status, value)
         response: BleMgrGattsReadCfmRsp = await self.ble_manager.cmd_execute(command)
+
+        return response.status
+
+    async def send_write_cfm(self,
+                             conn_idx: int = 0,
+                             handle: int = 0,
+                             status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK,):
+
+        response = BLE_ERROR.BLE_ERROR_FAILED
+        command = BleMgrGattsWriteCfmCmd(conn_idx, handle, status)
+        response: BleMgrGattsWriteCfmRsp = await self.ble_manager.cmd_execute(command)
 
         return response.status
 

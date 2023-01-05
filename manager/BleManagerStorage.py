@@ -56,19 +56,19 @@ class device():
 
 
 class key_csrk():
-    def __init__(self, key: list[int] = None, sign_cnt: int = 0) -> None:
-        self.key = key if key else []  # TODO raise error on list size?
+    def __init__(self, key: bytes = None, sign_cnt: int = 0) -> None:
+        self.key = key if key else bytes()  # TODO raise error on list size?
         self.sign_cnt = sign_cnt
 
 
 class key_irk():
-    def __init__(self, key: list[int] = None) -> None:
-        self.key = key if key else []  # TODO raise error on list size?
+    def __init__(self, key: bytes = None) -> None:
+        self.key = key if key else bytes  # TODO raise error on list size?
 
 
 class key_ltk():
-    def __init__(self, rand: int = 0, ediv: int = 0, key: list[int] = None, key_size: int = 0) -> None:
+    def __init__(self, rand: int = 0, ediv: int = 0, key: bytes = None, key_size: int = 0) -> None:
         self.rand = rand
         self.ediv = ediv
-        self.key = key if key else []  # TODO raise error on list size?
+        self.key = key if key else bytes  # TODO raise error on list size?
         self.key_size = key_size

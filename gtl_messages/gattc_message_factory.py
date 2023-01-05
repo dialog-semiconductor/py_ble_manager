@@ -1,6 +1,8 @@
+from ctypes import c_uint8
+
 from gtl_messages.gtl_message_base import GTL_INITIATOR
-from gtl_messages.gtl_message_gattc import GattcReadReqInd
-from gtl_port.gattc_task import GATTC_MSG_ID, gattc_read_req_ind
+from gtl_messages.gtl_message_gattc import GattcReadReqInd, GattcWriteReqInd
+from gtl_port.gattc_task import GATTC_MSG_ID, gattc_read_req_ind, gattc_write_req_ind
 
 
 class GattcMessageFactory():
@@ -20,6 +22,14 @@ class GattcMessageFactory():
         try:
             if msg_id == GATTC_MSG_ID.GATTC_READ_REQ_IND:
                 return GattcReadReqInd(parameters=gattc_read_req_ind.from_buffer_copy(params_buf))
+
+            elif msg_id == GATTC_MSG_ID.GATTC_WRITE_REQ_IND:
+                # TODO issue using from_buffer_copy due to POINTER, is there a better way to convert?
+                parameters = gattc_write_req_ind()
+                parameters.handle = int.from_bytes(params_buf[0:2], "little", signed=False)
+                parameters.offset = int.from_bytes(params_buf[2:4], "little", signed=False)
+                parameters.value = (c_uint8 * len(params_buf[6:])).from_buffer_copy(params_buf[6:])
+                return GattcWriteReqInd(parameters=parameters)
 
             else:
                 raise AssertionError(f"GattcMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")
