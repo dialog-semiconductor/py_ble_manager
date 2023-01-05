@@ -602,8 +602,8 @@ class gapc_dev_info_val(Union):
                 # ESR10
                 # Resolvable Private Address Only
                 ("rpa_only", c_uint8)]
-    
-    
+
+
 '''
 # Peer device attribute DB info such as Device Name, Appearance or Slave Preferred Parameters
 struct gapc_peer_att_info_ind
