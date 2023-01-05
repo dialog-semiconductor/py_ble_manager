@@ -63,7 +63,7 @@ class BlePeripheral(BleApiBase):
 
                 error = await self.ble_gatts.send_read_cfm(evt.conn_idx, evt.handle, status, data)
                 if error != BLE_ERROR.BLE_STATUS_OK:
-                    # TODO raise error? Return additional value? 
+                    # TODO raise error? Return additional value?
                     pass
             return True
 
@@ -102,10 +102,10 @@ class BlePeripheral(BleApiBase):
                 item = svc.gatt_characteristics[i]
                 # TODO is there a case where you need the char declartion handle offset (h_offset)?
                 error, char_decl, svc.gatt_characteristics[i].char.handle = await self.ble_gatts.add_characteristic(item.char.uuid,
-                                                                                                            item.char.prop,
-                                                                                                            item.char.perm,
-                                                                                                            item.char.max_len,
-                                                                                                            item.char.flags)
+                                                                                                                    item.char.prop,
+                                                                                                                    item.char.perm,
+                                                                                                                    item.char.max_len,
+                                                                                                                    item.char.flags)
                 print(f"ChAR ADDEDE. {i}, error={error}, decl={char_decl}, handle={svc.gatt_characteristics[i].char.handle}")
                 if error == BLE_ERROR.BLE_STATUS_OK:
                     # error = await self.ble_gatts.add_descriptor(item.descriptor)
@@ -125,7 +125,7 @@ class BlePeripheral(BleApiBase):
             case BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED:
                 self._handle_connected_evt(evt)
                 return False  # make it "not handled" so app can handle _find_service_by_handle. TODO dont use multiple returns
-            
+
             case BLE_EVT_GATTS.BLE_EVT_GATTS_READ_REQ:
                 return await self._handle_read_req_evt(evt)
 
@@ -144,7 +144,6 @@ class BlePeripheral(BleApiBase):
                 return event_sent((const ble_evt_gatts_event_sent_t *) evt);
         '''
 
-    
     async def start(self) -> BLE_ERROR:
 
         error = await self._ble_reset()

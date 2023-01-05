@@ -82,9 +82,9 @@ class BleGattsApi(BleApiBase):
 
         return response.status, svc
 
-    async def send_read_cfm(self, 
+    async def send_read_cfm(self,
                             conn_idx: int = 0,
-                            handle: int = 0, 
+                            handle: int = 0,
                             status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK,
                             value: list[int] = None):
 

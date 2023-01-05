@@ -8,7 +8,7 @@ from manager.BleManagerGatts import BleEventGattsReadReq
 
 class GattService():
     def __init__(self,
-                 uuid : att_uuid = None,
+                 uuid: att_uuid = None,
                  type: GATT_SERVICE = GATT_SERVICE.GATT_SERVICE_PRIMARY,
                  num_attrs: int = 0) -> None:
         self.uuid = uuid if uuid else att_uuid()

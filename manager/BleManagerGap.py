@@ -25,6 +25,7 @@ dg_configBLE_DATA_LENGTH_TX_MAX = (251)
 # TODO this is from stack
 ATT_DEFAULT_MTU = (23)
 
+
 class BleManagerGap(BleManagerBase):
 
     def __init__(self,

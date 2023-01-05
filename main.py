@@ -39,7 +39,6 @@ class CustomBleService(BleServiceBase):
         self.gatt_characteristics.append(my_char)
 
         self.char1_read_callback = None
-                
 
     def connected_evt(self, evt: BleEventGapConnected):
         print("CustomBleService connected_evt")
@@ -55,10 +54,8 @@ class CustomBleService(BleServiceBase):
                 if self.char1_read_callback:
                     status, data = self.char1_read_callback(self)
 
-
         print(f"CustomBleService read_req. evt.handle={evt.handle}. char1.handle={self.gatt_characteristics[0].char.handle}"
-            f"char2.handle={self.gatt_characteristics[1].char.handle}")
-
+              f"char2.handle={self.gatt_characteristics[1].char.handle}")
         return status, data
 
     def write_req(self, evt: BleEventGattsWriteReq):

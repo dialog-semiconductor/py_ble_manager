@@ -267,4 +267,3 @@ class BleMgrGapTxPowerSetCmd(BleMgrMsgBase):
 class BleMgrGapUnpairCmd(BleMgrMsgBase):
     def __init__(self, addr) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_UNPAIR_CMD)
-
