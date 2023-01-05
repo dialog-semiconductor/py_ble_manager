@@ -369,7 +369,6 @@ class gap_dev_name(LittleEndianStructure):
     value = property(get_value, set_value)
 
 
-
 # Slave preferred connection parameters
 class gap_slv_pref(LittleEndianStructure):
 
