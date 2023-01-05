@@ -1,6 +1,7 @@
 import asyncio
-from ble_api.BleGap import GAP_SEC_LEVEL, BLE_GAP_PHY
+
 from ble_api.BleCommon import bd_address
+from ble_api.BleGap import GAP_SEC_LEVEL, BLE_GAP_PHY
 
 
 class device():

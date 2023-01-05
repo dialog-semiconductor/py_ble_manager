@@ -1,15 +1,13 @@
 import asyncio
-# from ctypes import c_uint16, c_uint8, Array
-# from enum import IntEnum, auto
-from gtl_messages.gtl_message_base import GtlMessageBase
-# from gtl_messages.gtl_message_gapm import GapmResetCmd, GapmSetDevConfigCmd, GapmStartAdvertiseCmd
 
-# from gtl_messages.gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
-from .GtlWaitQueue import GtlWaitQueue  # , GtlWaitQueueElement
 from ble_api.BleCommon import BLE_ERROR, BLE_STATUS, BleEventBase
-from .BleManagerCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleManagerCommon, BleMgrMsgBase
-from .BleManagerGap import BleManagerGap   # , BleMgrGapRoleSetCmd, BLE_CMD_GAP_OPCODE
-from .BleManagerGatts import BleManagerGatts
+from gtl_messages.gtl_message_base import GtlMessageBase
+from manager.BleManagerBase import BleManagerBase
+from manager.BleManagerCommon import BleManagerCommon
+from manager.BleManagerCommonMsgs import BLE_MGR_CMD_CAT, BleMgrMsgBase
+from manager.BleManagerGap import BleManagerGap
+from manager.BleManagerGatts import BleManagerGatts
+from manager.GtlWaitQueue import GtlWaitQueue
 
 
 class BleManager(BleManagerBase):

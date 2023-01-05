@@ -1,6 +1,5 @@
-from .gtl_message_base import GTL_INITIATOR
-from .gtl_message_gattc import GattcReadReqInd
-
+from gtl_messages.gtl_message_base import GTL_INITIATOR
+from gtl_messages.gtl_message_gattc import GattcReadReqInd
 from gtl_port.gattc_task import GATTC_MSG_ID, gattc_read_req_ind
 
 

@@ -1,6 +1,5 @@
-from .gtl_message_base import GTL_INITIATOR
-from .gtl_message_gattm import GattmAddSvcRsp
-
+from gtl_messages.gtl_message_base import GTL_INITIATOR
+from gtl_messages.gtl_message_gattm import GattmAddSvcRsp
 from gtl_port.gattm_task import GATTM_MSG_ID, gattm_add_svc_rsp
 
 

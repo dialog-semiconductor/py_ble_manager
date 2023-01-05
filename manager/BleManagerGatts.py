@@ -1,167 +1,24 @@
 import asyncio
 from ctypes import c_uint8
-from enum import IntEnum, auto
 
-from .GtlWaitQueue import GtlWaitQueue
-from .BleManagerCommon import BLE_MGR_CMD_CAT, BleManagerBase, BleMgrMsgBase
-from ble_api.BleAtt import att_uuid, ATT_PERM, ATT_UUID_TYPE
-from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
-from ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_EVT_CAT
+from ble_api.BleAtt import ATT_PERM, ATT_UUID_TYPE
+from ble_api.BleCommon import BLE_ERROR, BleEventBase
 from ble_api.BleGap import BLE_CONN_IDX_INVALID
+from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
+from ble_api.BleGatts import BleEventGattsReadReq
+from gtl_messages.gtl_message_gattc import GattcReadReqInd, GattcReadCfm
 from gtl_messages.gtl_message_gattm import GattmAddSvcReq, GattmAddSvcRsp
 from gtl_port.attm import ATTM_PERM, ATTM_UUID_LEN, ATTM_SERVICE_TYPE, ATTM_BROADCAST, ATTM_ENC_KEY_SIZE_16_BYTES, \
     ATTM_EXTENDED_PROPERTIES, ATTM_WRITE_SIGNED, ATTM_WRITE_REQUEST
-
+from gtl_port.gattc_task import GATTC_MSG_ID
 from gtl_port.gattm_task import gattm_att_desc, att_perm, att_max_len_read_ind, GATTM_MSG_ID
 from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
-
-from gtl_messages.gtl_message_gattc import GattcReadReqInd, GattcReadCfm
-from gtl_port.gattc_task import GATTC_MSG_ID  
-
-
-class BLE_CMD_GATTS_OPCODE(IntEnum):
-    BLE_MGR_GATTS_SERVICE_ADD_CMD = BLE_MGR_CMD_CAT.BLE_MGR_GATTS_CMD_CAT << 8
-    BLE_MGR_GATTS_SERVICE_INCLUDE_ADD_CMD = auto()
-    BLE_MGR_GATTS_SERVICE_CHARACTERISTIC_ADD_CMD = auto()
-    BLE_MGR_GATTS_SERVICE_DESCRIPTOR_ADD_CMD = auto()
-    BLE_MGR_GATTS_SERVICE_REGISTER_CMD = auto()
-    BLE_MGR_GATTS_SERVICE_ENABLE_CMD = auto()
-    BLE_MGR_GATTS_SERVICE_DISABLE_CMD = auto()
-    BLE_MGR_GATTS_SERVICE_CHARACTERISTIC_GET_PROP_CMD = auto()
-    BLE_MGR_GATTS_SERVICE_CHARACTERISTIC_SET_PROP_CMD = auto()
-    BLE_MGR_GATTS_GET_VALUE_CMD = auto()
-    BLE_MGR_GATTS_SET_VALUE_CMD = auto()
-    BLE_MGR_GATTS_READ_CFM_CMD = auto()
-    BLE_MGR_GATTS_WRITE_CFM_CMD = auto()
-    BLE_MGR_GATTS_PREPARE_WRITE_CFM_CMD = auto()
-    BLE_MGR_GATTS_SEND_EVENT_CMD = auto()
-    BLE_MGR_GATTS_SERVICE_CHANGED_IND_CMD = auto()
-    BLE_MGR_GATTS_LAST_CMD = auto()
-
-
-
-# TODO this resulted in circular import, need to reorganzie imports and redefine where certain enums classes located
-# GATT Server flags
-class GATTS_FLAGS(IntEnum):
-    GATTS_FLAG_CHAR_NO_READ_REQ = 0x00  # TODO need better name
-    GATTS_FLAG_CHAR_READ_REQ = 0x01        # enable ::BLE_EVT_GATTS_READ_REQ for attribute
-
-
-class BleMgrGattsServiceAddCharacteristicCmd(BleMgrMsgBase):
-    def __init__(self,
-                 uuid: att_uuid = att_uuid(),
-                 prop: GATT_PROP = GATT_PROP.GATT_PROP_NONE,
-                 perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
-                 max_len: int = 0,
-                 flags: GATTS_FLAGS = GATTS_FLAGS.GATTS_FLAG_CHAR_NO_READ_REQ,
-                 ) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_CHARACTERISTIC_ADD_CMD)
-        self.uuid = uuid
-        self.prop = prop
-        self.perm = perm
-        self.max_len = max_len
-        self.flags = flags
-
-
-class BleMgrGattsServiceAddCharacteristicRsp(BleMgrMsgBase):
-    def __init__(self,
-                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
-                 h_offset: int = 0,
-                 h_val_offset: int = 0
-                 ) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_CHARACTERISTIC_ADD_CMD)
-        self.status = status
-        self.h_offset = h_offset
-        self.h_val_offset = h_val_offset
-
-
-class BleMgrGattsServiceAddCmd(BleMgrMsgBase):
-    def __init__(self,
-                 uuid: att_uuid = None,
-                 type: GATT_SERVICE = GATT_SERVICE.GATT_SERVICE_PRIMARY,
-                 num_attrs: int = 0) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_ADD_CMD)
-        self.uuid = uuid if uuid else []  # TODO raise error is length off
-        self.type = type
-        self.num_attrs = num_attrs
-
-
-class BleMgrGattsServiceAddRsp(BleMgrMsgBase):
-    def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_ADD_CMD)
-        self.status = status
-
-
-class BleMgrGattsServiceAddDescriptorCmd(BleMgrMsgBase):
-    def __init__(self,
-                 uuid: att_uuid = att_uuid(),
-                 perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
-                 max_len: int = 0,
-                 flags: GATTS_FLAGS = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ,
-                 ) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_DESCRIPTOR_ADD_CMD)
-        self.uuid = uuid
-        self.perm = perm
-        self.max_len = max_len
-        self.flags = flags
-
-
-class BleMgrGattsServiceAddDescriptorRsp(BleMgrMsgBase):
-    def __init__(self,
-                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
-                 h_offset: int = 0,
-                 ) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_DESCRIPTOR_ADD_CMD)
-        self.status = status
-        self.h_offset = h_offset
-
-
-class BleMgrGattsServiceRegisterCmd(BleMgrMsgBase):
-    def __init__(self) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_REGISTER_CMD)
-
-
-class BleMgrGattsServiceRegisterRsp(BleMgrMsgBase):
-    def __init__(self,
-                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
-                 handle: int = 0) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_REGISTER_CMD)
-        self.status = status
-        self.handle = handle
-
-
-class BleEventGattsReadReq(BleEventBase):
-    def __init__(self,
-                 conn_idx: int = 0,
-                 handle: int = 0,
-                 offset: int = 0,
-                 ) -> None:
-        super().__init__(evt_code=BLE_EVT_GATTS.BLE_EVT_GATTS_READ_REQ)
-        self.conn_idx = conn_idx
-        self.handle = handle
-        self.offset = offset
-
-
-class BleMgrGattsReadCfmCmd(BleMgrMsgBase):
-    def __init__(self,
-                 conn_idx: int = 0,
-                 handle: int = 0,
-                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
-                 value: list[int] = None
-                 ) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_READ_CFM_CMD)
-        self.conn_idx = conn_idx
-        self.handle = handle
-        self.status = status
-        self.value = value
-
-
-class BleMgrGattsReadCfmRsp(BleMgrMsgBase):
-    def __init__(self,
-                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
-                 ) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_READ_CFM_CMD)
-        self.status = status
+from manager.BleManagerBase import BleManagerBase
+from manager.BleManagerCommonMsgs import BleMgrMsgBase
+from manager.BleManagerGattsMsgs import BLE_CMD_GATTS_OPCODE, BleMgrGattsReadCfmCmd, BleMgrGattsServiceRegisterRsp, \
+    BleMgrGattsReadCfmRsp, BleMgrGattsServiceAddCharacteristicCmd, BleMgrGattsServiceAddCharacteristicRsp, \
+    BleMgrGattsServiceAddCmd, BleMgrGattsServiceAddRsp, BleMgrGattsServiceRegisterCmd
+from manager.GtlWaitQueue import GtlWaitQueue
 
 
 class BleManagerGatts(BleManagerBase):

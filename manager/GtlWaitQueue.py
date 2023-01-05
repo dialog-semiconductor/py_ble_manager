@@ -1,7 +1,8 @@
 from ctypes import c_uint16
+
 from gtl_messages.gtl_message_base import GtlMessageBase
-from gtl_messages.gtl_message_gapm import GAPM_MSG_ID
 from gtl_messages.gtl_message_gapc import GAPC_MSG_ID
+from gtl_messages.gtl_message_gapm import GAPM_MSG_ID
 
 
 class GtlWaitQueueElement():

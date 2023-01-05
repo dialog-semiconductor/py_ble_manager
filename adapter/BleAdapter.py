@@ -1,6 +1,7 @@
 import asyncio
-from .SerialStreamManager import SerialStreamManager
-from .MessageParser import MessageParser
+
+from adapter.MessageParser import MessageParser
+from adapter.SerialStreamManager import SerialStreamManager
 from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gapm import GapmResetCmd
 from gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, gapm_reset_cmd

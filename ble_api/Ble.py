@@ -1,14 +1,14 @@
 import asyncio
-from .BleApiBase import BleApiBase, BleManager, BleAdapter
-# from adapter.BleAdapter import BleAdapter
-# from manager.BleManager import BleManager
-from manager.BleManagerGap import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp, BleEventGapConnected
-from manager.BleManagerCommon import BleMgrCommonResetCmd, BleMgrCommonResetRsp
-from manager.BleManagerGatts import BleEventGattsReadReq
-from .BleCommon import BleEventBase, BLE_ERROR
-from .BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_EVT_GAP
-from .BleGatts import BLE_EVT_GATTS
-from .BleGattsApi import BleGattsApi
+
+from adapter.BleAdapter import BleAdapter
+from ble_api.BleApiBase import BleApiBase
+from ble_api.BleCommon import BleEventBase, BLE_ERROR
+from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_EVT_GAP, BleEventGapConnected
+from ble_api.BleGatts import BLE_EVT_GATTS, BleEventGattsReadReq
+from ble_api.BleGattsApi import BleGattsApi
+from manager.BleManager import BleManager
+from manager.BleManagerCommonMsgs import BleMgrCommonResetCmd, BleMgrCommonResetRsp
+from manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp
 from services.BleService import BleServiceBase
 
 

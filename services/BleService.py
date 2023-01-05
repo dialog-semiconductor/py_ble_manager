@@ -1,10 +1,9 @@
 from ble_api.BleAtt import att_uuid, ATT_PERM
 from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
+from ble_api.BleGatts import GATTS_FLAGS
 from ble_api.BleCommon import BleEventBase
-# from ble_api.BleGatts import BleEventGattsWriteReq, BleEventGattsPrepareWriteReq, BleEventGattsEventSent
-from manager.BleManagerGatts import GATTS_FLAGS, BleEventGattsReadReq
-# TODO service Factory -> pass in num attributes, creates class based on ServiceBase?
+from manager.BleManagerGatts import BleEventGattsReadReq
 
 
 class GattService():

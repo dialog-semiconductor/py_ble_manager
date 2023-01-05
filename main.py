@@ -1,12 +1,11 @@
 import asyncio
+
 from ble_api.Ble import BlePeripheral
-from services.BleService import BleServiceBase, GattService, GattCharacteristic
-from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
-from ble_api.BleGatts import BleEventGattsWriteReq, BleEventGattsPrepareWriteReq, BleEventGattsEventSent
-from manager.BleManagerGatts import BleEventGattsReadReq
 from ble_api.BleAtt import ATT_PERM, ATT_ERROR
+from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
-from manager.BleManagerGatts import GATTS_FLAGS
+from ble_api.BleGatts import GATTS_FLAGS, BleEventGattsWriteReq, BleEventGattsPrepareWriteReq, BleEventGattsEventSent, BleEventGattsReadReq
+from services.BleService import BleServiceBase, GattService, GattCharacteristic
 
 
 class CustomBleService(BleServiceBase):

@@ -1,17 +1,14 @@
-
-from .BleAtt import att_uuid, ATT_PERM, ATT_ERROR  # , ATT_UUID_TYPE
-from .BleGatt import GATT_SERVICE, GATT_PROP
-from manager.BleManagerGatts import BleMgrGattsServiceAddCmd, BleMgrGattsServiceAddRsp, \
+from adapter.BleAdapter import BleAdapter
+from ble_api.BleApiBase import BleApiBase
+from ble_api.BleAtt import att_uuid, ATT_PERM, ATT_ERROR
+from ble_api.BleCommon import BLE_ERROR
+from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
+from ble_api.BleGatts import GATTS_FLAGS
+from manager.BleManager import BleManager
+from manager.BleManagerGattsMsgs import BleMgrGattsServiceAddCmd, BleMgrGattsServiceAddRsp, \
     BleMgrGattsServiceAddCharacteristicCmd, BleMgrGattsServiceAddCharacteristicRsp, \
     BleMgrGattsServiceAddDescriptorCmd, BleMgrGattsServiceAddDescriptorRsp, \
     BleMgrGattsServiceRegisterCmd, BleMgrGattsServiceRegisterRsp, BleMgrGattsReadCfmCmd, BleMgrGattsReadCfmRsp
-from manager.BleManager import BLE_ERROR  # BleManager
-from manager.BleManagerGatts import GATTS_FLAGS
-# from adapter.BleAdapter import BleAdapter
-
-from .BleApiBase import BleApiBase
-from manager.BleManager import BleManager
-from adapter.BleAdapter import BleAdapter
 from services.BleService import BleServiceBase
 
 

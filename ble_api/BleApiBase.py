@@ -1,5 +1,5 @@
-from manager.BleManager import BleManager
 from adapter.BleAdapter import BleAdapter
+from manager.BleManager import BleManager
 
 
 class BleApiBase():

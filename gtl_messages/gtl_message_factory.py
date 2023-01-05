@@ -1,8 +1,8 @@
-from .gtl_message_base import GTL_INITIATOR
-from .gapc_message_factory import GapcMessageFactory
-from .gapm_message_factory import GapmMessageFactory
-from .gattm_message_factory import GattmMessageFactory
-from .gattc_message_factory import GattcMessageFactory
+from gtl_messages.gtl_message_base import GTL_INITIATOR
+from gtl_messages.gapc_message_factory import GapcMessageFactory
+from gtl_messages.gapm_message_factory import GapmMessageFactory
+from gtl_messages.gattm_message_factory import GattmMessageFactory
+from gtl_messages.gattc_message_factory import GattcMessageFactory
 from gtl_port.rwip_config import KE_API_ID
 
 

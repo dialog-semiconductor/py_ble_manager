@@ -5,6 +5,7 @@ from ble_api.BleCommon import BleEventBase, bd_address, BLE_ERROR, BLE_EVT_CAT
 BLE_CONN_IDX_INVALID = 0xFFFF
 
 
+# TODO prefix with BLE_GAP?
 # Advertising filter policy
 class ADV_FILT_POL():
     ADV_ALLOW_SCAN_ANY_CONN_ANY = 0  # Allow all scan and connect requests
@@ -13,6 +14,7 @@ class ADV_FILT_POL():
     ADV_ALLOW_SCAN_WLIST_CONN_WLIST = auto()  # Allow scan and connect requests only from whitelist
 
 
+# TODO renamve BLE_GAP_EVT
 class BLE_EVT_GAP(IntEnum):
     # Connection established
     BLE_EVT_GAP_CONNECTED = BLE_EVT_CAT.BLE_EVT_CAT_GAP << 8
@@ -166,6 +168,7 @@ class BLE_GAP_ROLE(IntEnum):
                      | GAP_PERIPHERAL_ROLE)
 
 
+# TODO prefix these enums with BLE_
 # GAP discoverability modes
 class GAP_DISC_MODE(IntEnum):
     GAP_DISC_MODE_NON_DISCOVERABLE = 0  # Non-Discoverable mode

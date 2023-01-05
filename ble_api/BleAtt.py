@@ -26,6 +26,7 @@ class ATT_ERROR(IntEnum):
     ATT_ERROR_PROCEDURE_ALREADY_IN_PROGRESS = 0xFE
 
 
+# TODO rename BLE_ATT_PERM
 # ATT attribute permission
 class ATT_PERM(IntEnum):
     ATT_PERM_NONE = 0
@@ -42,6 +43,7 @@ class ATT_PERM(IntEnum):
     ATT_PERM_RW_ENCRYPT = ATT_PERM_READ_ENCRYPT | ATT_PERM_WRITE_ENCRYPT
 
 
+# TODO rename BLE_ATT_UUID_TYPE
 class ATT_UUID_TYPE(IntEnum):
     ATT_UUID_16 = 0
     ATT_UUID_128 = 1
