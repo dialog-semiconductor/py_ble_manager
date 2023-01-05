@@ -91,7 +91,7 @@ class BlePeripheral(BleApiBase):
         except asyncio.TimeoutError as e:
             raise e
 
-    async def register_service(self, svc: BleServiceBase) -> tuple[BLE_ERROR, BleServiceBase]:
+    async def register_service(self, svc: BleServiceBase) -> BLE_ERROR:
 
         error = await self.ble_gatts.add_service(svc.gatt_service.uuid,
                                                  svc.gatt_service.type,
@@ -118,7 +118,7 @@ class BlePeripheral(BleApiBase):
             if error == BLE_ERROR.BLE_STATUS_OK:
                 self._services.append(registerd_svc)
 
-        return error, registerd_svc
+        return error
 
     async def service_handle_event(self, evt: BleEventBase) -> bool:
         match evt.evt_code:
@@ -168,3 +168,10 @@ class BlePeripheral(BleApiBase):
 
     def _ms_to_adv_slots(self, time_ms) -> int:
         return int((time_ms) * 1000 // 625)
+
+    async def set_characeristic_value(self, char_handle: int, value: bytes) -> BLE_ERROR:
+        error = BLE_ERROR.BLE_ERROR_FAILED
+        service = self._find_service_by_handle(char_handle)
+        if service:
+            error = await self.ble_gatts.set_value(char_handle, value)
+        return error

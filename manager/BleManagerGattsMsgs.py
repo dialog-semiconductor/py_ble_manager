@@ -142,3 +142,21 @@ class BleMgrGattsReadCfmRsp(BleMgrMsgBase):
                  ) -> None:
         super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_READ_CFM_CMD)
         self.status = status
+
+
+class BleMgrGattsSetValueCmd(BleMgrMsgBase):
+    def __init__(self,
+                 handle: int = 0,
+                 value: bytes = None
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SET_VALUE_CMD)
+        self.handle = handle
+        self.value = value
+
+
+class BleMgrGattsSetValueRsp(BleMgrMsgBase):
+    def __init__(self,
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SET_VALUE_CMD)
+        self.status = status

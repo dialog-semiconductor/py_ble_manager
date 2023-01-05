@@ -8,7 +8,8 @@ from manager.BleManager import BleManager
 from manager.BleManagerGattsMsgs import BleMgrGattsServiceAddCmd, BleMgrGattsServiceAddRsp, \
     BleMgrGattsServiceAddCharacteristicCmd, BleMgrGattsServiceAddCharacteristicRsp, \
     BleMgrGattsServiceAddDescriptorCmd, BleMgrGattsServiceAddDescriptorRsp, \
-    BleMgrGattsServiceRegisterCmd, BleMgrGattsServiceRegisterRsp, BleMgrGattsReadCfmCmd, BleMgrGattsReadCfmRsp
+    BleMgrGattsServiceRegisterCmd, BleMgrGattsServiceRegisterRsp, BleMgrGattsReadCfmCmd, BleMgrGattsReadCfmRsp, \
+    BleMgrGattsSetValueCmd, BleMgrGattsSetValueRsp
 from services.BleService import BleServiceBase
 
 
@@ -91,5 +92,15 @@ class BleGattsApi(BleApiBase):
         response = BLE_ERROR.BLE_ERROR_FAILED
         command = BleMgrGattsReadCfmCmd(conn_idx, handle, status, value)
         response: BleMgrGattsReadCfmRsp = await self.ble_manager.cmd_execute(command)
+
+        return response.status
+
+    async def set_value(self,
+                        handle: int = 0,
+                        value: bytes = None):
+
+        response = BLE_ERROR.BLE_ERROR_FAILED
+        command = BleMgrGattsSetValueCmd(handle, value)
+        response: BleMgrGattsSetValueRsp = await self.ble_manager.cmd_execute(command)
 
         return response.status

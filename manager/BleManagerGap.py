@@ -256,7 +256,7 @@ class BleManagerGap(BleManagerBase):
         self._mgr_response_queue_send(response)
 
     def cmp_evt_handler(self, gtl: GapmCmpEvt):
-        print("HERE cmp_evt_handler\n")
+
         match gtl.parameters.operation:
             case GAPM_OPERATION.GAPM_ADV_NON_CONN \
                     | GAPM_OPERATION.GAPM_ADV_UNDIRECT \

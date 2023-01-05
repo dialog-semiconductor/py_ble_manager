@@ -107,34 +107,25 @@ async def main():
 async def ble_task():
     periph = BlePeripheral("COM40")
 
-    print("Main Opening port\n")
-    # Open the serial port the the 531
+  
     await periph.init()
 
-    print("Mian Serial port opened\n")
+
 
     # periph.register_app
     response = await periph.start()
-    print(f"Main after start {response}\n")
+
 
     my_service = CustomBleService()
     my_service.init()
     my_service.char1_read_callback = app_char1_read_callback
-    response, my_service = await periph.register_service(my_service)
-
-    print(f"Main service registered {response}\n")
-
-    # TODO call to setup database
-
+    response = await periph.register_service(my_service)
+    response = await periph.set_characeristic_value(my_service.gatt_characteristics[1].char.handle, (0x8692).to_bytes(2, 'little'))
+    print(f"Set char response={response}")
     periph.set_advertising_interval(20, 30)
 
-    print(" after set interval")
+
     response = await periph.start_advertising()
-    # TODO register app
-
-    print(f"Main After periph.init(). response={response}\n")
-
-    # TODO GAP_ERR_PRIVACY_CFG_PB from adv command
 
     while True:
         # handle messages

@@ -7,7 +7,7 @@ from ble_api.BleGap import BLE_CONN_IDX_INVALID
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
 from ble_api.BleGatts import BleEventGattsReadReq
 from gtl_messages.gtl_message_gattc import GattcReadReqInd, GattcReadCfm
-from gtl_messages.gtl_message_gattm import GattmAddSvcReq, GattmAddSvcRsp
+from gtl_messages.gtl_message_gattm import GattmAddSvcReq, GattmAddSvcRsp, GattmAttSetValueReq, GattmAttSetValueRsp
 from gtl_port.attm import ATTM_PERM, ATTM_UUID_LEN, ATTM_SERVICE_TYPE, ATTM_BROADCAST, ATTM_ENC_KEY_SIZE_16_BYTES, \
     ATTM_EXTENDED_PROPERTIES, ATTM_WRITE_SIGNED, ATTM_WRITE_REQUEST
 from gtl_port.gattc_task import GATTC_MSG_ID
@@ -17,7 +17,8 @@ from manager.BleManagerBase import BleManagerBase
 from manager.BleManagerCommonMsgs import BleMgrMsgBase
 from manager.BleManagerGattsMsgs import BLE_CMD_GATTS_OPCODE, BleMgrGattsReadCfmCmd, BleMgrGattsServiceRegisterRsp, \
     BleMgrGattsReadCfmRsp, BleMgrGattsServiceAddCharacteristicCmd, BleMgrGattsServiceAddCharacteristicRsp, \
-    BleMgrGattsServiceAddCmd, BleMgrGattsServiceAddRsp, BleMgrGattsServiceRegisterCmd
+    BleMgrGattsServiceAddCmd, BleMgrGattsServiceAddRsp, BleMgrGattsServiceRegisterCmd, BleMgrGattsSetValueCmd, \
+    BleMgrGattsSetValueRsp
 from manager.GtlWaitQueue import GtlWaitQueue
 
 
@@ -37,6 +38,7 @@ class BleManagerGatts(BleManagerBase):
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_DESCRIPTOR_ADD_CMD: None,  # self.service_add_descriptor_cmd_handler,
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_REGISTER_CMD: self.service_register_cmd_handler,
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_READ_CFM_CMD: self.read_cfm_cmd_handler,
+            BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SET_VALUE_CMD: self.set_value_cmd_handler,
         }
 
         self.evt_handlers = {
@@ -97,13 +99,20 @@ class BleManagerGatts(BleManagerBase):
 
         return rwperm
 
-    def _service_register_rsp(self, gtl: GattmAddSvcRsp, param: None):
+    def _service_register_rsp(self, gtl: GattmAddSvcRsp, param: object = None):
         response = BleMgrGattsServiceRegisterRsp(self._task_to_connidx(gtl.src_id))
         response.handle = gtl.parameters.start_hdl
 
         response.status = BLE_ERROR.BLE_STATUS_OK \
             if gtl.parameters.status == HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR \
             else BLE_ERROR.BLE_ERROR_FAILED
+
+        self._mgr_response_queue_send(response)
+
+    def _set_value_rsp(self, gtl: GattmAttSetValueRsp, param: object = None):
+        response = BleMgrGattsSetValueRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        if gtl.parameters.status == HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR:
+            response.status = BLE_ERROR.BLE_STATUS_OK
 
         self._mgr_response_queue_send(response)
 
@@ -205,6 +214,18 @@ class BleManagerGatts(BleManagerBase):
 
         else:
             self._mgr_response_queue_send(response)
+
+    def set_value_cmd_handler(self, command: BleMgrGattsSetValueCmd):
+        req = GattmAttSetValueReq()
+        req.parameters.handle = command.handle
+        req.parameters.value = (c_uint8 * len(command.value))(*command.value)
+        self._wait_queue_add(BLE_CONN_IDX_INVALID,
+                             GATTM_MSG_ID.GATTM_ATT_SET_VALUE_RSP,
+                             0,
+                             self._set_value_rsp,
+                             None)
+        self._adapter_command_queue_send(req)
+
 
     '''
     def service_add_descriptor_cmd_handler(self, command: BleMgrGattsServiceAddDescriptorCmd):
