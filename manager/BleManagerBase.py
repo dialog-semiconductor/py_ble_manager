@@ -3,7 +3,7 @@ import asyncio
 from ble_api.BleCommon import BLE_ERROR, BleEventBase
 from gtl_messages.gtl_message_base import GtlMessageBase
 from manager.BleManagerCommonMsgs import BleMgrMsgBase, BleMgrCommonResetCmd
-from manager.BleManagerStorage import StoredDevice
+from manager.BleManagerStorage import StoredDeviceQueue
 from manager.GtlWaitQueue import GtlWaitQueue, GtlWaitQueueElement
 
 
@@ -20,7 +20,7 @@ class BleManagerBase():
         self._wait_q = wait_q
         self.cmd_handlers = {}
         self.evt_handlers = {}
-        self.stored_device_list: list[StoredDevice] = []
+        self.stored_device_list: StoredDeviceQueue = StoredDeviceQueue()
 
         # TODO would be nice to have dev_params here and all ble managers can access same instance
 

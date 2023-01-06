@@ -287,3 +287,4 @@ class GapcGetDevInfoCfm(GtlMessageBase):
 
 # TODO Next message: , ,,  ,
 #  , GAPC_PARAM_UPDATED_IND,
+# TODO rest of sdk uses conn_idx instead of conidx

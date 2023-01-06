@@ -55,6 +55,40 @@ class StoredDevice():
         self.discon_reason: int = 0
 
 
+class StoredDeviceQueue():
+    def __init__(self) -> None:
+        self.queue = []
+
+    def push(self, elem: StoredDevice) -> None:
+        if not isinstance(elem, StoredDevice):
+            raise TypeError(f"Element must be of type StoredDevice, was {type(elem)}")
+        self.queue.append(elem)
+
+    def remove(self, elem: StoredDevice, create: bool) -> None:
+        self.queue.remove(elem)
+
+    def _find_device_by_address(self, addr: bd_address, create: bool) -> StoredDevice:
+
+        device: StoredDevice
+        for device in self.queue:
+            found = device if device.addr.addr == addr.addr else None
+
+        if found is None and create:
+            new_device = StoredDevice()
+            new_device.mtu = 23
+            self.push(new_device)
+            pass
+
+        return found
+
+    def _find_device_by_conn_idx(self, conn_idx):
+        device: StoredDevice
+        for device in self.queue:
+            found = device if (device.connected and device.conn_idx == conn_idx) else None
+
+        return found
+
+
 class key_csrk():
     def __init__(self, key: bytes = None, sign_cnt: int = 0) -> None:
         self.key = key if key else bytes()  # TODO raise error on list size?
