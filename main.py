@@ -5,7 +5,7 @@ from ble_api.BleAtt import ATT_PERM, ATT_ERROR
 from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
 from ble_api.BleGatts import GATTS_FLAGS, BleEventGattsWriteReq, BleEventGattsPrepareWriteReq, BleEventGattsEventSent, BleEventGattsReadReq
-from services.BleService import BleServiceBase, GattService, GattCharacteristic
+from services.BleService import BleServiceBase, GattService, GattCharacteristic, Descriptor
 
 
 class CustomBleService(BleServiceBase):
@@ -19,7 +19,7 @@ class CustomBleService(BleServiceBase):
         # TODO this is confusing, simplify it
         self.gatt_service.uuid.uuid = self._uuid_from_str("7c37cbdc-12a2-11ed-861d-0242ac120002")
         self.gatt_service.type = GATT_SERVICE.GATT_SERVICE_PRIMARY
-        self.gatt_service.num_attrs = self._get_num_attr(0, 2, 0)
+        
 
         self.gatt_characteristics = []
         my_char = GattCharacteristic()
@@ -37,6 +37,34 @@ class CustomBleService(BleServiceBase):
         my_char.char.max_len = 2
         my_char.char.flags = GATTS_FLAGS.GATTS_FLAG_CHAR_NO_READ_REQ
         self.gatt_characteristics.append(my_char)
+
+        # TODO getting error creating this char
+        my_char = GattCharacteristic()
+        my_char.char.uuid.uuid = self._uuid_from_str("5af078b6-12ae-11ed-861d-0242ac120002")
+        my_char.char.prop = GATT_PROP.GATT_PROP_NOTIFY
+        my_char.char.perm = ATT_PERM.ATT_PERM_WRITE
+        my_char.char.max_len = 2
+
+        desc = Descriptor()
+        desc.uuid.uuid = self._uuid_from_str("2901")  # User Description
+        desc.perm = ATT_PERM.ATT_PERM_READ
+        desc.max_len = 10
+        my_char.descriptors.append(desc)
+
+
+        desc = Descriptor()
+        desc.uuid.uuid = self._uuid_from_str("2902")
+        desc.perm = ATT_PERM.ATT_PERM_RW
+        desc.max_len = 2
+        my_char.descriptors.append(desc)
+    
+        self.gatt_characteristics.append(my_char)
+        
+        # TODO included services
+        for char in self.gatt_characteristics:
+            self.gatt_service.num_attrs += 2
+            for desc in char.descriptors:
+                self.gatt_service.num_attrs += 1
 
         self.char1_read_callback = None
 
@@ -64,7 +92,14 @@ class CustomBleService(BleServiceBase):
         for item in self.gatt_characteristics:
             if evt.handle == item.char.handle:
                 status = ATT_ERROR.ATT_ERROR_OK
-                print(f"CustomBleService write_req. handle={evt.handle} value={evt.value}")
+                print(f"CustomBleService write_req. Char write handle={evt.handle} value={evt.value}")
+
+            else:
+                for desc in item.descriptors:
+                    if evt.handle == desc.handle:
+                        status = ATT_ERROR.ATT_ERROR_OK
+                        print(f"CustomBleService write_req. Desc write handle={evt.handle} value={evt.value}")
+
                 # TODO update value in CustomBleService?
 
                 #if self.char1_read_callback:
@@ -80,11 +115,11 @@ class CustomBleService(BleServiceBase):
     def cleanup(self):
         print("CustomBleService cleanup")
 
-    def _uuid_from_str(self, uuid_str: str):
+    def _uuid_from_str(self, uuid_str: str) -> bytes:
         uuid_str = uuid_str.replace("-", "")
         uuid_list = [int(uuid_str[idx:idx + 2], 16) for idx in range(0, len(uuid_str), 2)]
         uuid_list.reverse()  # mcu is little endian
-        return uuid_list
+        return bytes(uuid_list)
 
 
 def app_char1_read_callback(svc):
@@ -130,8 +165,12 @@ async def ble_task():
     my_service.init()
     my_service.char1_read_callback = app_char1_read_callback
     response = await periph.register_service(my_service)
-    response = await periph.set_characeristic_value(my_service.gatt_characteristics[1].char.handle, (0x8692).to_bytes(2, 'little'))
+    print(f"register service {response}")
+    response = await periph.set_value(my_service.gatt_characteristics[1].char.handle, (0x8692).to_bytes(2, 'little'))
     print(f"Set char response={response}")
+    response = await periph.set_value(my_service.gatt_characteristics[2].descriptors[0].handle, b"Hello")
+    print(f"Set desc response={response}")
+
     periph.set_advertising_interval(20, 30)
 
 

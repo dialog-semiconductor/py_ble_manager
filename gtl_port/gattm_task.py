@@ -143,8 +143,6 @@ class att_perm(LittleEndianStructure):
                  write_signed: ATTM_WRITE_SIGNED = ATTM_WRITE_SIGNED.NOT_ACCEPTED,
                  write_request: ATTM_WRITE_REQUEST = ATTM_WRITE_REQUEST.NOT_ACCEPTED,
                  uuid_len: ATTM_UUID_LEN = ATTM_UUID_LEN.BITS_16,
-                 max_len: c_uint16 = 0,
-                 trigger_read_indication: ATTM_TRIGGER_READ_INDICATION = ATTM_TRIGGER_READ_INDICATION.NO,
                  ):
 
         self.read = read
@@ -158,8 +156,6 @@ class att_perm(LittleEndianStructure):
         self.write_signed = write_signed
         self.write_request = write_request
         self.uuid_len = uuid_len
-        self.max_len = max_len
-        self.trigger_read_indication = trigger_read_indication
         super().__init__(read=self.read,
                          write=self.write,
                          indication=self.indication,
@@ -170,10 +166,7 @@ class att_perm(LittleEndianStructure):
                          write_signed=self.write_signed,
                          write_request=self.write_request,
                          uuid_len=self.uuid_len,
-                         reserved=0,
-                         max_len=self.max_len,
-                         trigger_read_indication=self.trigger_read_indication,
-                         padding=0)
+                         reserved=0,)
 
                 # Attribute Permission (@see attm_perm_mask)
     _fields_ = [("read", c_uint32, 3),

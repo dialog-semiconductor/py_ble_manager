@@ -53,7 +53,7 @@ class GattCharacteristic():
                  ) -> None:
 
         self.char = char if char else Characteristic()  # TODO change to attribute or value??
-        self.descriptors = descriptor if descriptor else [Descriptor()]
+        self.descriptors: list[Descriptor] = descriptor if descriptor else []
 
 
 class BleServiceCallbacks():
@@ -70,7 +70,7 @@ class BleServiceBase():
 
         self.gatt_service = GattService()
         # TODO included services
-        self.gatt_characteristics = [GattCharacteristic()]
+        self.gatt_characteristics: list[GattCharacteristic] = []
 
     # TODO num_attr should be a property. Should auto calculate num attr
     def _get_num_attr(self, num_included_svcs: int = 0, num_chars: int = 0, num_descriptors: int = 0) -> int:

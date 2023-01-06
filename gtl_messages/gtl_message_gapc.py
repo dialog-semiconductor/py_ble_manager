@@ -230,6 +230,7 @@ class GapcGetDevInfoReqInd(GtlMessageBase):
 
 class GapcGetDevInfoCfm(GtlMessageBase):
 
+    # TODO struct_to_Str for this class does not work properly because of union
     def __init__(self, conidx: c_uint8 = 0, parameters: gapc_get_dev_info_cfm = None):
 
         self.parameters = parameters if parameters else gapc_get_dev_info_cfm()

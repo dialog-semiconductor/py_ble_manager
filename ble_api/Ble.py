@@ -4,6 +4,7 @@ from adapter.BleAdapter import BleAdapter
 from ble_api.BleApiBase import BleApiBase
 from ble_api.BleCommon import BleEventBase, BLE_ERROR
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_EVT_GAP, BleEventGapConnected
+from ble_api.BleGatt import GATT_EVENT
 from ble_api.BleGatts import BLE_EVT_GATTS, BleEventGattsReadReq, BleEventGattsWriteReq
 from ble_api.BleGattsApi import BleGattsApi
 from manager.BleManager import BleManager
@@ -120,15 +121,28 @@ class BlePeripheral(BleApiBase):
                                                                                                                     item.char.flags)
                 print(f"ChAR ADDEDE. {i}, error={error}, decl={char_decl}, handle={svc.gatt_characteristics[i].char.handle}")
                 if error == BLE_ERROR.BLE_STATUS_OK:
-                    # error = await self.ble_gatts.add_descriptor(item.descriptor)
-                    # if error == BLE_ERROR.BLE_STATUS_OK:
-                    pass
+
+                    for j in range(0, len(item.descriptors)):
+                        desc = item.descriptors[j]
+                        error, svc.gatt_characteristics[i].descriptors[j].handle = await self.ble_gatts.add_descriptor(desc.uuid,
+                                                                                                                       desc.perm,
+                                                                                                                       desc.max_len,
+                                                                                                                       desc.flags)
+                        if error != BLE_ERROR.BLE_STATUS_OK:
+                            print(f"ERROR ADDING DESC. {error}")
+                            break  # TODO break out of whole loop
+                        else:
+                            print(f"Processed desc={desc}")
+
                 else:
                     break
-            error, registerd_svc = await self.ble_gatts.register_service(svc)
 
             if error == BLE_ERROR.BLE_STATUS_OK:
-                self._services.append(registerd_svc)
+                print("Registering service")
+                error = await self.ble_gatts.register_service(svc)
+
+                if error == BLE_ERROR.BLE_STATUS_OK:
+                    self._services.append(svc)
 
         return error
 
@@ -184,9 +198,21 @@ class BlePeripheral(BleApiBase):
     def _ms_to_adv_slots(self, time_ms) -> int:
         return int((time_ms) * 1000 // 625)
 
-    async def set_characeristic_value(self, char_handle: int, value: bytes) -> BLE_ERROR:
+    async def send_event(self,
+                         conn_idx: int = 0,
+                         handle: int = 0,
+                         type: GATT_EVENT = GATT_EVENT.GATT_EVENT_NOTIFICATION,
+                         value: bytes = None) -> BLE_ERROR:
+
         error = BLE_ERROR.BLE_ERROR_FAILED
-        service = self._find_service_by_handle(char_handle)
+        service = self._find_service_by_handle(handle)
         if service:
-            error = await self.ble_gatts.set_value(char_handle, value)
+            error = await self.ble_gatts.send_event(conn_idx, handle, type, value)
+        return error
+
+    async def set_value(self, handle: int, value: bytes) -> BLE_ERROR:
+        error = BLE_ERROR.BLE_ERROR_FAILED
+        service = self._find_service_by_handle(handle)
+        if service:
+            error = await self.ble_gatts.set_value(handle, value)
         return error

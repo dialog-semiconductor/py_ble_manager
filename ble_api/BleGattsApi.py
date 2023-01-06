@@ -2,14 +2,15 @@ from adapter.BleAdapter import BleAdapter
 from ble_api.BleApiBase import BleApiBase
 from ble_api.BleAtt import att_uuid, ATT_PERM, ATT_ERROR
 from ble_api.BleCommon import BLE_ERROR
-from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
+from ble_api.BleGatt import GATT_SERVICE, GATT_PROP, GATT_EVENT
 from ble_api.BleGatts import GATTS_FLAGS
 from manager.BleManager import BleManager
 from manager.BleManagerGattsMsgs import BleMgrGattsServiceAddCmd, BleMgrGattsServiceAddRsp, \
     BleMgrGattsServiceAddCharacteristicCmd, BleMgrGattsServiceAddCharacteristicRsp, \
     BleMgrGattsServiceAddDescriptorCmd, BleMgrGattsServiceAddDescriptorRsp, \
     BleMgrGattsServiceRegisterCmd, BleMgrGattsServiceRegisterRsp, BleMgrGattsReadCfmCmd, BleMgrGattsReadCfmRsp, \
-    BleMgrGattsSetValueCmd, BleMgrGattsSetValueRsp, BleMgrGattsWriteCfmCmd, BleMgrGattsWriteCfmRsp
+    BleMgrGattsSetValueCmd, BleMgrGattsSetValueRsp, BleMgrGattsWriteCfmCmd, BleMgrGattsWriteCfmRsp, \
+    BleMgrGattsSendEventCmd, BleMgrGattsSendEventRsp
 from services.BleService import BleServiceBase
 
 
@@ -35,7 +36,6 @@ class BleGattsApi(BleApiBase):
 
     async def add_descriptor(self,
                              uuid: att_uuid = att_uuid(),
-                             prop: GATT_PROP = GATT_PROP.GATT_PROP_NONE,
                              perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
                              max_len: int = 0,
                              flags: GATTS_FLAGS = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ,
@@ -43,7 +43,7 @@ class BleGattsApi(BleApiBase):
 
         response = BLE_ERROR.BLE_ERROR_FAILED
 
-        command = BleMgrGattsServiceAddDescriptorCmd(uuid, prop, perm, max_len, flags)
+        command = BleMgrGattsServiceAddDescriptorCmd(uuid, perm, max_len, flags)
 
         response: BleMgrGattsServiceAddDescriptorRsp = await self.ble_manager.cmd_execute(command)
 
@@ -77,17 +77,32 @@ class BleGattsApi(BleApiBase):
                 char.char.handle += response.handle
                 print(f"Register Service. char={char}, handle={char.char.handle}. response.handle={response.handle}")
                 for desc in char.descriptors:
+                    print(f"Register Service. desc={desc}, handle={desc.handle}. response.handle={response.handle}")
                     desc.handle += response.handle
 
             svc.end_h = svc.start_h + svc.gatt_service.num_attrs
 
-        return response.status, svc
+        return response.status
+
+    async def send_event(self,
+                         conn_idx: int = 0,
+                         handle: int = 0,
+                         type: GATT_EVENT = GATT_EVENT.GATT_EVENT_NOTIFICATION,
+                         value: bytes = None
+                         ) -> BLE_ERROR:
+
+        response = BLE_ERROR.BLE_ERROR_FAILED
+        command = BleMgrGattsSendEventCmd(conn_idx, handle, type, value)
+        response: BleMgrGattsSendEventRsp = await self.ble_manager.cmd_execute(command)
+
+        return response.status
 
     async def send_read_cfm(self,
                             conn_idx: int = 0,
                             handle: int = 0,
                             status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK,
-                            value: bytes = None):
+                            value: bytes = None
+                            ) -> BLE_ERROR:
 
         response = BLE_ERROR.BLE_ERROR_FAILED
         command = BleMgrGattsReadCfmCmd(conn_idx, handle, status, value)
@@ -98,7 +113,8 @@ class BleGattsApi(BleApiBase):
     async def send_write_cfm(self,
                              conn_idx: int = 0,
                              handle: int = 0,
-                             status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK,):
+                             status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
+                             ) -> BLE_ERROR:
 
         response = BLE_ERROR.BLE_ERROR_FAILED
         command = BleMgrGattsWriteCfmCmd(conn_idx, handle, status)
@@ -108,7 +124,8 @@ class BleGattsApi(BleApiBase):
 
     async def set_value(self,
                         handle: int = 0,
-                        value: bytes = None):
+                        value: bytes = None
+                        ) -> BLE_ERROR:
 
         response = BLE_ERROR.BLE_ERROR_FAILED
         command = BleMgrGattsSetValueCmd(handle, value)

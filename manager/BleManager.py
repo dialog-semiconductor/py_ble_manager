@@ -49,12 +49,19 @@ class BleManager(BleManagerBase):
         # TODO make list of handlers from all avail classes. If get back a handler, call it
         event_handlers = [self.gap_mgr.evt_handlers, self.gatts_mgr.evt_handlers]
 
+        handled = False
+
         for handlers in event_handlers:
             handler = handlers.get(message.msg_id)
             if handler:
-                handler(message)
-                return True
-        return False
+                response = None
+                response = handler(message)
+                if response is None:
+                    handled = False
+                else:
+                    handled = response
+                break
+        return handled
 
     def _mgr_command_queue_send(self, command: BleMgrMsgBase):
         self._mgr_command_q.put_nowait(command)

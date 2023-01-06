@@ -51,8 +51,7 @@ class ATT_UUID_TYPE(IntEnum):
 
 class att_uuid():
     def __init__(self, uuid: bytes = None) -> None:
-        if uuid:
-            self.uuid = uuid if uuid else bytes()
+        self.uuid = uuid if uuid else bytes([0, 0])
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):

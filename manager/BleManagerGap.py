@@ -254,7 +254,7 @@ class BleManagerGap(BleManagerBase):
         response = BleMgrGapAdvStartRsp(BLE_ERROR.BLE_STATUS_OK)
         self._mgr_response_queue_send(response)
 
-    def cmp_evt_handler(self, gtl: GapmCmpEvt):
+    def cmp_evt_handler(self, gtl: GapmCmpEvt) -> bool:
 
         match gtl.parameters.operation:
             case GAPM_OPERATION.GAPM_ADV_NON_CONN \
@@ -264,7 +264,8 @@ class BleManagerGap(BleManagerBase):
 
                 self._adv_cmp_evt_hanlder(gtl)
             case _:
-                pass
+                return False
+        return True
 
     def connected_evt_handler(self, gtl: GapcConnectionReqInd):
         evt = BleEventGapConnected()

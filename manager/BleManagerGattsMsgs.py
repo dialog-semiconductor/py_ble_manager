@@ -3,7 +3,7 @@ from enum import IntEnum, auto
 
 from ble_api.BleAtt import att_uuid, ATT_PERM
 from ble_api.BleCommon import BLE_ERROR, BLE_EVT_CAT
-from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
+from ble_api.BleGatt import GATT_SERVICE, GATT_PROP, GATT_EVENT
 from ble_api.BleGatts import GATTS_FLAGS
 from manager.BleManagerCommonMsgs import BleMgrMsgBase, BLE_MGR_CMD_CAT
 
@@ -41,14 +41,14 @@ class BLE_EVT_GATTS(IntEnum):
 
 class BleMgrGattsServiceAddCharacteristicCmd(BleMgrMsgBase):
     def __init__(self,
-                 uuid: att_uuid = att_uuid(),
+                 uuid: att_uuid = None,
                  prop: GATT_PROP = GATT_PROP.GATT_PROP_NONE,
                  perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
                  max_len: int = 0,
                  flags: GATTS_FLAGS = GATTS_FLAGS.GATTS_FLAG_CHAR_NO_READ_REQ,
                  ) -> None:
         super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_CHARACTERISTIC_ADD_CMD)
-        self.uuid = uuid
+        self.uuid = uuid if uuid else att_uuid()
         self.prop = prop
         self.perm = perm
         self.max_len = max_len
@@ -141,6 +141,28 @@ class BleMgrGattsReadCfmRsp(BleMgrMsgBase):
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
                  ) -> None:
         super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_READ_CFM_CMD)
+        self.status = status
+
+
+class BleMgrGattsSendEventCmd(BleMgrMsgBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 handle: int = 0,
+                 type: GATT_EVENT = GATT_EVENT.GATT_EVENT_NOTIFICATION,
+                 value: bytes = None
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SEND_EVENT_CMD)
+        self.conn_idx = conn_idx
+        self.handle = handle
+        self.type = type
+        self.value = value
+
+
+class BleMgrGattsSendEventRsp(BleMgrMsgBase):
+    def __init__(self,
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SEND_EVENT_CMD)
         self.status = status
 
 
