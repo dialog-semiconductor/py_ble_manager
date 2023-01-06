@@ -75,9 +75,7 @@ class BleGattsApi(BleApiBase):
             svc.start_h = response.handle
             for char in svc.gatt_characteristics:
                 char.char.handle += response.handle
-                print(f"Register Service. char={char}, handle={char.char.handle}. response.handle={response.handle}")
                 for desc in char.descriptors:
-                    print(f"Register Service. desc={desc}, handle={desc.handle}. response.handle={response.handle}")
                     desc.handle += response.handle
 
             svc.end_h = svc.start_h + svc.gatt_service.num_attrs

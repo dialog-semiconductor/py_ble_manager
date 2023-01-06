@@ -15,7 +15,7 @@ from manager.BleDevParams import BleDevParamsDefault
 from manager.BleManagerCommon import BleManagerBase
 from manager.BleManagerCommonMsgs import BleMgrMsgBase
 from manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp, BleMgrGapRoleSetCmd
-from manager.BleManagerStorage import device
+from manager.BleManagerStorage import StoredDevice
 from manager.GtlWaitQueue import GtlWaitQueue
 
 
@@ -288,7 +288,7 @@ class BleManagerGap(BleManagerBase):
 
         # TODO some stuff with finding the device in storage
         # dev = find_device_by_addr(&evt->peer_address, true); Below just creates dev for now instead
-        dev = device()
+        dev = StoredDevice()
         dev.addr = evt.peer_address
 
         dev.conn_idx = evt.conn_idx

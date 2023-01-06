@@ -57,7 +57,7 @@ class BleManager(BleManagerBase):
                 response = None
                 response = handler(message)
                 if response is None:
-                    handled = False
+                    handled = True
                 else:
                     handled = response
                 break

@@ -161,7 +161,7 @@ class BleManagerGatts(BleManagerBase):
         cfm = GattcReadCfm(conidx=self._task_to_connidx(command.conn_idx))
         cfm.parameters.handle = command.handle
         cfm.parameters.status = command.status
-        cfm.parameters.value = (c_uint8 * len(command.value))(*command.value)
+        cfm.parameters.value = (c_uint8 * len(command.value)).from_buffer_copy(command.value)
         self._adapter_command_queue_send(cfm)
 
         response.status = BLE_ERROR.BLE_STATUS_OK
@@ -186,7 +186,7 @@ class BleManagerGatts(BleManagerBase):
         else:
             gtl.parameters.operation = GATTC_OPERATION.GATTC_INDICATE
         gtl.parameters.seq_num = command.handle
-        gtl.parameters.value = command.value
+        gtl.parameters.value = (c_uint8 * len(command.value)).from_buffer_copy(command.value)
 
         self._adapter_command_queue_send(gtl)
         # Do not wait for GATTC_CMP_EVT, it will be handled async to avoid infinite wait
@@ -312,7 +312,7 @@ class BleManagerGatts(BleManagerBase):
     def set_value_cmd_handler(self, command: BleMgrGattsSetValueCmd):
         gtl = GattmAttSetValueReq()
         gtl.parameters.handle = command.handle
-        gtl.parameters.value = (c_uint8 * len(command.value))(*command.value)
+        gtl.parameters.value = (c_uint8 * len(command.value)).from_buffer_copy(command.value)
         self._wait_queue_add(BLE_CONN_IDX_INVALID,
                              GATTM_MSG_ID.GATTM_ATT_SET_VALUE_RSP,
                              0,

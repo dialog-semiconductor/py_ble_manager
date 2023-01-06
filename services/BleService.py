@@ -46,6 +46,7 @@ class Descriptor():
         self.handle = 0
 
 
+#  TODO Subclasses with predefined perms, descriptors (e.g. notifiable with CCCD, or char with user desc)
 class GattCharacteristic():
     def __init__(self,
                  char: Characteristic = None,

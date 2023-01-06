@@ -60,7 +60,7 @@ class GtlMessageBase():
             destination_id = str(KE_API_ID(self.dst_id))
             source_id = str(KE_API_ID(self.src_id))
 
-        return_string = f"{type(self).__name__}(msg_id={message_id}, dst_id={destination_id}, src_id={source_id}, par_len={self.par_len}," + \
+        return_string = f"{type(self).__name__}(msg_id={message_id}, dst_id={destination_id}, src_id={source_id}, par_len={self.par_len}, " + \
                         f"parameters={type(self.parameters).__name__}"
 
         return_string += self._struct_to_str(self.parameters)

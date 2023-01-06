@@ -111,7 +111,6 @@ class BlePeripheral(BleApiBase):
                                                  svc.gatt_service.num_attrs)
         if error == BLE_ERROR.BLE_STATUS_OK:
             for i in range(0, len(svc.gatt_characteristics)):
-                print(f"Adding char: {i}, {svc.gatt_characteristics[i]}")
                 item = svc.gatt_characteristics[i]
                 # TODO is there a case where you need the char declartion handle offset (h_offset)?
                 error, char_decl, svc.gatt_characteristics[i].char.handle = await self.ble_gatts.add_characteristic(item.char.uuid,
@@ -119,7 +118,6 @@ class BlePeripheral(BleApiBase):
                                                                                                                     item.char.perm,
                                                                                                                     item.char.max_len,
                                                                                                                     item.char.flags)
-                print(f"ChAR ADDEDE. {i}, error={error}, decl={char_decl}, handle={svc.gatt_characteristics[i].char.handle}")
                 if error == BLE_ERROR.BLE_STATUS_OK:
 
                     for j in range(0, len(item.descriptors)):
@@ -129,18 +127,16 @@ class BlePeripheral(BleApiBase):
                                                                                                                        desc.max_len,
                                                                                                                        desc.flags)
                         if error != BLE_ERROR.BLE_STATUS_OK:
-                            print(f"ERROR ADDING DESC. {error}")
-                            break  # TODO break out of whole loop
-                        else:
-                            print(f"Processed desc={desc}")
-
+                            break
+                    # Break out of both loops
+                    if error != BLE_ERROR.BLE_STATUS_OK:
+                        break
                 else:
                     break
 
             if error == BLE_ERROR.BLE_STATUS_OK:
-                print("Registering service")
-                error = await self.ble_gatts.register_service(svc)
 
+                error = await self.ble_gatts.register_service(svc)
                 if error == BLE_ERROR.BLE_STATUS_OK:
                     self._services.append(svc)
 

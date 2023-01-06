@@ -2,8 +2,9 @@ import asyncio
 
 from ble_api.Ble import BlePeripheral
 from ble_api.BleAtt import ATT_PERM, ATT_ERROR
+from ble_api.BleCommon import BleEventBase
 from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
-from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
+from ble_api.BleGatt import GATT_SERVICE, GATT_PROP, GATT_EVENT
 from ble_api.BleGatts import GATTS_FLAGS, BleEventGattsWriteReq, BleEventGattsPrepareWriteReq, BleEventGattsEventSent, BleEventGattsReadReq
 from services.BleService import BleServiceBase, GattService, GattCharacteristic, Descriptor
 
@@ -59,6 +60,8 @@ class CustomBleService(BleServiceBase):
         my_char.descriptors.append(desc)
     
         self.gatt_characteristics.append(my_char)
+
+        self.ccc = 0x0000
         
         # TODO included services
         for char in self.gatt_characteristics:
@@ -99,6 +102,7 @@ class CustomBleService(BleServiceBase):
                     if evt.handle == desc.handle:
                         status = ATT_ERROR.ATT_ERROR_OK
                         print(f"CustomBleService write_req. Desc write handle={evt.handle} value={evt.value}")
+                        self.ccc = int.from_bytes(evt.value, "little")
 
                 # TODO update value in CustomBleService?
 
@@ -126,70 +130,79 @@ def app_char1_read_callback(svc):
     print("app_char1_read_callback")
     status = ATT_ERROR.ATT_ERROR_OK
     data = 0x05
-    return status, [data]
+    return status, data.to_bytes(1, byteorder='little')
 
 
-async def user_main():
+async def user_main(sample_q: asyncio.Queue):
     elapsed = 0
     delay = 1
-    # asyncio.all_tasks -> test printing all running tasks
     while True:
         await asyncio.sleep(delay)
         elapsed += delay
+        sample_q.put_nowait(elapsed)
         print(f"User Main. elapsed={elapsed}")
 
 
 async def main():
-    # ble_task = asyncio.create_task(test.run())
-    # task1 = asyncio.create_task(user_main())
-    # await ble_task
-    # await task1
 
+    sample_q = asyncio.Queue()
     # TODO should wait for serial port to open before attempting to interact with peripheral
-    await asyncio.gather(user_main(), ble_task())  # need to move this to another func and create a main loop
+    await asyncio.gather(user_main(sample_q), ble_task(sample_q))  # need to move this to another func and create a main loop
 
 
-async def ble_task():
+async def ble_task(sample_q: asyncio.Queue):
+
     periph = BlePeripheral("COM40")
-
-  
     await periph.init()
-
-
-
-    # periph.register_app
-    response = await periph.start()
-
+    await periph.start()
 
     my_service = CustomBleService()
     my_service.init()
     my_service.char1_read_callback = app_char1_read_callback
-    response = await periph.register_service(my_service)
-    print(f"register service {response}")
-    response = await periph.set_value(my_service.gatt_characteristics[1].char.handle, (0x8692).to_bytes(2, 'little'))
-    print(f"Set char response={response}")
-    response = await periph.set_value(my_service.gatt_characteristics[2].descriptors[0].handle, b"Hello")
-    print(f"Set desc response={response}")
+
+    await periph.register_service(my_service)
+    await periph.set_value(my_service.gatt_characteristics[1].char.handle, (0x8692).to_bytes(2, 'little'))
+    await periph.set_value(my_service.gatt_characteristics[2].descriptors[0].handle, b"Hello")
 
     periph.set_advertising_interval(20, 30)
+    await periph.start_advertising()
 
-
-    response = await periph.start_advertising()
+    timer_read_task = asyncio.create_task(sample_q.get(), name='sample_q_Read')
+    ble_event_task = asyncio.create_task(periph.get_event(), name='GetBleEvent')
+    pending = [timer_read_task, ble_event_task]
 
     while True:
-        # handle messages
-        evt = await periph.get_event()
-        handled = await periph.service_handle_event(evt)
-        if not handled:
-            pass
-        print(f"Main rx'd event: {evt}. hanlded={handled} \n")
+        done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
 
-        # other stuff
+        for task in done:
 
-        # must always yeild in a task to give others a chance to run
-        await asyncio.sleep(1)
+            # Every second a "sample" is received from user_main
+            if task is timer_read_task:
+                sample: int = task.result()
+                if my_service.ccc == 1:
+                    error = await periph.send_event(0,
+                                                    my_service.gatt_characteristics[2].char.handle,
+                                                    GATT_EVENT.GATT_EVENT_NOTIFICATION,
+                                                    sample.to_bytes(4, byteorder='little'))             
+                    print(f"Notification sent. sample = {sample}, error = {error}")
+
+                timer_read_task = asyncio.create_task(sample_q.get(), name='sample_q_Read')
+                pending.add(timer_read_task)
+
+            # Handle and BLE events that hace occurred
+            elif task is ble_event_task:
+                evt: BleEventBase = task.result()  # TODO how does timeout error affect result
+                if evt is not None:
+                    handled = await periph.service_handle_event(evt)
+                    if not handled:
+                        # Application opportunity to handle event
+                        # or apply default behaior
+                        pass
+
+                print(f"Main rx'd event: {evt}. hanlded={handled} \n")
+
+                ble_event_task = asyncio.create_task( periph.get_event(), name='GetBleEvent')
+                pending.add(ble_event_task)
 
 
 asyncio.run(main())
-
-# TODO unit tests fail when pushed from remote
