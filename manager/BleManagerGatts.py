@@ -22,6 +22,7 @@ from manager.BleManagerGattsMsgs import BLE_CMD_GATTS_OPCODE, BleMgrGattsReadCfm
     BleMgrGattsServiceAddCmd, BleMgrGattsServiceAddRsp, BleMgrGattsServiceRegisterCmd, BleMgrGattsSetValueCmd, \
     BleMgrGattsSetValueRsp, BleMgrGattsWriteCfmCmd, BleMgrGattsWriteCfmRsp, BleMgrGattsSendEventCmd, BleMgrGattsSendEventRsp, \
     BleMgrGattsServiceAddDescriptorCmd, BleMgrGattsServiceAddDescriptorRsp
+from manager.BleManagerStorage import StoredDeviceQueue
 from manager.GtlWaitQueue import GtlWaitQueue
 
 
@@ -31,9 +32,10 @@ class BleManagerGatts(BleManagerBase):
                  mgr_response_q: asyncio.Queue[BLE_ERROR],
                  mgr_event_q: asyncio.Queue[BleEventBase],
                  adapter_command_q: asyncio.Queue[BleMgrMsgBase],
-                 wait_q: GtlWaitQueue) -> None:
+                 wait_q: GtlWaitQueue,
+                 stored_device_q: StoredDeviceQueue) -> None:
 
-        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q)
+        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q, stored_device_q)
 
         self.cmd_handlers = {
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_ADD_CMD: self.service_add_cmd_handler,
@@ -156,15 +158,20 @@ class BleManagerGatts(BleManagerBase):
     def read_cfm_cmd_handler(self, command: BleMgrGattsReadCfmCmd):
 
         response = BleMgrGattsReadCfmRsp(BLE_ERROR.BLE_ERROR_FAILED)
-        # TODO find device by connection ID
 
-        cfm = GattcReadCfm(conidx=self._task_to_connidx(command.conn_idx))
-        cfm.parameters.handle = command.handle
-        cfm.parameters.status = command.status
-        cfm.parameters.value = (c_uint8 * len(command.value)).from_buffer_copy(command.value)
-        self._adapter_command_queue_send(cfm)
+        # TODO different queue
+        dev = self._stored_device_list._find_device_by_conn_idx(command.conn_idx)
 
-        response.status = BLE_ERROR.BLE_STATUS_OK
+        if dev:
+            cfm = GattcReadCfm(conidx=self._task_to_connidx(command.conn_idx))
+            cfm.parameters.handle = command.handle
+            cfm.parameters.status = command.status
+            cfm.parameters.value = (c_uint8 * len(command.value)).from_buffer_copy(command.value)
+            self._adapter_command_queue_send(cfm)
+
+            response.status = BLE_ERROR.BLE_STATUS_OK
+        else:
+            response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
 
         self._mgr_response_queue_send(response)
 

@@ -3,6 +3,7 @@ import asyncio
 from ble_api.BleCommon import BleEventBase, BLE_ERROR
 from manager.BleManagerBase import BleManagerBase
 from manager.BleManagerCommonMsgs import BleMgrMsgBase
+from manager.BleManagerStorage import StoredDeviceQueue
 from manager.GtlWaitQueue import GtlWaitQueue
 
 
@@ -12,9 +13,10 @@ class BleManagerGattc(BleManagerBase):
                  mgr_response_q: asyncio.Queue[BLE_ERROR],
                  mgr_event_q: asyncio.Queue[BleEventBase],
                  adapter_command_q: asyncio.Queue[BleMgrMsgBase],
-                 wait_q: GtlWaitQueue) -> None:
+                 wait_q: GtlWaitQueue,
+                 stored_device_q: StoredDeviceQueue) -> None:
 
-        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q)
+        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q, stored_device_q)
 
         '''
         self.cmd_handlers = {

@@ -1,6 +1,6 @@
 # python_gtl
 
-A python library for communicating with Renesas BLE devices (DA14xxx) using the Generic Transport Layer (GTL)
+A python library for communicating with Renesas BLE devices (DA145xx) using the Generic Transport Layer (GTL)
 
 For additional information on the GTL please see the [GTL User Manual](https://www.renesas.com/us/en/document/mat/um-b-143-renesas-external-processor-interface-gtl-interface?language=en&r=1564826)
 
@@ -141,10 +141,19 @@ set_dev_cmd.parameters.max_txtime = 2120
 
 The [tests](tests) directory contains unit tests for the messages defined in [gtl_message](gtl_messages). For each message, an test_message is created based on an example provided in the [GTL User Manual](https://www.renesas.com/us/en/document/mat/um-b-143-renesas-external-processor-interface-gtl-interface?language=en&r=1564826).
 
-The [adapter](adapter)
-The [manager](manager)
-The [services](services)
-The [ble_api](ble_api)
-The [tests](adapter)
+The messages defined in [gtl_message](gtl_messages) are leveraged to communicate with a DA145xx running GTL supported firmware. The following projects included in [SDK6](https://www.renesas.com/us/en/document/swo/sdk601811821-da1453x-da145856) suuport GTL functionality:
+prox_reporter_ext and prox_monitor_ext projects located in the
+* projects\target_apps\ble_examples\prox_reporter_ext
+* projects\target_apps\ble_examples\prox_monitor_ext
+* projects\target_apps\template\empty_template_ext
 
-Necessary HW setup: [link](http://lpccs-docs.renesas.com/UM-140-DA145x-CodeLess/howToUse.html#hardware-setup)
+To communicate with a DA145xx running GTL supported firmware using this library, you must setup your Pro-Development Kit as described in [here](http://lpccs-docs.renesas.com/UM-140-DA145x-CodeLess/howToUse.html#hardware-setup). Please note, you may need to modify the UART pin definitions defined in `user_periph_setup.h` for the above projects depending on which daughterboard you are using. 
+
+
+The [adapter](adapter)
+
+The [manager](manager)
+
+The [services](services)
+
+The [ble_api](ble_api)

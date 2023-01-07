@@ -7,6 +7,7 @@ from gtl_messages.gtl_message_gapm import GapmResetCmd
 from gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, gapm_reset_cmd
 from manager.BleManagerBase import BleManagerBase
 from manager.BleManagerCommonMsgs import BleMgrMsgBase, BleMgrCommonResetCmd, BleMgrCommonResetRsp, BLE_MGR_COMMON_CMD_OPCODE
+from manager.BleManagerStorage import StoredDeviceQueue
 from manager.GtlWaitQueue import GtlWaitQueue
 
 
@@ -17,9 +18,11 @@ class BleManagerCommon(BleManagerBase):
                  mgr_response_q: asyncio.Queue[BLE_ERROR],
                  mgr_event_q: asyncio.Queue[BleEventBase],
                  adapter_command_q: asyncio.Queue[BleMgrMsgBase],
-                 wait_q: GtlWaitQueue) -> None:
+                 wait_q: GtlWaitQueue,
+                 stored_device_q: StoredDeviceQueue
+                 ) -> None:
 
-        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q)
+        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q, stored_device_q)
 
         self.cmd_handlers = {
             BLE_MGR_COMMON_CMD_OPCODE.BLE_MGR_COMMON_RESET_CMD: self.reset_cmd_handler,

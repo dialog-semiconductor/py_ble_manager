@@ -7,6 +7,7 @@ from manager.BleManagerCommon import BleManagerCommon
 from manager.BleManagerCommonMsgs import BLE_MGR_CMD_CAT, BleMgrMsgBase
 from manager.BleManagerGap import BleManagerGap
 from manager.BleManagerGatts import BleManagerGatts
+from manager.BleManagerStorage import StoredDeviceQueue
 from manager.GtlWaitQueue import GtlWaitQueue
 
 
@@ -25,10 +26,11 @@ class BleManager(BleManagerBase):
         self._adapter_commnand_q: asyncio.Queue[GtlMessageBase] = adapter_command_q
         self._adapter_event_q: asyncio.Queue[GtlMessageBase] = adapter_event_q
         self._wait_q = GtlWaitQueue()
+        self._stored_device_list = StoredDeviceQueue()
         self._ble_stack_initialized = False
-        self.gap_mgr = BleManagerGap(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q)
-        self.common_mgr = BleManagerCommon(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q)
-        self.gatts_mgr = BleManagerGatts(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q)
+        self.gap_mgr = BleManagerGap(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q, self._stored_device_list)
+        self.common_mgr = BleManagerCommon(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q, self._stored_device_list)
+        self.gatts_mgr = BleManagerGatts(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q, self._stored_device_list)
 
         self.cmd_handlers = {
             BLE_MGR_CMD_CAT.BLE_MGR_COMMON_CMD_CAT: self.common_mgr,

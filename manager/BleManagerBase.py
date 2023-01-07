@@ -12,7 +12,8 @@ class BleManagerBase():
                  mgr_response_q: asyncio.Queue[BLE_ERROR],
                  mgr_event_q: asyncio.Queue[BleEventBase],
                  adapter_command_q: asyncio.Queue[BleMgrMsgBase],
-                 wait_q: GtlWaitQueue) -> None:
+                 wait_q: GtlWaitQueue,
+                 stored_device_q: StoredDeviceQueue) -> None:
 
         self._mgr_response_q = mgr_response_q
         self._mgr_event_q = mgr_event_q
@@ -20,7 +21,7 @@ class BleManagerBase():
         self._wait_q = wait_q
         self.cmd_handlers = {}
         self.evt_handlers = {}
-        self.stored_device_list: StoredDeviceQueue = StoredDeviceQueue()
+        self._stored_device_list: StoredDeviceQueue = stored_device_q
 
         # TODO would be nice to have dev_params here and all ble managers can access same instance
 

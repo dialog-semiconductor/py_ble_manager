@@ -15,7 +15,7 @@ from manager.BleDevParams import BleDevParamsDefault
 from manager.BleManagerCommon import BleManagerBase
 from manager.BleManagerCommonMsgs import BleMgrMsgBase
 from manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp, BleMgrGapRoleSetCmd
-from manager.BleManagerStorage import StoredDevice
+from manager.BleManagerStorage import StoredDeviceQueue
 from manager.GtlWaitQueue import GtlWaitQueue
 
 
@@ -32,9 +32,10 @@ class BleManagerGap(BleManagerBase):
                  mgr_response_q: asyncio.Queue[BLE_ERROR],
                  mgr_event_q: asyncio.Queue[BleEventBase],
                  adapter_command_q: asyncio.Queue[BleMgrMsgBase],
-                 wait_q: GtlWaitQueue) -> None:
+                 wait_q: GtlWaitQueue,
+                 stored_device_q: StoredDeviceQueue) -> None:
 
-        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q)
+        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q, stored_device_q)
         self.dev_params = BleDevParamsDefault()
 
         self.cmd_handlers = {
@@ -156,7 +157,9 @@ class BleManagerGap(BleManagerBase):
         # Check if peer's address is resolvable
         if evt.parameters.peer_addr.addr[5] & 0xC0 != 0x40:
             return False
-        # TODO some gtl stuff
+        
+        # TODO gtl message
+        # gtl = GapmResolvAddrCmd
         return False
 
     # TODO sdk passes rsp in as param. you have passed in command.params
@@ -276,6 +279,7 @@ class BleManagerGap(BleManagerBase):
         # evt.peer_address.addr_type = gtl.parameters.peer_addr_type & 0x01
         # else
         evt.peer_address.addr_type = gtl.parameters.peer_addr_type
+        # endif
         evt.peer_address.addr = bytes(gtl.parameters.peer_addr.addr)
         evt.conn_params.interval_min = gtl.parameters.con_interval
         evt.conn_params.interval_max = gtl.parameters.con_interval
@@ -287,16 +291,13 @@ class BleManagerGap(BleManagerBase):
         # endif /* (dg_configBLE_SKIP_LATENCY_API == 1) */
 
         # TODO some stuff with finding the device in storage
-        # dev = find_device_by_addr(&evt->peer_address, true); Below just creates dev for now instead
-        dev = StoredDevice()
-        dev.addr = evt.peer_address
-
+        dev = self._stored_device_list._find_device_by_address(evt.peer_address, create=True)
         dev.conn_idx = evt.conn_idx
         dev.connected = True
         dev.mtu = ATT_DEFAULT_MTU
         # if (dg_configBLE_2MBIT_PHY == 1)
-        dev.tx_phy = BLE_GAP_PHY.BLE_GAP_PHY_1M
-        dev.rx_phy = BLE_GAP_PHY.BLE_GAP_PHY_1M
+        # dev.tx_phy = BLE_GAP_PHY.BLE_GAP_PHY_1M
+        # dev.rx_phy = BLE_GAP_PHY.BLE_GAP_PHY_1M
         # endif /* (dg_configBLE_2MBIT_PHY == 1) */
         if dev.connecting:
             dev.master = True
@@ -304,10 +305,10 @@ class BleManagerGap(BleManagerBase):
         else:
             dev.master = False
 
-        # if (dg_configBLE_CENTRAL == 1)
-        if dev.master:
+        # if (dg_configBLE_CENTRAL == 1)  # TODO how to handle these config params
+        # if dev.master:
             # TODO initiate a version exchange
-            pass
+        #    pass
         # endif /* (dg_configBLE_CENTRAL == 1) */
 
         # if (dg_configBLE_PRIVACY_1_2 == 1)
@@ -330,9 +331,9 @@ class BleManagerGap(BleManagerBase):
         # if (RWBLE_SW_VERSION >= VERSION_8_1)
         cfm.parameters.auth |= GAPC_FIELDS_MASK.GAPC_LTK_MASK if dev.remote_ltk else GAP_AUTH_MASK.GAP_AUTH_NONE
         # endif /* (RWBL
-        if dev.csrk:  # TODO need to do equiv of null check
+        if dev.csrk.key == b'':  # TODO need to do equiv of null check
             pass
-        if dev.remote_csrk:  # TODO need to do equiv of null check
+        if dev.remote_csrk.key == b'':  # TODO need to do equiv of null check
             pass
 
         # TODO something with service changed characteristic value from storage

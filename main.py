@@ -183,7 +183,7 @@ async def ble_task(sample_q: asyncio.Queue):
                     error = await periph.send_event(0,
                                                     my_service.gatt_characteristics[2].char.handle,
                                                     GATT_EVENT.GATT_EVENT_NOTIFICATION,
-                                                    sample.to_bytes(4, byteorder='little'))             
+                                                    sample.to_bytes(4, byteorder='little'))
                     print(f"Notification sent. sample = {sample}, error = {error}")
 
                 timer_read_task = asyncio.create_task(sample_q.get(), name='sample_q_Read')
@@ -201,7 +201,7 @@ async def ble_task(sample_q: asyncio.Queue):
 
                 print(f"Main rx'd event: {evt}. hanlded={handled} \n")
 
-                ble_event_task = asyncio.create_task( periph.get_event(), name='GetBleEvent')
+                ble_event_task = asyncio.create_task(periph.get_event(), name='GetBleEvent')
                 pending.add(ble_event_task)
 
 

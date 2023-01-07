@@ -69,6 +69,7 @@ class StoredDeviceQueue():
 
     def _find_device_by_address(self, addr: bd_address, create: bool) -> StoredDevice:
 
+        found = None
         device: StoredDevice
         for device in self.queue:
             found = device if device.addr.addr == addr.addr else None
@@ -77,13 +78,15 @@ class StoredDeviceQueue():
             new_device = StoredDevice()
             new_device.mtu = 23
             self.push(new_device)
-            pass
+            found = new_device
 
         return found
 
     def _find_device_by_conn_idx(self, conn_idx):
+        found = None
         device: StoredDevice
         for device in self.queue:
+            print(f"connected={device.connected}. idx={device.conn_idx} device={device}")
             found = device if (device.connected and device.conn_idx == conn_idx) else None
 
         return found
