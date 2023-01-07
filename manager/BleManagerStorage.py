@@ -4,6 +4,21 @@ from ble_api.BleCommon import bd_address
 from ble_api.BleGap import GAP_SEC_LEVEL, BLE_GAP_PHY
 
 
+class SearchableQueue():
+    def __init__(self) -> None:
+        self.queue = []
+
+    def push(self, elem) -> None:
+        self.queue.append(elem)
+
+    def remove(self, elem) -> None:
+        self.queue.remove(elem)
+
+class PendingEvent():
+    def __init__(self, handle: int = 0) -> None:
+        self.handle = handle
+
+
 class StoredDevice():
     def __init__(self) -> None:
 
@@ -48,26 +63,34 @@ class StoredDevice():
         self.remote_csrk: key_csrk = key_csrk()
 
         # custom values set from application
-        self.app_value: asyncio.Queue = asyncio.Queue()
-        self.pending_events: asyncio.Queue = asyncio.Queue()
+        self.app_value: SearchableQueue = SearchableQueue()
+        self.pending_events: SearchableQueue = SearchableQueue()
 
         # disconnection status (disconnection event is pending if other than zero)
         self.discon_reason: int = 0
 
+    def pending_events_has_handle(self, handle: int) -> PendingEvent:
+        event: PendingEvent
+        for event in self.pending_events.queue:
+            if event.handle == handle:
+                return event
+        return None
 
-class StoredDeviceQueue():
+    def pending_events_put_handle(self, handle: int) -> None:
+        evt = PendingEvent(handle)
+        self.pending_events.push(evt)
+
+
+class StoredDeviceQueue(SearchableQueue):
     def __init__(self) -> None:
-        self.queue = []
+        self.queue: list[StoredDevice] = []
 
     def push(self, elem: StoredDevice) -> None:
         if not isinstance(elem, StoredDevice):
             raise TypeError(f"Element must be of type StoredDevice, was {type(elem)}")
         self.queue.append(elem)
 
-    def remove(self, elem: StoredDevice, create: bool) -> None:
-        self.queue.remove(elem)
-
-    def _find_device_by_address(self, addr: bd_address, create: bool) -> StoredDevice:
+    def find_device_by_address(self, addr: bd_address, create: bool) -> StoredDevice:
 
         found = None
         device: StoredDevice
@@ -82,15 +105,13 @@ class StoredDeviceQueue():
 
         return found
 
-    def _find_device_by_conn_idx(self, conn_idx):
+    def find_device_by_conn_idx(self, conn_idx):
         found = None
         device: StoredDevice
         for device in self.queue:
-            print(f"connected={device.connected}. idx={device.conn_idx} device={device}")
             found = device if (device.connected and device.conn_idx == conn_idx) else None
 
         return found
-
 
 class key_csrk():
     def __init__(self, key: bytes = None, sign_cnt: int = 0) -> None:

@@ -290,8 +290,7 @@ class BleManagerGap(BleManagerBase):
         # ble_mgr_skip_latency_set(evt->conn_idx, false);
         # endif /* (dg_configBLE_SKIP_LATENCY_API == 1) */
 
-        # TODO some stuff with finding the device in storage
-        dev = self._stored_device_list._find_device_by_address(evt.peer_address, create=True)
+        dev = self._stored_device_list.find_device_by_address(evt.peer_address, create=True)
         dev.conn_idx = evt.conn_idx
         dev.connected = True
         dev.mtu = ATT_DEFAULT_MTU

@@ -159,9 +159,11 @@ class BleManagerGatts(BleManagerBase):
 
         response = BleMgrGattsReadCfmRsp(BLE_ERROR.BLE_ERROR_FAILED)
 
-        dev = self._stored_device_list._find_device_by_conn_idx(command.conn_idx)
+        dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
 
-        if dev:
+        if dev is None:
+            response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
+        else:
             cfm = GattcReadCfm(conidx=self._task_to_connidx(command.conn_idx))
             cfm.parameters.handle = command.handle
             cfm.parameters.status = command.status
@@ -169,8 +171,6 @@ class BleManagerGatts(BleManagerBase):
             self._adapter_command_queue_send(cfm)
 
             response.status = BLE_ERROR.BLE_STATUS_OK
-        else:
-            response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
 
         self._mgr_response_queue_send(response)
 
@@ -182,22 +182,32 @@ class BleManagerGatts(BleManagerBase):
         self._mgr_event_queue_send(evt)
 
     def send_event_cmd_handler(self, command: BleMgrGattsSendEventCmd):
+        response = BleMgrGattsSendEventRsp(BLE_ERROR.BLE_ERROR_FAILED)
         # TODO need to get dev from storage
         # TODO need to check if sending event pending on this char
-        response = BleMgrGattsSendEventRsp(BLE_ERROR.BLE_ERROR_FAILED)
-        gtl = GattcSendEvtCmd()
-        gtl.parameters.handle = command.handle
-        if command.type == GATT_EVENT.GATT_EVENT_NOTIFICATION:
-            gtl.parameters.operation = GATTC_OPERATION.GATTC_NOTIFY
+        dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
+
+        if dev is None:
+            response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
         else:
-            gtl.parameters.operation = GATTC_OPERATION.GATTC_INDICATE
-        gtl.parameters.seq_num = command.handle
-        gtl.parameters.value = (c_uint8 * len(command.value)).from_buffer_copy(command.value)
+            if dev.pending_events_has_handle(command.handle):
+                response.status = BLE_ERROR.BLE_ERROR_BUSY
+            else:
+                dev.pending_events_put_handle(command.handle)
+                gtl = GattcSendEvtCmd()
+                gtl.parameters.handle = command.handle
+                if command.type == GATT_EVENT.GATT_EVENT_NOTIFICATION:
+                    gtl.parameters.operation = GATTC_OPERATION.GATTC_NOTIFY
+                else:
+                    gtl.parameters.operation = GATTC_OPERATION.GATTC_INDICATE
+                gtl.parameters.seq_num = command.handle
+                gtl.parameters.value = (c_uint8 * len(command.value)).from_buffer_copy(command.value)
 
-        self._adapter_command_queue_send(gtl)
-        # Do not wait for GATTC_CMP_EVT, it will be handled async to avoid infinite wait
+                self._adapter_command_queue_send(gtl)
+                # Do not wait for GATTC_CMP_EVT, it will be handled async to avoid infinite wait
 
-        response.status = BLE_ERROR.BLE_STATUS_OK
+                response.status = BLE_ERROR.BLE_STATUS_OK
+
         self._mgr_response_queue_send(response)
 
     def service_add_characteristic_cmd_handler(self, command: BleMgrGattsServiceAddCharacteristicCmd) -> None:
