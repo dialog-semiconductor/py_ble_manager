@@ -159,7 +159,6 @@ class BleManagerGatts(BleManagerBase):
 
         response = BleMgrGattsReadCfmRsp(BLE_ERROR.BLE_ERROR_FAILED)
 
-        # TODO different queue
         dev = self._stored_device_list._find_device_by_conn_idx(command.conn_idx)
 
         if dev:
