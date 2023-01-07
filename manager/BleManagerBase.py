@@ -45,7 +45,3 @@ class BleManagerBase():
 
     def _task_to_connidx(self, task_id):  # TODO this is repeated from GtlWaitQueue. Do not have in two places
         return task_id >> 8
-
-    def _wait_queue_add(self, conn_idx, msg_id, ext_id, cb, param):
-        item = GtlWaitQueueElement(conn_idx=conn_idx, msg_id=msg_id, ext_id=ext_id, cb=cb, param=param)
-        self._wait_q.push(item)

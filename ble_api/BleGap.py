@@ -245,7 +245,7 @@ class BleEventGapDisconnected(BleEventBase):
     def __init__(self,
                  conn_idx: int = 0,
                  address: bd_address = None,
-                 reason: int = 0,
+                 reason: int = 0,  # TODO BLE Api Enum for this?
                  ) -> None:
         super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED)
         self.conn_idx = conn_idx

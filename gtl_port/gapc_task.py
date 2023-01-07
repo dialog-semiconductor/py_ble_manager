@@ -37,11 +37,12 @@
 from ctypes import Array, c_bool, c_uint8, c_uint16, c_uint32, LittleEndianStructure, Union
 from enum import auto, IntEnum
 
-from .co_bt import bd_addr, BD_ADDR_LEN, LE_FEATS_LEN, rand_nb
-from .gap import GAP_AUTH, GAP_IO_CAP, GAP_KDIST, GAP_OOB, GAP_TK_TYPE, gap_sec_key, GAP_SEC_REQ, gap_bdaddr, \
+from gtl_port.co_bt import bd_addr, BD_ADDR_LEN, LE_FEATS_LEN, rand_nb
+from gtl_port.co_error import CO_ERROR
+from gtl_port.gap import GAP_AUTH, GAP_IO_CAP, GAP_KDIST, GAP_OOB, GAP_TK_TYPE, gap_sec_key, GAP_SEC_REQ, gap_bdaddr, \
     gap_dev_name, gap_slv_pref
-from .rwble_hl_error import HOST_STACK_ERROR_CODE
-from .rwip_config import KE_API_ID
+from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
+from gtl_port.rwip_config import KE_API_ID
 
 '''
 
@@ -527,17 +528,28 @@ struct gapc_disconnect_cmd
     # Reason of disconnection
     uint8_t reason;
 };
+'''
 
 
 # Indicate that a link has been disconnected
-struct gapc_disconnect_ind
-{
-    # Connection handle
-    uint16_t conhdl;
-    # Reason of disconnection
-    uint8_t reason;
-};
-'''
+class gapc_disconnect_ind(LittleEndianStructure):
+
+    def __init__(self,
+                 conhdl: c_uint16 = 0,
+                 reason: CO_ERROR = CO_ERROR.CO_ERROR_NO_ERROR
+                 ) -> None:
+
+        self.conhdl = conhdl
+        self.reason = reason
+        super().__init__(conhdl=self.conhdl,
+                         reason=self.reason,
+                         padding=0)
+
+                # Connection handle
+    _fields_ = [("conhdl", c_uint16),
+                # Reason of disconnection
+                ("reason", c_uint8),
+                ("padding", c_uint8)]
 
 
 # Retrieve information command

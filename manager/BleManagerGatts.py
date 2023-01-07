@@ -313,7 +313,7 @@ class BleManagerGatts(BleManagerBase):
         response = BleMgrGattsServiceRegisterRsp(BLE_ERROR.BLE_ERROR_FAILED)
 
         if self._add_svc_msg:
-            self._wait_queue_add(BLE_CONN_IDX_INVALID,
+            self._wait_q.add(BLE_CONN_IDX_INVALID,
                                  GATTM_MSG_ID.GATTM_ADD_SVC_RSP,
                                  0,
                                  self._service_register_rsp,
@@ -329,7 +329,7 @@ class BleManagerGatts(BleManagerBase):
         gtl = GattmAttSetValueReq()
         gtl.parameters.handle = command.handle
         gtl.parameters.value = (c_uint8 * len(command.value)).from_buffer_copy(command.value)
-        self._wait_queue_add(BLE_CONN_IDX_INVALID,
+        self._wait_q.add(BLE_CONN_IDX_INVALID,
                              GATTM_MSG_ID.GATTM_ATT_SET_VALUE_RSP,
                              0,
                              self._set_value_rsp,

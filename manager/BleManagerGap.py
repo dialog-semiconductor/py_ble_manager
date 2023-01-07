@@ -2,10 +2,12 @@ import asyncio
 from ctypes import c_uint8
 
 from ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_OWN_ADDR_TYPE, BLE_ADDR_TYPE
-from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_GAP_PHY, BleEventGapConnected, \
-    BleEventGapAdvCompleted, BLE_CONN_IDX_INVALID
-from gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd, GapcGetDevInfoReqInd, GapcGetDevInfoCfm
+from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BleEventGapConnected, BleEventGapDisconnected,  \
+    BleEventGapAdvCompleted, BLE_CONN_IDX_INVALID, GAP_SEC_LEVEL  # BLE_GAP_PHY
+from gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd, GapcGetDevInfoReqInd, GapcGetDevInfoCfm, \
+    GapcDisconnectInd
 from gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt
+from gtl_port.co_error import CO_ERROR
 from gtl_port.gap import GAP_ROLE, GAP_AUTH_MASK
 from gtl_port.gapc import GAPC_FIELDS_MASK
 from gtl_port.gapc_task import GAPC_MSG_ID, GAPC_DEV_INFO
@@ -15,7 +17,7 @@ from manager.BleDevParams import BleDevParamsDefault
 from manager.BleManagerCommon import BleManagerBase
 from manager.BleManagerCommonMsgs import BleMgrMsgBase
 from manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp, BleMgrGapRoleSetCmd
-from manager.BleManagerStorage import StoredDeviceQueue
+from manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from manager.GtlWaitQueue import GtlWaitQueue
 
 
@@ -52,7 +54,7 @@ class BleManagerGap(BleManagerBase):
             GAPM_MSG_ID.GAPM_CMP_EVT: self.cmp_evt_handler,
             GAPC_MSG_ID.GAPC_CONNECTION_REQ_IND: self.connected_evt_handler,
             GAPC_MSG_ID.GAPC_GET_DEV_INFO_REQ_IND: self.get_device_info_req_evt_handler,
-            GAPC_MSG_ID.GAPC_LECB_DISCONNECT_IND: self.disconnected_evt_handler,
+            GAPC_MSG_ID.GAPC_DISCONNECT_IND: self.disconnected_evt_handler,
             # BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_STOP_CMD: self.gap_adv_stop_cmd_handler,
             # BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CMD: self.connect_cmd_handler,
         }
@@ -120,6 +122,41 @@ class BleManagerGap(BleManagerBase):
 # endif /* (dg_configBLE_OBSERVER == 1) */
         return gtl_role
 
+    def _conn_cleanup(self, conn_idx: int = 0, reason: CO_ERROR = CO_ERROR.CO_ERROR_NO_ERROR) -> None:
+        dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+        if dev:
+            dev.pending_events_clear_handles()
+            evt = BleEventGapDisconnected()
+            evt.conn_idx = conn_idx
+            evt.reason = reason
+
+            # TODO
+            # Need to notify L2CAP handler so it can 'deallocate' all channels for the given conn_idx */
+            # ble_mgr_l2cap_disconnect_ind(conn_idx);
+
+            evt.address = dev.addr
+
+            # For bonded device we only need to remove non-persistent app_values and mark device as not
+            # connected; otherwise remove device from storage
+            if dev.bonded:
+                dev.connected = False
+                dev.conn_idx = BLE_CONN_IDX_INVALID
+                dev.pending_events = False
+                dev.updating = False
+                dev.sec_level = GAP_SEC_LEVEL.GAP_SEC_LEVEL_1
+                dev.discon_reason = 0
+                dev.app_value_remove_np()  # TODO rename to something more meaningful
+            else:
+                self._stored_device_list.remove(dev)
+
+                self._wait_q.flush(conn_idx)
+                # if (dg_configBLE_SKIP_LATENCY_API == 1)
+                # Clear skip slave latency setting 
+                # ble_mgr_skip_latency_set(conn_idx, false);
+                # endif /* (dg_configBLE_SKIP_LATENCY_API == 1) */
+
+                self._mgr_event_queue_send(evt)
+
     def _dev_params_to_gtl(self) -> GapmSetDevConfigCmd:
         gtl = GapmSetDevConfigCmd()
         gtl.parameters.role = self._ble_role_to_gtl_role(self.dev_params.role)
@@ -159,7 +196,7 @@ class BleManagerGap(BleManagerBase):
         # Check if peer's address is resolvable
         if evt.parameters.peer_addr.addr[5] & 0xC0 != 0x40:
             return False
-        
+
         # TODO gtl message
         # gtl = GapmResolvAddrCmd
         return False
@@ -340,8 +377,16 @@ class BleManagerGap(BleManagerBase):
         # TODO something with service changed characteristic value from storage
         self._adapter_command_queue_send(cfm)
 
-    def disconnected_evt_handler(self, gtl):
-        pass
+    def disconnected_evt_handler(self, gtl: GapcDisconnectInd) -> None:
+
+        conn_idx = self._task_to_connidx(gtl.src_id)
+        dev: StoredDevice = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+
+        if dev is not None:
+            if dev.resolving:
+                dev.discon_reason = gtl.parameters.reason
+            else:
+                self._conn_cleanup(conn_idx, gtl.parameters.reason)
 
     def get_device_info_req_evt_handler(self, gtl: GapcGetDevInfoReqInd):
 
@@ -365,7 +410,7 @@ class BleManagerGap(BleManagerBase):
     def role_set_cmd_handler(self, command: BleMgrGapRoleSetCmd):
         dev_params_gtl = self._dev_params_to_gtl()
         dev_params_gtl.parameters.role = self._ble_role_to_gtl_role(command.role)
-        self._wait_queue_add(BLE_CONN_IDX_INVALID,
+        self._wait_q.add(BLE_CONN_IDX_INVALID,
                              GAPM_MSG_ID.GAPM_CMP_EVT,
                              GAPM_OPERATION.GAPM_SET_DEV_CONFIG,
                              self._set_role_rsp,

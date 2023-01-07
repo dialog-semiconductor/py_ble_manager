@@ -3,7 +3,7 @@ import asyncio
 from adapter.BleAdapter import BleAdapter
 from ble_api.BleApiBase import BleApiBase
 from ble_api.BleCommon import BleEventBase, BLE_ERROR
-from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_EVT_GAP, BleEventGapConnected
+from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_EVT_GAP, BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatt import GATT_EVENT
 from ble_api.BleGatts import BLE_EVT_GATTS, BleEventGattsReadReq, BleEventGattsWriteReq
 from ble_api.BleGattsApi import BleGattsApi
@@ -55,6 +55,11 @@ class BlePeripheral(BleApiBase):
         for service in self._services:
             if service and service.connected_evt:
                 service.connected_evt(evt)
+
+    def _handle_disconnected_evt(self, evt: BleEventGapDisconnected) -> None:
+        for service in self._services:
+            if service and service.disconnected_evt:
+                service.disconnected_evt(evt)
 
     async def _handle_read_req_evt(self, evt: BleEventGattsReadReq) -> bool:
         service = self._find_service_by_handle(evt.handle)
@@ -143,18 +148,25 @@ class BlePeripheral(BleApiBase):
         return error
 
     async def service_handle_event(self, evt: BleEventBase) -> bool:
+        handled = False
+
         match evt.evt_code:
             case BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED:
                 self._handle_connected_evt(evt)
-                return False  # make it "not handled" so app can handle _find_service_by_handle. TODO dont use multiple returns
+                # Connected event always marked as unhandled so app can handle
+
+            case BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED:
+                self._handle_disconnected_evt(evt)
+                # Disconnected event always marked as unhandled so app can handle
 
             case BLE_EVT_GATTS.BLE_EVT_GATTS_READ_REQ:
-                return await self._handle_read_req_evt(evt)
+                handled = await self._handle_read_req_evt(evt)
 
             case BLE_EVT_GATTS.BLE_EVT_GATTS_WRITE_REQ:
-                return await self._handle_write_req_evt(evt)
+                handled = await self._handle_write_req_evt(evt)
 
-        return False
+
+        return handled
 
         '''
         case BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED:

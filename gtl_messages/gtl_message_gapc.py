@@ -3,7 +3,7 @@ from .gtl_message_base import GtlMessageBase
 from gtl_port.gapc_task import GAPC_MSG_ID, gapc_connection_req_ind, gapc_connection_cfm, gapc_security_cmd, gapc_cmp_evt, gapc_get_info_cmd, \
     gapc_peer_features_ind, gapc_bond_req_ind, gapc_bond_cfm, gapc_sign_counter_ind, gapc_bond_ind, gapc_encrypt_req_ind, gapc_encrypt_cfm, \
     gapc_encrypt_ind, gapc_param_update_req_ind, gapc_param_update_cfm, gapc_param_update_cmd, gapc_get_dev_info_req_ind, \
-    gapc_get_dev_info_cfm, GAPC_DEV_INFO
+    gapc_get_dev_info_cfm, GAPC_DEV_INFO, gapc_disconnect_ind
 from gtl_port.rwip_config import KE_API_ID
 
 
@@ -284,6 +284,19 @@ class GapcGetDevInfoCfm(GtlMessageBase):
         return return_array
 
     # TODO issue with _struct_to_bytearray due to union with pointer
+
+
+class GapcDisconnectInd(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gapc_disconnect_ind = None):
+
+        self.parameters = parameters if parameters else gapc_disconnect_ind()
+
+        super().__init__(msg_id=GAPC_MSG_ID.GAPC_DISCONNECT_IND,
+                         dst_id=KE_API_ID.TASK_ID_GTL,
+                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GAPC),
+                         par_len=4,
+                         parameters=self.parameters)
 
 # TODO Next message: , ,,  ,
 #  , GAPC_PARAM_UPDATED_IND,

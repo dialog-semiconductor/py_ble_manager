@@ -409,6 +409,7 @@ class TestGapcGetDevInfoCfm(unittest.TestCase):
     def setUp(self):
         # TODO believe table is wrong as it includes a null character in the name
         self.expected = "050B0E0E001000260000001C004469616C6F672047544C206F76657220535049484444522044656D6F000000000000"
+        
     def test_parameters_updated_after_construction(self):
         test_message = GapcGetDevInfoCfm()
         test_message.parameters.req = GAPC_DEV_INFO.GAPC_DEV_NAME
@@ -425,5 +426,25 @@ class TestGapcGetDevInfoCfm(unittest.TestCase):
         
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
         
+
+# Table 195
+class TestGapcDisconnectInd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05030E10000E00040000001600"
+
+    def test_parameters_updated_after_construction(self):
+        test_message = GapcDisconnectInd()
+        test_message.parameters.reason = CO_ERROR.CO_ERROR_CON_TERM_BY_LOCAL_HOST
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_non_zero_conidx(self):
+        test_message = GapcDisconnectInd(conidx=1)
+        test_message.parameters.reason = CO_ERROR.CO_ERROR_CON_TERM_BY_LOCAL_HOST
+        
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+        
+
 if __name__ == '__main__':
     unittest.main()

@@ -14,9 +14,38 @@ class SearchableQueue():
     def remove(self, elem) -> None:
         self.queue.remove(elem)
 
+
 class PendingEvent():
     def __init__(self, handle: int = 0) -> None:
         self.handle = handle
+
+
+class PendingEventQueue(SearchableQueue):
+    def __init__(self) -> None:
+        self.queue: list[PendingEvent] = []
+
+    def push(self, elem: PendingEvent) -> None:
+        if not isinstance(elem, PendingEvent):
+            raise TypeError(f"Element must be of type PendingEvent, was {type(elem)}")
+        self.queue.append(elem)
+
+
+class AppValue():
+    def __init__(self, key: int = 0, persistent: bool = False, length: int = 0, free_cb: callable = None) -> None:
+        self.key = key  # TODO storage key type?
+        self.persistent = persistent
+        # self.length = length
+        # self.free_cb = free_cb  # TODO not sure we need this
+
+
+class AppValueQueue(SearchableQueue):
+    def __init__(self) -> None:
+        self.queue: list[AppValue] = []
+
+    def push(self, elem: AppValue) -> None:
+        if not isinstance(elem, AppValue):
+            raise TypeError(f"Element must be of type AppValue, was {type(elem)}")
+        self.queue.append(elem)
 
 
 class StoredDevice():
@@ -63,11 +92,22 @@ class StoredDevice():
         self.remote_csrk: key_csrk = key_csrk()
 
         # custom values set from application
-        self.app_value: SearchableQueue = SearchableQueue()
-        self.pending_events: SearchableQueue = SearchableQueue()
+        self.app_values: AppValueQueue = AppValueQueue()
+        self.pending_events: PendingEventQueue = PendingEventQueue()
 
         # disconnection status (disconnection event is pending if other than zero)
         self.discon_reason: int = 0
+
+    def app_value_remove_np(self):
+        app_value: AppValue
+        for app_value in self.app_values:
+            if not app_value.persistent:
+                self.app_values.remove(app_value)
+                # if app_value.free_cb:
+                #    app_value.free_cb()  # TODO passing a ptr arg, but not sure what it is yet
+
+    def pending_events_clear_handles(self) -> None:
+        self.pending_events = PendingEventQueue()
 
     def pending_events_has_handle(self, handle: int) -> PendingEvent:
         event: PendingEvent
@@ -85,23 +125,19 @@ class StoredDeviceQueue(SearchableQueue):
     def __init__(self) -> None:
         self.queue: list[StoredDevice] = []
 
-    def push(self, elem: StoredDevice) -> None:
-        if not isinstance(elem, StoredDevice):
-            raise TypeError(f"Element must be of type StoredDevice, was {type(elem)}")
-        self.queue.append(elem)
-
-    def find_device_by_address(self, addr: bd_address, create: bool) -> StoredDevice:
+    def find_device_by_address(self, addr: bd_address = None, create: bool = False) -> StoredDevice:
 
         found = None
-        device: StoredDevice
-        for device in self.queue:
-            found = device if device.addr.addr == addr.addr else None
+        if addr is not None:
+            device: StoredDevice
+            for device in self.queue:
+                found = device if device.addr.addr == addr.addr else None
 
-        if found is None and create:
-            new_device = StoredDevice()
-            new_device.mtu = 23
-            self.push(new_device)
-            found = new_device
+            if found is None and create:
+                new_device = StoredDevice()
+                new_device.mtu = 23
+                self.push(new_device)
+                found = new_device
 
         return found
 
@@ -112,6 +148,29 @@ class StoredDeviceQueue(SearchableQueue):
             found = device if (device.connected and device.conn_idx == conn_idx) else None
 
         return found
+
+    def push(self, elem: StoredDevice) -> None:
+        if not isinstance(elem, StoredDevice):
+            raise TypeError(f"Element must be of type StoredDevice, was {type(elem)}")
+        self.queue.append(elem)
+
+    def remove_device(self, device: StoredDevice):
+        self.queue.remove(device)
+
+        '''
+        device.app_value = SearchableQueue()  # TODO Is this necessary, will no longer be a reference to device
+        device.pending_events_clear_handles()
+
+        device.ltk = key_ltk()
+        device.remote_ltk = key_ltk()
+        device.irk = key_irk()
+        device.csrk = key_csrk()
+        device.remote_csrk = key_csrk()
+        '''
+
+        # TODO storage mark dirty???
+        # storage_mark_dirty(true);
+
 
 class key_csrk():
     def __init__(self, key: bytes = None, sign_cnt: int = 0) -> None:

@@ -46,9 +46,9 @@
 from ctypes import Array, cast, c_bool, c_uint8, c_uint16, LittleEndianStructure, memmove, pointer, POINTER, Union
 from enum import auto, IntEnum
 
-from .att import ATT_CHAR_PROP, ATT_UUID_128_LEN
-from .rwble_hl_error import HOST_STACK_ERROR_CODE
-from .rwip_config import KE_API_ID
+from gtl_port.att import ATT_CHAR_PROP, ATT_UUID_128_LEN
+from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
+from gtl_port.rwip_config import KE_API_ID
 
 '''
 
