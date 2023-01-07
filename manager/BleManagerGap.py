@@ -36,6 +36,8 @@ class BleManagerGap(BleManagerBase):
                  stored_device_q: StoredDeviceQueue) -> None:
 
         super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q, stored_device_q)
+
+        # TODO dev_params passed to base class?
         self.dev_params = BleDevParamsDefault()
 
         self.cmd_handlers = {
@@ -55,7 +57,7 @@ class BleManagerGap(BleManagerBase):
             # BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CMD: self.connect_cmd_handler,
         }
 
-    def _adv_cmp_evt_hanlder(self, gtl: GapmCmpEvt):
+    def _adv_cmp_evt_handler(self, gtl: GapmCmpEvt):
         self.dev_params.advertising = False
         evt = BleEventGapAdvCompleted()
 
@@ -265,7 +267,7 @@ class BleManagerGap(BleManagerBase):
                     | GAPM_OPERATION.GAPM_ADV_DIRECT \
                     | GAPM_OPERATION.GAPM_ADV_DIRECT_LDC:
 
-                self._adv_cmp_evt_hanlder(gtl)
+                self._adv_cmp_evt_handler(gtl)
             case _:
                 return False
         return True
@@ -373,13 +375,12 @@ class BleManagerGap(BleManagerBase):
 
 
 '''
-# TODO
 static const ble_mgr_cmd_handler_t h_gap[BLE_MGR_CMD_GET_IDX(BLE_MGR_GAP_LAST_CMD)] = {
         ble_mgr_gap_address_set_cmd_handler,
         ble_mgr_gap_device_name_set_cmd_handler,
         ble_mgr_gap_appearance_set_cmd_handler,
         ble_mgr_gap_ppcp_set_cmd_handler,
-
+        ble_mgr_gap_adv_start_cmd_handler,              STARTED
         ble_mgr_gap_adv_stop_cmd_handler,
         ble_mgr_gap_adv_data_set_cmd_handler,
         ble_mgr_gap_adv_set_perm_id_cmd_handler,
@@ -391,7 +392,7 @@ static const ble_mgr_cmd_handler_t h_gap[BLE_MGR_CMD_GET_IDX(BLE_MGR_GAP_LAST_CM
         ble_mgr_gap_peer_version_get_cmd_handler,
         ble_mgr_gap_peer_features_get_cmd_handler,
         ble_mgr_gap_conn_rssi_get_cmd_handler,
-
+        ble_mgr_gap_role_set_cmd_handler,               STARTED
         ble_mgr_gap_mtu_size_set_cmd_handler,
         ble_mgr_gap_channel_map_set_cmd_handler,
         ble_mgr_gap_conn_param_update_cmd_handler,
@@ -403,14 +404,47 @@ static const ble_mgr_cmd_handler_t h_gap[BLE_MGR_CMD_GET_IDX(BLE_MGR_GAP_LAST_CM
         ble_mgr_gap_set_sec_level_cmd_handler,
 #if (dg_configBLE_SKIP_LATENCY_API == 1)
         ble_mgr_gap_skip_latency_cmd_handler,
-#endif /* (dg_configBLE_SKIP_LATENCY_API == 1)
+#endif /* (dg_configBLE_SKIP_LATENCY_API == 1) */
         ble_mgr_gap_data_length_set_cmd_handler,
 #if (dg_configBLE_SECURE_CONNECTIONS == 1)
         ble_mgr_gap_numeric_reply_cmd_handler,
-#endif /* (dg_configBLE_SECURE_CONNECTIONS == 1)
+#endif /* (dg_configBLE_SECURE_CONNECTIONS == 1) */
         ble_mgr_gap_address_resolve_cmd_handler,
 #if (dg_configBLE_2MBIT_PHY == 1)
         ble_mgr_gap_phy_set_cmd_handler,
-#endif /* (dg_configBLE_2MBIT_PHY == 1)
+#endif /* (dg_configBLE_2MBIT_PHY == 1) */
 };
+
+void ble_mgr_gap_dev_bdaddr_ind_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gap_adv_report_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gap_connected_evt_handler(ble_gtl_msg_t *gtl);                 STARTED
+void ble_mgr_gap_get_device_info_req_evt_handler(ble_gtl_msg_t *gtl);       STARTED
+void ble_mgr_gap_set_device_info_req_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gap_disconnected_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gap_peer_version_ind_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gap_peer_features_ind_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gap_con_rssi_ind_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gap_conn_param_update_req_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gap_conn_param_updated_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gapm__adv_cmp_evt_handler(ble_gtl_msg_t *gtl);                 STARTED
+void ble_mgr_gapm_scan_cmp_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gapm_connect_cmp_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gap_bond_req_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gap_bond_ind_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gap_security_ind_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gap_sign_counter_ind_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gap_encrypt_req_ind_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gapc_cmp__disconnect_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gapc_cmp__update_params_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gapc_cmp__bond_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gapc_cmp__security_req_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gap_encrypt_ind_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gap_addr_solved_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gap_le_pkt_size_ind_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gap_cmp__data_length_set_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gapm_cmp__address_resolve_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gap_le_phy_ind_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gap_le_rd_tx_pwr_lvl_enh_ind_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gap_le_tx_pwr_lvl_report_ind_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gap_le_path_loss_thres_ind_handler(ble_gtl_msg_t *gtl);
 '''

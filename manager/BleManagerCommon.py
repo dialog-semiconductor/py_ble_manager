@@ -50,7 +50,7 @@ static const ble_mgr_cmd_handler_t h_common[BLE_MGR_CMD_GET_IDX(BLE_MGR_COMMON_L
         ble_mgr_common_register_cmd_handler,
 #ifndef BLE_STACK_PASSTHROUGH_MODE
         ble_mgr_common_enable_cmd_handler,
-        ble_mgr_common_reset_cmd_handler,
+        ble_mgr_common_reset_cmd_handler,               STARTED
         ble_mgr_common_read_tx_power_cmd_handler,
 #endif
 };

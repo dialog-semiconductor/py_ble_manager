@@ -359,22 +359,26 @@ class BleManagerGatts(BleManagerBase):
 
 '''
 static const ble_mgr_cmd_handler_t h_gatts[BLE_MGR_CMD_GET_IDX(BLE_MGR_GATTS_LAST_CMD)] = {
-        ,
+        ble_mgr_gatts_service_add_cmd_handler,                       STARTED
         ble_mgr_gatts_service_add_include_cmd_handler,
-        ble_mgr_gatts_service_add_characteristic_cmd_handler,
-        ble_mgr_gatts_service_add_descriptor_cmd_handler,
-        ble_mgr_gatts_service_register_cmd_handler,
+        ble_mgr_gatts_service_add_characteristic_cmd_handler,        STARTED
+        ble_mgr_gatts_service_add_descriptor_cmd_handler,            STARTED
+        ble_mgr_gatts_service_register_cmd_handler,                  STARTED
         ble_mgr_gatts_service_enable_cmd_handler,
         ble_mgr_gatts_service_disable_cmd_handler,
         ble_mgr_gatts_service_characteristic_get_prop_cmd_handler,
         ble_mgr_gatts_service_characteristic_set_prop_cmd_handler,
         ble_mgr_gatts_get_value_cmd_handler,
-        ble_mgr_gatts_set_value_cmd_handler,
-        ble_mgr_gatts_read_cfm_cmd_handler,
-        ble_mgr_gatts_write_cfm_cmd_handler,
+        ble_mgr_gatts_set_value_cmd_handler,                         STARTED
+        ble_mgr_gatts_read_cfm_cmd_handler,                          STARTED
+        ble_mgr_gatts_write_cfm_cmd_handler,                         STARTED
         ble_mgr_gatts_prepare_write_cfm_cmd_handler,
-        ble_mgr_gatts_send_event_cmd_handler,
+        ble_mgr_gatts_send_event_cmd_handler,                        STARTED
         ble_mgr_gatts_service_changed_ind_cmd_handler,
 };
 
+void ble_mgr_gatts_read_value_req_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gatts_write_value_req_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gatts_prepare_write_req_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gatts_event_sent_evt_handler(ble_gtl_msg_t *gtl);
 '''
