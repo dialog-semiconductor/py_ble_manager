@@ -61,8 +61,7 @@ class BLE_STATUS(IntEnum):
 
 # Bluetooth Device address
 class bd_address():  # TODO rename BdAddress to differentiate from ctypes structures?
-    # TODO is ctypes array appriopriate at this layer?
-    def __init__(self, addr_type: BLE_ADDR_TYPE = BLE_ADDR_TYPE.PUBLIC_ADDRESS, addr: bytes() = None) -> None:
+    def __init__(self, addr_type: BLE_ADDR_TYPE = BLE_ADDR_TYPE.PUBLIC_ADDRESS, addr: bytes = None) -> None:
         self.addr_type = addr_type  # TODO determine address type by addr?
         # TODO raise error on bytes len
         self.addr = addr if addr else bytes()
@@ -80,7 +79,6 @@ class irk():
 
 
 class own_address():
-    # TODO is ctypes array appriopriate at this layer?
     def __init__(self, addr_type: BLE_OWN_ADDR_TYPE = BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS, addr: bytes = None) -> None:
         self.addr_type = addr_type
         # TODO raise error on bytes len

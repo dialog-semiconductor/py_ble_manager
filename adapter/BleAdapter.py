@@ -37,7 +37,6 @@ class BleAdapter():
                 if task is self._tx_task:
                     # This is from Ble Manager command queue
                     self._process_command_queue(task.result())
-                    # TODO check if more messages in adapter event q and process them.
                     self._tx_task = asyncio.create_task(self._command_queue_get(), name='BleAdapterTx')
                     pending.add(self._tx_task)
 

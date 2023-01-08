@@ -1,9 +1,8 @@
 from ble_api.BleAtt import att_uuid, ATT_PERM, ATT_ERROR
 from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
-from ble_api.BleGatts import GATTS_FLAGS
+from ble_api.BleGatts import GATTS_FLAGS, BleEventGattsReadReq, BleEventGattsEventSent, BleEventGattsPrepareWriteReq
 from ble_api.BleCommon import BleEventBase
-from manager.BleManagerGatts import BleEventGattsReadReq
 
 
 class GattService():
@@ -83,13 +82,13 @@ class BleServiceBase():
     def cleanup(self) -> None:
         pass
 
-    def event_sent(self, evt: BleEventBase) -> None:  # TODO BleEventGattsEventSent
+    def event_sent(self, evt: BleEventGattsEventSent) -> None:
         pass
 
     def disconnected_evt(self, evt: BleEventGapDisconnected) -> None:
         pass
 
-    def prepare_write_req(self, evt: BleEventBase) -> None:  # BleEventGattsPrepareWriteReq
+    def prepare_write_req(self, evt: BleEventGattsPrepareWriteReq) -> None:
         pass
 
     def read_req(self, evt: BleEventGattsReadReq) -> tuple[ATT_ERROR, bytes]:

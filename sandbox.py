@@ -8,13 +8,17 @@ from ble_api.BleGatts import *
 from gtl_port.gapc_task import *
 
 
-def _uuid_from_str(uuid_str: str) -> bytes:
-        uuid_str = uuid_str.replace("-", "")
-        uuid_list = [int(uuid_str[idx:idx + 2], 16) for idx in range(0, len(uuid_str), 2)]
-        uuid_list.reverse()  # mcu is little endian
-        return bytes(uuid_list)
+first  = gapc_connection_cfm()
+second = gapc_connection_cfm()
 
-by = _uuid_from_str("2902")
+list1 = [1,2,3,4,5,6]
+first.lcsrk.key[:6] = (c_uint8 * 6)(*list1)
 
-print(by)
-print(by.hex())
+list2 = [7,8,9,10,11,12]
+second.lcsrk.key[:6] = (c_uint8 * 6)(*list2)
+
+
+print(second.lcsrk.key == first.lcsrk.key)
+
+for i in range(0,6):
+    print(f"first[{i}]={first.lcsrk.key[i]}. second[{i}]={second.lcsrk.key[i]}")

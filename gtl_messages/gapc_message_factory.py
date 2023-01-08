@@ -14,21 +14,16 @@ class GapcMessageFactory():
 
         assert (int.from_bytes(msg_bytes[:1], "little", signed=False) == GTL_INITIATOR)
 
-        # First byte is GTL header
         msg_id = GAPC_MSG_ID(int.from_bytes(msg_bytes[1:3], "little", signed=False))
-
         dst_id = KE_API_ID(int.from_bytes(msg_bytes[3:4], "little", signed=False))
-        # src_id = KE_API_ID(int.from_bytes(msg_bytes[5:6], "little", signed=False))
 
         if dst_id != KE_API_ID.TASK_ID_GTL:
             conidx = int.from_bytes(msg_bytes[4:5], "little", signed=False)
         else:
             conidx = int.from_bytes(msg_bytes[6:7], "little", signed=False)
 
-        # spar_len=int.from_bytes(msg_bytes[7:9], "little", signed=False)
         params_buf = msg_bytes[9:]
 
-        # TODO for each case add a check to ensure params_buf not too long for parameters variable
         try:
             if msg_id == GAPC_MSG_ID.GAPC_CONNECTION_REQ_IND:
                 return GapcConnectionReqInd(conidx=conidx, parameters=gapc_connection_req_ind.from_buffer_copy(params_buf))

@@ -70,7 +70,6 @@ class GtlWaitQueue():
                         # Fire associated callback with None gtl message # TODO seems like it could cause issue, verify for two cases where match is true
                         elem.cb(None, elem.param)
 
-    # TODO does this method belong in BleManagerBase ??
     def match(self, message: GtlMessageBase) -> bool:
         ret = False
 

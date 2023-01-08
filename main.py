@@ -39,7 +39,6 @@ class CustomBleService(BleServiceBase):
         my_char.char.flags = GATTS_FLAGS.GATTS_FLAG_CHAR_NO_READ_REQ
         self.gatt_characteristics.append(my_char)
 
-        # TODO getting error creating this char
         my_char = GattCharacteristic()
         my_char.char.uuid.uuid = self._uuid_from_str("5af078b6-12ae-11ed-861d-0242ac120002")
         my_char.char.prop = GATT_PROP.GATT_PROP_NOTIFY
@@ -58,11 +57,11 @@ class CustomBleService(BleServiceBase):
         desc.perm = ATT_PERM.ATT_PERM_RW
         desc.max_len = 2
         my_char.descriptors.append(desc)
-    
+
         self.gatt_characteristics.append(my_char)
 
         self.ccc = 0x0000
-        
+
         # TODO included services
         for char in self.gatt_characteristics:
             self.gatt_service.num_attrs += 2
@@ -146,8 +145,7 @@ async def user_main(sample_q: asyncio.Queue):
 async def main():
 
     sample_q = asyncio.Queue()
-    # TODO should wait for serial port to open before attempting to interact with peripheral
-    await asyncio.gather(user_main(sample_q), ble_task(sample_q))  # need to move this to another func and create a main loop
+    await asyncio.gather(user_main(sample_q), ble_task(sample_q))
 
 
 async def ble_task(sample_q: asyncio.Queue):
