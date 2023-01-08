@@ -24,6 +24,24 @@ class TestGattcExcMtuCmd(unittest.TestCase):
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+# Table 58
+class TestGattcMtuChangedInd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05020C10000C00040000020000"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcMtuChangedInd()
+        test_message.parameters.mtu = 512
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        test_message = GattcMtuChangedInd(conidx=1)
+        test_message.parameters.mtu = 512
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
 # Table 95
 class TestGattcWriteReqInd(unittest.TestCase):
