@@ -1,6 +1,7 @@
 from .gtl_message_base import GtlMessageBase
 from gtl_port.gattm_task import GATTM_MSG_ID, gattm_add_svc_req, gattm_add_svc_rsp, gattm_att_set_value_req, gattm_att_set_value_rsp, \
-    gattm_att_get_value_req, gattm_att_get_value_rsp
+    gattm_att_get_value_req, gattm_att_get_value_rsp, gattm_svc_get_permission_req, gattm_svc_get_permission_rsp, \
+    gattm_svc_set_permission_req, gattm_svc_set_permission_rsp
 
 from gtl_port.rwip_config import KE_API_ID
 
@@ -39,7 +40,57 @@ class GattmAddSvcRsp(GtlMessageBase):
                          par_len=4,
                          parameters=self.parameters)
 
-# TODO GATTM_SVC_GET_PERMISSION_REQ, GATTM_SVC_GET_PERMISSION_RSP
+
+class GattmSvcGetPermissionReq(GtlMessageBase):
+
+    def __init__(self, parameters: gattm_svc_get_permission_req = None):
+
+        self.parameters = parameters if parameters else gattm_svc_get_permission_req()
+
+        super().__init__(msg_id=GATTM_MSG_ID.GATTM_SVC_GET_PERMISSION_REQ,
+                         dst_id=KE_API_ID.TASK_ID_GATTM,
+                         src_id=KE_API_ID.TASK_ID_GTL,
+                         par_len=2,
+                         parameters=self.parameters)
+
+
+class GattmSvcGetPermissionRsp(GtlMessageBase):
+
+    def __init__(self, parameters: gattm_svc_get_permission_rsp = None):
+
+        self.parameters = parameters if parameters else gattm_svc_get_permission_rsp()
+
+        super().__init__(msg_id=GATTM_MSG_ID.GATTM_SVC_GET_PERMISSION_RSP,
+                         dst_id=KE_API_ID.TASK_ID_GTL,
+                         src_id=KE_API_ID.TASK_ID_GATTM,
+                         par_len=4,
+                         parameters=self.parameters)
+
+
+class GattmSvcSetPermissionReq(GtlMessageBase):
+
+    def __init__(self, parameters: gattm_svc_set_permission_req = None):
+
+        self.parameters = parameters if parameters else gattm_svc_set_permission_req()
+
+        super().__init__(msg_id=GATTM_MSG_ID.GATTM_SVC_SET_PERMISSION_REQ,
+                         dst_id=KE_API_ID.TASK_ID_GATTM,
+                         src_id=KE_API_ID.TASK_ID_GTL,
+                         par_len=4,
+                         parameters=self.parameters)
+
+
+class GattmSvcSetPermissionRsp(GtlMessageBase):
+
+    def __init__(self, parameters: gattm_svc_set_permission_rsp = None):
+
+        self.parameters = parameters if parameters else gattm_svc_set_permission_rsp()
+
+        super().__init__(msg_id=GATTM_MSG_ID.GATTM_SVC_SET_PERMISSION_RSP,
+                         dst_id=KE_API_ID.TASK_ID_GTL,
+                         src_id=KE_API_ID.TASK_ID_GATTM,
+                         par_len=4,
+                         parameters=self.parameters)
 
 
 class GattmAttSetValueReq(GtlMessageBase):

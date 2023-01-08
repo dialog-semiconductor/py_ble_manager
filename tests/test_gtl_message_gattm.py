@@ -1,6 +1,7 @@
 import unittest
 from gtl_messages.gtl_message_gattm import *
 from gtl_port.gattm_task import *
+from gtl_port.attm import *
 
 # Table 70
 class TestGattmAddSvcReq(unittest.TestCase):
@@ -154,6 +155,71 @@ class TestGattmAddSvcRsp(unittest.TestCase):
     def test_parameters_updated_after_construction(self):
         
         test_message = GattmAddSvcRsp()
+        test_message.parameters.start_hdl = 0x17
+        test_message.parameters.status = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+
+# Table 78
+class TestGattmSvcGetPermissionReq(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05020B0B00100002001700"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattmSvcGetPermissionReq()
+        test_message.parameters.start_hdl = 0x17
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 78
+class TestGattmSvcGetPermissionRsp(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05030B10000B00040017008C00"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattmSvcGetPermissionRsp()
+        test_message.parameters.start_hdl = 0x17
+        test_message.parameters.perm.primary_svc = ATTM_SERVICE_TYPE.PRIMARY_SERVICE
+        test_message.parameters.perm.svc_perm = ATTM_PERM.AUTH
+        test_message.parameters.perm.enc_key_16_bytes = ATTM_ENC_KEY_SIZE_16_BYTES.NO
+        test_message.parameters.perm.multi = ATTM_TASK_MULTI_INSTANTIATED.NO
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+
+# Table 81
+class TestGattmSvcSetPermissionReq(unittest.TestCase):
+
+    def setUp(self):
+        # TODO example in manual missing padding=00 at end
+        self.expected = "05040B0B00100004001700C000"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattmSvcSetPermissionReq()
+        test_message.parameters.start_hdl = 0x17
+        test_message.parameters.perm.primary_svc = ATTM_SERVICE_TYPE.PRIMARY_SERVICE
+        test_message.parameters.perm.uuid_len = ATTM_UUID_LEN.BITS_128
+        test_message.parameters.perm.svc_perm = ATTM_PERM.DISABLE
+        test_message.parameters.perm.enc_key_16_bytes = ATTM_ENC_KEY_SIZE_16_BYTES.NO
+        test_message.parameters.perm.multi = ATTM_TASK_MULTI_INSTANTIATED.NO
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 81
+class TestGattmSvcSetPermissionRsp(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05050B10000B00040017000000"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattmSvcSetPermissionRsp()
         test_message.parameters.start_hdl = 0x17
         test_message.parameters.status = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR
 

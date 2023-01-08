@@ -319,7 +319,7 @@ class TestGapcParamUpdateReqInd(unittest.TestCase):
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
-# Table 60
+# Table 62
 class TestGapcParamUpdateCfm(unittest.TestCase):
 
     def setUp(self):
@@ -364,6 +364,28 @@ class TestGapcParamUpdateCmd(unittest.TestCase):
         test_message.parameters.time_out = 1000
         test_message.parameters.ce_len_min = 0xFFFF
         test_message.parameters.ce_len_max = 0xFFFF
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 67
+class TestGapcParamUpdatedInd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05110E10000E00060027000000D007"
+
+    def test_parameters_updated_after_construction(self):
+        test_message = GapcParamUpdatedInd()
+        test_message.parameters.con_interval = 39 
+        test_message.parameters.con_latency = 0
+        test_message.parameters.sup_to = 2000
+        
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_non_zero_conidx(self):
+        test_message = GapcParamUpdatedInd(conidx=1)
+        test_message.parameters.con_interval = 39 
+        test_message.parameters.con_latency = 0
+        test_message.parameters.sup_to = 2000
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 

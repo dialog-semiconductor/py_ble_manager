@@ -321,45 +321,84 @@ class gattm_add_svc_rsp(LittleEndianStructure):
                 ("padding", c_uint8)]
 
 
+# Service management
+# Get permission settings of service request
+class gattm_svc_get_permission_req(LittleEndianStructure):
+
+    def __init__(self,
+                 start_hdl: c_uint16 = 0,
+                 ) -> None:
+        self.start_hdl = start_hdl
+
+        super().__init__(start_hdl=self.start_hdl,)
+
+                # Service start attribute handle
+    _fields_ = [("start_hdl", c_uint16)]
+
+
+# Get permission settings of service response
+class gattm_svc_get_permission_rsp(LittleEndianStructure):
+
+    def __init__(self,
+                 start_hdl: c_uint16 = 0,
+                 perm: attm_svc_perm = attm_svc_perm(),
+                 status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR
+                 ) -> None:
+        self.start_hdl = start_hdl
+        self.perm = perm
+        self.status = status
+        super().__init__(start_hdl=self.start_hdl,
+                         perm=self.perm,
+                         status=self.status)
+
+                # Service start attribute handle
+    _fields_ = [("start_hdl", c_uint16),
+                # service permission
+                ("perm", attm_svc_perm),
+                # Return status
+                ("status", c_uint8)]
+
+
+# Set permission settings of service request
+class gattm_svc_set_permission_req(LittleEndianStructure):
+    def __init__(self,
+                 start_hdl: c_uint16 = 0,
+                 perm: attm_svc_perm = attm_svc_perm(),
+                 ) -> None:
+        self.start_hdl = start_hdl
+        self.perm = perm
+        super().__init__(start_hdl=self.start_hdl,
+                         perm=self.perm,
+                         padding=0)
+
+                # Service start attribute handle
+    _fields_ = [("start_hdl", c_uint16),
+                # service permission
+                ("perm", attm_svc_perm),
+                ("padding", c_uint8)]
+
+
+# Set permission settings of service response
+class gattm_svc_set_permission_rsp(LittleEndianStructure):
+    def __init__(self,
+                 start_hdl: c_uint16 = 0,
+                 status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR
+                 ) -> None:
+
+        self.start_hdl = start_hdl
+        self.status = status
+        super().__init__(start_hdl=self.start_hdl,
+                         status=self.status,
+                         padding=0)
+
+                # Service start attribute handle
+    _fields_ = [("start_hdl", c_uint16),
+                # Return status
+                ("status", c_uint8),
+                ("padding", c_uint8)]
+
+
 '''
-/* Service management */
-/// Get permission settings of service request
-struct gattm_svc_get_permission_req
-{
-    /// Service start attribute handle
-    uint16_t start_hdl;
-};
-
-/// Get permission settings of service response
-struct gattm_svc_get_permission_rsp
-{
-    /// Service start attribute handle
-    uint16_t start_hdl;
-    /// service permission
-    uint8_t perm;
-    /// Return status
-    uint8_t status;
-};
-
-/// Set permission settings of service request
-struct gattm_svc_set_permission_req
-{
-    /// Service start attribute handle
-    uint16_t start_hdl;
-    /// service permission
-    uint8_t perm;
-};
-
-/// Set permission settings of service response
-struct gattm_svc_set_permission_rsp
-{
-    /// Service start attribute handle
-    uint16_t start_hdl;
-    /// Return status
-    uint8_t status;
-};
-
-
 /* Attribute management */
 /// Get permission settings of attribute request
 struct gattm_att_get_permission_req

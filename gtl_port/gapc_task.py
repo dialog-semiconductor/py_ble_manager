@@ -861,18 +861,27 @@ class gapc_param_update_req_ind(LittleEndianStructure):
                 ("time_out", c_uint16)]
 
 
-'''
 # Connection parameters updated indication
-struct gapc_param_updated_ind
-{
-    #Connection interval value
-    uint16_t            con_interval;
-    #Connection latency value
-    uint16_t            con_latency;
-    #Supervision timeout
-    uint16_t            sup_to;
-};
-'''
+class gapc_param_updated_ind(LittleEndianStructure):
+    def __init__(self,
+                 con_interval: c_uint16 = 0,
+                 con_latency: c_uint16 = 0,
+                 sup_to: c_uint16 = 0
+                 ) -> None:
+
+        self.con_interval = con_interval
+        self.con_latency = con_latency
+        self.sup_to = sup_to
+        super().__init__(con_interval=self.con_interval,
+                         con_latency=self.con_latency,
+                         sup_to=self.sup_to)
+
+                # Connection interval value
+    _fields_ = [("con_interval", c_uint16),
+                # Connection latency value
+                ("con_latency", c_uint16),
+                # Supervision timeout
+                ("sup_to", c_uint16)]
 
 
 # Master confirm or not that parameters proposed by slave are accepted or not

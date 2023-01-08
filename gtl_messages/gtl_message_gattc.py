@@ -7,7 +7,7 @@ from gtl_port.gattc_task import GATTC_MSG_ID, gattc_write_req_ind, gattc_write_c
 
 from gtl_port.rwip_config import KE_API_ID
 
-# TODO next message GATTC_MTU_CHANGED_IND, GATTC_ATT_INFO_REQ_IND, GATTC_ATT_INFO_CFM
+# TODO next message GATTC_ATT_INFO_REQ_IND, GATTC_ATT_INFO_CFM
 
 
 class GattcExcMtuCmd(GtlMessageBase):
@@ -69,6 +69,8 @@ class GattcWriteCfm(GtlMessageBase):
                          src_id=KE_API_ID.TASK_ID_GTL,
                          par_len=4,
                          parameters=self.parameters)
+
+# TODO GATTC_ATT_INFO_REQ_IND Table 94, GATTC_ATT_INFO_CFM
 
 
 class GattcReadReqInd(GtlMessageBase):
