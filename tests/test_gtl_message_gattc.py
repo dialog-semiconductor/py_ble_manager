@@ -2,6 +2,29 @@ import unittest
 from gtl_messages.gtl_message_gattc import *
 from gtl_port.gattc_task import *
 
+
+# Table 54
+class TestGattcExcMtuCmd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05010C0C001000040001003412"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcExcMtuCmd()
+        test_message.parameters.operation = GATTC_OPERATION.GATTC_MTU_EXCH
+        test_message.parameters.seq_num = 0x1234
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        test_message = GattcExcMtuCmd(conidx=1)
+        test_message.parameters.operation = GATTC_OPERATION.GATTC_MTU_EXCH
+        test_message.parameters.seq_num = 0x1234
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+
 # Table 95
 class TestGattcWriteReqInd(unittest.TestCase):
 

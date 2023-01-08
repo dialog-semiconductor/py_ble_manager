@@ -371,16 +371,28 @@ class gattc_cmp_evt(LittleEndianStructure):
                 ("seq_num", c_uint16)]
 
 
-'''
 # Service Discovery Command LittleEndianStructure
-struct gattc_exc_mtu_cmd
-{
-    # GATT request type
-    uint8_t operation;
-    # operation sequence number
-    uint16_t seq_num;
-};
+class gattc_exc_mtu_cmd(LittleEndianStructure):
 
+    def __init__(self,
+                 operation: GATTC_OPERATION = GATTC_OPERATION.GATTC_NOTIFY,
+                 seq_num: c_uint16 = 0):
+
+        self.operation = operation
+        self.seq_num = seq_num
+        super().__init__(operation=self.operation,
+                         padding=0,
+                         seq_num=self.seq_num)
+
+                # GATT request type
+    _fields_ = [("operation", c_uint8),
+                ("padding", c_uint8),
+                # operation sequence number
+                ("seq_num", c_uint16)]
+
+
+
+'''
 # Indicate that the ATT MTU has been updated (negotiated)
 struct gattc_mtu_changed_ind
 {
