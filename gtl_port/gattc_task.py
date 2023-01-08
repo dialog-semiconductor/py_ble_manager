@@ -370,7 +370,7 @@ class gattc_cmp_evt(LittleEndianStructure):
         return self._operation
 
     def set_operation(self, new_operation: GATTC_OPERATION = None):
-        if new_operation and (new_operation != GATTC_OPERATION.GATTC_NOTIFY and new_operation != GATTC_OPERATION.GATTC_INDICATE):
+        if (new_operation != GATTC_OPERATION.GATTC_NOTIFY and new_operation != GATTC_OPERATION.GATTC_INDICATE):
             raise TypeError("Operation must be GATTC_OPERATION.GATTC_NOTIFY or GATTC_OPERATION.GATTC_INDICATE")
         self._operation = new_operation
 
