@@ -352,23 +352,29 @@ class gattc_cmp_evt(LittleEndianStructure):
                  status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR,
                  seq_num: c_uint16 = 0):
 
-        # TODO instead make operation a property so user can not set operation incorrectly after construction
-        if operation and (operation != GATTC_OPERATION.GATTC_NOTIFY and operation != GATTC_OPERATION.GATTC_INDICATE):
-            raise TypeError("Operation must be GATTC_OPERATION.GATTC_NOTIFY or GATTC_OPERATION.GATTC_INDICATE")
-
         self.operation = operation
         self.status = status
         self.seq_num = seq_num
-        super().__init__(operation=self.operation,
+        super().__init__(_operation=self._operation,
                          status=self.status,
                          seq_num=self.seq_num)
 
                 # GATT request type
-    _fields_ = [("operation", c_uint8),
+    _fields_ = [("_operation", c_uint8),
                 # Status of the request
                 ("status", c_uint8),
                 # operation sequence number - provided when operation is started
                 ("seq_num", c_uint16)]
+
+    def get_operation(self):
+        return self._operation
+
+    def set_operation(self, new_operation: GATTC_OPERATION = None):
+        if new_operation and (new_operation != GATTC_OPERATION.GATTC_NOTIFY and new_operation != GATTC_OPERATION.GATTC_INDICATE):
+            raise TypeError("Operation must be GATTC_OPERATION.GATTC_NOTIFY or GATTC_OPERATION.GATTC_INDICATE")
+        self._operation = new_operation
+
+    operation = property(get_operation, set_operation)
 
 
 # Service Discovery Command LittleEndianStructure
@@ -1060,7 +1066,7 @@ class gattc_read_cfm(LittleEndianStructure):
 
 # Inform that a modification of database has been requested by peer device.
 class gattc_write_req_ind(LittleEndianStructure):
-    
+
     def __init__(self,
                  handle: c_uint16 = 0,
                  offset: c_uint16 = 0,
