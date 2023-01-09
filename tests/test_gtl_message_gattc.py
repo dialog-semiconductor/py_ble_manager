@@ -66,6 +66,48 @@ class TestGattcWriteReqInd(unittest.TestCase):
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+# Table 94
+class TestGattcAttInfoReqInd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05170C10000C0002001C00"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcAttInfoReqInd()
+        test_message.parameters.handle = 28
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        test_message = GattcAttInfoReqInd(conidx=1)
+        test_message.parameters.handle = 28
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 94
+class TestGattcAttInfoCfm(unittest.TestCase):
+
+    def setUp(self):
+        # TODO manual has wrong PAR_LEN in message string and missing statrus and padding
+        self.expected = "05160C0C00100006001C0000000000"
+
+    def test_parameters_updated_after_construction(self):
+        test_message = GattcAttInfoCfm()
+        test_message.parameters.handle = 28
+        test_message.parameters.length = 0
+        test_message.parameters.status = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        test_message = GattcAttInfoCfm(conidx=1)
+        test_message.parameters.handle = 28
+        test_message.parameters.length = 0
+        test_message.parameters.status = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
 # Table 95
 class TestGattcWriteCfm(unittest.TestCase):
 
@@ -421,6 +463,29 @@ class TestGattcDiscCharInd(unittest.TestCase):
         test_message.parameters.uuid = (c_uint8 * len(uuid)).from_buffer_copy(uuid)
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 135
+class TestGattcSdpSvcInd(unittest.TestCase):
+
+    def setUp(self):
+        self.maxDiff = None
+        # TODO expected string does mot match table
+        self.expected = "05190C0C0010001800150220000100FFFF01180000000000000000000000000000"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcSdpSvcInd()
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        
+        test_message = GattcSdpSvcInd(conidx=1)
+
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+
 
 # Table 136
 class TestGattcSdpSvcDiscCmd(unittest.TestCase):

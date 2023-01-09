@@ -8,17 +8,21 @@ from ble_api.BleGatts import *
 from gtl_port.gapc_task import *
 
 
-first  = gapc_connection_cfm()
-second = gapc_connection_cfm()
+f = open('messages2.txt', 'r', encoding='utf8')
+f2 = open('messages3.txt', 'w', encoding='utf8')
 
-list1 = [1,2,3,4,5,6]
-first.lcsrk.key[:6] = (c_uint8 * 6)(*list1)
+lines = f.readlines()
+#print(lines)
+#contents = f.read()
+#print(contents)
+for row in lines:
+    text = "Symbolic"
+    if row.find(text) != -1:
+        print(row)
+        x = row.split(" .")
+        print(x)
+        string = x[0] + '\n'
+        f2.write(string)
 
-list2 = [7,8,9,10,11,12]
-second.lcsrk.key[:6] = (c_uint8 * 6)(*list2)
-
-
-print(second.lcsrk.key == first.lcsrk.key)
-
-for i in range(0,6):
-    print(f"first[{i}]={first.lcsrk.key[i]}. second[{i}]={second.lcsrk.key[i]}")
+f.close()
+f2.close()

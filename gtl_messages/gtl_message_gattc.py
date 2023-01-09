@@ -3,7 +3,7 @@ from .gtl_message_base import GTL_INITIATOR, GtlMessageBase
 from gtl_port.gattc_task import GATTC_MSG_ID, gattc_write_req_ind, gattc_write_cfm, gattc_read_req_ind, gattc_read_cfm, gattc_send_evt_cmd, \
     gattc_cmp_evt, gattc_event_ind, gattc_event_req_ind, gattc_event_cfm, gattc_disc_cmd, gattc_disc_char_desc_ind, gattc_disc_svc_ind, \
     gattc_disc_svc_incl_ind, gattc_disc_char_ind, gattc_sdp_svc_disc_cmd, gattc_read_cmd, GATTC_OPERATION, gattc_read_ind, gattc_write_cmd, \
-    gattc_exc_mtu_cmd, gattc_mtu_changed_ind
+    gattc_exc_mtu_cmd, gattc_mtu_changed_ind, gattc_att_info_req_ind, gattc_att_info_cfm, gattc_sdp_svc_ind
 
 from gtl_port.rwip_config import KE_API_ID
 
@@ -70,7 +70,31 @@ class GattcWriteCfm(GtlMessageBase):
                          par_len=4,
                          parameters=self.parameters)
 
-# TODO GATTC_ATT_INFO_REQ_IND Table 94, GATTC_ATT_INFO_CFM
+
+class GattcAttInfoReqInd(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gattc_att_info_req_ind = None):
+
+        self.parameters = parameters if parameters else gattc_att_info_req_ind()
+
+        super().__init__(msg_id=GATTC_MSG_ID.GATTC_ATT_INFO_REQ_IND,
+                         dst_id=KE_API_ID.TASK_ID_GTL,
+                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
+                         par_len=2,
+                         parameters=self.parameters)
+
+
+class GattcAttInfoCfm(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gattc_att_info_cfm = None):
+
+        self.parameters = parameters if parameters else gattc_att_info_cfm()
+
+        super().__init__(msg_id=GATTC_MSG_ID.GATTC_WRITE_CFM,
+                         dst_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
+                         src_id=KE_API_ID.TASK_ID_GTL,
+                         par_len=6,
+                         parameters=self.parameters)
 
 
 class GattcReadReqInd(GtlMessageBase):
@@ -324,8 +348,6 @@ class GattcSdpSvcDiscCmd(GtlMessageBase):
                          parameters=self.parameters)
 
 
-'''
-#TODO
 class GattcSdpSvcInd(GtlMessageBase):
 
     def __init__(self, conidx: c_uint8 = 0, parameters: gattc_sdp_svc_ind = None):
@@ -335,10 +357,22 @@ class GattcSdpSvcInd(GtlMessageBase):
         super().__init__(msg_id=GATTC_MSG_ID.GATTC_SDP_SVC_IND,
                          dst_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
                          src_id=KE_API_ID.TASK_ID_GTL,
-                         par_len=22,
+                         par_len=self.par_len,
                          parameters=self.parameters)
 
-'''
+    def get_par_len(self):
+        if self.parameters.operation == GATTC_OPERATION.GATTC_READ or self.parameters.operation == GATTC_OPERATION.GATTC_READ_LONG:
+            self._par_len = 4 + 6
+        elif self.parameters.operation == GATTC_OPERATION.GATTC_READ_BY_UUID:
+            self._par_len = 4 + 6 + self.parameters.req.by_uuid.uuid_len
+        else:  # self.parameters.operation == GATTC_OPERATION.GATTC_READ_MULTIPLE
+            self._par_len = 4 + 4 * self.parameters.nb  # TODO nb not updated properly as set_req not called when updated multiple
+        return self._par_len
+
+    def set_par_len(self, value):
+        self._par_len = value
+
+    par_len = property(get_par_len, set_par_len)
 
 
 class GattcReadCmd(GtlMessageBase):

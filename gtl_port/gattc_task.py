@@ -317,22 +317,20 @@ class GATTC_OPERATION(IntEnum):
     GATTC_LAST = auto()
 
 
-'''
-# Service Discovery Attribute type
-enum gattc_sdp_att_type
-{
+# Servic Discovery Attribute type
+class GATTC_SDP_ATT_TYPE(IntEnum):
     # No Attribute Information
-    GATTC_SDP_NONE,
+    GATTC_SDP_NONE = 0
     # Included Service Information
-    GATTC_SDP_INC_SVC,
+    GATTC_SDP_INC_SVC = auto()
     # Characteristic Declaration
-    GATTC_SDP_ATT_CHAR,
+    GATTC_SDP_ATT_CHAR = auto()
     # Attribute Value
-    GATTC_SDP_ATT_VAL,
+    GATTC_SDP_ATT_VAL = auto()
     # Attribute Descriptor
-    GATTC_SDP_ATT_DESC,
-};
+    GATTC_SDP_ATT_DESC = auto()
 
+'''
 # Command complete event data structure
 struct gattc_op_cmd
 {
@@ -1150,27 +1148,49 @@ struct gattc_svc_changed_cfg
 
     uint16_t ind_cfg;
 };
+'''
 
 
 # Request Attribute info to upper layer - could be trigger during prepare write
-struct gattc_att_info_req_ind
-{
-    # Handle of the attribute for which info are requested
-    uint16_t handle;
-};
+class gattc_att_info_req_ind(LittleEndianStructure):
+
+    def __init__(self,
+                 handle: c_uint16 = 0,
+                 ) -> None:
+
+        self.handle = handle
+        super().__init__(handle=self.handle)
+
+                # Handle of the attribute for which info are requested
+    _fields_ = [("handle", c_uint16)]
+
+
 
 # Attribute info from upper layer confirmation
-struct gattc_att_info_cfm
-{
-    # Handle of the attribute
-    uint16_t handle;
-    # Current length of the attribute
-    uint16_t length;
-    # use to know if it's possible to modify the attribute
-    # can contains authorization or application error code.
-    uint8_t  status;
-};
-'''
+class gattc_att_info_cfm(LittleEndianStructure):
+
+    def __init__(self,
+                 handle: c_uint16 = 0,
+                 length: c_uint16 = 0,
+                 status: c_uint16 = 0,
+                 ) -> None:
+
+        self.handle = handle
+        self.length = length
+        self.status = status
+        super().__init__(handle=self.handle,
+                         length=self.length,
+                         status=self.status,
+                         padding=0)
+
+                # Handle of the attribute
+    _fields_ = [("handle", c_uint16),
+                # Current length of the attribute
+                ("length", c_uint16),
+                # use to know if it's possible to modify the attribute
+                # can contains authorization or application error code.
+                ("status", c_uint8),
+                ("padding", c_uint8)]
 
 
 # Service Discovery command
@@ -1210,7 +1230,7 @@ class gattc_sdp_svc_disc_cmd(LittleEndianStructure):
                 # Search end handle
                 ("end_hdl", c_uint16),
                 # Service UUID
-                ("_uuid", (c_uint8 * ATT_UUID_128_LEN))]  # TODO original c uses ATT_UUID_128_LEN
+                ("_uuid", (c_uint8 * ATT_UUID_128_LEN))]
 
     def get_value(self):
         return self._uuid
@@ -1226,133 +1246,181 @@ class gattc_sdp_svc_disc_cmd(LittleEndianStructure):
     uuid = property(get_value, set_value)
 
 
-'''
+
 # Information about included service
-struct gattc_sdp_include_svc
-{
-    # Attribute Type
-    # - GATTC_SDP_INC_SVC: Included Service Information
-    uint8_t att_type;
-    # Included service UUID Length
-    uint8_t uuid_len;
-    # Included Service UUID
-    uint8_t  uuid[ATT_UUID_128_LEN];
-    # Included service Start Handle
-    uint16_t start_hdl;
-    # Included service End Handle
-    uint16_t end_hdl;
-};
+class gattc_sdp_include_svc(LittleEndianStructure):
+
+    def __init__(self,
+                 uuid: c_uint8 * ATT_UUID_128_LEN = (c_uint8 * ATT_UUID_128_LEN)(),
+                 start_hdl: c_uint16 = 0,
+                 end_hdl: c_uint16 = 0
+                 ) -> None:
+
+        self.att_type = GATTC_SDP_ATT_TYPE.GATTC_SDP_INC_SVC
+        self.uuid = uuid
+        self.uuid_len = len(uuid) # TODO need pass in uuid_len?
+        self.start_hdl = start_hdl
+        self.end_hdl = end_hdl
+        super().__init__(att_type=self.att_type,
+                         uuid_len=self.uuid_len,
+                         uuid=self.uuid,
+                         start_hdl=self.start_hdl,
+                         end_hdl=self.end_hdl)
+
+                # Attribute Type
+                # - GATTC_SDP_INC_SVC: Included Service Information
+    _fields_ = [("att_type", c_uint8),
+                # Included service UUID Length
+                ("uuid_len", c_uint8),
+                # Included Service UUID
+                ("uuid", c_uint8 * ATT_UUID_128_LEN),  # TODO Need property?
+                # Included service Start Handle
+                ("start_hdl", c_uint16),
+                 # Included service End Handle
+                ("end_hdl", c_uint16)]
+
+
 
 # Information about attribute characteristic
-struct gattc_sdp_att_char
-{
-    # Attribute Type
-    # - GATTC_SDP_ATT_CHAR: Characteristic Declaration
-    uint8_t att_type;
-    # Value property
-    uint8_t prop;
-    # Value Handle
-    uint16_t handle;
-};
+class gattc_sdp_att_char(LittleEndianStructure):
+    def __init__(self,
+                 prop: c_uint16 = 0,
+                 handle: c_uint16 = 0,
+                 ) -> None:
+
+        self.att_type = GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_CHAR
+        self.prop = prop
+        self.handle = handle
+        super().__init__(att_type=self.att_type,
+                         prop=self.prop,
+                         handle=self.handle)
+
+
+                # Attribute Type
+                # - GATTC_SDP_ATT_CHAR: Characteristic Declaration
+    _fields_ = [("att_type", c_uint8),
+                #  Value property
+                ("prop", c_uint8),
+                # Value Handle
+                ("handle", c_uint16),]
+
+
 
 # Information about attribute
-struct gattc_sdp_att
-{
-    # Attribute Type
-    # - GATTC_SDP_ATT_VAL: Attribute Value
-    # - GATTC_SDP_ATT_DESC: Attribute Descriptor
-    uint8_t  att_type;
-    # Attribute UUID Length
-    uint8_t  uuid_len;
-    # Attribute UUID
-    uint8_t  uuid[ATT_UUID_128_LEN];
-};
+class gattc_sdp_att(LittleEndianStructure):
+
+    def __init__(self,
+                 att_type: GATTC_SDP_ATT_TYPE = GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_VAL,
+                 uuid: c_uint8 * ATT_UUID_128_LEN = (c_uint8 * ATT_UUID_128_LEN)(),
+                 ) -> None:
+
+        self.att_type = att_type
+        self.uuid_len = len(uuid)  # TODO do we need to pass in uuid_len
+        self.uuid = uuid
+        super().__init__(att_type=self.att_type,
+                         uuid_len=self.uuid_len,
+                         uuid=self.uuid)
+
+
+                # Attribute Type
+                # - GATTC_SDP_ATT_VAL: Attribute Value
+                # - GATTC_SDP_ATT_DESC: Attribute Descriptor
+    _fields_ = [("_att_type", c_uint8),
+                # Attribute UUID Length
+                ("uuid_len", c_uint8),
+                # Attribute UUID
+                ("uuid", c_uint8 * ATT_UUID_128_LEN)]
+
+    def get_att_type(self):
+        return self._att_type
+
+    def set_att_type(self, new_att_type: GATTC_SDP_ATT_TYPE):
+        if new_att_type != GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_VAL or new_att_type != GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_DESC:
+            raise TypeError("att_type must be GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_VAL or GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_DESC")
+        self._att_type = new_att_type
+
+    att_type = property(get_att_type, get_att_type)
+
+    
+
+
 
 # Attribute information
-union gattc_sdp_att_info
-{
-    # Attribute Type
-    uint8_t att_type;
-    # Information about attribute characteristic
-    struct gattc_sdp_att_char att_char;
-    # Information about included service
-    struct gattc_sdp_include_svc inc_svc;
-    # Information about attribute
-    struct gattc_sdp_att att;
-};
+class gattc_sdp_att_info(Union):
 
-'''
+    def __init__(self,
+                 att_type: GATTC_SDP_ATT_TYPE = GATTC_SDP_ATT_TYPE.GATTC_SDP_INC_SVC,
+                 att_char: gattc_sdp_att_char = gattc_sdp_att_char(),
+                 inc_svc: gattc_sdp_include_svc = gattc_sdp_include_svc(),
+                 att: gattc_sdp_att = gattc_sdp_att()):
 
-'''
+        if att_type:
+            self.att_type = att_type
+            super().__init__(att_type=self.att_type)
+        elif att_char:
+            self.att_char = att_char
+            super().__init__(att_char=self.att_char)
+        elif inc_svc:
+            self.inc_svc = inc_svc
+            super().__init__(inc_svc=self.inc_svc)
+        elif att:
+            self.att = att
+            super().__init__(att=self.att)
+        else:
+            self.att_type = att_type
+            super().__init__(simple=self.att_type)
+
+                # Attribute Type
+    _fields_ = [("att_type", c_uint8),
+                # Information about attribute characteristic
+                ("att_char", gattc_sdp_att_char),
+                # Information about included service
+                ("inc_svc", gattc_sdp_include_svc),
+                # Information about attribute
+                ("att", gattc_sdp_att)]  # This field is not included in original struct, but is required to keep track of _multiple length
+
+
 # Service Discovery indicate that a service has been found.
 class gattc_sdp_svc_ind(LittleEndianStructure):
 
     def __init__(self,
-
-                 uuid: Array[c_uint8] = None,
+                 uuid_len: c_uint8 = 0,
+                 uuid: c_uint8 * ATT_UUID_128_LEN = (c_uint8 * ATT_UUID_128_LEN)(),
                  start_hdl: c_uint16 = 0,
                  end_hdl: c_uint16 = 0,
-                ):
+                 info: Array[gattc_sdp_att_info] = None
+                 ) -> None:
 
-        self.operation = operation
-        self.seq_num = seq_num
+        self.uuid_len = uuid_len
+        self.uuid = uuid
         self.start_hdl = start_hdl
         self.end_hdl = end_hdl
-        self.uuid = uuid
-        super().__init__(operation=self.operation,
-                         uuid_len=self.uuid_len,
-                         seq_num=self.seq_num,
+        self.info = info
+        super().__init__(uuid_len=self.uuid_len,
+                         uuid=self.uuid,
                          start_hdl=self.start_hdl,
                          end_hdl=self.end_hdl,
-                         _uuid=self._uuid)
+                         _info=self._info)
 
-                # GATT Request Type
-                # - GATTC_SDP_DISC_SVC Search specific service
-                # - GATTC_SDP_DISC_SVC_ALL Search for all services
-                # - GATTC_SDP_DISC_CANCEL Cancel Service Discovery Procedure
-    _fields_ = [("operation", c_uint8),
                 # Service UUID Length
-                ("uuid_len", c_uint8),
-                # operation sequence number
-                ("seq_num", c_uint16),
-                # Search start handle
-                ("start_hdl", c_uint16),
-                # Search end handle
-                ("end_hdl", c_uint16),
+    _fields_ = [("uuid_len", c_uint8),
                 # Service UUID
-                ("_uuid", (c_uint8 * ATT_UUID_128_LEN))] #TODO original c uses ATT_UUID_128_LEN
+                ("uuid", c_uint8 * ATT_UUID_128_LEN),
+                # Service start handle
+                ("start_hdl", c_uint16),
+                # Service end handle
+                ("end_hdl", c_uint16),
+                # attribute information present in the service
+                # (length = end_hdl - start_hdl)
+                ("_info"), POINTER(gattc_sdp_att_info)]
 
+    def get_info(self):
+        return cast(self._info, POINTER(c_uint8 * (self.end_hdl - self.start_hdl))).contents
 
-        # Service UUID Length
-    uint8_t  uuid_len;
-    # Service UUID
-    uint8_t  uuid[ATT_UUID_128_LEN];
-    # Service start handle
-    uint16_t start_hdl;
-    # Service end handle
-    uint16_t end_hdl;
-    # attribute information present in the service
-    # (length = end_hdl - start_hdl)
-    union gattc_sdp_att_info info[__ARRAY_EMPTY];
+    def set_info(self, new_info: Array[gattc_sdp_att_info]):
+        self._info = new_info if new_info else pointer(gattc_sdp_att_info)
 
-
-    def get_value(self):
-        return self._uuid
-
-    def set_value(self, new_value: Array[c_uint8]):
-        if not self._uuid:
-            self._uuid = (c_uint8 * ATT_UUID_128_LEN)()
-        set_value = new_value if new_value else (c_uint8 * ATT_UUID_128_LEN)()
-        # TODO raise error if not 2, 4, or 16
-        self.uuid_len = len(set_value)
-        memmove(self._uuid, set_value, self.uuid_len)
-
-         #TODO raise error if length > 512
-        self._value = new_value if new_value else pointer(c_uint8(0))
-        self.length = len(new_value) if new_value else 1
-
-    uuid = property(get_value, set_value)
-'''
+    info = property(get_info, set_info)
 
 
 '''
