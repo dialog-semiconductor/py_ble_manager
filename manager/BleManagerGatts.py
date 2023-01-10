@@ -151,7 +151,9 @@ class BleManagerGatts(BleManagerBase):
             evt.type = GATT_EVENT.GATT_EVENT_INDICATION
         evt.status = gtl.parameters.status
 
-        # TODO remove pending events from dev in storage queue
+        dev = self._stored_device_list.find_device_by_conn_idx(evt.conn_idx)
+        if dev is not None:
+            dev.pending_events_clear_handle(evt.handle)
 
         self._mgr_event_queue_send(evt)
 

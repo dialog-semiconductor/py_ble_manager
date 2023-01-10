@@ -2,6 +2,7 @@ import asyncio
 
 from adapter.BleAdapter import BleAdapter
 from ble_api.BleApiBase import BleApiBase
+from ble_api.BleAtt import ATT_ERROR
 from ble_api.BleCommon import BleEventBase, BLE_ERROR
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_EVT_GAP, BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatt import GATT_EVENT
@@ -80,12 +81,21 @@ class BlePeripheral(BleApiBase):
             if service.write_req:
                 status = service.write_req(evt)
                 error = await self.ble_gatts.send_write_cfm(evt.conn_idx, evt.handle, status)
-                if error != BLE_ERROR.BLE_STATUS_OK:
+                if error == BLE_ERROR.BLE_STATUS_OK and status == ATT_ERROR.ATT_ERROR_OK:
+                    # TODO Update value in database. Only update if char is readable (not read indicate)
+                    # error = await self.ble_gatts.set_value(evt.handle, evt.value)
+                    if error != BLE_ERROR.BLE_STATUS_OK:
+                        # TODO raise error? Return additional value?
+                        pass
+                else:
                     # TODO raise error? Return additional value?
                     pass
             return True
 
         return False
+
+    def _ms_to_adv_slots(self, time_ms) -> int:
+        return int((time_ms) * 1000 // 625)
 
     async def get_event(self, timeout_seconds: float = 0) -> BleEventBase:  # TODO add timeout?
         evt = None
@@ -169,9 +179,7 @@ class BlePeripheral(BleApiBase):
         return handled
 
         '''
-        case BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED:
-                disconnected_evt((const ble_evt_gap_disconnected_t *) evt);
-                return false; // make it "not handled" so app can handle
+
 
         case return.BLE_EVT_GATTS_WRITE_REQ:
                 return write_req((const ble_evt_gatts_write_req_t *) evt);
@@ -198,14 +206,6 @@ class BlePeripheral(BleApiBase):
         response: BleMgrGapAdvStartRsp = await self.ble_manager.cmd_execute(command)
         return response.status
 
-    def set_advertising_interval(self, adv_intv_min_ms, adv_intv_max_ms) -> None:
-        self.ble_manager.gap_mgr.dev_params.adv_intv_min = self._ms_to_adv_slots(adv_intv_min_ms)
-        self.ble_manager.gap_mgr.dev_params.adv_intv_max = self._ms_to_adv_slots(adv_intv_max_ms)
-        # TODO save current setting in local?
-
-    def _ms_to_adv_slots(self, time_ms) -> int:
-        return int((time_ms) * 1000 // 625)
-
     async def send_event(self,
                          conn_idx: int = 0,
                          handle: int = 0,
@@ -217,6 +217,11 @@ class BlePeripheral(BleApiBase):
         if service:
             error = await self.ble_gatts.send_event(conn_idx, handle, type, value)
         return error
+
+    def set_advertising_interval(self, adv_intv_min_ms, adv_intv_max_ms) -> None:
+        self.ble_manager.gap_mgr.dev_params.adv_intv_min = self._ms_to_adv_slots(adv_intv_min_ms)
+        self.ble_manager.gap_mgr.dev_params.adv_intv_max = self._ms_to_adv_slots(adv_intv_max_ms)
+        # TODO save current setting in local?
 
     async def set_value(self, handle: int, value: bytes) -> BLE_ERROR:
         error = BLE_ERROR.BLE_ERROR_FAILED

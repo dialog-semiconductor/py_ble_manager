@@ -120,6 +120,12 @@ class StoredDevice():
         evt = PendingEvent(handle)
         self.pending_events.push(evt)
 
+    def pending_events_clear_handle(self, handle: int) -> None:
+        event: PendingEvent
+        for event in self.pending_events.queue:
+            if event.handle == handle:
+                self.pending_events.remove(event)
+
 
 class StoredDeviceQueue(SearchableQueue):
     def __init__(self) -> None:
