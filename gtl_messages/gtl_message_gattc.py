@@ -370,55 +370,24 @@ class GattcSdpSvcInd(GtlMessageBase):
 
     par_len = property(get_par_len, set_par_len)
 
-    #TODO use _struct_to_bytearray instead
-    def to_bytes(self):  # TODO Cannot find way to handle gattc_sdp_svc_ind elegantly. Should to str method be created for union as well?
+    def _struct_to_bytearray(self, parameters: gattc_sdp_svc_ind):  # TODO Cannot find way to handle gattc_sdp_svc_ind elegantly. Should to str method be created for union as well?
         message = bytearray()
-        message.append(GTL_INITIATOR)
-        message.extend(self.msg_id.value.to_bytes(length=2, byteorder='little'))
-        message.extend(self.dst_id.to_bytes(length=2, byteorder='little'))
-        message.extend(self.src_id.to_bytes(length=2, byteorder='little'))
-        message.extend(self.par_len.to_bytes(length=2, byteorder='little'))
-        message.extend(self.parameters.uuid_len.to_bytes(length=1, byteorder='little'))
-        message.extend(bytearray(self.parameters.uuid))
+        message.extend(parameters.uuid_len.to_bytes(length=1, byteorder='little'))
+        message.extend(bytearray(parameters.uuid))
         message.extend(bytearray(c_uint8(0)))  # padding
-        message.extend(self.parameters.start_hdl.to_bytes(length=2, byteorder='little'))
-        message.extend(self.parameters.end_hdl.to_bytes(length=2, byteorder='little'))
-        
+        message.extend(parameters.start_hdl.to_bytes(length=2, byteorder='little'))
+        message.extend(parameters.end_hdl.to_bytes(length=2, byteorder='little'))
+
         info: gattc_sdp_att_info
-       # print(self.parameters.info)
-        for info in self.parameters.info:
-        #    print(f"info index {info}")
+        for info in parameters.info:
             if info.att_type == GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_CHAR:
-        #        print(f"type. att_char={info.att_char}")
                 message.extend(bytearray(info.att_char))
             elif info.att_type == GATTC_SDP_ATT_TYPE.GATTC_SDP_INC_SVC:
-        #        print(f"type. inc_svc={info.inc_svc}")
                 message.extend(bytearray(info.inc_svc))
             if info.att_type == GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_VAL or info.att_type == GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_DESC:
-        #        print(f"type. att={info.att}")
                 message.extend(bytearray(info.att))
-        # info_length = (self.parameters.end_hdl - self.parameters.start_hdl)
-        # info = self.parameters.info
-        # for i in range(0, info_length):
-        #     print(f"adding info[{i}] = {info[i]}")
-        #    message.extend(bytearray(info[i]))
 
         return message
-
-'''
-            if info.att_type == GATTC_SDP_ATT_TYPE.GATTC_SDP_INC_SVC
-                simple = bytearray(self.parameters.req.simple)
-                message.extend(info)
-        elif self.parameters.operation == GATTC_OPERATION.GATTC_READ_BY_UUID:
-            message.extend(self.parameters.req.by_uuid.start_hdl.to_bytes(length=2, byteorder='little'))
-            message.extend(self.parameters.req.by_uuid.end_hdl.to_bytes(length=2, byteorder='little'))
-            message.extend(self.parameters.req.by_uuid.uuid_len.to_bytes(length=2, byteorder='little'))
-            message.extend(bytearray(self.parameters.req.by_uuid.uuid))
-        else:
-            array = self.parameters.req.multiple
-            for item in array:
-                message.extend(bytearray(item))
-'''      
 
 
 class GattcReadCmd(GtlMessageBase):
@@ -447,28 +416,22 @@ class GattcReadCmd(GtlMessageBase):
 
     par_len = property(get_par_len, set_par_len)
 
-    # TODO _struct_to_bytearray instead
-    def to_bytes(self):  # TODO Cannot find way to handle gattc_read_cmd elegantly. Should to str method be created for union as well?
+    def _struct_to_bytearray(self, parameters: gattc_read_cmd):  # TODO Cannot find way to handle gattc_read_cmd elegantly. Should to str method be created for union as well?
         message = bytearray()
-        message.append(GTL_INITIATOR)
-        message.extend(self.msg_id.value.to_bytes(length=2, byteorder='little'))
-        message.extend(self.dst_id.to_bytes(length=2, byteorder='little'))
-        message.extend(self.src_id.to_bytes(length=2, byteorder='little'))
-        message.extend(self.par_len.to_bytes(length=2, byteorder='little'))
-        message.extend(self.parameters.operation.to_bytes(length=1, byteorder='little'))
-        message.extend(self.parameters.nb.to_bytes(length=1, byteorder='little'))
-        message.extend(self.parameters.seq_num.to_bytes(length=2, byteorder='little'))
+        message.extend(parameters.operation.to_bytes(length=1, byteorder='little'))
+        message.extend(parameters.nb.to_bytes(length=1, byteorder='little'))
+        message.extend(parameters.seq_num.to_bytes(length=2, byteorder='little'))
 
-        if self.parameters.operation == GATTC_OPERATION.GATTC_READ or self.parameters.operation == GATTC_OPERATION.GATTC_READ_LONG:
-            simple = bytearray(self.parameters.req.simple)
+        if parameters.operation == GATTC_OPERATION.GATTC_READ or parameters.operation == GATTC_OPERATION.GATTC_READ_LONG:
+            simple = bytearray(parameters.req.simple)
             message.extend(simple)
         elif self.parameters.operation == GATTC_OPERATION.GATTC_READ_BY_UUID:
-            message.extend(self.parameters.req.by_uuid.start_hdl.to_bytes(length=2, byteorder='little'))
-            message.extend(self.parameters.req.by_uuid.end_hdl.to_bytes(length=2, byteorder='little'))
-            message.extend(self.parameters.req.by_uuid.uuid_len.to_bytes(length=2, byteorder='little'))
-            message.extend(bytearray(self.parameters.req.by_uuid.uuid))
+            message.extend(parameters.req.by_uuid.start_hdl.to_bytes(length=2, byteorder='little'))
+            message.extend(parameters.req.by_uuid.end_hdl.to_bytes(length=2, byteorder='little'))
+            message.extend(parameters.req.by_uuid.uuid_len.to_bytes(length=2, byteorder='little'))
+            message.extend(bytearray(parameters.req.by_uuid.uuid))
         else:
-            array = self.parameters.req.multiple
+            array = parameters.req.multiple
             for item in array:
                 message.extend(bytearray(item))
 
@@ -518,26 +481,7 @@ class GattcWriteCmd(GtlMessageBase):
 
     par_len = property(get_par_len, set_par_len)
 
-    # TODO use _struct_to_bytearray instead
-    def to_bytes(self):  # TODO if value is odd padding added? Cannot find way to handle in structure so overriding to_bytes
-        message = bytearray()
-        message.append(GTL_INITIATOR)
-        message.extend(self.msg_id.value.to_bytes(length=2, byteorder='little'))
-        message.extend(self.dst_id.to_bytes(length=2, byteorder='little'))
-        message.extend(self.src_id.to_bytes(length=2, byteorder='little'))
-        message.extend(self.par_len.to_bytes(length=2, byteorder='little'))
-        message.extend(self.parameters.operation.to_bytes(length=1, byteorder='little'))
-        message.extend(self.parameters.auto_execute.to_bytes(length=1, byteorder='little'))
-        message.extend(self.parameters.seq_num.to_bytes(length=2, byteorder='little'))
-        message.extend(self.parameters.handle.to_bytes(length=2, byteorder='little'))
-        message.extend(self.parameters.offset.to_bytes(length=2, byteorder='little'))
-        message.extend(self.parameters.length.to_bytes(length=2, byteorder='little'))
-        message.extend(self.parameters.cursor.to_bytes(length=2, byteorder='little'))
-        message.extend(bytearray(self.parameters.value))
-        if (self.parameters.length % 2):
-            message.extend(bytearray.fromhex("00"))
-
-        return message
+    
 # TODO GATTC_WRITE_EXECUTE_CMD
 # TODO setup Git Action for unit tests
 # TODO setup Flake8 for linting
