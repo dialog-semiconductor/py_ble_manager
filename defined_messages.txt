@@ -48,7 +48,7 @@ DONE        Table 122: GATTC_DISC_SVC_IND Symbolic Message Structure
 DONE        Table 126: G ATTC_DISC_SVC_INCL_IND Symbolic Message Structure
 DONE        Table 131: GATTC_DISC_CHAR_IND Symbolic Message Structure
 DONE        Table 134: GATTC_SDP_SVC_DISC_CMD Symbolic Message Structure
-            Table 135: GATTC_SDP_SVC_IND Symbolic Message Structure
+DONE        Table 135: GATTC_SDP_SVC_IND Symbolic Message Structure
 DONE        Table 145: GATTC_READ_CMD Symbolic Message Structure
 DONE        Table 147: GATTC_READ_IND Symbolic Message Structure
 DONE        Table 160: GATTC_WRITE_CMD Symbolic Message Structure
