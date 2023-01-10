@@ -74,16 +74,27 @@ class BleManagerGap(BleManagerBase):
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PHY_SET_CMD: None
         }
 
-
-
         # TODO separate gapm and gapc?
         self.evt_handlers = {
-            GAPM_MSG_ID.GAPM_CMP_EVT: self.cmp_evt_handler,
+            GAPM_MSG_ID.GAPM_DEV_BDADDR_IND: None,
+            GAPM_MSG_ID.GAPM_ADV_REPORT_IND: None,
             GAPC_MSG_ID.GAPC_CONNECTION_REQ_IND: self.connected_evt_handler,
             GAPC_MSG_ID.GAPC_GET_DEV_INFO_REQ_IND: self.get_device_info_req_evt_handler,
+            GAPC_MSG_ID.GAPC_SET_DEV_INFO_REQ_IND: None,
             GAPC_MSG_ID.GAPC_DISCONNECT_IND: self.disconnected_evt_handler,
-            # BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_STOP_CMD: self.gap_adv_stop_cmd_handler,
-            # BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CMD: self.connect_cmd_handler,
+            GAPC_MSG_ID.GAPC_PEER_VERSION_IND: None,
+            GAPC_MSG_ID.GAPC_CON_RSSI_IND: None,
+            GAPC_MSG_ID.GAPC_PARAM_UPDATE_REQ_IND: None,
+            GAPC_MSG_ID.GAPC_PARAM_UPDATED_IND: None,
+            GAPC_MSG_ID.GAPC_BOND_REQ_IND: None,
+            GAPC_MSG_ID.GAPC_BOND_IND: None,
+            GAPC_MSG_ID.GAPC_SECURITY_IND: None,
+            GAPC_MSG_ID.GAPC_SIGN_COUNTER_IND: None,
+            GAPC_MSG_ID.GAPC_ENCRYPT_REQ_IND: None,
+            GAPC_MSG_ID.GAPC_ENCRYPT_IND: None,
+            GAPM_MSG_ID.GAPM_ADDR_SOLVED_IND: None,
+            GAPC_MSG_ID.GAPC_LE_PKT_SIZE_IND: None,
+            GAPM_MSG_ID.GAPM_CMP_EVT: self.cmp_evt_handler,
         }
 
     def _adv_cmp_evt_handler(self, gtl: GapmCmpEvt):
@@ -438,10 +449,10 @@ class BleManagerGap(BleManagerBase):
         dev_params_gtl = self._dev_params_to_gtl()
         dev_params_gtl.parameters.role = self._ble_role_to_gtl_role(command.role)
         self._wait_q.add(BLE_CONN_IDX_INVALID,
-                             GAPM_MSG_ID.GAPM_CMP_EVT,
-                             GAPM_OPERATION.GAPM_SET_DEV_CONFIG,
-                             self._set_role_rsp,
-                             command.role)
+                         GAPM_MSG_ID.GAPM_CMP_EVT,
+                         GAPM_OPERATION.GAPM_SET_DEV_CONFIG,
+                         self._set_role_rsp,
+                         command.role)
 
         self._adapter_command_queue_send(dev_params_gtl)
 
@@ -488,6 +499,7 @@ static const ble_mgr_cmd_handler_t h_gap[BLE_MGR_CMD_GET_IDX(BLE_MGR_GAP_LAST_CM
 };
 
 void ble_mgr_gap_dev_bdaddr_ind_evt_handler(ble_gtl_msg_t *gtl);
+void dev_bdaddr_ind_evt_handler(ble_gtl_msg_t *gtl);
 void ble_mgr_gap_adv_report_evt_handler(ble_gtl_msg_t *gtl);
 void ble_mgr_gap_connected_evt_handler(ble_gtl_msg_t *gtl);                 STARTED
 void ble_mgr_gap_get_device_info_req_evt_handler(ble_gtl_msg_t *gtl);       STARTED
