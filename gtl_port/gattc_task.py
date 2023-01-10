@@ -1165,7 +1165,6 @@ class gattc_att_info_req_ind(LittleEndianStructure):
     _fields_ = [("handle", c_uint16)]
 
 
-
 # Attribute info from upper layer confirmation
 class gattc_att_info_cfm(LittleEndianStructure):
 
@@ -1246,7 +1245,6 @@ class gattc_sdp_svc_disc_cmd(LittleEndianStructure):
     uuid = property(get_value, set_value)
 
 
-
 # Information about included service
 class gattc_sdp_include_svc(LittleEndianStructure):
 
@@ -1258,12 +1256,12 @@ class gattc_sdp_include_svc(LittleEndianStructure):
 
         self.att_type = GATTC_SDP_ATT_TYPE.GATTC_SDP_INC_SVC
         self.uuid = uuid
-        self.uuid_len = len(uuid) # TODO need pass in uuid_len?
         self.start_hdl = start_hdl
         self.end_hdl = end_hdl
         super().__init__(att_type=self.att_type,
                          uuid_len=self.uuid_len,
-                         uuid=self.uuid,
+                         _uuid=self._uuid,
+                         padding=(c_uint8 * 4)(),
                          start_hdl=self.start_hdl,
                          end_hdl=self.end_hdl)
 
@@ -1273,12 +1271,25 @@ class gattc_sdp_include_svc(LittleEndianStructure):
                 # Included service UUID Length
                 ("uuid_len", c_uint8),
                 # Included Service UUID
-                ("uuid", c_uint8 * ATT_UUID_128_LEN),  # TODO Need property?
+                ("_uuid", c_uint8 * ATT_UUID_128_LEN),
+                ("padding", c_uint8 * 4),
                 # Included service Start Handle
                 ("start_hdl", c_uint16),
-                 # Included service End Handle
+                # Included service End Handle
                 ("end_hdl", c_uint16)]
 
+    def get_uuid(self):
+        return self._uuid  # TODO could return self._uuid[:self.uuid_len]
+
+    def set_uuid(self, uuid: Array[c_uint8]):
+        if len(uuid) == 2 or len(uuid) == 4 or len(uuid) == 16:
+            self._uuid = (c_uint8 * ATT_UUID_128_LEN)()
+            self._uuid[:len(uuid)] = uuid
+            self.uuid_len = len(uuid)
+        else:
+            raise TypeError("uuid length must be 2, 4, or 16")
+
+    uuid = property(get_uuid, set_uuid)
 
 
 # Information about attribute characteristic
@@ -1293,8 +1304,8 @@ class gattc_sdp_att_char(LittleEndianStructure):
         self.handle = handle
         super().__init__(att_type=self.att_type,
                          prop=self.prop,
-                         handle=self.handle)
-
+                         handle=self.handle,
+                         padding=(c_uint8 * 18)())
 
                 # Attribute Type
                 # - GATTC_SDP_ATT_CHAR: Characteristic Declaration
@@ -1302,8 +1313,8 @@ class gattc_sdp_att_char(LittleEndianStructure):
                 #  Value property
                 ("prop", c_uint8),
                 # Value Handle
-                ("handle", c_uint16),]
-
+                ("handle", c_uint16),
+                ("padding", c_uint8 * 18)]
 
 
 # Information about attribute
@@ -1315,12 +1326,12 @@ class gattc_sdp_att(LittleEndianStructure):
                  ) -> None:
 
         self.att_type = att_type
-        self.uuid_len = len(uuid)  # TODO do we need to pass in uuid_len
         self.uuid = uuid
-        super().__init__(att_type=self.att_type,
+        
+        super().__init__(_att_type=self.att_type,
                          uuid_len=self.uuid_len,
-                         uuid=self.uuid)
-
+                         _uuid=self._uuid,
+                         padding=(c_uint8 * 4)())
 
                 # Attribute Type
                 # - GATTC_SDP_ATT_VAL: Attribute Value
@@ -1329,27 +1340,38 @@ class gattc_sdp_att(LittleEndianStructure):
                 # Attribute UUID Length
                 ("uuid_len", c_uint8),
                 # Attribute UUID
-                ("uuid", c_uint8 * ATT_UUID_128_LEN)]
+                ("_uuid", c_uint8 * ATT_UUID_128_LEN),
+                ("padding", c_uint8 * 4)]
 
     def get_att_type(self):
         return self._att_type
 
     def set_att_type(self, new_att_type: GATTC_SDP_ATT_TYPE):
-        if new_att_type != GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_VAL or new_att_type != GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_DESC:
+        if new_att_type != GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_VAL and new_att_type != GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_DESC:
             raise TypeError("att_type must be GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_VAL or GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_DESC")
         self._att_type = new_att_type
 
-    att_type = property(get_att_type, get_att_type)
+    att_type = property(get_att_type, set_att_type)
 
-    
+    def get_uuid(self):
+        return self._uuid  # TODO could return self._uuid[:self.uuid_len]
 
+    def set_uuid(self, uuid: Array[c_uint8]):
+        if len(uuid) == 2 or len(uuid) == 4 or len(uuid) == 16:
+            self._uuid = (c_uint8 * ATT_UUID_128_LEN)()
+            self._uuid[:len(uuid)] = uuid
+            self.uuid_len = len(uuid)
+        else:
+            raise TypeError("uuid length must be 2, 4, or 16")
+
+    uuid = property(get_uuid, set_uuid)
 
 
 # Attribute information
 class gattc_sdp_att_info(Union):
 
     def __init__(self,
-                 att_type: GATTC_SDP_ATT_TYPE = GATTC_SDP_ATT_TYPE.GATTC_SDP_INC_SVC,
+                 att_type: GATTC_SDP_ATT_TYPE = GATTC_SDP_ATT_TYPE.GATTC_SDP_NONE,
                  att_char: gattc_sdp_att_char = gattc_sdp_att_char(),
                  inc_svc: gattc_sdp_include_svc = gattc_sdp_include_svc(),
                  att: gattc_sdp_att = gattc_sdp_att()):
@@ -1384,20 +1406,19 @@ class gattc_sdp_att_info(Union):
 class gattc_sdp_svc_ind(LittleEndianStructure):
 
     def __init__(self,
-                 uuid_len: c_uint8 = 0,
                  uuid: c_uint8 * ATT_UUID_128_LEN = (c_uint8 * ATT_UUID_128_LEN)(),
                  start_hdl: c_uint16 = 0,
                  end_hdl: c_uint16 = 0,
                  info: Array[gattc_sdp_att_info] = None
                  ) -> None:
 
-        self.uuid_len = uuid_len
         self.uuid = uuid
         self.start_hdl = start_hdl
         self.end_hdl = end_hdl
         self.info = info
         super().__init__(uuid_len=self.uuid_len,
-                         uuid=self.uuid,
+                         _uuid=self._uuid,
+                         padding=0,
                          start_hdl=self.start_hdl,
                          end_hdl=self.end_hdl,
                          _info=self._info)
@@ -1405,22 +1426,36 @@ class gattc_sdp_svc_ind(LittleEndianStructure):
                 # Service UUID Length
     _fields_ = [("uuid_len", c_uint8),
                 # Service UUID
-                ("uuid", c_uint8 * ATT_UUID_128_LEN),
+                ("_uuid", c_uint8 * ATT_UUID_128_LEN),
+                ("padding", c_uint8),
                 # Service start handle
                 ("start_hdl", c_uint16),
                 # Service end handle
                 ("end_hdl", c_uint16),
                 # attribute information present in the service
                 # (length = end_hdl - start_hdl)
-                ("_info"), POINTER(gattc_sdp_att_info)]
+                ("_info", POINTER(gattc_sdp_att_info))]
 
     def get_info(self):
-        return cast(self._info, POINTER(c_uint8 * (self.end_hdl - self.start_hdl))).contents
+        return cast(self._info, POINTER(gattc_sdp_att_info * (self.end_hdl - self.start_hdl))).contents
 
     def set_info(self, new_info: Array[gattc_sdp_att_info]):
-        self._info = new_info if new_info else pointer(gattc_sdp_att_info)
+        self._info = new_info if new_info else pointer(gattc_sdp_att_info())
 
     info = property(get_info, set_info)
+
+    def get_uuid(self):
+        return self._uuid  # TODO could return self._uuid[:self.uuid_len]
+
+    def set_uuid(self, uuid: Array[c_uint8]):
+        if len(uuid) == 2 or len(uuid) == 4 or len(uuid) == 16:
+            self._uuid = (c_uint8 * ATT_UUID_128_LEN)()
+            self._uuid[:len(uuid)] = uuid
+            self.uuid_len = len(uuid)
+        else:
+            raise TypeError("uuid length must be 2, 4, or 16")
+
+    uuid = property(get_uuid, set_uuid)
 
 
 '''

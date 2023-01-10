@@ -69,7 +69,7 @@ class TestGattmAddSvcReq(unittest.TestCase):
 
         att_list = []
         # att 1 
-        # TODO is there a better way to handle 16bit ids
+        # TODO is there a better way to handle 16bit ids  # TODO see gattc_sdp_att implementation
         uuid_str = bytearray.fromhex("00")*(ATT_UUID_128_LEN-2) + bytearray.fromhex("2803") 
         uuid_str.reverse()
         att = gattm_att_desc()

@@ -228,8 +228,8 @@ class BleManagerGatts(BleManagerBase):
                 self._attr_idx += 1
                 h_offset = self._attr_idx
 
-                # Characteristic value attribute
-                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].uuid[:] = command.uuid.uuid
+                # Characteristic value attribute  # TODO align assigning uuid with gattc_sdp_svc_ind or vice versa
+                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].uuid[:len(command.uuid.uuid)] = command.uuid.uuid
                 self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].perm = self._api_to_rwperm(command.prop, command.perm, command.uuid.type)
                 self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].max_len_read_ind.max_len = command.max_len
                 self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].max_len_read_ind.trigger_read_indication = command.flags

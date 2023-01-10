@@ -1,10 +1,10 @@
-from ctypes import c_uint8
+from ctypes import c_uint8, Array
 from .gtl_message_base import GTL_INITIATOR, GtlMessageBase
 from gtl_port.gattc_task import GATTC_MSG_ID, gattc_write_req_ind, gattc_write_cfm, gattc_read_req_ind, gattc_read_cfm, gattc_send_evt_cmd, \
     gattc_cmp_evt, gattc_event_ind, gattc_event_req_ind, gattc_event_cfm, gattc_disc_cmd, gattc_disc_char_desc_ind, gattc_disc_svc_ind, \
     gattc_disc_svc_incl_ind, gattc_disc_char_ind, gattc_sdp_svc_disc_cmd, gattc_read_cmd, GATTC_OPERATION, gattc_read_ind, gattc_write_cmd, \
-    gattc_exc_mtu_cmd, gattc_mtu_changed_ind, gattc_att_info_req_ind, gattc_att_info_cfm, gattc_sdp_svc_ind
-
+    gattc_exc_mtu_cmd, gattc_mtu_changed_ind, gattc_att_info_req_ind, gattc_att_info_cfm, gattc_sdp_svc_ind, gattc_sdp_att_info, \
+    GATTC_SDP_ATT_TYPE
 from gtl_port.rwip_config import KE_API_ID
 
 # TODO next message GATTC_ATT_INFO_REQ_IND, GATTC_ATT_INFO_CFM
@@ -355,24 +355,70 @@ class GattcSdpSvcInd(GtlMessageBase):
         self.parameters = parameters if parameters else gattc_sdp_svc_ind()
 
         super().__init__(msg_id=GATTC_MSG_ID.GATTC_SDP_SVC_IND,
-                         dst_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
-                         src_id=KE_API_ID.TASK_ID_GTL,
+                         dst_id=KE_API_ID.TASK_ID_GTL,
+                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
                          par_len=self.par_len,
                          parameters=self.parameters)
 
     def get_par_len(self):
-        if self.parameters.operation == GATTC_OPERATION.GATTC_READ or self.parameters.operation == GATTC_OPERATION.GATTC_READ_LONG:
-            self._par_len = 4 + 6
-        elif self.parameters.operation == GATTC_OPERATION.GATTC_READ_BY_UUID:
-            self._par_len = 4 + 6 + self.parameters.req.by_uuid.uuid_len
-        else:  # self.parameters.operation == GATTC_OPERATION.GATTC_READ_MULTIPLE
-            self._par_len = 4 + 4 * self.parameters.nb  # TODO nb not updated properly as set_req not called when updated multiple
+        info_length = (self.parameters.end_hdl - self.parameters.start_hdl)
+        self._par_len = (info_length + 1) * 22
         return self._par_len
 
     def set_par_len(self, value):
         self._par_len = value
 
     par_len = property(get_par_len, set_par_len)
+
+    #TODO use _struct_to_bytearray instead
+    def to_bytes(self):  # TODO Cannot find way to handle gattc_sdp_svc_ind elegantly. Should to str method be created for union as well?
+        message = bytearray()
+        message.append(GTL_INITIATOR)
+        message.extend(self.msg_id.value.to_bytes(length=2, byteorder='little'))
+        message.extend(self.dst_id.to_bytes(length=2, byteorder='little'))
+        message.extend(self.src_id.to_bytes(length=2, byteorder='little'))
+        message.extend(self.par_len.to_bytes(length=2, byteorder='little'))
+        message.extend(self.parameters.uuid_len.to_bytes(length=1, byteorder='little'))
+        message.extend(bytearray(self.parameters.uuid))
+        message.extend(bytearray(c_uint8(0)))  # padding
+        message.extend(self.parameters.start_hdl.to_bytes(length=2, byteorder='little'))
+        message.extend(self.parameters.end_hdl.to_bytes(length=2, byteorder='little'))
+        
+        info: gattc_sdp_att_info
+       # print(self.parameters.info)
+        for info in self.parameters.info:
+        #    print(f"info index {info}")
+            if info.att_type == GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_CHAR:
+        #        print(f"type. att_char={info.att_char}")
+                message.extend(bytearray(info.att_char))
+            elif info.att_type == GATTC_SDP_ATT_TYPE.GATTC_SDP_INC_SVC:
+        #        print(f"type. inc_svc={info.inc_svc}")
+                message.extend(bytearray(info.inc_svc))
+            if info.att_type == GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_VAL or info.att_type == GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_DESC:
+        #        print(f"type. att={info.att}")
+                message.extend(bytearray(info.att))
+        # info_length = (self.parameters.end_hdl - self.parameters.start_hdl)
+        # info = self.parameters.info
+        # for i in range(0, info_length):
+        #     print(f"adding info[{i}] = {info[i]}")
+        #    message.extend(bytearray(info[i]))
+
+        return message
+
+'''
+            if info.att_type == GATTC_SDP_ATT_TYPE.GATTC_SDP_INC_SVC
+                simple = bytearray(self.parameters.req.simple)
+                message.extend(info)
+        elif self.parameters.operation == GATTC_OPERATION.GATTC_READ_BY_UUID:
+            message.extend(self.parameters.req.by_uuid.start_hdl.to_bytes(length=2, byteorder='little'))
+            message.extend(self.parameters.req.by_uuid.end_hdl.to_bytes(length=2, byteorder='little'))
+            message.extend(self.parameters.req.by_uuid.uuid_len.to_bytes(length=2, byteorder='little'))
+            message.extend(bytearray(self.parameters.req.by_uuid.uuid))
+        else:
+            array = self.parameters.req.multiple
+            for item in array:
+                message.extend(bytearray(item))
+'''      
 
 
 class GattcReadCmd(GtlMessageBase):
@@ -401,6 +447,7 @@ class GattcReadCmd(GtlMessageBase):
 
     par_len = property(get_par_len, set_par_len)
 
+    # TODO _struct_to_bytearray instead
     def to_bytes(self):  # TODO Cannot find way to handle gattc_read_cmd elegantly. Should to str method be created for union as well?
         message = bytearray()
         message.append(GTL_INITIATOR)
@@ -471,6 +518,7 @@ class GattcWriteCmd(GtlMessageBase):
 
     par_len = property(get_par_len, set_par_len)
 
+    # TODO use _struct_to_bytearray instead
     def to_bytes(self):  # TODO if value is odd padding added? Cannot find way to handle in structure so overriding to_bytes
         message = bytearray()
         message.append(GTL_INITIATOR)
