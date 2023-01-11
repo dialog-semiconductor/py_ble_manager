@@ -1,4 +1,4 @@
-import asyncio
+from typing import Callable
 
 from ble_api.BleCommon import bd_address
 from ble_api.BleGap import GAP_SEC_LEVEL, BLE_GAP_PHY
@@ -31,7 +31,8 @@ class PendingEventQueue(SearchableQueue):
 
 
 class AppValue():
-    def __init__(self, key: int = 0, persistent: bool = False, length: int = 0, free_cb: callable = None) -> None:
+    # TODO add agrs/return type to Callable
+    def __init__(self, key: int = 0, persistent: bool = False, length: int = 0, free_cb: Callable = None) -> None:
         self.key = key  # TODO storage key type?
         self.persistent = persistent
         # self.length = length

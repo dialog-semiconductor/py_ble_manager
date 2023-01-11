@@ -1,3 +1,4 @@
+from typing import Callable
 
 from ble_api.BleAtt import ATT_PERM, ATT_ERROR
 from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
@@ -7,7 +8,8 @@ from services.BleService import BleServiceBase, GattService, GattCharacteristic,
 
 
 class CustomBleServiceCallbacks():
-    def __init__(self, char1_read_callback: callable = None) -> None:
+    def __init__(self, char1_read_callback: Callable[[], tuple[ATT_ERROR, bytes]] = None) -> None:
+        # char1_read_callback is a function that takes no arguments and returns a tuple[ATT_ERROR, bytes]
         self.char1_read_callback = char1_read_callback if char1_read_callback else None
 
 

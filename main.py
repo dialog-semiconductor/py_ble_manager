@@ -9,7 +9,7 @@ from ble_api.BleGatt import GATT_EVENT
 from services.CustomBleService import CustomBleService, CustomBleServiceCallbacks
 
 
-def app_char1_read_callback(svc):
+def app_char1_read_callback():
     print("app_char1_read_callback")
     status = ATT_ERROR.ATT_ERROR_OK
     data = 0x05
