@@ -9,11 +9,12 @@ from ble_api.BleGatt import GATT_EVENT
 from services.CustomBleService import CustomBleService, CustomBleServiceCallbacks
 
 
-def app_char1_read_callback():
+async def app_char1_read_callback(svc: CustomBleService, conn_idx: int):
     print("app_char1_read_callback")
     status = ATT_ERROR.ATT_ERROR_OK
     data = 0x05
-    return status, data.to_bytes(1, byteorder='little')
+
+    await svc.send_char1_read_cfm(conn_idx, status, data.to_bytes(1, byteorder='little'))
 
 
 async def user_main(sample_q: asyncio.Queue):
@@ -43,8 +44,8 @@ async def ble_task(sample_q: asyncio.Queue):
     my_service.init()
 
     await periph.register_service(my_service)
-    await periph.set_value(my_service.gatt_characteristics[1].char.handle, (0x8692).to_bytes(2, 'little'))
-    await periph.set_value(my_service.gatt_characteristics[2].descriptors[0].handle, b"Hello")
+    await my_service.set_char2_value((0x8692).to_bytes(2, 'little'))
+    await my_service.set_char3_user_desc_value(b"Hello")
 
     periph.set_advertising_interval(20, 30)
     await periph.start_advertising()
@@ -62,10 +63,8 @@ async def ble_task(sample_q: asyncio.Queue):
             if task is timer_read_task:
                 sample: int = task.result()
                 if my_service.ccc == 1:
-                    error = await periph.send_event(0,
-                                                    my_service.gatt_characteristics[2].char.handle,
-                                                    GATT_EVENT.GATT_EVENT_NOTIFICATION,
-                                                    sample.to_bytes(4, byteorder='little'))
+                    # TODO how to get conn_idx?
+                    error = await my_service.notify_char3(0, sample.to_bytes(4, byteorder='little'))
                     print(f"Notification sent. sample = {sample}, error = {error}")
 
                 timer_read_task = asyncio.create_task(sample_q.get(), name='sample_q_Read')

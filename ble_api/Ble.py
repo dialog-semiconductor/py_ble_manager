@@ -160,6 +160,7 @@ class BlePeripheral(BleApiBase):
                 error = await self.ble_gatts.register_service(svc)
                 if error == BLE_ERROR.BLE_STATUS_OK:
                     self._services.append(svc)
+                    svc.periph = self
 
         return error
 

@@ -6,6 +6,10 @@ from ble_api.BleCommon import BleEventBase
 from ble_api.BleApiBase import BlePeripheral
 
 
+class AttributeHandle():
+    def __init__(self):
+        self.handle = 0
+
 class GattService():
     def __init__(self,
                  uuid: att_uuid = None,
@@ -73,6 +77,8 @@ class BleServiceBase():
         self.included_services: list[BleServiceBase] = []
         # TODO included services
         self.gatt_characteristics: list[GattCharacteristic] = []
+
+        self.periph: BlePeripheral = None
 
     # TODO num_attr should be a property. Should auto calculate num attr
     def _get_num_attr(self) -> int:
