@@ -55,6 +55,7 @@ class CustomBleService(BleServiceBase):
         desc.max_len = 10
         my_char.descriptors.append(desc)
 
+        # TODO getting a GattcReadReqInd for this descriptor?
         desc = Descriptor()
         desc.uuid.uuid = self._uuid_from_str("2902")
         desc.perm = ATT_PERM.ATT_PERM_RW
@@ -75,15 +76,23 @@ class CustomBleService(BleServiceBase):
         print("CustomBleService disconnected_evt")
 
     def read_req(self, evt: BleEventGattsReadReq):
+        print(f"CustomBleService read_req. evt.handle={evt.handle}.")
         status = ATT_ERROR.ATT_ERROR_APPLICATION_ERROR
         data = None
         for item in self.gatt_characteristics:
             if evt.handle == item.char.handle:
                 if self.callbacks.char1_read_callback:
                     status, data = self.callbacks.char1_read_callback()
+            else:
+                desc: Descriptor
+                for desc in item.descriptors:
+                    if evt.handle == desc.handle:
+                        print(f"CustomBleService. read_req. evt={evt.handle}, desc={desc.handle}")
+                        # TODO need to confirm status and provide value of ccc
+                        status = ATT_ERROR.ATT_ERROR_OK
+                        # Hardcoding to 0 for now
+                        data = int.to_bytes(0, length=2, byteorder='little')
 
-        print(f"CustomBleService read_req. evt.handle={evt.handle}. char1.handle={self.gatt_characteristics[0].char.handle}"
-              f"char2.handle={self.gatt_characteristics[1].char.handle}")
         return status, data
 
     def write_req(self, evt: BleEventGattsWriteReq):
