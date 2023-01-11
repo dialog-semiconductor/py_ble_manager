@@ -125,20 +125,21 @@ class BlePeripheral(BleApiBase):
                     break
 
             for i in range(0, len(svc.gatt_char_defs)):
-                item = svc.gatt_char_defs[i]
+                gatt_char_def = svc.gatt_char_defs[i]
+                char_def = gatt_char_def.char_def
                 # TODO is there a case where you need the char declartion handle offset (h_offset)?
-                error, _, svc.gatt_char_defs[i].char_def.handle.value = await self.ble_gatts.add_characteristic(item.char_def.uuid,
-                                                                                                                item.char_def.prop,
-                                                                                                                item.char_def.perm,
-                                                                                                                item.char_def.max_len,
-                                                                                                                item.char_def.flags)
+                error, _, char_def.handle.value = await self.ble_gatts.add_characteristic(char_def.uuid,
+                                                                                          char_def.prop,
+                                                                                          char_def.perm,
+                                                                                          char_def.max_len,
+                                                                                          char_def.flags)
                 if error == BLE_ERROR.BLE_STATUS_OK:
-                    for j in range(0, len(item.desc_defs)):
-                        desc = item.desc_defs[j]
-                        error, svc.gatt_char_defs[i].desc_defs[j].handle.value = await self.ble_gatts.add_descriptor(desc.uuid,
-                                                                                                                     desc.perm,
-                                                                                                                     desc.max_len,
-                                                                                                                     desc.flags)
+                    for j in range(0, len(gatt_char_def.desc_defs)):
+                        desc = gatt_char_def.desc_defs[j]
+                        error, desc.handle.value = await self.ble_gatts.add_descriptor(desc.uuid,
+                                                                                       desc.perm,
+                                                                                       desc.max_len,
+                                                                                       desc.flags)
                         if error != BLE_ERROR.BLE_STATUS_OK:
                             break
                     # Break out of both loops
