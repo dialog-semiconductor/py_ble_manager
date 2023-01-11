@@ -8,10 +8,21 @@ from ble_api.BleGatts import GATTS_FLAGS, BleEventGattsWriteReq, BleEventGattsPr
 from services.BleService import BleServiceBase, GattService, GattCharacteristic, Descriptor, AttributeHandle
 from ble_api.Ble import BlePeripheral
 
+
+class CustomBleService(BleServiceBase):
+    # TODO this is to satisfy typing in CustomBleServiceCallbacks
+    pass
+
 class CustomBleServiceCallbacks():
-    def __init__(self, char1_read_callback: Callable[[BlePeripheral, int], tuple[ATT_ERROR, bytes]] = None) -> None:
-        # char1_read_callback is a function that takes a BlePeripheral, int  and returns a tuple[ATT_ERROR, bytes]
-        self.char1_read_callback = char1_read_callback if char1_read_callback else None
+    def __init__(self,
+                 char1_read_callback: Callable[[CustomBleService, int], None] = None,
+                 char1_write_callback: Callable[[CustomBleService, int, int], None] = None,
+                 char2_write_callback: Callable[[CustomBleService, int, int], None] = None
+                 ) -> None:
+        # char1_read_callback is a function that takes a CustomBleService, int  and returns nothing
+        self.char1_read_callback = char1_read_callback
+        self.char1_write_callback = char1_write_callback
+        self.char2_write_callback = char2_write_callback
 
 
 class CustomBleService(BleServiceBase):
@@ -24,8 +35,9 @@ class CustomBleService(BleServiceBase):
         self.char_3_value_h = AttributeHandle()
         self.char_3_user_desc_h = AttributeHandle()
         self.char_3_ccc_h = AttributeHandle()
-        # TODO elegant way to create callback structure? Pass them in on construction?
-        # self.callbacks = {"CHAR1_APPLICATION_READ_CB", self.char1_read_callback}
+
+        self.periph: BlePeripheral = None
+
 
     def init(self):
         self.gatt_service = GattService()
@@ -81,8 +93,6 @@ class CustomBleService(BleServiceBase):
         # TODO included services
         self.gatt_service.num_attrs = self._get_num_attr()
 
-        self.periph: BlePeripheral = None
-
     def connected_evt(self, evt: BleEventGapConnected):
         print("CustomBleService connected_evt")
 
@@ -91,37 +101,35 @@ class CustomBleService(BleServiceBase):
 
     async def read_req(self, evt: BleEventGattsReadReq):
         print("CustomBleService write_req")
-        for item in self.gatt_characteristics:  # TODO should nto have to loop every handle to get the one you want
-            if evt.handle == item.char.handle.value:
-                if self.callbacks.char1_read_callback:
-                    await self.callbacks.char1_read_callback(self, evt.conn_idx)
 
-            else:
-                desc: Descriptor
-                for desc in item.descriptors:
-                    if evt.handle == desc.handle.value:
-                        status = ATT_ERROR.ATT_ERROR_OK
-                        data = int.to_bytes(0, length=2, byteorder='little')
-                        # TODO get ccc from storage
-                        await self.periph.send_read_cfm(evt.conn_idx, evt.handle, status, data)
-                       
-    def write_req(self, evt: BleEventGattsWriteReq):
+        if evt.handle == self.char_1_value_h.value:
+            if self.callbacks.char1_read_callback:
+                await self.callbacks.char1_read_callback(self, evt.conn_idx)
+        elif evt.handle == self.char_3_ccc_h.value:
+            status = ATT_ERROR.ATT_ERROR_OK
+            data = int.to_bytes(0, length=2, byteorder='little')
+            # TODO get ccc from storage
+            await self.periph.send_read_cfm(evt.conn_idx, evt.handle, status, data)
+        else:
+            await self.periph.send_read_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_READ_NOT_PERMITTED, 0)
+
+    async def write_req(self, evt: BleEventGattsWriteReq):
         print("CustomBleService write_req")
-        status = ATT_ERROR.ATT_ERROR_APPLICATION_ERROR
-        for item in self.gatt_characteristics:
-            if evt.handle == item.char.handle:
-                status = ATT_ERROR.ATT_ERROR_OK
-                print(f"CustomBleService write_req. Char write handle={evt.handle} value={evt.value}")
 
-            else:
-                for desc in item.descriptors:
-                    if evt.handle == desc.handle:
-                        status = ATT_ERROR.ATT_ERROR_OK
-                        print(f"CustomBleService write_req. Desc write handle={evt.handle} value={evt.value}")
-                        self.ccc = int.from_bytes(evt.value, "little")
-
-                # TODO To update value in databse, need to call Ble.set_value. Rethink how to achieve
-        return status
+        if evt.handle == self.char_1_value_h.value:
+            # TODO any validation on input
+            if self.callbacks.char1_write_callback:
+                await self.callbacks.char1_write_callback(self, evt.conn_idx, evt.value)
+        elif evt.handle == self.char_2_value_h.value:
+            # TODO any validation on input
+            if self.callbacks.char2_write_callback:
+                await self.callbacks.char2_write_callback(self, evt.conn_idx, evt.value)
+        elif evt.handle == self.char_3_ccc_h.value:
+            # TODO put ccc value in storage
+            status = ATT_ERROR.ATT_ERROR_OK
+            await self.periph.send_write_cfm(evt.conn_idx, evt.handle, status)
+        else:
+            await self.periph.send_write_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_WRITE_NOT_PERMITTED)
 
     def prepare_write_req(self, evt: BleEventGattsPrepareWriteReq):
         print("CustomBleService prepare_write_req")
@@ -143,6 +151,20 @@ class CustomBleService(BleServiceBase):
                                                status,
                                                value)
 
+    async def send_char1_write_cfm(self,
+                                   conn_idx: int = 0,
+                                   status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
+                                   ) -> BLE_ERROR:
+
+        return await self.periph.send_write_cfm(conn_idx, self.char_1_value_h.value, status)
+
+    async def send_char2_write_cfm(self,
+                                   conn_idx: int = 0,
+                                   status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
+                                   ) -> BLE_ERROR:
+
+        return await self.periph.send_write_cfm(conn_idx, self.char_2_value_h.value, status)
+
     async def set_char2_value(self,
                               value: bytes
                               ) -> BLE_ERROR:
@@ -157,7 +179,8 @@ class CustomBleService(BleServiceBase):
 
     async def notify_char3(self,
                            conn_idx: int = 0,
-                           value: bytes = None) -> BLE_ERROR:
+                           value: bytes = None
+                           ) -> BLE_ERROR:
 
         return await self.periph.send_event(conn_idx,
                                             self.char_3_value_h.value,

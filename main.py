@@ -11,10 +11,21 @@ from services.CustomBleService import CustomBleService, CustomBleServiceCallback
 
 async def app_char1_read_callback(svc: CustomBleService, conn_idx: int):
     print("app_char1_read_callback")
-    status = ATT_ERROR.ATT_ERROR_OK
     data = 0x05
+    await svc.send_char1_read_cfm(conn_idx,
+                                  ATT_ERROR.ATT_ERROR_OK,
+                                  data.to_bytes(1, byteorder='little'))
 
-    await svc.send_char1_read_cfm(conn_idx, status, data.to_bytes(1, byteorder='little'))
+
+async def app_char1_write_callback(svc: CustomBleService, conn_idx: int, value: bytes):
+    print(f"app_char1_write_callback. conn_idx={conn_idx}, value={value}")
+    await svc.send_char1_write_cfm(conn_idx, ATT_ERROR.ATT_ERROR_OK)
+
+
+async def app_char2_write_callback(svc: CustomBleService, conn_idx: int, value: bytes):
+    print(f"app_char2_write_callback. conn_idx={conn_idx}, value={value}")
+    await svc.send_char2_write_cfm(conn_idx, ATT_ERROR.ATT_ERROR_OK)
+    await svc.set_char2_value(value)
 
 
 async def user_main(sample_q: asyncio.Queue):
@@ -39,7 +50,9 @@ async def ble_task(sample_q: asyncio.Queue):
     await periph.init()
     await periph.start()
 
-    my_service_callbacks = CustomBleServiceCallbacks(app_char1_read_callback)
+    my_service_callbacks = CustomBleServiceCallbacks(app_char1_read_callback,
+                                                     app_char1_write_callback,
+                                                     app_char2_write_callback)
     my_service = CustomBleService(my_service_callbacks)
     my_service.init()
 
@@ -63,7 +76,7 @@ async def ble_task(sample_q: asyncio.Queue):
             if task is timer_read_task:
                 sample: int = task.result()
                 if my_service.ccc == 1:
-                    # TODO how to get conn_idx?
+                    # TODO how to get conn_idx? Notify all connected method?
                     error = await my_service.notify_char3(0, sample.to_bytes(4, byteorder='little'))
                     print(f"Notification sent. sample = {sample}, error = {error}")
 

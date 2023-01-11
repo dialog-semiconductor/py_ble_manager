@@ -75,15 +75,7 @@ class BlePeripheral(BleApiBase):
         service = self._find_service_by_handle(evt.handle)
         if service:
             if service.write_req:
-                status = service.write_req(evt)
-                error = await self.ble_gatts.send_write_cfm(evt.conn_idx, evt.handle, status)
-                # TODO how to allow service to set value in database after write?
-                # Add a callback to service when write_cfm complete?
-                # Pass this BlePeripheral object to write_req to allow the service to 
-                # perform operations?
-                if error != BLE_ERROR.BLE_STATUS_OK:
-                    # TODO raise error? Return additional value?
-                    pass
+                await service.write_req(evt)
             return True
 
         return False
@@ -172,6 +164,14 @@ class BlePeripheral(BleApiBase):
                             ) -> BLE_ERROR:
 
         return await self.ble_gatts.send_read_cfm(conn_idx, handle, status, data)
+
+    async def send_write_cfm(self,
+                             conn_idx: int = 0,
+                             handle: int = 0,
+                             status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
+                             ) -> BLE_ERROR:
+
+        return await self.ble_gatts.send_write_cfm(conn_idx, handle, status)
 
     async def service_handle_event(self, evt: BleEventBase) -> bool:
         handled = False
