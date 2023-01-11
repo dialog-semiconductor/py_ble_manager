@@ -34,7 +34,7 @@
 
 '''
 
-from ctypes import Array, cast, c_uint8, c_uint16, LittleEndianStructure, pointer, POINTER, Union, c_bool
+from ctypes import Array, cast, c_uint8, c_uint16, LittleEndianStructure, pointer, POINTER, Union, c_bool, c_uint32
 from enum import auto, IntEnum
 
 from .attm import ATTM_PERM
@@ -1129,38 +1129,56 @@ struct gapm_dbg_mem_info_ind
     uint16_t mem_used[KE_MEM_BLOCK_MAX];
 };
 #endif // (KE_PROFILING)
-
+'''
 
 # Create new task for specific profile
-struct gapm_profile_task_add_cmd
-{
-    # GAPM requested operation:
-    #  - GAPM_PROFILE_TASK_ADD: Add new profile task
-    uint8_t  operation;
-    # Security Level :
-    #  7    6    5    4    3    2    1    0
-    # +----+----+----+----+----+----+----+----+
-    # |     Reserved      |  AUTH   |EKS | MI |
-    # +----+----+----+----+----+----+----+----+
-    #
-    # - MI: 1 - Application task is a Multi-Instantiated task, 0 - Mono-Instantiated
-    # Only applies for service - Ignored by collectors:
-    # - EKS: Service needs a 16 bytes encryption key
-    # - AUTH: 0 - Disable, 1 - Enable, 2 - Unauth, 3 - Auth, 4 - Sec
-    uint8_t  sec_lvl;
-    # Profile task identifier
-    uint16_t prf_task_id;
-    # Application task number
-    uint16_t app_task;
-    # Service start handle
-    # Only applies for services - Ignored by collectors
-    # 0: dynamically allocated in Attribute database
-    uint16_t start_hdl;
-    # 32 bits value that contains value to initialize profile (database parameters, etc...)
-    uint32_t param[__ARRAY_EMPTY];
-};
+class gapm_profile_task_add_cmd(LittleEndianStructure):
+
+    def __init__(self,
+                 op: gapm_air_operation = gapm_air_operation(),
+                 intv_min: c_uint16 = 0,
+                 intv_max: c_uint16 = 0,
+                 channel_map: ADV_CHANNEL_MAP = ADV_CHANNEL_MAP.ADV_ALL_CHNLS_EN,
+                 info: gapm_adv_info = gapm_adv_info()):
+        self.op = op
+        self.intv_min = intv_min
+        self.intv_max = intv_max
+        self.channel_map = channel_map
+        self.info = info
+        super().__init__(operation=self.op,
+                         intv_min=self.intv_min,
+                         intv_max=self.intv_max,
+                         channel_map=self.channel_map,
+                         info=self.info)
+
+               # GAPM requested operation:
+                #  - GAPM_PROFILE_TASK_ADD: Add new profile task
+    _fields_ = [("op", c_uint8),
+                # Security Level :
+                #  7    6    5    4    3    2    1    0
+                # +----+----+----+----+----+----+----+----+
+                # |     Reserved      |  AUTH   |EKS | MI |
+                # +----+----+----+----+----+----+----+----+
+                #
+                # - MI: 1 - Application task is a Multi-Instantiated task, 0 - Mono-Instantiated
+                # Only applies for service - Ignored by collectors:
+                # - EKS: Service needs a 16 bytes encryption key
+                # - AUTH: 0 - Disable, 1 - Enable, 2 - Unauth, 3 - Auth, 4 - Sec
+                ("sec_lvl", c_uint8),
+                # Profile task identifier
+                ("prf_task_id", c_uint16),
+                # Application task number
+                ("app_task", c_uint16),
+                # Service start handle
+                # Only applies for services - Ignored by collectors
+                # 0: dynamically allocated in Attribute database
+                # Advertising information
+                ("start_hdl", c_uint16),
+                # 32 bits value that contains value to initialize profile (database parameters, etc...)
+                 ("param", c_uint32)]  # TODO SDK uses zero len array. Does this need to be pointer? 
 
 
+'''
 # Inform that profile task has been added.
 struct gapm_profile_added_ind
 {

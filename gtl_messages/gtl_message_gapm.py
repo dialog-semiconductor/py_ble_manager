@@ -88,4 +88,7 @@ class GapmStartConnectionCmd(GtlMessageBase):
 
     par_len = property(get_par_len, set_par_len)
 
+
+
+
 # TODO next message GAPM_RESOLV_ADDR_CMD, GAPM_ADDR_SOLVED_IND

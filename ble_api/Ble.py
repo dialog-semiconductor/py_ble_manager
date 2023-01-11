@@ -81,13 +81,7 @@ class BlePeripheral(BleApiBase):
             if service.write_req:
                 status = service.write_req(evt)
                 error = await self.ble_gatts.send_write_cfm(evt.conn_idx, evt.handle, status)
-                if error == BLE_ERROR.BLE_STATUS_OK and status == ATT_ERROR.ATT_ERROR_OK:
-                    # TODO Update value in database. Only update if char is readable (not read indicate)
-                    # error = await self.ble_gatts.set_value(evt.handle, evt.value)
-                    if error != BLE_ERROR.BLE_STATUS_OK:
-                        # TODO raise error? Return additional value?
-                        pass
-                else:
+                if error != BLE_ERROR.BLE_STATUS_OK:
                     # TODO raise error? Return additional value?
                     pass
             return True
@@ -131,7 +125,13 @@ class BlePeripheral(BleApiBase):
         error = await self.ble_gatts.add_service(svc.gatt_service.uuid,
                                                  svc.gatt_service.type,
                                                  svc.gatt_service.num_attrs)
+        # TODO not sure if included svc handled correctly                              
         if error == BLE_ERROR.BLE_STATUS_OK:
+            for i in range(0, len(svc.included_services)):
+                error, _ = await self.ble_gatts.add_include(svc.included_services[i].start_h)
+                if error != BLE_ERROR.BLE_STATUS_OK:
+                    break
+
             for i in range(0, len(svc.gatt_characteristics)):
                 item = svc.gatt_characteristics[i]
                 # TODO is there a case where you need the char declartion handle offset (h_offset)?
