@@ -66,11 +66,7 @@ class BlePeripheral(BleApiBase):
         service = self._find_service_by_handle(evt.handle)
         if service:
             if service.read_req:
-                status, data = service.read_req(evt)
-                error = await self.ble_gatts.send_read_cfm(evt.conn_idx, evt.handle, status, data)
-                if error != BLE_ERROR.BLE_STATUS_OK:
-                    # TODO raise error? Return additional value?
-                    pass
+                await service.read_req(self, evt)
             return True
 
         return False
@@ -166,6 +162,15 @@ class BlePeripheral(BleApiBase):
                     self._services.append(svc)
 
         return error
+
+    async def send_read_cfm(self,
+                            conn_idx: int = 0, 
+                            handle: int = 0, 
+                            status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK, 
+                            data: bytes = None
+                            ) -> BLE_ERROR:
+
+        return await self.ble_gatts.send_read_cfm(conn_idx, handle, status, data)
 
     async def service_handle_event(self, evt: BleEventBase) -> bool:
         handled = False

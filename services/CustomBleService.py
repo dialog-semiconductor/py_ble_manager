@@ -1,11 +1,12 @@
 from typing import Callable
 
 from ble_api.BleAtt import ATT_PERM, ATT_ERROR
+from ble_api.BleCommon import BLE_ERROR
 from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
 from ble_api.BleGatts import GATTS_FLAGS, BleEventGattsWriteReq, BleEventGattsPrepareWriteReq, BleEventGattsEventSent, BleEventGattsReadReq
 from services.BleService import BleServiceBase, GattService, GattCharacteristic, Descriptor
-
+from ble_api.Ble import BlePeripheral
 
 class CustomBleServiceCallbacks():
     def __init__(self, char1_read_callback: Callable[[], tuple[ATT_ERROR, bytes]] = None) -> None:
@@ -75,14 +76,19 @@ class CustomBleService(BleServiceBase):
     def disconnected_evt(self, evt: BleEventGapDisconnected):
         print("CustomBleService disconnected_evt")
 
-    def read_req(self, evt: BleEventGattsReadReq):
-        print(f"CustomBleService read_req. evt.handle={evt.handle}.")
+    async def read_req(self, svc: BlePeripheral, evt: BleEventGattsReadReq):
         status = ATT_ERROR.ATT_ERROR_APPLICATION_ERROR
         data = None
         for item in self.gatt_characteristics:
             if evt.handle == item.char.handle:
                 if self.callbacks.char1_read_callback:
                     status, data = self.callbacks.char1_read_callback()
+
+                    # TODO move this to 
+                    error = await svc.send_read_cfm(evt.conn_idx, evt.handle, status, data)
+                    if error != BLE_ERROR.BLE_STATUS_OK:
+                        # TODO raise error? Return additional value?
+                        pass
             else:
                 desc: Descriptor
                 for desc in item.descriptors:
@@ -92,7 +98,10 @@ class CustomBleService(BleServiceBase):
                         status = ATT_ERROR.ATT_ERROR_OK
                         # Hardcoding to 0 for now
                         data = int.to_bytes(0, length=2, byteorder='little')
-
+                        error = await svc.send_read_cfm(evt.conn_idx, evt.handle, status, data)
+                        if error != BLE_ERROR.BLE_STATUS_OK:
+                            # TODO raise error? Return additional value?
+                            pass
         return status, data
 
     def write_req(self, evt: BleEventGattsWriteReq):

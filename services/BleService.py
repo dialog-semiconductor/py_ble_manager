@@ -3,6 +3,7 @@ from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
 from ble_api.BleGatts import GATTS_FLAGS, BleEventGattsReadReq, BleEventGattsEventSent, BleEventGattsPrepareWriteReq
 from ble_api.BleCommon import BleEventBase
+from ble_api.BleApiBase import BlePeripheral
 
 
 class GattService():
@@ -117,7 +118,7 @@ class BleServiceBase():
     def prepare_write_req(self, evt: BleEventGattsPrepareWriteReq) -> None:
         pass
 
-    def read_req(self, evt: BleEventGattsReadReq) -> tuple[ATT_ERROR, bytes]:
+    def read_req(self, svc: BlePeripheral, evt: BleEventGattsReadReq) -> tuple[ATT_ERROR, bytes]:
         # Service implementations should return a status indicating any error, and the data to be read in bytes
         pass
 
