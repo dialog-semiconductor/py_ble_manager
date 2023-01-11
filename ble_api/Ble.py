@@ -107,6 +107,13 @@ class BlePeripheral(BleApiBase):
 
         return evt
 
+    async def get_value(self, handle: int, max_len: int) -> BLE_ERROR:
+        error = BLE_ERROR.BLE_ERROR_FAILED
+        service = self._find_service_by_handle(handle)
+        if service:
+            error = await self.ble_gatts.get_value(handle, max_len)
+        return error
+
     async def init(self) -> None:
         try:
             # Open the serial port the the 531
@@ -128,13 +135,12 @@ class BlePeripheral(BleApiBase):
             for i in range(0, len(svc.gatt_characteristics)):
                 item = svc.gatt_characteristics[i]
                 # TODO is there a case where you need the char declartion handle offset (h_offset)?
-                error, char_decl, svc.gatt_characteristics[i].char.handle = await self.ble_gatts.add_characteristic(item.char.uuid,
-                                                                                                                    item.char.prop,
-                                                                                                                    item.char.perm,
-                                                                                                                    item.char.max_len,
-                                                                                                                    item.char.flags)
+                error, _, svc.gatt_characteristics[i].char.handle = await self.ble_gatts.add_characteristic(item.char.uuid,
+                                                                                                            item.char.prop,
+                                                                                                            item.char.perm,
+                                                                                                            item.char.max_len,
+                                                                                                            item.char.flags)
                 if error == BLE_ERROR.BLE_STATUS_OK:
-
                     for j in range(0, len(item.descriptors)):
                         desc = item.descriptors[j]
                         error, svc.gatt_characteristics[i].descriptors[j].handle = await self.ble_gatts.add_descriptor(desc.uuid,

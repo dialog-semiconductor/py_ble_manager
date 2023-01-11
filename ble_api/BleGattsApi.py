@@ -10,7 +10,9 @@ from manager.BleManagerGattsMsgs import BleMgrGattsServiceAddCmd, BleMgrGattsSer
     BleMgrGattsServiceAddDescriptorCmd, BleMgrGattsServiceAddDescriptorRsp, \
     BleMgrGattsServiceRegisterCmd, BleMgrGattsServiceRegisterRsp, BleMgrGattsReadCfmCmd, BleMgrGattsReadCfmRsp, \
     BleMgrGattsSetValueCmd, BleMgrGattsSetValueRsp, BleMgrGattsWriteCfmCmd, BleMgrGattsWriteCfmRsp, \
-    BleMgrGattsSendEventCmd, BleMgrGattsSendEventRsp
+    BleMgrGattsSendEventCmd, BleMgrGattsSendEventRsp, BleMgrGattsGetValueCmd, BleMgrGattsGetValueRsp, \
+    BleMgrGattsServiceAddIncludeCmd, BleMgrGattsServiceAddIncludeRsp, BleMgrGattsPrepareWriteCfmCmd, BleMgrGattsPrepareWriteCfmRsp
+
 from services.BleService import BleServiceBase
 
 
@@ -42,10 +44,19 @@ class BleGattsApi(BleApiBase):
                              ) -> tuple[BLE_ERROR, int]:
 
         response = BLE_ERROR.BLE_ERROR_FAILED
-
         command = BleMgrGattsServiceAddDescriptorCmd(uuid, perm, max_len, flags)
-
         response: BleMgrGattsServiceAddDescriptorRsp = await self.ble_manager.cmd_execute(command)
+
+        return response.status, response.h_offset
+
+    # TODO need to add to register service in Ble.py. Need to find example with included service
+    async def add_include(self,
+                          handle: int = 0
+                          ) -> BLE_ERROR:
+
+        response = BLE_ERROR.BLE_ERROR_FAILED
+        command = BleMgrGattsServiceAddIncludeCmd(handle)
+        response: BleMgrGattsServiceAddIncludeRsp = await self.ble_manager.cmd_execute(command)
 
         return response.status, response.h_offset
 
@@ -56,19 +67,26 @@ class BleGattsApi(BleApiBase):
                           ) -> BLE_ERROR:
 
         response = BLE_ERROR.BLE_ERROR_FAILED
-
         command = BleMgrGattsServiceAddCmd(uuid, type, num_attrs)
-
         response: BleMgrGattsServiceAddRsp = await self.ble_manager.cmd_execute(command)
+
+        return response.status
+
+    async def get_value(self,
+                        handle: int = 0,
+                        max_len: int = 0
+                        ) -> BLE_ERROR:
+
+        response = BLE_ERROR.BLE_ERROR_FAILED
+        command = BleMgrGattsGetValueCmd(handle, max_len)
+        response: BleMgrGattsGetValueRsp = await self.ble_manager.cmd_execute(command)
 
         return response.status
 
     async def register_service(self, svc: BleServiceBase) -> BLE_ERROR:
 
         response = BLE_ERROR.BLE_ERROR_FAILED
-
         command = BleMgrGattsServiceRegisterCmd()
-
         response: BleMgrGattsServiceRegisterRsp = await self.ble_manager.cmd_execute(command)
 
         if svc:
@@ -79,6 +97,19 @@ class BleGattsApi(BleApiBase):
                     desc.handle += response.handle
 
             svc.end_h = svc.start_h + svc.gatt_service.num_attrs
+
+        return response.status
+
+    async def prepare_write_cfm(self,
+                                conn_idx: int = 0,
+                                handle: int = 0,
+                                length: int = 0,
+                                status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
+                                ) -> BLE_ERROR:
+
+        response = BLE_ERROR.BLE_ERROR_FAILED
+        command = BleMgrGattsPrepareWriteCfmCmd(conn_idx, handle, length, status)
+        response: BleMgrGattsPrepareWriteCfmRsp = await self.ble_manager.cmd_execute(command)
 
         return response.status
 
