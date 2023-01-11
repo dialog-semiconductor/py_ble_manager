@@ -6,11 +6,17 @@ from ble_api.BleGatts import GATTS_FLAGS, BleEventGattsWriteReq, BleEventGattsPr
 from services.BleService import BleServiceBase, GattService, GattCharacteristic, Descriptor
 
 
+class CustomBleServiceCallbacks():
+    def __init__(self, char1_read_callback: callable = None) -> None:
+        self.char1_read_callback = char1_read_callback if char1_read_callback else None
+
+
 class CustomBleService(BleServiceBase):
-    def __init__(self) -> None:
+    def __init__(self, callbacks: CustomBleServiceCallbacks = None) -> None:
         super().__init__()
-        self.callbacks = {"CHAR1_APPLICATION_READ_CB", None,
-                          "CHAR2_APPLICATION_READ_CB", None}
+        self.callbacks = callbacks if callbacks else CustomBleServiceCallbacks()
+        # TODO elegant way to create callback structure? Pass them in on construction?
+        # self.callbacks = {"CHAR1_APPLICATION_READ_CB", self.char1_read_callback}
 
     def init(self):
         self.gatt_service = GattService()
@@ -60,8 +66,6 @@ class CustomBleService(BleServiceBase):
         # TODO included services
         self.gatt_service.num_attrs = self._get_num_attr()
 
-        self.char1_read_callback = None
-
     def connected_evt(self, evt: BleEventGapConnected):
         print("CustomBleService connected_evt")
 
@@ -73,8 +77,8 @@ class CustomBleService(BleServiceBase):
         data = None
         for item in self.gatt_characteristics:
             if evt.handle == item.char.handle:
-                if self.char1_read_callback:
-                    status, data = self.char1_read_callback(self)
+                if self.callbacks.char1_read_callback:
+                    status, data = self.callbacks.char1_read_callback(self)
 
         print(f"CustomBleService read_req. evt.handle={evt.handle}. char1.handle={self.gatt_characteristics[0].char.handle}"
               f"char2.handle={self.gatt_characteristics[1].char.handle}")

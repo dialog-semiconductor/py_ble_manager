@@ -6,7 +6,7 @@ from ble_api.BleAtt import ATT_ERROR
 from ble_api.BleCommon import BleEventBase
 from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatt import GATT_EVENT
-from services.CustomBleService import CustomBleService
+from services.CustomBleService import CustomBleService, CustomBleServiceCallbacks
 
 
 def app_char1_read_callback(svc):
@@ -38,9 +38,9 @@ async def ble_task(sample_q: asyncio.Queue):
     await periph.init()
     await periph.start()
 
-    my_service = CustomBleService()
+    my_service_callbacks = CustomBleServiceCallbacks(app_char1_read_callback)
+    my_service = CustomBleService(my_service_callbacks)
     my_service.init()
-    my_service.char1_read_callback = app_char1_read_callback
 
     await periph.register_service(my_service)
     await periph.set_value(my_service.gatt_characteristics[1].char.handle, (0x8692).to_bytes(2, 'little'))
