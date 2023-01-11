@@ -11,7 +11,7 @@ class AttributeHandle():
         self.value = 0
 
 
-class GattService():
+class GattServiceDef():
     def __init__(self,
                  uuid: att_uuid = None,
                  type: GATT_SERVICE = GATT_SERVICE.GATT_SERVICE_PRIMARY,
@@ -21,7 +21,7 @@ class GattService():
         self.num_attrs = num_attrs
 
 
-class Characteristic():
+class CharacteristicDef():
     def __init__(self,
                  uuid: att_uuid = None,
                  prop: GATT_PROP = GATT_PROP.GATT_PROP_NONE,
@@ -38,7 +38,7 @@ class Characteristic():
         self.handle = handle
 
 
-class Descriptor():
+class DescriptorDef():
     def __init__(self,
                  uuid: att_uuid = None,
                  perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
@@ -54,14 +54,15 @@ class Descriptor():
 
 
 #  TODO Subclasses with predefined perms, descriptors (e.g. notifiable with CCCD, or char with user desc)
-class GattCharacteristic():
+class GattCharacteristicDef():
     def __init__(self,
-                 char: Characteristic = None,
-                 descriptor: list[Descriptor] = None,
+                 char_def: CharacteristicDef = None,
+                 descriptor_defs: list[DescriptorDef] = None,
                  ) -> None:
 
-        self.char = char if char else Characteristic()  # TODO change to attribute or value??
-        self.descriptors: list[Descriptor] = descriptor if descriptor else []
+        # TODO need better name than char_def
+        self.char_def = char_def if char_def else CharacteristicDef()  # TODO change to attribute or value??
+        self.desc_defs: list[DescriptorDef] = descriptor_defs if descriptor_defs else []
 
 
 class BleServiceCallbacks():
@@ -76,19 +77,19 @@ class BleServiceBase():
 
         self.callbacks = {}
 
-        self._gatt_service = GattService()
-        self.included_services: list[BleServiceBase] = []
+        self.service_defs = GattServiceDef()
+        self.incl_svc_defs: list[BleServiceBase] = []
         # TODO included services
-        self.gatt_characteristics: list[GattCharacteristic] = []
+        self.gatt_char_defs: list[GattCharacteristicDef] = []
 
         self.periph: BlePeripheral = None
 
     # TODO num_attr should be a property. Should auto calculate num attr
     def _get_num_attr(self) -> int:
         num_descriptors = 0
-        for char in self.gatt_characteristics:
-            num_descriptors += len(char.descriptors)
-        return (1 * len(self.included_services)) + (2 * len(self.gatt_characteristics)) + (1 * num_descriptors)
+        for char in self.gatt_char_defs:
+            num_descriptors += len(char.desc_defs)
+        return (1 * len(self.incl_svc_defs)) + (2 * len(self.gatt_char_defs)) + (1 * num_descriptors)
 
     
      # TODO num_attr should be a property. Should auto calculate num attr

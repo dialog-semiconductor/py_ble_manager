@@ -114,31 +114,31 @@ class BlePeripheral(BleApiBase):
 
     async def register_service(self, svc: BleServiceBase) -> BLE_ERROR:
 
-        error = await self.ble_gatts.add_service(svc.gatt_service.uuid,
-                                                 svc.gatt_service.type,
-                                                 svc.gatt_service.num_attrs)
-        # TODO not sure if included svc handled correctly                              
+        error = await self.ble_gatts.add_service(svc.service_defs.uuid,
+                                                 svc.service_defs.type,
+                                                 svc.service_defs.num_attrs)
+        # TODO not sure if included svc handled correctly                    
         if error == BLE_ERROR.BLE_STATUS_OK:
-            for i in range(0, len(svc.included_services)):
-                error, _ = await self.ble_gatts.add_include(svc.included_services[i].start_h)
+            for i in range(0, len(svc.incl_svc_defs)):
+                error, _ = await self.ble_gatts.add_include(svc.incl_svc_defs[i].start_h)
                 if error != BLE_ERROR.BLE_STATUS_OK:
                     break
 
-            for i in range(0, len(svc.gatt_characteristics)):
-                item = svc.gatt_characteristics[i]
+            for i in range(0, len(svc.gatt_char_defs)):
+                item = svc.gatt_char_defs[i]
                 # TODO is there a case where you need the char declartion handle offset (h_offset)?
-                error, _, svc.gatt_characteristics[i].char.handle.value = await self.ble_gatts.add_characteristic(item.char.uuid,
-                                                                                                            item.char.prop,
-                                                                                                            item.char.perm,
-                                                                                                            item.char.max_len,
-                                                                                                            item.char.flags)
+                error, _, svc.gatt_char_defs[i].char_def.handle.value = await self.ble_gatts.add_characteristic(item.char_def.uuid,
+                                                                                                                item.char_def.prop,
+                                                                                                                item.char_def.perm,
+                                                                                                                item.char_def.max_len,
+                                                                                                                item.char_def.flags)
                 if error == BLE_ERROR.BLE_STATUS_OK:
-                    for j in range(0, len(item.descriptors)):
-                        desc = item.descriptors[j]
-                        error, svc.gatt_characteristics[i].descriptors[j].handle.value = await self.ble_gatts.add_descriptor(desc.uuid,
-                                                                                                                       desc.perm,
-                                                                                                                       desc.max_len,
-                                                                                                                       desc.flags)
+                    for j in range(0, len(item.desc_defs)):
+                        desc = item.desc_defs[j]
+                        error, svc.gatt_char_defs[i].desc_defs[j].handle.value = await self.ble_gatts.add_descriptor(desc.uuid,
+                                                                                                                     desc.perm,
+                                                                                                                     desc.max_len,
+                                                                                                                     desc.flags)
                         if error != BLE_ERROR.BLE_STATUS_OK:
                             break
                     # Break out of both loops
@@ -157,9 +157,9 @@ class BlePeripheral(BleApiBase):
         return error
 
     async def send_read_cfm(self,
-                            conn_idx: int = 0, 
-                            handle: int = 0, 
-                            status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK, 
+                            conn_idx: int = 0,
+                            handle: int = 0,
+                            status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK,
                             data: bytes = None
                             ) -> BLE_ERROR:
 

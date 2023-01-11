@@ -5,13 +5,14 @@ from ble_api.BleCommon import BLE_ERROR
 from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP, GATT_EVENT
 from ble_api.BleGatts import GATTS_FLAGS, BleEventGattsWriteReq, BleEventGattsPrepareWriteReq, BleEventGattsEventSent, BleEventGattsReadReq
-from services.BleService import BleServiceBase, GattService, GattCharacteristic, Descriptor, AttributeHandle
+from services.BleService import BleServiceBase, GattServiceDef, GattCharacteristicDef, DescriptorDef, AttributeHandle
 from ble_api.Ble import BlePeripheral
 
 
 class CustomBleService(BleServiceBase):
     # TODO this is to satisfy typing in CustomBleServiceCallbacks
     pass
+
 
 class CustomBleServiceCallbacks():
     def __init__(self,
@@ -38,60 +39,59 @@ class CustomBleService(BleServiceBase):
 
         self.periph: BlePeripheral = None
 
-
     def init(self):
-        self.gatt_service = GattService()
+
         # TODO this is confusing, simplify it
-        self.gatt_service.uuid.uuid = self._uuid_from_str("7c37cbdc-12a2-11ed-861d-0242ac120002")
-        self.gatt_service.type = GATT_SERVICE.GATT_SERVICE_PRIMARY
+        self.service_defs.uuid.uuid = self._uuid_from_str("7c37cbdc-12a2-11ed-861d-0242ac120002")
+        self.service_defs.type = GATT_SERVICE.GATT_SERVICE_PRIMARY
 
-        self.gatt_characteristics = []
-        my_char = GattCharacteristic()
-        my_char.char.uuid.uuid = self._uuid_from_str("8e716a7e-12a2-11ed-861d-0242ac120002")
-        my_char.char.prop = GATT_PROP.GATT_PROP_READ | GATT_PROP.GATT_PROP_WRITE
-        my_char.char.perm = ATT_PERM.ATT_PERM_RW
-        my_char.char.max_len = 2
-        my_char.char.flags = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ
-        my_char.char.handle = self.char_1_value_h
-        self.gatt_characteristics.append(my_char)
+        self.char_defs = []
+        my_char = GattCharacteristicDef()
+        my_char.char_def.uuid.uuid = self._uuid_from_str("8e716a7e-12a2-11ed-861d-0242ac120002")
+        my_char.char_def.prop = GATT_PROP.GATT_PROP_READ | GATT_PROP.GATT_PROP_WRITE
+        my_char.char_def.perm = ATT_PERM.ATT_PERM_RW
+        my_char.char_def.max_len = 2
+        my_char.char_def.flags = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ
+        my_char.char_def.handle = self.char_1_value_h
+        self.gatt_char_defs.append(my_char)
 
-        my_char = GattCharacteristic()
-        my_char.char.uuid.uuid = self._uuid_from_str("3af078b6-12ae-11ed-861d-0242ac120002")
-        my_char.char.prop = GATT_PROP.GATT_PROP_READ | GATT_PROP.GATT_PROP_WRITE
-        my_char.char.perm = ATT_PERM.ATT_PERM_RW
-        my_char.char.max_len = 2
-        my_char.char.flags = GATTS_FLAGS.GATTS_FLAG_CHAR_NO_READ_REQ
-        my_char.char.handle = self.char_2_value_h
-        self.gatt_characteristics.append(my_char)
+        my_char = GattCharacteristicDef()
+        my_char.char_def.uuid.uuid = self._uuid_from_str("3af078b6-12ae-11ed-861d-0242ac120002")
+        my_char.char_def.prop = GATT_PROP.GATT_PROP_READ | GATT_PROP.GATT_PROP_WRITE
+        my_char.char_def.perm = ATT_PERM.ATT_PERM_RW
+        my_char.char_def.max_len = 2
+        my_char.char_def.flags = GATTS_FLAGS.GATTS_FLAG_CHAR_NO_READ_REQ
+        my_char.char_def.handle = self.char_2_value_h
+        self.gatt_char_defs.append(my_char)
 
-        my_char = GattCharacteristic()
-        my_char.char.uuid.uuid = self._uuid_from_str("5af078b6-12ae-11ed-861d-0242ac120002")
-        my_char.char.prop = GATT_PROP.GATT_PROP_NOTIFY
-        my_char.char.perm = ATT_PERM.ATT_PERM_WRITE
-        my_char.char.max_len = 2
-        my_char.char.handle = self.char_3_value_h
+        my_char = GattCharacteristicDef()
+        my_char.char_def.uuid.uuid = self._uuid_from_str("5af078b6-12ae-11ed-861d-0242ac120002")
+        my_char.char_def.prop = GATT_PROP.GATT_PROP_NOTIFY
+        my_char.char_def.perm = ATT_PERM.ATT_PERM_WRITE
+        my_char.char_def.max_len = 2
+        my_char.char_def.handle = self.char_3_value_h
 
-        desc = Descriptor()
+        desc = DescriptorDef()
         desc.uuid.uuid = self._uuid_from_str("2901")  # User Description
         desc.perm = ATT_PERM.ATT_PERM_READ
         desc.max_len = 10
         desc.handle = self.char_3_user_desc_h
-        my_char.descriptors.append(desc)
+        my_char.desc_defs.append(desc)
 
         # TODO getting a GattcReadReqInd for this descriptor?
-        desc = Descriptor()
+        desc = DescriptorDef()
         desc.uuid.uuid = self._uuid_from_str("2902")
         desc.perm = ATT_PERM.ATT_PERM_RW
         desc.max_len = 2
         desc.handle = self.char_3_ccc_h
-        my_char.descriptors.append(desc)
+        my_char.desc_defs.append(desc)
 
-        self.gatt_characteristics.append(my_char)
+        self.gatt_char_defs.append(my_char)
 
         self.ccc = 0x0000
 
         # TODO included services
-        self.gatt_service.num_attrs = self._get_num_attr()
+        self.service_defs.num_attrs = self._get_num_attr()
 
     def connected_evt(self, evt: BleEventGapConnected):
         print("CustomBleService connected_evt")
@@ -125,9 +125,10 @@ class CustomBleService(BleServiceBase):
             if self.callbacks.char2_write_callback:
                 await self.callbacks.char2_write_callback(self, evt.conn_idx, evt.value)
         elif evt.handle == self.char_3_ccc_h.value:
-            # TODO put ccc value in storage
-            status = ATT_ERROR.ATT_ERROR_OK
-            await self.periph.send_write_cfm(evt.conn_idx, evt.handle, status)
+            # TODO put ccc value in storage and remove self.ccc
+            self.ccc = int.from_bytes(evt.value, "little")
+            print(f"CustomerService write_req. Setting ccc={evt.value}")
+            await self.periph.send_write_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_OK)
         else:
             await self.periph.send_write_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_WRITE_NOT_PERMITTED)
 

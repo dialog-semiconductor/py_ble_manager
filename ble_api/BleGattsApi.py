@@ -91,12 +91,12 @@ class BleGattsApi(BleApiBase):
 
         if svc:
             svc.start_h = response.handle
-            for char in svc.gatt_characteristics:
-                char.char.handle.value += response.handle
-                for desc in char.descriptors:
+            for gatt_char in svc.gatt_char_defs:
+                gatt_char.char_def.handle.value += response.handle
+                for desc in gatt_char.desc_defs:
                     desc.handle.value += response.handle
 
-            svc.end_h = svc.start_h + svc.gatt_service.num_attrs
+            svc.end_h = svc.start_h + svc.service_defs.num_attrs
 
         return response.status
 
