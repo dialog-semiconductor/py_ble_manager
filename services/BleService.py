@@ -8,7 +8,8 @@ from ble_api.BleApiBase import BlePeripheral
 
 class AttributeHandle():
     def __init__(self):
-        self.handle = 0
+        self.value = 0
+
 
 class GattService():
     def __init__(self,
@@ -27,13 +28,14 @@ class Characteristic():
                  perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
                  max_len: int = 0,
                  flags: GATTS_FLAGS = GATTS_FLAGS.GATTS_FLAG_CHAR_NO_READ_REQ,
+                 handle: AttributeHandle = None
                  ) -> None:
         self.uuid = uuid if uuid else att_uuid()
         self.prop = prop
         self.perm = perm
         self.max_len = max_len
         self.flags = flags
-        self.handle = 0
+        self.handle = handle
 
 
 class Descriptor():
@@ -42,12 +44,13 @@ class Descriptor():
                  perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
                  max_len: int = 0,
                  flags: GATTS_FLAGS = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ,
+                 handle: AttributeHandle = None
                  ) -> None:
         self.uuid = uuid if uuid else att_uuid()
         self.perm = perm
         self.max_len = max_len
         self.flags = flags
-        self.handle = 0
+        self.handle = handle
 
 
 #  TODO Subclasses with predefined perms, descriptors (e.g. notifiable with CCCD, or char with user desc)

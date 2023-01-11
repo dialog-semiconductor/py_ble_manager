@@ -5,7 +5,7 @@ from ble_api.BleCommon import BLE_ERROR
 from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP, GATT_EVENT
 from ble_api.BleGatts import GATTS_FLAGS, BleEventGattsWriteReq, BleEventGattsPrepareWriteReq, BleEventGattsEventSent, BleEventGattsReadReq
-from services.BleService import BleServiceBase, GattService, GattCharacteristic, Descriptor
+from services.BleService import BleServiceBase, GattService, GattCharacteristic, Descriptor, AttributeHandle
 from ble_api.Ble import BlePeripheral
 
 class CustomBleServiceCallbacks():
@@ -19,11 +19,11 @@ class CustomBleService(BleServiceBase):
         super().__init__()
         self.callbacks = callbacks if callbacks else CustomBleServiceCallbacks()
 
-        self.char_1_value_h = 0
-        self.char_2_value_h = 0
-        self.char_3_value_h = 0
-        self.char_3_user_desc_h = 0
-        self.char_3_ccc_h = 0
+        self.char_1_value_h = AttributeHandle()
+        self.char_2_value_h = AttributeHandle()
+        self.char_3_value_h = AttributeHandle()
+        self.char_3_user_desc_h = AttributeHandle()
+        self.char_3_ccc_h = AttributeHandle()
         # TODO elegant way to create callback structure? Pass them in on construction?
         # self.callbacks = {"CHAR1_APPLICATION_READ_CB", self.char1_read_callback}
 
@@ -40,6 +40,7 @@ class CustomBleService(BleServiceBase):
         my_char.char.perm = ATT_PERM.ATT_PERM_RW
         my_char.char.max_len = 2
         my_char.char.flags = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ
+        my_char.char.handle = self.char_1_value_h
         self.gatt_characteristics.append(my_char)
 
         my_char = GattCharacteristic()
@@ -48,6 +49,7 @@ class CustomBleService(BleServiceBase):
         my_char.char.perm = ATT_PERM.ATT_PERM_RW
         my_char.char.max_len = 2
         my_char.char.flags = GATTS_FLAGS.GATTS_FLAG_CHAR_NO_READ_REQ
+        my_char.char.handle = self.char_2_value_h
         self.gatt_characteristics.append(my_char)
 
         my_char = GattCharacteristic()
@@ -55,11 +57,13 @@ class CustomBleService(BleServiceBase):
         my_char.char.prop = GATT_PROP.GATT_PROP_NOTIFY
         my_char.char.perm = ATT_PERM.ATT_PERM_WRITE
         my_char.char.max_len = 2
+        my_char.char.handle = self.char_3_value_h
 
         desc = Descriptor()
         desc.uuid.uuid = self._uuid_from_str("2901")  # User Description
         desc.perm = ATT_PERM.ATT_PERM_READ
         desc.max_len = 10
+        desc.handle = self.char_3_user_desc_h
         my_char.descriptors.append(desc)
 
         # TODO getting a GattcReadReqInd for this descriptor?
@@ -67,6 +71,7 @@ class CustomBleService(BleServiceBase):
         desc.uuid.uuid = self._uuid_from_str("2902")
         desc.perm = ATT_PERM.ATT_PERM_RW
         desc.max_len = 2
+        desc.handle = self.char_3_ccc_h
         my_char.descriptors.append(desc)
 
         self.gatt_characteristics.append(my_char)
@@ -85,15 +90,16 @@ class CustomBleService(BleServiceBase):
         print("CustomBleService disconnected_evt")
 
     async def read_req(self, evt: BleEventGattsReadReq):
+        print("CustomBleService write_req")
         for item in self.gatt_characteristics:  # TODO should nto have to loop every handle to get the one you want
-            if evt.handle == item.char.handle:
+            if evt.handle == item.char.handle.value:
                 if self.callbacks.char1_read_callback:
                     await self.callbacks.char1_read_callback(self, evt.conn_idx)
 
             else:
                 desc: Descriptor
                 for desc in item.descriptors:
-                    if evt.handle == desc.handle:
+                    if evt.handle == desc.handle.value:
                         status = ATT_ERROR.ATT_ERROR_OK
                         data = int.to_bytes(0, length=2, byteorder='little')
                         # TODO get ccc from storage
@@ -133,7 +139,7 @@ class CustomBleService(BleServiceBase):
                                   ) -> BLE_ERROR:
 
         return await self.periph.send_read_cfm(conn_idx,
-                                               self.gatt_characteristics[0].char.handle,
+                                               self.char_1_value_h.value,
                                                status,
                                                value)
 
@@ -141,19 +147,19 @@ class CustomBleService(BleServiceBase):
                               value: bytes
                               ) -> BLE_ERROR:
 
-        return await self.periph.set_value(self.char_2_value_h, value)
+        return await self.periph.set_value(self.char_2_value_h.value, value)
 
     async def set_char3_user_desc_value(self,
                                         value: bytes
                                         ) -> BLE_ERROR:
 
-        return await self.periph.set_value(self.char_3_user_desc_h, value)
+        return await self.periph.set_value(self.char_3_user_desc_h.value, value)
 
     async def notify_char3(self,
                            conn_idx: int = 0,
                            value: bytes = None) -> BLE_ERROR:
 
         return await self.periph.send_event(conn_idx,
-                                            self.char_3_value_h,
+                                            self.char_3_value_h.value,
                                             GATT_EVENT.GATT_EVENT_NOTIFICATION,
                                             value)

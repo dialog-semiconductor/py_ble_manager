@@ -66,7 +66,7 @@ class BlePeripheral(BleApiBase):
         service = self._find_service_by_handle(evt.handle)
         if service:
             if service.read_req:
-                await service.read_req(self, evt)
+                await service.read_req(evt)
             return True
 
         return False
@@ -135,7 +135,7 @@ class BlePeripheral(BleApiBase):
             for i in range(0, len(svc.gatt_characteristics)):
                 item = svc.gatt_characteristics[i]
                 # TODO is there a case where you need the char declartion handle offset (h_offset)?
-                error, _, svc.gatt_characteristics[i].char.handle = await self.ble_gatts.add_characteristic(item.char.uuid,
+                error, _, svc.gatt_characteristics[i].char.handle.value = await self.ble_gatts.add_characteristic(item.char.uuid,
                                                                                                             item.char.prop,
                                                                                                             item.char.perm,
                                                                                                             item.char.max_len,
@@ -143,7 +143,7 @@ class BlePeripheral(BleApiBase):
                 if error == BLE_ERROR.BLE_STATUS_OK:
                     for j in range(0, len(item.descriptors)):
                         desc = item.descriptors[j]
-                        error, svc.gatt_characteristics[i].descriptors[j].handle = await self.ble_gatts.add_descriptor(desc.uuid,
+                        error, svc.gatt_characteristics[i].descriptors[j].handle.value = await self.ble_gatts.add_descriptor(desc.uuid,
                                                                                                                        desc.perm,
                                                                                                                        desc.max_len,
                                                                                                                        desc.flags)
