@@ -80,7 +80,7 @@ class CustomBleService(BleServiceBase):
         for item in self.gatt_characteristics:
             if evt.handle == item.char.handle:
                 if self.callbacks.char1_read_callback:
-                    status, data = self.callbacks.char1_read_callback(self)
+                    status, data = self.callbacks.char1_read_callback()
 
         print(f"CustomBleService read_req. evt.handle={evt.handle}. char1.handle={self.gatt_characteristics[0].char.handle}"
               f"char2.handle={self.gatt_characteristics[1].char.handle}")
@@ -101,10 +101,7 @@ class CustomBleService(BleServiceBase):
                         print(f"CustomBleService write_req. Desc write handle={evt.handle} value={evt.value}")
                         self.ccc = int.from_bytes(evt.value, "little")
 
-                # TODO update value in CustomBleService?
-
-                # if self.char1_read_callback:
-                #    status, data = self.char1_read_callback(self)
+                # TODO To update value in databse, need to call Ble.set_value. Rethink how to achieve
         return status
 
     def prepare_write_req(self, evt: BleEventGattsPrepareWriteReq):
