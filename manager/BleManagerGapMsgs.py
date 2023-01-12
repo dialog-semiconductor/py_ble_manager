@@ -1,7 +1,7 @@
 from enum import IntEnum, auto
 
-from ble_api.BleCommon import BLE_ERROR
-from ble_api.BleGap import BLE_GAP_CONN_MODE, BLE_GAP_ROLE
+from ble_api.BleCommon import BLE_ERROR, bd_address
+from ble_api.BleGap import BLE_GAP_CONN_MODE, BLE_GAP_ROLE, gap_conn_params
 from manager.BleManagerCommonMsgs import BLE_MGR_CMD_CAT, BleMgrMsgBase
 
 
@@ -108,8 +108,23 @@ class BleMgrGapConnectCancelCmd(BleMgrMsgBase):
 
 
 class BleMgrGapConnectCmd(BleMgrMsgBase):
-    def __init__(self, peer_addr, conn_params, ce_len_min, ce_len_max) -> None:
+    def __init__(self,
+                 peer_addr: bd_address = None,
+                 conn_params: gap_conn_params = None,
+                 ce_len_min: int = 0,
+                 ce_len_max: int = 0
+                 ) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CMD)
+        self.peer_addr = peer_addr if peer_addr else bd_address()
+        self.conn_params = conn_params if conn_params else gap_conn_params()
+        self.ce_len_min = ce_len_min
+        self.ce_len_max = ce_len_max
+
+
+class BleMgrGapConnectRsp(BleMgrMsgBase):
+    def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CMD)
+        self.status = status
 
 
 class BleMgrGapConnParamUpdateCmd(BleMgrMsgBase):
@@ -212,7 +227,8 @@ class BleMgrGapRoleSetRsp(BleMgrMsgBase):
     def __init__(self,
                  new_role: BLE_GAP_ROLE = BLE_GAP_ROLE.GAP_NO_ROLE,
                  prev_role: BLE_GAP_ROLE = BLE_GAP_ROLE.GAP_NO_ROLE,
-                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED
+                 ) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ROLE_SET_CMD)
         self.new_role = new_role
         self.prev_role = prev_role

@@ -19,3 +19,9 @@ class BleCentral(BleDeviceBase):
     def __init__(self, com_port: str):
         super().__init__(com_port)
 
+    async def start(self) -> BLE_ERROR:
+        return await super().start(BLE_GAP_ROLE.GAP_CENTRAL_ROLE)
+
+    async def connect(self) -> None:
+        pass
+

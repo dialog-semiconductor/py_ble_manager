@@ -3,6 +3,7 @@ from adapter.BleAdapter import BleAdapter
 from ble_api.BleAtt import ATT_ERROR
 from ble_api.BleCommon import BleEventBase, BLE_ERROR
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_EVT_GAP, BleEventGapConnected, BleEventGapDisconnected
+from ble_api.BleGapApi import BleGapApi
 from ble_api.BleGatt import GATT_EVENT
 from ble_api.BleGatts import BLE_EVT_GATTS, BleEventGattsReadReq, BleEventGattsWriteReq
 from ble_api.BleGattsApi import BleGattsApi
@@ -24,6 +25,7 @@ class BleDeviceBase():
 
         self.ble_manager = BleManager(app_command_q, app_resposne_q, app_event_q, adapter_command_q, adapter_event_q)
         self.ble_adapter = BleAdapter(com_port, adapter_command_q, adapter_event_q)
+        self.ble_gap = BleGapApi(self.ble_manager, self.ble_adapter)
         self.ble_gatts = BleGattsApi(self.ble_manager, self.ble_adapter)
         self.ble_storage = BleStorageApi(self.ble_manager, self.ble_adapter)
 
@@ -33,12 +35,6 @@ class BleDeviceBase():
         response = BLE_ERROR.BLE_ERROR_FAILED
         command = BleMgrCommonResetCmd()
         response: BleMgrCommonResetRsp = await self.ble_manager.cmd_execute(command)
-        return response.status
-
-    async def _gap_role_set(self, role: BLE_GAP_ROLE) -> BLE_ERROR:
-        response = BLE_ERROR.BLE_ERROR_FAILED
-        command = BleMgrGapRoleSetCmd(role)
-        response: BleMgrGapRoleSetRsp = await self.ble_manager.cmd_execute(command)
         return response.status
 
     async def init(self) -> None:
@@ -66,7 +62,7 @@ class BleDeviceBase():
 
         error = await self._ble_reset()
         if error == BLE_ERROR.BLE_STATUS_OK:
-            error = await self._gap_role_set(role)
+            error = await self.ble_gap.role_set(role)
 
         return error
 
