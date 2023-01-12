@@ -193,16 +193,11 @@ class BlePeripheral(BleDeviceBase):
     async def start(self) -> BLE_ERROR:
         return await super().start(BLE_GAP_ROLE.GAP_PERIPHERAL_ROLE)
 
-
-    # TODO move to BleGapApi
     async def start_advertising(self,
                                 adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
                                 ) -> BLE_ERROR:
 
-        response = BLE_ERROR.BLE_ERROR_FAILED
-        command = BleMgrGapAdvStartCmd(adv_type)
-        response: BleMgrGapAdvStartRsp = await self.ble_manager.cmd_execute(command)
-        return response.status
+        return await self.ble_gap.start_advertising(adv_type)
 
     def storage_get_int(self, conn_idx: int, key: int) -> tuple[BLE_ERROR, int]:
         return self.ble_storage.get_int(conn_idx, key)
