@@ -1,56 +1,29 @@
 import asyncio
 
 from adapter.BleAdapter import BleAdapter
-from ble_api.BleApiBase import BleApiBase
+from ble_api.BleDeviceBase import BleDeviceBase
 from ble_api.BleAtt import ATT_ERROR
 from ble_api.BleCommon import BleEventBase, BLE_ERROR
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_EVT_GAP, BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatt import GATT_EVENT
 from ble_api.BleGatts import BLE_EVT_GATTS, BleEventGattsReadReq, BleEventGattsWriteReq
 from ble_api.BleGattsApi import BleGattsApi
+from ble_api.BleStorageApi import BleStorageApi
 from manager.BleManager import BleManager
 from manager.BleManagerCommonMsgs import BleMgrCommonResetCmd, BleMgrCommonResetRsp
 from manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp
 from services.BleService import BleServiceBase
 
 
-class BleClient(BleApiBase):
-    pass
-
-
-class BlePeripheral(BleApiBase):
+class BlePeripheral(BleDeviceBase):
     def __init__(self, com_port: str):
-
-        app_command_q = asyncio.Queue()
-        app_resposne_q = asyncio.Queue()
-        app_event_q = asyncio.Queue()
-
-        adapter_command_q = asyncio.Queue()
-        adapter_event_q = asyncio.Queue()
-
-        self.ble_manager = BleManager(app_command_q, app_resposne_q, app_event_q, adapter_command_q, adapter_event_q)
-        self.ble_adapter = BleAdapter(com_port, adapter_command_q, adapter_event_q)
-        self.ble_gatts = BleGattsApi(self.ble_manager, self.ble_adapter)
-
-        self._services: list[BleServiceBase] = []
-
-    async def _ble_reset(self) -> BLE_ERROR:
-        response = BLE_ERROR.BLE_ERROR_FAILED
-        command = BleMgrCommonResetCmd()
-        response: BleMgrCommonResetRsp = await self.ble_manager.cmd_execute(command)
-        return response.status
+        super().__init__(com_port)
 
     def _find_service_by_handle(self, handle: int) -> BleServiceBase:
         for service in self._services:
             if service and handle >= service.start_h and handle <= service.end_h:
                 return service
         return None
-
-    async def _gap_role_set(self, role: BLE_GAP_ROLE) -> BLE_ERROR:
-        response = BLE_ERROR.BLE_ERROR_FAILED
-        command = BleMgrGapRoleSetCmd(role)
-        response: BleMgrGapRoleSetRsp = await self.ble_manager.cmd_execute(command)
-        return response.status
 
     def _handle_connected_evt(self, evt: BleEventGapConnected) -> None:
         for service in self._services:
@@ -82,16 +55,6 @@ class BlePeripheral(BleApiBase):
 
     def _ms_to_adv_slots(self, time_ms) -> int:
         return int((time_ms) * 1000 // 625)
-
-    async def get_event(self, timeout_seconds: float = 0) -> BleEventBase:  # TODO add timeout?
-        evt = None
-        try:
-            timeout = timeout_seconds if timeout_seconds > 0 else None
-            evt = await asyncio.wait_for(self.ble_manager._mgr_event_queue_get(), timeout)
-        except asyncio.TimeoutError:
-            pass
-
-        return evt
 
     async def get_value(self, handle: int, max_len: int) -> BLE_ERROR:
         error = BLE_ERROR.BLE_ERROR_FAILED
@@ -158,6 +121,18 @@ class BlePeripheral(BleApiBase):
 
         return error
 
+    async def send_event(self,
+                         conn_idx: int = 0,
+                         handle: int = 0,
+                         type: GATT_EVENT = GATT_EVENT.GATT_EVENT_NOTIFICATION,
+                         value: bytes = None) -> BLE_ERROR:
+
+        error = BLE_ERROR.BLE_ERROR_FAILED
+        service = self._find_service_by_handle(handle)
+        if service:
+            error = await self.ble_gatts.send_event(conn_idx, handle, type, value)
+        return error
+
     async def send_read_cfm(self,
                             conn_idx: int = 0,
                             handle: int = 0,
@@ -193,12 +168,7 @@ class BlePeripheral(BleApiBase):
             case BLE_EVT_GATTS.BLE_EVT_GATTS_WRITE_REQ:
                 handled = await self._handle_write_req_evt(evt)
 
-
-        return handled
-
         '''
-
-
         case return.BLE_EVT_GATTS_WRITE_REQ:
                 return write_req((const ble_evt_gatts_write_req_t *) evt);
         case return.BLE_EVT_GATTS_PREPARE_WRITE_REQ:
@@ -206,35 +176,7 @@ class BlePeripheral(BleApiBase):
         case return.BLE_EVT_GATTS_EVENT_SENT:
                 return event_sent((const ble_evt_gatts_event_sent_t *) evt);
         '''
-
-    async def start(self) -> BLE_ERROR:
-
-        error = await self._ble_reset()
-        if error == BLE_ERROR.BLE_STATUS_OK:
-            error = await self._gap_role_set(BLE_GAP_ROLE.GAP_PERIPHERAL_ROLE)
-
-        return error
-
-    async def start_advertising(self,
-                                adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
-                                ) -> BLE_ERROR:
-
-        response = BLE_ERROR.BLE_ERROR_FAILED
-        command = BleMgrGapAdvStartCmd(adv_type)
-        response: BleMgrGapAdvStartRsp = await self.ble_manager.cmd_execute(command)
-        return response.status
-
-    async def send_event(self,
-                         conn_idx: int = 0,
-                         handle: int = 0,
-                         type: GATT_EVENT = GATT_EVENT.GATT_EVENT_NOTIFICATION,
-                         value: bytes = None) -> BLE_ERROR:
-
-        error = BLE_ERROR.BLE_ERROR_FAILED
-        service = self._find_service_by_handle(handle)
-        if service:
-            error = await self.ble_gatts.send_event(conn_idx, handle, type, value)
-        return error
+        return handled
 
     def set_advertising_interval(self, adv_intv_min_ms, adv_intv_max_ms) -> None:
         self.ble_manager.gap_mgr.dev_params.adv_intv_min = self._ms_to_adv_slots(adv_intv_min_ms)
@@ -247,3 +189,21 @@ class BlePeripheral(BleApiBase):
         if service:
             error = await self.ble_gatts.set_value(handle, value)
         return error
+
+    async def start(self) -> BLE_ERROR:
+        return await super().start(BLE_GAP_ROLE.GAP_PERIPHERAL_ROLE)
+
+    async def start_advertising(self,
+                                adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
+                                ) -> BLE_ERROR:
+
+        response = BLE_ERROR.BLE_ERROR_FAILED
+        command = BleMgrGapAdvStartCmd(adv_type)
+        response: BleMgrGapAdvStartRsp = await self.ble_manager.cmd_execute(command)
+        return response.status
+
+    def storage_get_int(self, conn_idx: int, key: int) -> tuple[BLE_ERROR, int]:
+        return self.ble_storage.get_int(conn_idx, key)
+
+    def storage_put_int(self, conn_idx: int, key: int, value: int, persistent: bool) -> BLE_ERROR:
+        return self.ble_storage.put_int(conn_idx, key, value, persistent)

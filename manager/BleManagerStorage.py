@@ -32,9 +32,10 @@ class PendingEventQueue(SearchableQueue):
 
 class AppValue():
     # TODO add agrs/return type to Callable
-    def __init__(self, key: int = 0, persistent: bool = False, length: int = 0, free_cb: Callable = None) -> None:
+    def __init__(self, key: int = 0, persistent: bool = False, value: bytes = None, length: int = 0, free_cb: Callable = None) -> None:
         self.key = key  # TODO storage key type?
         self.persistent = persistent
+        self.value = value
         # self.length = length
         # self.free_cb = free_cb  # TODO not sure we need this
 
@@ -44,9 +45,26 @@ class AppValueQueue(SearchableQueue):
         self.queue: list[AppValue] = []
 
     def push(self, elem: AppValue) -> None:
+
         if not isinstance(elem, AppValue):
             raise TypeError(f"Element must be of type AppValue, was {type(elem)}")
         self.queue.append(elem)
+
+    def find_app_value_by_key(self, key: int = None, create: bool = False) -> AppValue:
+
+        found = None
+        if key is not None:
+            app_value: AppValue
+            for app_value in self.queue:
+                found = app_value if app_value.key == key else None
+
+            if found is None and create:
+                new_app_value = AppValue()
+                new_app_value.key = key
+                self.push(new_app_value)
+                found = new_app_value
+
+        return found
 
 
 class StoredDevice():
@@ -99,9 +117,36 @@ class StoredDevice():
         # disconnection status (disconnection event is pending if other than zero)
         self.discon_reason: int = 0
 
-    def app_value_remove_np(self):
+    def app_value_get(self, key: int) -> bytes:
+        app_value = self.app_values.find_app_value_by_key(key, True)
+        return app_value.value
+
+    def app_value_put(self, key: int, persistent: bool, value: bytes) -> None:
+
+        self.app_value_remove_by_key(key)  # TODO This may be unnecessary as we can reassign dynamically
+        app_value = self.app_values.find_app_value_by_key(key, True)
+        app_value.persistent = persistent
+        app_value.key = key
+        app_value.value = value
+
+        # storage_mark_dirty(true);  # TODO want to save these value to disk somewhere?
+
+    def app_value_remove_by_key(self, key: int):
+        if key is not None:
+            app_value: AppValue
+            for app_value in self.app_values.queue:
+                if app_value.key == key:
+                    self.app_values.remove(app_value)
+
+    def app_value_remove_by_elem(self, elem: AppValue):
+        if elem is not None:
+            for app_value in self.app_values.queue:
+                if elem == app_value:
+                    self.app_values.remove(app_value)
+
+    def app_value_remove_not_persistent(self):
         app_value: AppValue
-        for app_value in self.app_values:
+        for app_value in self.app_values.queue:
             if not app_value.persistent:
                 self.app_values.remove(app_value)
                 # if app_value.free_cb:

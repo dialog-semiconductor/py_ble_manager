@@ -7,7 +7,7 @@ from manager.BleManagerCommon import BleManagerCommon
 from manager.BleManagerCommonMsgs import BLE_MGR_CMD_CAT, BleMgrMsgBase
 from manager.BleManagerGap import BleManagerGap
 from manager.BleManagerGatts import BleManagerGatts
-from manager.BleManagerStorage import StoredDeviceQueue
+from manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from manager.GtlWaitQueue import GtlWaitQueue
 
 
@@ -132,3 +132,6 @@ class BleManager(BleManagerBase):
         # TODO need to be able to cancel
         self._mgr_task = asyncio.create_task(self._mgr_task(), name='BleManagerTask')
         self._mgr_task.add_done_callback(self._task_done_handler)
+
+    def find_stored_device_by_conn_idx(self, conn_idx: int) -> StoredDevice:
+        return self._stored_device_list.find_device_by_conn_idx(conn_idx)

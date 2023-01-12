@@ -6,7 +6,7 @@ from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP, GATT_EVENT
 from ble_api.BleGatts import GATTS_FLAGS, BleEventGattsWriteReq, BleEventGattsPrepareWriteReq, BleEventGattsEventSent, BleEventGattsReadReq
 from services.BleService import BleServiceBase, GattServiceDef, GattCharacteristicDef, DescriptorDef, AttributeHandle
-from ble_api.Ble import BlePeripheral
+from ble_api.BlePeripheral import BlePeripheral
 
 
 class CustomBleService(BleServiceBase):
@@ -16,14 +16,16 @@ class CustomBleService(BleServiceBase):
 
 class CustomBleServiceCallbacks():
     def __init__(self,
-                 char1_read_callback: Callable[[CustomBleService, int], None] = None,
-                 char1_write_callback: Callable[[CustomBleService, int, int], None] = None,
-                 char2_write_callback: Callable[[CustomBleService, int, int], None] = None
+                 char1_read: Callable[[CustomBleService, int], None] = None,
+                 char1_write: Callable[[CustomBleService, int, int], None] = None,
+                 char2_write: Callable[[CustomBleService, int, int], None] = None,
+                 char3_notif_changed: Callable[[CustomBleService, int, int], None] = None
                  ) -> None:
-        # char1_read_callback is a function that takes a CustomBleService, int  and returns nothing
-        self.char1_read_callback = char1_read_callback
-        self.char1_write_callback = char1_write_callback
-        self.char2_write_callback = char2_write_callback
+        # char1_read is a function that takes a CustomBleService, int  and returns nothing
+        self.char1_read = char1_read
+        self.char1_write = char1_write
+        self.char2_write = char2_write
+        self.char3_notif_changed = char3_notif_changed
 
 
 class CustomBleService(BleServiceBase):
@@ -38,6 +40,8 @@ class CustomBleService(BleServiceBase):
         self.char_3_ccc_h = AttributeHandle()
 
         self.periph: BlePeripheral = None
+
+        self.ccc = 0x0000  # TODO This should be removed
 
     def init(self):
 
@@ -88,8 +92,6 @@ class CustomBleService(BleServiceBase):
 
         self.gatt_char_defs.append(char)
 
-        self.ccc = 0x0000
-
         # TODO included services
         self.service_defs.num_attrs = self._get_num_attr()
 
@@ -103,13 +105,18 @@ class CustomBleService(BleServiceBase):
         print("CustomBleService write_req")
 
         if evt.handle == self.char_1_value_h.value:
-            if self.callbacks.char1_read_callback:
-                await self.callbacks.char1_read_callback(self, evt.conn_idx)
+            if self.callbacks.char1_read:
+                await self.callbacks.char1_read(self, evt.conn_idx)
+
         elif evt.handle == self.char_3_ccc_h.value:
             status = ATT_ERROR.ATT_ERROR_OK
-            data = int.to_bytes(0, length=2, byteorder='little')
-            # TODO get ccc from storage
-            await self.periph.send_read_cfm(evt.conn_idx, evt.handle, status, data)
+
+            # TODO ignoring error for now
+            error, value = self.periph.storage_get_int(evt.conn_idx, self.char_3_ccc_h.value)
+            if error != BLE_ERROR.BLE_STATUS_OK:
+                value = 0
+            await self.periph.send_read_cfm(evt.conn_idx, evt.handle, status, value)
+
         else:
             await self.periph.send_read_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_READ_NOT_PERMITTED, 0)
 
@@ -118,17 +125,25 @@ class CustomBleService(BleServiceBase):
 
         if evt.handle == self.char_1_value_h.value:
             # TODO any validation on input
-            if self.callbacks.char1_write_callback:
-                await self.callbacks.char1_write_callback(self, evt.conn_idx, evt.value)
+            if self.callbacks and self.callbacks.char1_write:
+                await self.callbacks.char1_write(self, evt.conn_idx, int.from_bytes(evt.value, "little"))
+
         elif evt.handle == self.char_2_value_h.value:
             # TODO any validation on input
-            if self.callbacks.char2_write_callback:
-                await self.callbacks.char2_write_callback(self, evt.conn_idx, evt.value)
+            if self.callbacks and self.callbacks.char2_write:
+                await self.callbacks.char2_write(self, evt.conn_idx, int.from_bytes(evt.value, "little"))
+
         elif evt.handle == self.char_3_ccc_h.value:
-            # TODO put ccc value in storage and remove self.ccc
-            self.ccc = int.from_bytes(evt.value, "little")
+            ccc = int.from_bytes(evt.value, "little")
+            self.ccc = ccc  # TODO this should be removed
+            self.periph.storage_put_int(evt.conn_idx, self.char_3_ccc_h.value, ccc, True)  # TODO this is not truly persistent right now. Is persistent btw connections? Or power cycles?
+
+            if self.callbacks and self.callbacks.char3_notif_changed:
+                self.callbacks.char3_notif_changed(self, evt.conn_idx, ccc)
+            # TODO notification status change callback
             print(f"CustomerService write_req. Setting ccc={evt.value}")
             await self.periph.send_write_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_OK)
+
         else:
             await self.periph.send_write_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_WRITE_NOT_PERMITTED)
 

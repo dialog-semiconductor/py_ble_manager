@@ -183,7 +183,7 @@ class BleManagerGap(BleManagerBase):
                 dev.updating = False
                 dev.sec_level = GAP_SEC_LEVEL.GAP_SEC_LEVEL_1
                 dev.discon_reason = 0
-                dev.app_value_remove_np()  # TODO rename to something more meaningful
+                dev.app_value_remove_not_persistent()  # TODO rename to something more meaningful
             else:
                 self._stored_device_list.remove(dev)
 
