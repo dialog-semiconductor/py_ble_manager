@@ -46,37 +46,37 @@ class CustomBleService(BleServiceBase):
         self.service_defs.type = GATT_SERVICE.GATT_SERVICE_PRIMARY
 
         self.char_defs = []
-        my_char = GattCharacteristicDef()
-        my_char.char_def.uuid.uuid = self._uuid_from_str("8e716a7e-12a2-11ed-861d-0242ac120002")
-        my_char.char_def.prop = GATT_PROP.GATT_PROP_READ | GATT_PROP.GATT_PROP_WRITE
-        my_char.char_def.perm = ATT_PERM.ATT_PERM_RW
-        my_char.char_def.max_len = 2
-        my_char.char_def.flags = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ
-        my_char.char_def.handle = self.char_1_value_h
-        self.gatt_char_defs.append(my_char)
+        char = GattCharacteristicDef()
+        char.char_def.uuid.uuid = self._uuid_from_str("8e716a7e-12a2-11ed-861d-0242ac120002")
+        char.char_def.prop = GATT_PROP.GATT_PROP_READ | GATT_PROP.GATT_PROP_WRITE
+        char.char_def.perm = ATT_PERM.ATT_PERM_RW
+        char.char_def.max_len = 2
+        char.char_def.flags = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ
+        char.char_def.handle = self.char_1_value_h  # self.char_1_value_h will be automatically updated by BlePeripheral when service registered
+        self.gatt_char_defs.append(char)
 
-        my_char = GattCharacteristicDef()
-        my_char.char_def.uuid.uuid = self._uuid_from_str("3af078b6-12ae-11ed-861d-0242ac120002")
-        my_char.char_def.prop = GATT_PROP.GATT_PROP_READ | GATT_PROP.GATT_PROP_WRITE
-        my_char.char_def.perm = ATT_PERM.ATT_PERM_RW
-        my_char.char_def.max_len = 2
-        my_char.char_def.flags = GATTS_FLAGS.GATTS_FLAG_CHAR_NO_READ_REQ
-        my_char.char_def.handle = self.char_2_value_h
-        self.gatt_char_defs.append(my_char)
+        char = GattCharacteristicDef()
+        char.char_def.uuid.uuid = self._uuid_from_str("3af078b6-12ae-11ed-861d-0242ac120002")
+        char.char_def.prop = GATT_PROP.GATT_PROP_READ | GATT_PROP.GATT_PROP_WRITE
+        char.char_def.perm = ATT_PERM.ATT_PERM_RW
+        char.char_def.max_len = 2
+        char.char_def.flags = GATTS_FLAGS.GATTS_FLAG_CHAR_NO_READ_REQ
+        char.char_def.handle = self.char_2_value_h
+        self.gatt_char_defs.append(char)
 
-        my_char = GattCharacteristicDef()
-        my_char.char_def.uuid.uuid = self._uuid_from_str("5af078b6-12ae-11ed-861d-0242ac120002")
-        my_char.char_def.prop = GATT_PROP.GATT_PROP_NOTIFY
-        my_char.char_def.perm = ATT_PERM.ATT_PERM_WRITE
-        my_char.char_def.max_len = 2
-        my_char.char_def.handle = self.char_3_value_h
+        char = GattCharacteristicDef()
+        char.char_def.uuid.uuid = self._uuid_from_str("5af078b6-12ae-11ed-861d-0242ac120002")
+        char.char_def.prop = GATT_PROP.GATT_PROP_NOTIFY
+        char.char_def.perm = ATT_PERM.ATT_PERM_WRITE
+        char.char_def.max_len = 2
+        char.char_def.handle = self.char_3_value_h
 
         desc = DescriptorDef()
         desc.uuid.uuid = self._uuid_from_str("2901")  # User Description
         desc.perm = ATT_PERM.ATT_PERM_READ
         desc.max_len = 10
         desc.handle = self.char_3_user_desc_h
-        my_char.desc_defs.append(desc)
+        char.desc_defs.append(desc)
 
         # TODO getting a GattcReadReqInd for this descriptor?
         desc = DescriptorDef()
@@ -84,9 +84,9 @@ class CustomBleService(BleServiceBase):
         desc.perm = ATT_PERM.ATT_PERM_RW
         desc.max_len = 2
         desc.handle = self.char_3_ccc_h
-        my_char.desc_defs.append(desc)
+        char.desc_defs.append(desc)
 
-        self.gatt_char_defs.append(my_char)
+        self.gatt_char_defs.append(char)
 
         self.ccc = 0x0000
 

@@ -79,7 +79,6 @@ class BleServiceBase():
 
         self.service_defs = GattServiceDef()
         self.incl_svc_defs: list[BleServiceBase] = []
-        # TODO included services
         self.gatt_char_defs: list[GattCharacteristicDef] = []
 
         self.periph: BlePeripheral = None
@@ -104,8 +103,6 @@ class BleServiceBase():
     #    self._gatt_service = svc
 
     # gatt_service = property(_get_gatt_service)
-    
-    
 
     def _uuid_from_str(self, uuid_str: str) -> bytes:
         uuid_str = uuid_str.replace("-", "")
@@ -128,10 +125,10 @@ class BleServiceBase():
     def prepare_write_req(self, evt: BleEventGattsPrepareWriteReq) -> None:
         pass
 
-    def read_req(self, svc: BlePeripheral, evt: BleEventGattsReadReq) -> tuple[ATT_ERROR, bytes]:
+    def read_req(self, evt: BleEventGattsReadReq) -> None:
         # Service implementations should return a status indicating any error, and the data to be read in bytes
         pass
 
-    def write_req(self, evt: BleEventBase) -> ATT_ERROR:  # BleEventGattsWriteReq
+    def write_req(self, evt: BleEventBase) -> None:  # BleEventGattsWriteReq
         pass
  
