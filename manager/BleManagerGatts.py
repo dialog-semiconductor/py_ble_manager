@@ -277,17 +277,21 @@ class BleManagerGatts(BleManagerBase):
 
                  # TODO simplify calls into nested structures
                 # Characteristic Attribute
-                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].uuid[:2] = [0x03, 0x28]
-                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].perm = att_perm()
-                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].max_len_read_ind = att_max_len_read_ind()
+                att = gattm_att_desc()
+                att.uuid[:2] = [0x03, 0x28]
+                att.perm = att_perm()
+                att.max_len_read_ind = att_max_len_read_ind()
+                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx] = att
                 self._attr_idx += 1
                 h_offset = self._attr_idx
 
                 # Characteristic value attribute  # TODO align assigning uuid with gattc_sdp_svc_ind or vice versa
-                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].uuid[:len(command.uuid.uuid)] = command.uuid.uuid
-                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].perm = self._api_to_rwperm(command.prop, command.perm, command.uuid.type)
-                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].max_len_read_ind.max_len = command.max_len
-                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].max_len_read_ind.trigger_read_indication = command.flags
+                att = gattm_att_desc()
+                att.uuid[:len(command.uuid.uuid)] = command.uuid.uuid
+                att.perm = self._api_to_rwperm(command.prop, command.perm, command.uuid.type)
+                att.max_len_read_ind.max_len = command.max_len
+                att.max_len_read_ind.trigger_read_indication = command.flags
+                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx] = att
                 self._attr_idx += 1
                 h_val_offset = self._attr_idx
 
@@ -346,14 +350,16 @@ class BleManagerGatts(BleManagerBase):
                         max_len |= 2
 
                 # TODO simplify calls into nested structures
-                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].uuid[:len(command.uuid.uuid)] = command.uuid.uuid
-                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].perm = self._api_to_rwperm(0, command.perm, command.uuid.type)
+                att = gattm_att_desc()
+                att.uuid[:len(command.uuid.uuid)] = command.uuid.uuid
+                att.perm = self._api_to_rwperm(0, command.perm, command.uuid.type)
 
                 if command.perm & (ATT_PERM.ATT_PERM_WRITE_ENCRYPT | ATT_PERM.ATT_PERM_WRITE_AUTH | ATT_PERM.ATT_PERM_WRITE):
-                    perm = self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].perm
-                    self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].perm = self._api_to_rwperm(GATT_PROP.GATT_PROP_WRITE | GATT_PROP.GATT_PROP_WRITE_NO_RESP, 0, None, perm)
+                    perm = att.perm
+                    att.perm = self._api_to_rwperm(GATT_PROP.GATT_PROP_WRITE | GATT_PROP.GATT_PROP_WRITE_NO_RESP, 0, None, perm)
 
-                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].max_len_read_ind.max_len = max_len
+                att.max_len_read_ind.max_len = max_len
+                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx] = att
                 # TODO would this ever have a read indication?
                 self._attr_idx += 1
                 h_offset = self._attr_idx
@@ -369,9 +375,11 @@ class BleManagerGatts(BleManagerBase):
 
         if self._add_svc_msg:
             if self._add_svc_msg.parameters.svc_desc.nb_att - self._attr_idx >= 1:
-                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].uuid[:2] = [0x02, 0x28]
-                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].perm = att_perm()  # dont care
-                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx].max_len_read_ind.max_len = command.handle
+                att = gattm_att_desc()
+                att.uuid[:2] = [0x02, 0x28]
+                att.perm = att_perm()  # dont care
+                att.max_len_read_ind.max_len = command.handle
+                self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx] = att
                 self._attr_idx += 1
                 h_offset = self._attr_idx
                 response.status = BLE_ERROR.BLE_STATUS_OK

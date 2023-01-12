@@ -56,7 +56,7 @@ async def ble_task(sample_q: asyncio.Queue):
     my_service = CustomBleService(my_service_callbacks)
     my_service.init()
 
-    resposne = await periph.register_service(my_service)
+    await periph.register_service(my_service)
     await my_service.set_char2_value((0x8692).to_bytes(2, 'little'))
     await my_service.set_char3_user_desc_value(b"Hello")
 
