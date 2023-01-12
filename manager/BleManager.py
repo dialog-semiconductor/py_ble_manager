@@ -116,7 +116,7 @@ class BleManager(BleManagerBase):
         if task.exception():
             task.result()  # Raise the exception
 
-    async def cmd_execute(self, command) -> BLE_ERROR:
+    async def cmd_execute(self, command: BleMgrMsgBase) -> BLE_ERROR: # TODO fix typing of return, return multiple 
         ble_status = self.gap_mgr.dev_params.status
         if ble_status == BLE_STATUS.BLE_IS_BUSY or ble_status == BLE_STATUS.BLE_IS_RESET:
             return BLE_ERROR.BLE_ERROR_BUSY
@@ -125,6 +125,8 @@ class BleManager(BleManagerBase):
 
         self._mgr_command_queue_send(command)
         response = await self._mgr_response_queue_get()
+
+        assert command.opcode == response.opcode
 
         return response
 

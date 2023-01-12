@@ -3,8 +3,8 @@ import asyncio
 from adapter.BleAdapter import BleAdapter
 from ble_api.BleDeviceBase import BleDeviceBase
 from ble_api.BleAtt import ATT_ERROR
-from ble_api.BleCommon import BleEventBase, BLE_ERROR
-from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_EVT_GAP, BleEventGapConnected, BleEventGapDisconnected
+from ble_api.BleCommon import BleEventBase, BLE_ERROR, bd_address
+from ble_api.BleGap import BLE_GAP_ROLE, gap_conn_params, BLE_GAP_CONN_MODE, BLE_EVT_GAP, BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatt import GATT_EVENT
 from ble_api.BleGatts import BLE_EVT_GATTS, BleEventGattsReadReq, BleEventGattsWriteReq
 from ble_api.BleGattsApi import BleGattsApi
@@ -22,6 +22,6 @@ class BleCentral(BleDeviceBase):
     async def start(self) -> BLE_ERROR:
         return await super().start(BLE_GAP_ROLE.GAP_CENTRAL_ROLE)
 
-    async def connect(self) -> None:
-        pass
+    async def connect(self, peer_addr: bd_address, conn_params: gap_conn_params) -> None:
+        return await self.ble_gap.connect(peer_addr, conn_params)
 

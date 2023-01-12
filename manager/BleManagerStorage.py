@@ -177,6 +177,14 @@ class StoredDeviceQueue(SearchableQueue):
     def __init__(self) -> None:
         self.queue: list[StoredDevice] = []
 
+    def find_device_by_connenting(self):
+        found = None
+        device: StoredDevice
+        for device in self.queue:
+            found = device if device.connecting else None
+
+        return found
+
     def find_device_by_address(self, addr: bd_address = None, create: bool = False) -> StoredDevice:
 
         found = None

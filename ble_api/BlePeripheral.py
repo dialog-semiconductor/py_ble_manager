@@ -193,6 +193,8 @@ class BlePeripheral(BleDeviceBase):
     async def start(self) -> BLE_ERROR:
         return await super().start(BLE_GAP_ROLE.GAP_PERIPHERAL_ROLE)
 
+
+    # TODO move to BleGapApi
     async def start_advertising(self,
                                 adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
                                 ) -> BLE_ERROR:
