@@ -24,3 +24,7 @@ evt2.status = BLE_ERROR.BLE_ERROR_BUSY
 
 print(evt)
 print(evt2)
+
+adv = BleAdvData()
+
+print(adv)

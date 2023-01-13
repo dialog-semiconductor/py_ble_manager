@@ -2,9 +2,8 @@ from ctypes import c_uint8
 
 from ble_api.BleCommon import BLE_OWN_ADDR_TYPE, bd_address, own_address, irk, BLE_STATUS
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_GAP_APPEARANCE, gap_chnl_map, GAP_DISC_MODE, ADV_FILT_POL, \
-    gap_scan_params, gap_conn_params, GAP_IO_CAPABILITIES
+    gap_scan_params, gap_conn_params, GAP_IO_CAPABILITIES, GAP_DATA_TYPE
 from gtl_port.co_bt import ADV_DATA_LEN, SCAN_RSP_DATA_LEN, ADV_CHANNEL_MAP
-from gtl_port.gap import GAP_AD_TYPE
 from gtl_port.gapm_task import gapm_att_cfg_flag
 
 
@@ -102,7 +101,7 @@ class BleDevParamsDefault(BleDevParams):
         self.adv_data_length = 28
 
         self.adv_data[0] = len(name) + 2
-        self.adv_data[1] = GAP_AD_TYPE.GAP_AD_TYPE_COMPLETE_NAME  # TODO use BLE Enum instead of gtl
+        self.adv_data[1] = GAP_DATA_TYPE.GAP_DATA_TYPE_LOCAL_NAME
         self.adv_data[2: (2 + len(name))] = name
         self.scan_rsp_data_length = 31  # Length of scan response
         self.scan_rsp_data = (c_uint8 * SCAN_RSP_DATA_LEN)()

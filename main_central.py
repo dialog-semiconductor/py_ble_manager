@@ -4,7 +4,7 @@ import asyncio
 from ble_api.BleCentral import BleCentral
 from ble_api.BleAtt import ATT_ERROR
 from ble_api.BleCommon import BleEventBase
-from ble_api.BleGap import  GAP_SCAN_TYPE, GAP_SCAN_MODE
+from ble_api.BleGap import  GAP_SCAN_TYPE, GAP_SCAN_MODE, BleEventGapAdvReport, BleAdvData
 from ble_api.BleGatt import GATT_EVENT
 from services.CustomBleService import CustomBleService, CustomBleServiceCallbacks
 
@@ -80,14 +80,31 @@ async def ble_task(sample_q: asyncio.Queue):
             # Handle and BLE events that hace occurred
             elif task is ble_event_task:
                 evt: BleEventBase = task.result()  # TODO how does timeout error affect result
-                if evt is not None:
-                    pass
-                    # TODO switch on event type
-
                 print(f"Main rx'd event: {evt}.\n")
+                if evt is not None:
+                    # TODO switch on event type
+                    if isinstance(evt, BleEventGapAdvReport):
+                        parse_adv_data(evt)
 
                 ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
                 pending.add(ble_event_task)
 
+# TODO data length seems wrong
+def parse_adv_data(evt: BleEventGapAdvReport):
+    data_ptr = 0
+    adv_data_structs: BleAdvData = []
+    if len(evt.data) > 0:
+        while data_ptr <= 31 and data_ptr < len(evt.data):
 
+                struct = BleAdvData(type=evt.data[data_ptr])
+                data_ptr += 1
+                struct.len = evt.data[data_ptr]
+                data_ptr += 1
+                struct.data = evt.data[data_ptr:(data_ptr + struct.len)]
+                data_ptr += struct.len
+                adv_data_structs.append(struct)
+
+    for adv in adv_data_structs:
+        print(f"Rx'd Adv Data: {adv}")
+    
 asyncio.run(main())

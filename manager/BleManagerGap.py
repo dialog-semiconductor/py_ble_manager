@@ -308,6 +308,9 @@ class BleManagerGap(BleManagerBase):
         evt.address.addr_type = gtl.parameters.report.adv_addr_type
         # endif /* (dg_configBLE_PRIVACY_1_2 == 1) */
         evt.address.addr = gtl.parameters.report.adv_addr.addr
+        #evt.length = gtl.parameters.report.data_len
+        #evt.data = gtl.parameters.report.data
+
         evt.data = gtl.parameters.report.data[:gtl.parameters.report.data_len]
 
         self._mgr_event_queue_send(evt)
