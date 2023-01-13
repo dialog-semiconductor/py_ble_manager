@@ -4,7 +4,7 @@ import asyncio
 from ble_api.BleCentral import BleCentral
 from ble_api.BleAtt import ATT_ERROR
 from ble_api.BleCommon import BleEventBase
-from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
+from ble_api.BleGap import  GAP_SCAN_TYPE, GAP_SCAN_MODE
 from ble_api.BleGatt import GATT_EVENT
 from services.CustomBleService import CustomBleService, CustomBleServiceCallbacks
 
@@ -54,10 +54,12 @@ async def ble_task(sample_q: asyncio.Queue):
     await central.init()
     await central.start()
 
-    
-
-    
-    # await central.connect() # TODO add peer_addr and conn_params
+    await central.scan_start(GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
+                             GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
+                             160,
+                             80,
+                             False,
+                             True)
 
     timer_read_task = asyncio.create_task(sample_q.get(), name='sample_q_Read')
     ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
