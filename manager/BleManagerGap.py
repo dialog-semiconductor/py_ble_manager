@@ -299,7 +299,7 @@ class BleManagerGap(BleManagerBase):
 
     def adv_report_evt_handler(self, gtl: GapmAdvReportInd) -> None:
         evt = BleEventGapAdvReport()
-        evt.type = GAP_SCAN_TYPE(gtl.parameters.report.evt_type)
+        evt.type = gtl.parameters.report.evt_type
         evt.rssi = gtl.parameters.report.rssi
         # if (dg_configBLE_PRIVACY_1_2 == 1)
         # Mask the flag indicating that the address was resolved by the controller */

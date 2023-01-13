@@ -26,3 +26,8 @@ print(response.value)
 response.value = bytes(gtl.parameters.value[:length])
 print(type(response.value))
 print(response.value)
+
+tpye = b'\x02\x01\x06\x1b\xffL\x00\x0c\x0e\x00\xce\xf5\xbedFV|\x97z\xa3Iz\xaa\x10\x06G\x1d\xa3b\x98h'
+
+print(len(tpye))
+print(tpye.hex())

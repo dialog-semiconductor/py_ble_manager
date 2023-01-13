@@ -263,7 +263,7 @@ class BleEventGapAdvCompleted(BleEventBase):
 
 class BleEventGapAdvReport(BleEventBase):
     def __init__(self,
-                 type: GAP_SCAN_TYPE = GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
+                 type: int = 0,  # TODO is there an enum for this?
                  address: bd_address = None,
                  rssi: int = 0,
                  length: int = 0,
