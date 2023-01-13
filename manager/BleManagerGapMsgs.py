@@ -1,7 +1,7 @@
 from enum import IntEnum, auto
 
 from ble_api.BleCommon import BLE_ERROR, bd_address
-from ble_api.BleGap import BLE_GAP_CONN_MODE, BLE_GAP_ROLE, gap_conn_params
+from ble_api.BleGap import BLE_GAP_CONN_MODE, BLE_GAP_ROLE, gap_conn_params, GAP_SCAN_TYPE, GAP_SCAN_MODE
 from manager.BleManagerCommonMsgs import BLE_MGR_CMD_CAT, BleMgrMsgBase
 
 
@@ -261,8 +261,29 @@ class BleMgrGapSetTxPowerReportEnableCmd(BleMgrMsgBase):
 
 
 class BleMgrGapScanStartCmd(BleMgrMsgBase):
-    def __init__(self, type, mode, interval, window, filt_wlist, filt_dupl) -> None:
+    def __init__(self,
+                 type: GAP_SCAN_TYPE = GAP_SCAN_TYPE.GAP_SCAN_ACTIVE, 
+                 mode: GAP_SCAN_MODE = GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
+                 interval: int = 0,
+                 window: int = 0,
+                 filt_wlist: bool = False,
+                 filt_dupl: bool = False
+                 ) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SCAN_START_CMD)
+        self.type = type
+        self.mode = mode
+        self.interval = interval
+        self.window = window
+        self.filt_wlist = filt_wlist
+        self.filt_dupl = filt_dupl
+
+
+class BleMgrGapScanStartRsp(BleMgrMsgBase):
+    def __init__(self,
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SCAN_START_CMD)
+        self.status = status
 
 
 class BleMgrGapScanStopCmd(BleMgrMsgBase):

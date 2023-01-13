@@ -38,8 +38,9 @@ from ctypes import Array, cast, c_uint8, c_uint16, LittleEndianStructure, pointe
 from enum import auto, IntEnum
 
 from .attm import ATTM_PERM
-from .co_bt import ADV_CHANNEL_MAP, ADV_DATA_LEN, ADV_FILTER_POLICY, bd_addr, SCAN_RSP_DATA_LEN
-from .gap import GAP_ADV_MODE, gap_bdaddr, GAP_ROLE, gap_sec_key
+from .co_bt import ADV_CHANNEL_MAP, ADV_DATA_LEN, ADV_FILTER_POLICY, bd_addr, SCAN_RSP_DATA_LEN, SCAN_FILTER_POLICY, \
+    SCAN_DUP_FILTER_POLICY
+from .gap import GAP_ADV_MODE, gap_bdaddr, GAP_ROLE, gap_sec_key, GAP_SCAN_MODE
 from .rwble_hl_error import HOST_STACK_ERROR_CODE
 from .rwip_config import KE_API_ID
 
@@ -863,7 +864,7 @@ class gapm_start_advertise_cmd(LittleEndianStructure):
         self.intv_max = intv_max
         self.channel_map = channel_map
         self.info = info
-        super().__init__(operation=self.op,
+        super().__init__(op=self.op,
                          intv_min=self.intv_min,
                          intv_max=self.intv_max,
                          channel_map=self.channel_map,
@@ -902,37 +903,59 @@ struct gapm_update_advertise_data_cmd
     # Scan response data
     uint8_t              scan_rsp_data[SCAN_RSP_DATA_LEN];
 };
+'''
+
 
 # Set scan mode Command
-struct gapm_start_scan_cmd
-{
-    # GAPM requested operation:
-    # - GAPM_SCAN_ACTIVE: Start active scan operation
-    # - GAPM_SCAN_PASSIVE: Start passive scan operation
-    struct gapm_air_operation op;
+class gapm_start_scan_cmd(LittleEndianStructure):
 
-    # Scan interval
-    uint16_t             interval;
-    # Scan window size
-    uint16_t             window;
+    def __init__(self,
+                 op: gapm_air_operation = gapm_air_operation(),
+                 interval: c_uint16 = 0,
+                 window: c_uint16 = 0,
+                 mode: GAP_SCAN_MODE = GAP_SCAN_MODE.GAP_GEN_DISCOVERY,
+                 filt_policy: SCAN_FILTER_POLICY = SCAN_FILTER_POLICY.SCAN_ALLOW_ADV_ALL,
+                 filter_duplic: SCAN_DUP_FILTER_POLICY = SCAN_DUP_FILTER_POLICY.SCAN_FILT_DUPLIC_DIS):
 
-    # Scanning mode :
-    # - GAP_GEN_DISCOVERY: General discovery mode
-    # - GAP_LIM_DISCOVERY: Limited discovery mode
-    # - GAP_OBSERVER_MODE: Observer mode
-    uint8_t              mode;
+        self.op = op
+        self.interval = interval
+        self.window = window
+        self.mode = mode
+        self.filt_policy = filt_policy
+        self.filter_duplic = filter_duplic
+        super().__init__(op=self.op,
+                         interval=self.interval,
+                         window=self.window,
+                         mode=self.mode,
+                         filt_policy=self.filt_policy,
+                         filter_duplic=self.filter_duplic,
+                         padding=0)
 
-    # Scan filter policy:
-    # - SCAN_ALLOW_ADV_ALL: Allow advertising packets from anyone
-    # - SCAN_ALLOW_ADV_WLST: Allow advertising packets from White List devices only
-    uint8_t              filt_policy;
-    # Scan duplicate filtering policy:
-    # - SCAN_FILT_DUPLIC_DIS: Disable filtering of duplicate packets
-    # - SCAN_FILT_DUPLIC_EN: Enable filtering of duplicate packets
-    uint8_t              filter_duplic;
-};
+                # GAPM requested operation:
+                # - GAPM_SCAN_ACTIVE: Start active scan operation
+                # - GAPM_SCAN_PASSIVE: Start passive scan operation
+    _fields_ = [("op", gapm_air_operation),
+                # Scan interval
+                ("interval", c_uint16),
+                # Scan window size
+                ("window", c_uint16),
+                # Scanning mode :
+                # - GAP_GEN_DISCOVERY: General discovery mode
+                # - GAP_LIM_DISCOVERY: Limited discovery mode
+                # - GAP_OBSERVER_MODE: Observer mode
+                ("mode", c_uint8),
+                # Scan filter policy:
+                # - SCAN_ALLOW_ADV_ALL: Allow advertising packets from anyone
+                # - SCAN_ALLOW_ADV_WLST: Allow advertising packets from White List devices only
+                ("filt_policy", c_uint8),
+                # Scan duplicate filtering policy:
+                # - SCAN_FILT_DUPLIC_DIS: Disable filtering of duplicate packets
+                # - SCAN_FILT_DUPLIC_EN: Enable filtering of duplicate packets
+                ("filter_duplic", c_uint8),
+                ("padding", c_uint8)]
 
 
+'''
 # Advertising or scanning report information event
 struct gapm_adv_report_ind
 {

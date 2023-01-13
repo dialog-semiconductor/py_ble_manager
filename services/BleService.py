@@ -3,7 +3,9 @@ from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
 from ble_api.BleGatts import GATTS_FLAGS, BleEventGattsReadReq, BleEventGattsEventSent, BleEventGattsPrepareWriteReq
 from ble_api.BleCommon import BleEventBase
-from ble_api.BleCentralPeripheral import BlePeripheral
+from ble_api.BleCentralPeripheral import BlePeripheral  
+
+# TODO Bleperipheral and BleService tightly coupled. Consider using a mediator
 
 
 class AttributeHandle():
@@ -131,4 +133,7 @@ class BleServiceBase():
 
     def write_req(self, evt: BleEventBase) -> None:  # BleEventGattsWriteReq
         pass
+
+    def register_peripheral(self, periph: BlePeripheral) -> None:
+        self.periph = periph
  

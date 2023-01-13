@@ -6,7 +6,8 @@ from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BleEventGapConnected
     BleEventGapAdvCompleted, BLE_CONN_IDX_INVALID, GAP_SEC_LEVEL  # BLE_GAP_PHY
 from gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd, GapcGetDevInfoReqInd, GapcGetDevInfoCfm, \
     GapcDisconnectInd
-from gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd
+from gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd\
+    # GapmStartScan
 from gtl_port.co_error import CO_ERROR
 from gtl_port.gap import GAP_ROLE, GAP_AUTH_MASK
 from gtl_port.gapc import GAPC_FIELDS_MASK
@@ -17,7 +18,7 @@ from manager.BleDevParams import BleDevParamsDefault
 from manager.BleManagerCommon import BleManagerBase
 from manager.BleManagerCommonMsgs import BleMgrMsgBase
 from manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp, \
-    BleMgrGapRoleSetCmd, BleMgrGapConnectCmd
+    BleMgrGapRoleSetCmd, BleMgrGapConnectCmd, BleMgrGapScanStartCmd, BleMgrGapScanStartRsp
 from manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from manager.GtlWaitQueue import GtlWaitQueue
 
@@ -52,7 +53,7 @@ class BleManagerGap(BleManagerBase):
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_STOP_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_DATA_SET_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_SET_PERMUTATION_CMD: None,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SCAN_START_CMD: None,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SCAN_START_CMD: self.scan_start_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SCAN_STOP_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CMD: self.connect_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CANCEL_CMD: None,
@@ -513,6 +514,21 @@ class BleManagerGap(BleManagerBase):
                          command.role)
 
         self._adapter_command_queue_send(dev_params_gtl)
+
+    def scan_start_cmd_handler(self, command: BleMgrGapScanStartCmd):
+        # TODO handle privacy, just implementing ble_mgr_gap_scan_start_cmd_exec below
+        # if (dg_configBLE_PRIVACY_1_2 == 1)
+        # ble_mgr_gap_ral_sync(ble_mgr_gap_scan_start_cmd_exec, param);
+        # else
+        # ble_mgr_gap_scan_start_cmd_exec(param);
+        # endif /* (dg_configBLE_PRIVACY_1_2 == 1) */
+        response = BleMgrGapScanStartRsp(BLE_ERROR.BLE_ERROR_FAILED)
+
+        if self.dev_params.scanning:
+            response.status = BLE_ERROR.BLE_ERROR_IN_PROGRESS
+        else:
+            gtl = Gapm
+
 
 
 '''

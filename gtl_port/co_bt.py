@@ -1442,22 +1442,24 @@ enum
     ///Enumeration end value for scan type value check
     SCAN_END
 };
+'''
 
-///Scan filter policy
-enum scan_filter_policy
-{
-    ///Allow advertising packets from anyone
-    SCAN_ALLOW_ADV_ALL            = 0x00,
-    ///Allow advertising packets from White List devices only
-    SCAN_ALLOW_ADV_WLST,
-    ///Allow advertising packets from anyone + RPA
-    SCAN_ALLOW_ADV_ALL_RPA,
-    ///Allow advertising packets from White List devices only + RPA
-    SCAN_ALLOW_ADV_WLST_RPA,
-    ///Enumeration end value for scan filter policy value check
-    SCAN_ALLOW_ADV_END
-};
 
+# Scan filter policy
+class SCAN_FILTER_POLICY(IntEnum):
+    # Allow advertising packets from anyone
+    SCAN_ALLOW_ADV_ALL = 0x00
+    # Allow advertising packets from White List devices only
+    SCAN_ALLOW_ADV_WLST = auto()
+    # Allow advertising packets from anyone + RPA
+    SCAN_ALLOW_ADV_ALL_RPA = auto()
+    # Allow advertising packets from White List devices only + RPA
+    SCAN_ALLOW_ADV_WLST_RPA = auto()
+    # Enumeration end value for scan filter policy value check
+    SCAN_ALLOW_ADV_END = auto()
+
+
+'''
 ///Le Scan enables
 enum
 {
@@ -1468,18 +1470,21 @@ enum
     ///Enumeration end value for scan enable value check
     SCAN_EN_END
 };
+'''
 
-///Filter duplicates
-enum scan_dup_filter_policy
-{
-    ///Disable filtering of duplicate packets
-    SCAN_FILT_DUPLIC_DIS          = 0x00,
-    ///Enable filtering of duplicate packets
-    SCAN_FILT_DUPLIC_EN,
-    ///Enumeration end value for scan duplicate filtering value check
-    SCAN_FILT_DUPLIC_END
-};
 
+# Filter duplicates
+class SCAN_DUP_FILTER_POLICY(IntEnum):
+
+    # Disable filtering of duplicate packets
+    SCAN_FILT_DUPLIC_DIS = 0x00
+    # Enable filtering of duplicate packets
+    SCAN_FILT_DUPLIC_EN = auto()
+    # Enumeration end value for scan duplicate filtering value check
+    SCAN_FILT_DUPLIC_END = auto()
+
+
+'''
 ///Initiator Filter policy
 enum
 {

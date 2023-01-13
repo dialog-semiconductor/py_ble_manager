@@ -186,6 +186,19 @@ class GAP_IO_CAPABILITIES(IntEnum):
     GAP_IO_CAP_KEYBOARD_DISP = 0x04  # Keyboard display
 
 
+# Scanning modes
+class GAP_SCAN_MODE(IntEnum):
+    GAP_SCAN_GEN_DISC_MODE = 0  # General-Discoverable mode
+    GAP_SCAN_LIM_DISC_MODE = 1  # Limited-Discoverable mode
+    GAP_SCAN_OBSERVER_MODE = 2  # Observer mode
+
+
+# Scanning types
+class GAP_SCAN_TYPE(IntEnum):
+    GAP_SCAN_ACTIVE = 0  # Active Scan type
+    GAP_SCAN_PASSIVE = 1  # Passive Scan type
+
+
 # GAP security levels
 class GAP_SEC_LEVEL(IntEnum):
     GAP_SEC_LEVEL_1 = 0x00,  # No security

@@ -55,7 +55,9 @@ async def ble_task(sample_q: asyncio.Queue):
     await central.start()
 
     
-    await central.connect() # TODO add peer_addr and conn_params
+
+    
+    # await central.connect() # TODO add peer_addr and conn_params
 
     timer_read_task = asyncio.create_task(sample_q.get(), name='sample_q_Read')
     ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')

@@ -203,8 +203,6 @@ class TestGapmStartConnectionCmd(unittest.TestCase):
         test_message.parameters.ce_len_max = 67 # (67 x 0.625 = 41.875 ms)
         test_message.parameters.nb_peers = 1
 
-        # TODO need api to swap endian
-
         addr_string = bytearray.fromhex('80EACA70EE09')
         addr_string.reverse()
         # have to pass a ctype list whose parm is the contents of a list with the data. Less covuluted way to do this?
@@ -213,6 +211,24 @@ class TestGapmStartConnectionCmd(unittest.TestCase):
         # peers comes back as an array that we can index into directly, but editor has trouble with type TODO Typedef return type??
         test_message.parameters.peers[0].addr.addr = (c_uint8 * BD_ADDR_LEN).from_buffer_copy(addr_string)
     
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 186
+class TestGapmStartScanCmd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "050F0D0D0010000C0012000000A000500000000000"
+        
+    def test_parameters_passed_on_construction(self):
+        test_message = GapmStartScanCmd()
+        test_message.parameters.op.code = GAPM_OPERATION.GAPM_SCAN_PASSIVE
+        test_message.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_STATIC_ADDR
+        test_message.parameters.interval = 160
+        test_message.parameters.window = 80
+        test_message.parameters.mode = GAP_SCAN_MODE.GAP_GEN_DISCOVERY
+        test_message.parameters.filt_policy = SCAN_FILTER_POLICY.SCAN_ALLOW_ADV_ALL
+        test_message.parameters.filter_duplic = SCAN_DUP_FILTER_POLICY.SCAN_FILT_DUPLIC_DIS
+
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
 

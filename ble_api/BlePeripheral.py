@@ -117,7 +117,7 @@ class BlePeripheral(BleDeviceBase):
                 if error == BLE_ERROR.BLE_STATUS_OK:
                     self._services.append(svc)
                     # Set this BlePeripheral with the service so service can make calls to set, notify, read_cfm, etc 
-                    svc.periph = self
+                    svc.register_peripheral(self)
 
         return error
 

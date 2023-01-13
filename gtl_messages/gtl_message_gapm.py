@@ -1,6 +1,6 @@
 from .gtl_message_base import GtlMessageBase
 from gtl_port.gapm_task import GAPM_MSG_ID, gapm_reset_cmd, gapm_cmp_evt, gapm_set_dev_config_cmd, gapm_start_advertise_cmd, \
-    gapm_start_connection_cmd
+    gapm_start_connection_cmd, gapm_start_scan_cmd
 from gtl_port.rwip_config import KE_API_ID
 
 
@@ -76,7 +76,7 @@ class GapmStartConnectionCmd(GtlMessageBase):
         super().__init__(msg_id=GAPM_MSG_ID.GAPM_START_CONNECTION_CMD,
                          dst_id=KE_API_ID.TASK_ID_GAPM,
                          src_id=KE_API_ID.TASK_ID_GTL,
-                         par_len=self.par_len,  # if user updates parameters.nb_peers after construction, par_len automatically updated
+                         par_len=self.par_len,
                          parameters=self.parameters)
 
     def get_par_len(self):
@@ -89,6 +89,17 @@ class GapmStartConnectionCmd(GtlMessageBase):
     par_len = property(get_par_len, set_par_len)
 
 
+class GapmStartScanCmd(GtlMessageBase):
+
+    def __init__(self, parameters: gapm_start_scan_cmd = None):
+
+        self.parameters = parameters if parameters else gapm_start_scan_cmd()
+
+        super().__init__(msg_id=GAPM_MSG_ID.GAPM_START_SCAN_CMD,
+                         dst_id=KE_API_ID.TASK_ID_GAPM,
+                         src_id=KE_API_ID.TASK_ID_GTL,
+                         par_len=12,
+                         parameters=self.parameters)
 
 
 # TODO next message GAPM_RESOLV_ADDR_CMD, GAPM_ADDR_SOLVED_IND
