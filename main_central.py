@@ -93,8 +93,9 @@ async def ble_task(sample_q: asyncio.Queue):
 def parse_adv_data(evt: BleEventGapAdvReport):
     data_ptr = 0
     adv_data_structs: BleAdvData = []
+    print(f"Parsing evt.data={evt.data}")
     if len(evt.data) > 0:
-        while data_ptr <= 31 and data_ptr < len(evt.data):
+        while data_ptr <= 31 and data_ptr < evt.length:
 
                 struct = BleAdvData(type=evt.data[data_ptr])
                 data_ptr += 1

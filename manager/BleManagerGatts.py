@@ -123,7 +123,7 @@ class BleManagerGatts(BleManagerBase):
         if gtl.parameters.status == HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR:
             # TODO verify do not need length in response
             response.status = BLE_ERROR.BLE_STATUS_OK
-            response.value = gtl.parameters.value[:length]
+            response.value = bytes(gtl.parameters.value[:length])
 
         self._mgr_response_queue_send(response)
 
@@ -167,7 +167,7 @@ class BleManagerGatts(BleManagerBase):
             evt.type = GATT_EVENT.GATT_EVENT_NOTIFICATION
         else:
             evt.type = GATT_EVENT.GATT_EVENT_INDICATION
-        evt.status = gtl.parameters.status
+        evt.status = gtl.parameters.status == HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR
 
         dev = self._stored_device_list.find_device_by_conn_idx(evt.conn_idx)
         if dev is not None:
