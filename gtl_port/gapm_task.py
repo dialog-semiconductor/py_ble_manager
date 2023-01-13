@@ -37,12 +37,12 @@
 from ctypes import Array, cast, c_uint8, c_uint16, LittleEndianStructure, pointer, POINTER, Union, c_bool, c_uint32
 from enum import auto, IntEnum
 
-from .attm import ATTM_PERM
-from .co_bt import ADV_CHANNEL_MAP, ADV_DATA_LEN, ADV_FILTER_POLICY, bd_addr, SCAN_RSP_DATA_LEN, SCAN_FILTER_POLICY, \
-    SCAN_DUP_FILTER_POLICY
-from .gap import GAP_ADV_MODE, gap_bdaddr, GAP_ROLE, gap_sec_key, GAP_SCAN_MODE
-from .rwble_hl_error import HOST_STACK_ERROR_CODE
-from .rwip_config import KE_API_ID
+from gtl_port.attm import ATTM_PERM
+from gtl_port.co_bt import ADV_CHANNEL_MAP, ADV_DATA_LEN, ADV_FILTER_POLICY, bd_addr, SCAN_RSP_DATA_LEN, SCAN_FILTER_POLICY, \
+    SCAN_DUP_FILTER_POLICY, adv_report
+from gtl_port.gap import GAP_ADV_MODE, gap_bdaddr, GAP_ROLE, gap_sec_key, GAP_SCAN_MODE
+from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
+from gtl_port.rwip_config import KE_API_ID
 
 GAPM_LE_LENGTH_EXT_OCTETS_MIN = 27
 GAPM_LE_LENGTH_EXT_OCTETS_MAX = 251
@@ -955,14 +955,15 @@ class gapm_start_scan_cmd(LittleEndianStructure):
                 ("padding", c_uint8)]
 
 
-'''
 # Advertising or scanning report information event
-struct gapm_adv_report_ind
-{
-    # Advertising report structure
-    struct adv_report report;
-};
-'''
+class gapm_adv_report_ind(LittleEndianStructure):
+    def __init__(self, report: adv_report = adv_report()) -> None:
+
+        self.report = report
+        super().__init__(report=self.report)
+
+                # Advertising report structure
+    _fields_ = [("report", adv_report)]
 
 
 # Set connection initialization Command

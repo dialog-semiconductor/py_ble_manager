@@ -1,8 +1,7 @@
 import unittest
 from gtl_messages.gtl_message_gapm import *
-from gtl_port.co_bt import BD_ADDR_LEN
+from gtl_port.co_bt import *
 from gtl_port.gapm_task import *
-
 
 # Table 3
 class TestGapmDeviceReadyInd(unittest.TestCase):
@@ -231,6 +230,23 @@ class TestGapmStartScanCmd(unittest.TestCase):
 
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+# Table 187
+class TestGapmAdvReportInd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05100D10000D00290000001BA070CAEA801B0201061107B75C49D204A34071A0B535853EB08307050978494F5400000000BD"
+        
+    def test_parameters_passed_on_construction(self):
+        test_message = GapmAdvReportInd()
+        test_message.parameters.report.adv_addr_type = BD_ADDRESS_TYPE.ADDR_PUBLIC
+        addr_string = bytearray.fromhex('80EACA70A01B')
+        addr_string.reverse()
+        test_message.parameters.report.adv_addr.addr[:] = addr_string
+        data_string = bytearray.fromhex('0201061107B75C49D204A34071A0B535853EB08307050978494F54')
+        test_message.parameters.report.data = data_string 
+        test_message.parameters.report.rssi = 0xBD
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
 if __name__ == '__main__':
     unittest.main()

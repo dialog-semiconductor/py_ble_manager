@@ -56,8 +56,8 @@ DONE        Table 160: GATTC_WRITE_CMD Symbolic Message Structure
             Table 171: GAPM_RAL_MGT_CMD Symbolic Message Structure
             Table 174: GAPM_WHITE_LIST_MGT_CMD - Symbolic Message Structure
             Table 176: GAPM_WHITE_LIST_SIZE_IND Symbolic Message Structure
-            Table 185: GAPM_START_SCAN_CMD Symbolic Message Structure
-            Table 187: GAPM_ADV_REPORT_IND Symbolic Message Structure
+DONE        Table 185: GAPM_START_SCAN_CMD Symbolic Message Structure
+        Table 187: GAPM_ADV_REPORT_IND Symbolic Message Structure
             Table 190: GATTC_SVC_CHANGED_CFG_IND Symbolic Message Structure
             Table 192: GAPC_DISCONNECT_CMD Symbolic Message Structure
             Table 194: GAPC_DISCONNECT_IND Symbolic Message Structure

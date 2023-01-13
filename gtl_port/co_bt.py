@@ -1345,24 +1345,27 @@ enum
     ///Enumeration end value for LE simultaneous Host enable check
     SIMULT_LE_HOST_END
 };
+'''
 
-///Advertising HCI Type
-enum
-{
-    ///Connectable Undirected advertising
-    ADV_CONN_UNDIR                = 0x00,
-    ///Connectable high duty cycle directed advertising
-    ADV_CONN_DIR,
-    ///Discoverable undirected advertising
-    ADV_DISC_UNDIR,
-    ///Non-connectable undirected advertising
-    ADV_NONCONN_UNDIR,
-    ///Connectable low duty cycle directed advertising
-    ADV_CONN_DIR_LDC,
-    ///Enumeration end value for advertising type value check
-    ADV_END
-};
 
+# Advertising HCI Type
+class ADV_HCI_TYPE(IntEnum):
+
+    # Connectable Undirected advertising
+    ADV_CONN_UNDIR = 0x00
+    # Connectable high duty cycle directed advertising
+    ADV_CONN_DIR = auto()
+    # Discoverable undirected advertising
+    ADV_DISC_UNDIR = auto()
+    # Non-connectable undirected advertising
+    ADV_NONCONN_UNDIR = auto()
+    # Connectable low duty cycle directed advertising
+    ADV_CONN_DIR_LDC = auto()
+    # Enumeration end value for advertising type value check
+    ADV_END = auto()
+
+
+'''
 ///Scanning HCI Type
 enum
 {
@@ -1373,22 +1376,21 @@ enum
     ///Enumeration end value for scanning type value check
     SCAN_LEN
 };
-
-///BD address type
-enum
-{
-    ///Public BD address
-    ADDR_PUBLIC                   = 0x00,
-    ///Random BD Address
-    ADDR_RAND,
-    ///RPA or Public
-    ADDR_RPA_PUBLIC,
-    ///RPA or Random
-    ADDR_RPA_RAND,
-    ///Enumeration end value for BD address type value check
-    ADDR_END
-};
 '''
+
+# BD address type
+class BD_ADDRESS_TYPE(IntEnum):
+
+    # Public BD address
+    ADDR_PUBLIC = 0x00
+    # Random BD Address
+    ADDR_RAND = auto()
+    # RPA or Public
+    ADDR_RPA_PUBLIC = auto()
+    # RPA or Random
+    ADDR_RPA_RAND = auto()
+    # Enumeration end value for BD address type value check
+    ADDR_END = auto()
 
 
 # Advertising channels enables
@@ -1808,28 +1810,59 @@ class rand_nb(LittleEndianStructure):
     _fields_ = [("nb", c_uint8 * RAND_NB_LEN)]
 
 
-'''
-///Advertising report structure
-struct adv_report
-{
-    ///Event type:
-    /// - ADV_CONN_UNDIR: Connectable Undirected advertising
-    /// - ADV_CONN_DIR: Connectable directed advertising
-    /// - ADV_DISC_UNDIR: Discoverable undirected advertising
-    /// - ADV_NONCONN_UNDIR: Non-connectable undirected advertising
-    uint8_t        evt_type;
-    ///Advertising address type: public/random
-    uint8_t        adv_addr_type;
-    ///Advertising address value
-    struct bd_addr adv_addr;
-    ///Data length in advertising packet
-    uint8_t        data_len;
-    ///Data of advertising packet
-    uint8_t        data[ADV_DATA_LEN];
-    ///RSSI value for advertising packet
-    uint8_t        rssi;
-};
+# Advertising report structure
+class adv_report(LittleEndianStructure):
 
+    def __init__(self,
+                 evt_type: ADV_HCI_TYPE = ADV_HCI_TYPE.ADV_CONN_UNDIR,
+                 adv_addr_type: BD_ADDRESS_TYPE = BD_ADDRESS_TYPE.ADDR_PUBLIC,  # TODO find other instances of Public vs private addr in stack and use BD_ADDRESS_TYPE
+                 adv_addr: bd_addr = bd_addr(),
+                 data: c_uint8 * ADV_DATA_LEN = (c_uint8 * ADV_DATA_LEN)(),
+                 rssi: c_uint8 = 0
+                 ) -> None:
+
+        self.evt_type = evt_type
+        self.adv_addr_type = adv_addr_type
+        self.adv_addr = adv_addr
+        self.data = data
+        self.rssi = rssi
+        super().__init__(evt_type=self.evt_type,
+                         adv_addr_type=self.adv_addr_type,
+                         adv_addr=self.adv_addr,
+                         data_len=self.data_len,
+                         _data=self._data,
+                         rssi=self.rssi)
+
+                # Event type:
+                # - ADV_CONN_UNDIR: Connectable Undirected advertising
+                # - ADV_CONN_DIR: Connectable directed advertising
+                # - ADV_DISC_UNDIR: Discoverable undirected advertising
+                # - ADV_NONCONN_UNDIR: Non-connectable undirected advertising
+    _fields_ = [("evt_type", c_uint8),
+                # Advertising address type: public/random
+                ("adv_addr_type", c_uint8),
+                # Advertising address value
+                ("adv_addr", bd_addr),
+                # Data length in advertising packet
+                ("data_len", c_uint8),
+                # Data of advertising packet
+                ("_data", c_uint8 * ADV_DATA_LEN),
+                # RSSI value for advertising packet
+                ("rssi", c_uint8)]
+
+    def get_data(self):
+        return self._data
+
+    def set_data(self, new_data: Array[c_uint8]):
+        self._data = (c_uint8 * ADV_DATA_LEN)()
+        self._data[:len(new_data)] = new_data
+        self.data_len = len(new_data)
+        print(f"Data length = {self.data_len}")
+
+    data = property(get_data, set_data)
+
+
+'''
 ///Direct Advertising report structure
 struct direct_adv_report
 {

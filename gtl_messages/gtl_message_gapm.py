@@ -1,6 +1,6 @@
 from .gtl_message_base import GtlMessageBase
 from gtl_port.gapm_task import GAPM_MSG_ID, gapm_reset_cmd, gapm_cmp_evt, gapm_set_dev_config_cmd, gapm_start_advertise_cmd, \
-    gapm_start_connection_cmd, gapm_start_scan_cmd
+    gapm_start_connection_cmd, gapm_start_scan_cmd, gapm_adv_report_ind
 from gtl_port.rwip_config import KE_API_ID
 
 
@@ -99,6 +99,19 @@ class GapmStartScanCmd(GtlMessageBase):
                          dst_id=KE_API_ID.TASK_ID_GAPM,
                          src_id=KE_API_ID.TASK_ID_GTL,
                          par_len=12,
+                         parameters=self.parameters)
+
+
+class GapmAdvReportInd(GtlMessageBase):
+
+    def __init__(self, parameters: gapm_adv_report_ind = None):
+
+        self.parameters = parameters if parameters else gapm_adv_report_ind()
+
+        super().__init__(msg_id=GAPM_MSG_ID.GAPM_ADV_REPORT_IND,
+                         dst_id=KE_API_ID.TASK_ID_GTL,
+                         src_id=KE_API_ID.TASK_ID_GAPM,
+                         par_len=41,
                          parameters=self.parameters)
 
 
