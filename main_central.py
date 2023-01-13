@@ -81,13 +81,11 @@ async def ble_task(sample_q: asyncio.Queue):
             elif task is ble_event_task:
                 evt: BleEventBase = task.result()  # TODO how does timeout error affect result
                 if evt is not None:
-                    handled = await central.service_handle_event(evt)
-                    if not handled:
-                        # Application opportunity to handle event
-                        # or apply default behaior
-                        pass
+                    pass
+                    # TODO switch on event type
 
-                print(f"Main rx'd event: {evt}. hanlded={handled} \n")
+
+                print(f"Main rx'd event: {evt}.\n")
 
                 ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
                 pending.add(ble_event_task)
