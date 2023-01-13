@@ -234,10 +234,27 @@ class gap_scan_params():
 
 # TODO Perhaps events belong in their own file
 class BleEventGapAdvCompleted(BleEventBase):
-    def __init__(self, adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED, status: BLE_ERROR = BLE_ERROR.BLE_STATUS_OK) -> None:
+    def __init__(self,
+                 adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED, 
+                 status: BLE_ERROR = BLE_ERROR.BLE_STATUS_OK
+                 ) -> None:
         super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_ADV_COMPLETED)
         self.adv_type = adv_type  # Advertising type
         self.status = status  # Completion status
+
+
+class BleEventGapAdvReport(BleEventBase):
+    def __init__(self,
+                 type: GAP_SCAN_TYPE = GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
+                 address: bd_address = None,
+                 rssi: int = 0,
+                 data: bytes = None
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_ADV_COMPLETED)
+        self.type = type 
+        self.address = address if address else bd_address()
+        self.rssi = rssi
+        self.data = data if data else bytes()
 
 
 class BleEventGapConnected(BleEventBase):
@@ -264,3 +281,13 @@ class BleEventGapDisconnected(BleEventBase):
         self.conn_idx = conn_idx
         self.address = address if address else bd_address()
         self.reason = reason
+
+
+class BleEventGapScanCompleted(BleEventBase):
+    def __init__(self,
+                 scan_type: GAP_SCAN_TYPE = GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_SCAN_COMPLETED)
+        self.scan_type = scan_type
+        self.status = status
