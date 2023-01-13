@@ -1,6 +1,6 @@
 import asyncio
 
-from adapter.MessageParser import MessageParser
+from gtl_messages.gtl_message_factory import GtlMessageFactory
 from adapter.SerialStreamManager import SerialStreamManager
 from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gapm import GapmResetCmd
@@ -12,7 +12,6 @@ class BleAdapter():
     def __init__(self, com_port: str, command_q: asyncio.Queue[GtlMessageBase], event_q: asyncio.Queue[GtlMessageBase]) -> None:
 
         self.event_observers = []
-        self.message_parser = MessageParser()
         self.command_q: asyncio.Queue[GtlMessageBase] = command_q
         self.event_q: asyncio.Queue[GtlMessageBase] = event_q
         self.ble_stack_initialized = False
@@ -56,7 +55,7 @@ class BleAdapter():
         self._send_serial_message(command)
 
     def _process_serial_rx_queue(self, byte_string: bytes):
-        msg = self.message_parser.decode_from_bytes(byte_string)  # # TODO catch error
+        msg = GtlMessageFactory().create_message(byte_string)  # # TODO catch error
         print(f"<-- Rx: {msg}\n")
 
         if msg:
