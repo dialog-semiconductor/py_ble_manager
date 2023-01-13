@@ -34,5 +34,5 @@ class BleCentral(BleDeviceBase):
                          filt_dupl: bool = False
                          ) -> BLE_ERROR:
         
-        return await self.ble_gap.scan_start(type, mode, interval, filt_wlist, filt_dupl)
+        return await self.ble_gap.scan_start(type, mode, interval, window, filt_wlist, filt_dupl)
 
