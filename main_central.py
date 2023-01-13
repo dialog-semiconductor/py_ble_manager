@@ -84,7 +84,6 @@ async def ble_task(sample_q: asyncio.Queue):
                     pass
                     # TODO switch on event type
 
-
                 print(f"Main rx'd event: {evt}.\n")
 
                 ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')

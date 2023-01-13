@@ -1,19 +1,7 @@
 from enum import IntEnum, auto
 
-from ble_api.BleCommon import BLE_EVT_CAT, BleEventBase
+from ble_api.BleCommon import BleEventBase, BLE_EVT_GATTS
 from ble_api.BleGatt import GATT_EVENT
-
-
-# TODO rename BLE_GATTS_EVT
-class BLE_EVT_GATTS(IntEnum):
-    # Read request from peer
-    BLE_EVT_GATTS_READ_REQ = BLE_EVT_CAT.BLE_EVT_CAT_GATTS << 8
-    # Write request from peer
-    BLE_EVT_GATTS_WRITE_REQ = auto()
-    # Prepare write request from peer
-    BLE_EVT_GATTS_PREPARE_WRITE_REQ = auto()
-    # Event (notification or indication) sent
-    BLE_EVT_GATTS_EVENT_SENT = auto()
 
 
 # TODO rename BLE_GATTS_FLAGS

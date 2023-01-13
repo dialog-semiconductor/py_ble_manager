@@ -1857,7 +1857,6 @@ class adv_report(LittleEndianStructure):
         self._data = (c_uint8 * ADV_DATA_LEN)()
         self._data[:len(new_data)] = new_data
         self.data_len = len(new_data)
-        print(f"Data length = {self.data_len}")
 
     data = property(get_data, set_data)
 

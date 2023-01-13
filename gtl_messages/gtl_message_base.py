@@ -1,6 +1,6 @@
 
 from ctypes import Array, c_uint16, Union
-# These message IDs are used by
+# These message IDs are used by __repr
 from gtl_port.gattc_task import GATTC_MSG_ID  # noqa: F401
 from gtl_port.gattm_task import GATTM_MSG_ID  # noqa: F401
 from gtl_port.gapc_task import GAPC_MSG_ID  # noqa: F401
@@ -48,8 +48,8 @@ class GtlMessageBase():
     def __repr__(self):
         message_id = str(eval(f"{type(self.msg_id).__name__}({self.msg_id})"))
 
-        # If GAPC message, dst_id or scr_id contains conidx. Separate conidx from task_id
-        if type(self.msg_id).__name__ == 'GAPC_MSG_ID':
+        # If GAPC or GATTC message, dst_id or scr_id contains conidx. Separate conidx from task_id
+        if type(self.msg_id).__name__ == 'GAPC_MSG_ID' or type(self.msg_id).__name__ == 'GATTC_MSG_ID':
             if self.dst_id != KE_API_ID.TASK_ID_GTL:
                 destination_id = f"(conidx={(self.dst_id & 0xFF00) >> 8}, id={str(KE_API_ID(self.dst_id & 0xFF))})"
                 source_id = str(KE_API_ID(self.src_id))

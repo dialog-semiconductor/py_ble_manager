@@ -1,5 +1,5 @@
 from enum import IntEnum, auto
-from ble_api.BleCommon import BleEventBase, bd_address, BLE_ERROR, BLE_EVT_CAT
+from ble_api.BleCommon import BleEventBase, bd_address, BLE_ERROR, BLE_EVT_GAP
 
 
 BLE_CONN_IDX_INVALID = 0xFFFF
@@ -12,78 +12,6 @@ class ADV_FILT_POL():
     ADV_ALLOW_SCAN_WLIST_CONN_ANY = auto()  # Allow all connect requests and scan requests only from whitelist
     ADV_ALLOW_SCAN_ANY_CONN_WLIST = auto()  # Allow all scan requests and connect requests only from whitelist
     ADV_ALLOW_SCAN_WLIST_CONN_WLIST = auto()  # Allow scan and connect requests only from whitelist
-
-
-# TODO renamve BLE_GAP_EVT
-class BLE_EVT_GAP(IntEnum):
-    # Connection established
-    BLE_EVT_GAP_CONNECTED = BLE_EVT_CAT.BLE_EVT_CAT_GAP << 8
-    # Advertising report
-    BLE_EVT_GAP_ADV_REPORT = auto()
-    # Disconnection event
-    BLE_EVT_GAP_DISCONNECTED = auto()
-    # Disconnect failed event
-    BLE_EVT_GAP_DISCONNECT_FAILED = auto()
-    # Advertising operation completed
-    BLE_EVT_GAP_ADV_COMPLETED = auto()
-    # Scan operation completed
-    BLE_EVT_GAP_SCAN_COMPLETED = auto()
-    # Connection parameter update request from peer
-    BLE_EVT_GAP_CONN_PARAM_UPDATE_REQ = auto()
-    # Connection parameters updated
-    BLE_EVT_GAP_CONN_PARAM_UPDATED = auto()
-    # Pairing request
-    BLE_EVT_GAP_PAIR_REQ = auto()
-    # Pairing completed
-    BLE_EVT_GAP_PAIR_COMPLETED = auto()
-    # Security request from peer
-    BLE_EVT_GAP_SECURITY_REQUEST = auto()
-    # Passkey notification
-    BLE_EVT_GAP_PASSKEY_NOTIFY = auto()
-    # Passkey request
-    BLE_EVT_GAP_PASSKEY_REQUEST = auto()
-    # Security level changed indication
-    BLE_EVT_GAP_SEC_LEVEL_CHANGED = auto()
-    # Random address resolved
-    BLE_EVT_GAP_ADDRESS_RESOLVED = auto()
-    # Set security level failed
-    BLE_EVT_GAP_SET_SEC_LEVEL_FAILED = auto()
-    # Connection parameters update completed
-    BLE_EVT_GAP_CONN_PARAM_UPDATE_COMPLETED = auto()
-    # Data length changed
-    BLE_EVT_GAP_DATA_LENGTH_CHANGED = auto()
-    # Data length set failed
-    BLE_EVT_GAP_DATA_LENGTH_SET_FAILED = auto()
-    # Connection operation completed
-    BLE_EVT_GAP_CONNECTION_COMPLETED = auto()
-    # Numeric request
-    BLE_EVT_GAP_NUMERIC_REQUEST = auto()
-    # Address resolution failed
-    BLE_EVT_GAP_ADDRESS_RESOLUTION_FAILED = auto()
-    # Long Term Key missing
-    BLE_EVT_GAP_LTK_MISSING = auto()
-    # Air Operation BD Address
-    BLE_EVT_GAP_AIR_OP_BDADDR = auto()
-# if (dg_configBLE_2MBIT_PHY == 1)
-    # PHY set completed event
-    BLE_EVT_GAP_PHY_SET_COMPLETED = auto()
-    # PHY changed
-    BLE_EVT_GAP_PHY_CHANGED = auto()
-# endif /* (dg_configBLE_2MBIT_PHY == 1)
-    # Peer version
-    BLE_EVT_GAP_PEER_VERSION = auto()
-    # Peer features
-    BLE_EVT_GAP_PEER_FEATURES = auto()
-    # Local Transmit Power Level event
-    BLE_EVT_GAP_LOCAL_TX_PWR = auto()
-    # Transmit Power Reporting
-    BLE_EVT_GAP_TX_PWR_REPORT = auto()
-    # Path Loss Threshold
-    BLE_EVT_GAP_PATH_LOSS_THRES = auto()
-# if BLE_SSP_DEBUG
-    # LTK
-    BLE_EVT_GAP_LTK = auto()
-# endif
 
 
 # GAP device external appearance
@@ -235,7 +163,7 @@ class gap_scan_params():
 # TODO Perhaps events belong in their own file
 class BleEventGapAdvCompleted(BleEventBase):
     def __init__(self,
-                 adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED, 
+                 adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED,
                  status: BLE_ERROR = BLE_ERROR.BLE_STATUS_OK
                  ) -> None:
         super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_ADV_COMPLETED)
