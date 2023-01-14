@@ -46,7 +46,7 @@ class BleMgrGattsGetValueCmd(BleMgrMsgBase):
                  ) -> None:
         super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_GET_VALUE_CMD)
         self.handle = handle
-        self.status = max_len
+        self.max_len = max_len
 
 
 class BleMgrGattsGetValueRsp(BleMgrMsgBase):
