@@ -190,7 +190,7 @@ class BleManagerGap(BleManagerBase):
             else:
                 self._stored_device_list.remove(dev)
 
-                self._wait_q.flush(conn_idx)
+                self._wait_queue_flush(conn_idx)
                 # if (dg_configBLE_SKIP_LATENCY_API == 1)
                 # Clear skip slave latency setting
                 # ble_mgr_skip_latency_set(conn_idx, false);
@@ -299,6 +299,7 @@ class BleManagerGap(BleManagerBase):
 
     def adv_report_evt_handler(self, gtl: GapmAdvReportInd) -> None:
         evt = BleEventGapAdvReport()
+        # TODO is there an enum BleEventGapAdvReport.type?
         evt.type = gtl.parameters.report.evt_type
         evt.rssi = gtl.parameters.report.rssi
         # if (dg_configBLE_PRIVACY_1_2 == 1)
@@ -461,7 +462,7 @@ class BleManagerGap(BleManagerBase):
                     dev.ce_len_min = gtl.parameters.ce_len_min
                     dev.ce_len_max = gtl.parameters.ce_len_max
 
-                    self._adapter_command_q(gtl)
+                    self._adapter_command_queue_send(gtl)
                     response = BLE_ERROR.BLE_STATUS_OK
 
         self._mgr_response_queue_send(response)
@@ -474,7 +475,7 @@ class BleManagerGap(BleManagerBase):
         # if (dg_configBLE_PRIVACY_1_2 == 1)
         # evt.peer_address.addr_type = gtl.parameters.peer_addr_type & 0x01
         # else
-        evt.peer_address.addr_type = gtl.parameters.peer_addr_type
+        evt.peer_address.addr_type = BLE_ADDR_TYPE(gtl.parameters.peer_addr_type)
         # endif
         evt.peer_address.addr = bytes(gtl.parameters.peer_addr.addr)
         evt.conn_params.interval_min = gtl.parameters.con_interval
@@ -565,15 +566,15 @@ class BleManagerGap(BleManagerBase):
         self._adapter_command_queue_send(cfm)
 
     def role_set_cmd_handler(self, command: BleMgrGapRoleSetCmd):
-        dev_params_gtl = self._dev_params_to_gtl()
-        dev_params_gtl.parameters.role = self._ble_role_to_gtl_role(command.role)
-        self._wait_q.add(BLE_CONN_IDX_INVALID,
-                         GAPM_MSG_ID.GAPM_CMP_EVT,
-                         GAPM_OPERATION.GAPM_SET_DEV_CONFIG,
-                         self._set_role_rsp,
-                         command.role)
+        gtl = self._dev_params_to_gtl()
+        gtl.parameters.role = self._ble_role_to_gtl_role(command.role)
+        self._wait_queue_add(BLE_CONN_IDX_INVALID,
+                             GAPM_MSG_ID.GAPM_CMP_EVT,
+                             GAPM_OPERATION.GAPM_SET_DEV_CONFIG,
+                             self._set_role_rsp,
+                             command.role)
 
-        self._adapter_command_queue_send(dev_params_gtl)
+        self._adapter_command_queue_send(gtl)
 
     def scan_start_cmd_handler(self, command: BleMgrGapScanStartCmd):
         # TODO handle privacy, just implementing ble_mgr_gap_scan_start_cmd_exec below
@@ -613,7 +614,7 @@ class BleManagerGap(BleManagerBase):
 
             gtl.parameters.interval = command.interval
             gtl.parameters.window = command.window
-            gtl.parameters.mode = command.mode
+            gtl.parameters.mode = command.mode  # TODO GAP_SCAP_MOD enum redfine
 
             gtl.parameters.filt_policy = (SCAN_FILTER_POLICY.SCAN_ALLOW_ADV_WLST
                                           if command.filt_wlist

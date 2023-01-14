@@ -1172,7 +1172,7 @@ class gattc_att_info_cfm(LittleEndianStructure):
     def __init__(self,
                  handle: c_uint16 = 0,
                  length: c_uint16 = 0,
-                 status: c_uint16 = 0,
+                 status: c_uint16 = 0,  # TODO is there an enum for this?
                  ) -> None:
 
         self.handle = handle

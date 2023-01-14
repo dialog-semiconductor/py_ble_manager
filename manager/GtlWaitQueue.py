@@ -26,9 +26,8 @@ class GtlWaitQueue():
     def _task_to_connidx(self, task_id):  # TODO does not seem like an appropriate method for the wait queue to have
         return task_id >> 8
 
-    def add(self, conn_idx, msg_id, ext_id, cb, param):
-        item = GtlWaitQueueElement(conn_idx=conn_idx, msg_id=msg_id, ext_id=ext_id, cb=cb, param=param)
-        self.push(item)
+    def add(self, elem: GtlWaitQueueElement):
+        self.push(elem)
 
     def flush(self, conn_idx):
         elem: GtlWaitQueueElement

@@ -40,7 +40,7 @@ class BleManagerCommon(BleManagerBase):
         # TODO feel like reset belongs under Gap Mgr as it is dealing with GAP messages
     def reset_cmd_handler(self, command: BleMgrCommonResetCmd):
         # TODO set dev_params status to BLE_IS_RESET
-        self._wait_q.add(BLE_CONN_IDX_INVALID, GAPM_MSG_ID.GAPM_CMP_EVT, GAPM_OPERATION.GAPM_RESET, self._reset_rsp_handler, None)
+        self._wait_queue_add(BLE_CONN_IDX_INVALID, GAPM_MSG_ID.GAPM_CMP_EVT, GAPM_OPERATION.GAPM_RESET, self._reset_rsp_handler, None)
         self._adapter_command_queue_send(self._create_reset_command())
 
 

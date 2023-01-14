@@ -58,7 +58,7 @@ async def ble_task():
 def parse_adv_data(evt: BleEventGapAdvReport):
     data_ptr = 0
     adv_data_structs: BleAdvData = []
-    print(f"Parsing evt.data={evt.data}")
+    print(f"Parsing evt.data={list(evt.data)}")
     if len(evt.data) > 0:
         while data_ptr <= 31 and data_ptr < evt.length:
 

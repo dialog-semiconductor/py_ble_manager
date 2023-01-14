@@ -332,6 +332,6 @@ class BleAdvData():
         adv_type = str(adv_type)
         return_string = f"{type(self).__name__}(type={adv_type}, "
         return_string += f"len={self.len}, "
-        return_string += f"data={self.data})"
+        return_string += f"data={list(self.data)})"
 
         return return_string

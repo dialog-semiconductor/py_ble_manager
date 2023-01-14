@@ -177,11 +177,11 @@ class BleManagerGatts(BleManagerBase):
     def get_value_cmd_handler(self, command: BleMgrGattsGetValueCmd):
         gtl = GattmAttGetValueReq()
         gtl.parameters.handle = command.handle
-        self._wait_q.add(BLE_CONN_IDX_INVALID,
-                         GATTM_MSG_ID.GATTM_ATT_GET_VALUE_RSP,
-                         0,
-                         self._get_value_rsp,
-                         command.max_len)
+        self._wait_queue_add(BLE_CONN_IDX_INVALID,
+                             GATTM_MSG_ID.GATTM_ATT_GET_VALUE_RSP,
+                             0,
+                             self._get_value_rsp,
+                             command.max_len)
 
         self._adapter_command_queue_send(gtl)
 
@@ -237,8 +237,8 @@ class BleManagerGatts(BleManagerBase):
 
     def send_event_cmd_handler(self, command: BleMgrGattsSendEventCmd):
         response = BleMgrGattsSendEventRsp(BLE_ERROR.BLE_ERROR_FAILED)
-        # TODO need to get dev from storage
-        # TODO need to check if sending event pending on this char
+            # TODO need to get dev from storage
+            # TODO need to check if sending event pending on this char
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
 
         if dev is None:
@@ -348,7 +348,6 @@ class BleManagerGatts(BleManagerBase):
                     if self._extended_prop & GATT_PROP.GATT_PROP_EXTENDED_WRITABLE_AUXILIARIES:
                         max_len |= 2
 
-                # TODO simplify calls into nested structures
                 att = gattm_att_desc()
                 att.uuid[:len(command.uuid.uuid)] = command.uuid.uuid
                 att.perm = self._api_to_rwperm(0, command.perm, command.uuid.type)
@@ -391,11 +390,11 @@ class BleManagerGatts(BleManagerBase):
         response = BleMgrGattsServiceRegisterRsp(BLE_ERROR.BLE_ERROR_FAILED)
 
         if self._add_svc_msg:
-            self._wait_q.add(BLE_CONN_IDX_INVALID,
-                             GATTM_MSG_ID.GATTM_ADD_SVC_RSP,
-                             0,
-                             self._service_register_rsp,
-                             None)
+            self._wait_queue_add(BLE_CONN_IDX_INVALID,
+                                 GATTM_MSG_ID.GATTM_ADD_SVC_RSP,
+                                 0,
+                                 self._service_register_rsp,
+                                 None)
 
             self._adapter_command_queue_send(self._add_svc_msg)
             self._add_svc_msg = None
@@ -407,11 +406,11 @@ class BleManagerGatts(BleManagerBase):
         gtl = GattmAttSetValueReq()
         gtl.parameters.handle = command.handle
         gtl.parameters.value = (c_uint8 * len(command.value)).from_buffer_copy(command.value)
-        self._wait_q.add(BLE_CONN_IDX_INVALID,
-                         GATTM_MSG_ID.GATTM_ATT_SET_VALUE_RSP,
-                         0,
-                         self._set_value_rsp,
-                         None)
+        self._wait_queue_add(BLE_CONN_IDX_INVALID,
+                             GATTM_MSG_ID.GATTM_ATT_SET_VALUE_RSP,
+                             0,
+                             self._set_value_rsp,
+                             None)
         self._adapter_command_queue_send(gtl)
 
     def write_cfm_cmd_handler(self, command: BleMgrGattsWriteCfmCmd):
