@@ -1155,6 +1155,7 @@ struct gapm_dbg_mem_info_ind
 #endif // (KE_PROFILING)
 '''
 
+
 # Create new task for specific profile
 class gapm_profile_task_add_cmd(LittleEndianStructure):
 
@@ -1175,7 +1176,7 @@ class gapm_profile_task_add_cmd(LittleEndianStructure):
                          channel_map=self.channel_map,
                          info=self.info)
 
-               # GAPM requested operation:
+                # GAPM requested operation:
                 #  - GAPM_PROFILE_TASK_ADD: Add new profile task
     _fields_ = [("op", c_uint8),
                 # Security Level :
@@ -1199,7 +1200,7 @@ class gapm_profile_task_add_cmd(LittleEndianStructure):
                 # Advertising information
                 ("start_hdl", c_uint16),
                 # 32 bits value that contains value to initialize profile (database parameters, etc...)
-                 ("param", c_uint32)]  # TODO SDK uses zero len array. Does this need to be pointer? 
+                ("param", c_uint32)]  # TODO SDK uses zero len array. Does this need to be pointer?
 
 
 '''

@@ -229,11 +229,10 @@ class BleManagerGap(BleManagerBase):
             case _:
                 print(f"BleManagerGap._connect_cmp_evt_handler. gtl.status = {hex(gtl.parameters.status)}")
                 # evt.status = gtl.parameters.status  # TODO this throws a ValueError is not a valid BLE_ERROR
-                evt.status  = BLE_ERROR.BLE_ERROR_FAILED
+                evt.status = BLE_ERROR.BLE_ERROR_FAILED
 
         print(f"Putting event on q for app {evt}")
         self._mgr_event_queue_send(evt)
-
 
     def _dev_params_to_gtl(self) -> GapmSetDevConfigCmd:
         gtl = GapmSetDevConfigCmd()
@@ -431,8 +430,6 @@ class BleManagerGap(BleManagerBase):
     def gapc_cmp_evt_handler(self, gtl: GapcCmpEvt) -> bool:
 
         match gtl.parameters.operation:
-
-
             case _:
                 return False
         return True
