@@ -315,8 +315,8 @@ class BleEventGapScanCompleted(BleEventBase):
 
 class BleAdvData():
     def __init__(self,
-                 type: GAP_DATA_TYPE = GAP_DATA_TYPE.GAP_DATA_TYPE_FLAGS,
                  len: int = 0,
+                 type: GAP_DATA_TYPE = GAP_DATA_TYPE.GAP_DATA_TYPE_FLAGS,
                  data: bytes = None,
                  ) -> None:
         self.type = type

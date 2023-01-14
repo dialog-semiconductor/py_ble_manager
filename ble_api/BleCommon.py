@@ -166,6 +166,8 @@ class BleEventBase():
                         if attr == "status":
                             status_str = str(eval(f"BLE_ERROR({getattr(self, attr)}), "))
                             members.append(f"status={status_str}, ")
+                        if attr == "data":
+                            members.append(f"{attr}={list(getattr(self, attr))}, ")
                         else:
                             members.append(f"{attr}={getattr(self, attr)}, ")
 

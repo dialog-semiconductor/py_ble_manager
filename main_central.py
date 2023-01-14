@@ -64,12 +64,10 @@ def parse_adv_data(evt: BleEventGapAdvReport):
     if len(evt.data) > 0:
         while data_ptr <= 31 and data_ptr < evt.length:
 
-            struct = BleAdvData(type=evt.data[data_ptr])
-            data_ptr += 1
-            struct.len = evt.data[data_ptr]
-            data_ptr += 1
-            struct.data = evt.data[data_ptr:(data_ptr + struct.len)]
-            data_ptr += struct.len
+            struct = BleAdvData(len=evt.data[data_ptr], type=evt.data[data_ptr + 1])
+            data_ptr += 2
+            struct.data = evt.data[data_ptr:(data_ptr + struct.len - 1)]  # -1 as calc includes AD Type
+            data_ptr += struct.len - 1  # -1 as calc includes AD Type
             adv_data_structs.append(struct)
 
     for adv in adv_data_structs:
