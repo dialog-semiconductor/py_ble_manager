@@ -3,7 +3,7 @@ import asyncio
 # TODO simplify imports for user
 from ble_api.BleCentral import BleCentral
 from ble_api.BleCommon import BleEventBase
-from ble_api.BleGap import GAP_SCAN_TYPE, GAP_SCAN_MODE, BleEventGapAdvReport, BleAdvData
+from ble_api.BleGap import GAP_SCAN_TYPE, GAP_SCAN_MODE, BleEventGapAdvReport, BleAdvData, BleEventGapScanCompleted
 
 
 async def user_main():
@@ -36,10 +36,11 @@ async def ble_task():
     ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
     pending = [ble_event_task]
 
+    adv_reports= []
     while True:
         done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
 
-        adv_reports= []
+        
         for task in done:
 
             # Handle and BLE events that hace occurred
@@ -49,29 +50,19 @@ async def ble_task():
                 if evt is not None:
                     # TODO switch on event type
                     if isinstance(evt, BleEventGapAdvReport):
-                        adv_reports.append(evt)
-                        parse_adv_data(evt)
+
+                        reports = central.parse_adv_data(evt) # only parses the adv data
+                        adv_reports.append(reports)
+
+                    if isinstance(evt, BleEventGapScanCompleted):
+                        for report in adv_reports:
+                            report_str = None
+                            for adv_data in report:
+                                report_str = f"adv_data={adv_data}\n"
+                            print(f"Report: {report_str}")
 
                 ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
                 pending.add(ble_event_task)
-
-
-# TODO data length seems wrong
-def parse_adv_data(evt: BleEventGapAdvReport):
-    data_ptr = 0
-    adv_data_structs: BleAdvData = []
-    print(f"Parsing evt.data={list(evt.data)}")
-    if len(evt.data) > 0:
-        while data_ptr <= 31 and data_ptr < evt.length:
-
-            struct = BleAdvData(len=evt.data[data_ptr], type=evt.data[data_ptr + 1])
-            data_ptr += 2
-            struct.data = evt.data[data_ptr:(data_ptr + struct.len - 1)]  # -1 as calc includes AD Type
-            data_ptr += struct.len - 1  # -1 as calc includes AD Type
-            adv_data_structs.append(struct)
-
-    for adv in adv_data_structs:
-        print(f"Rx'd Adv Data: {adv}")
 
 
 asyncio.run(main())
