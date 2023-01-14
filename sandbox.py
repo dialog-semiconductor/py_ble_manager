@@ -63,3 +63,6 @@ for i in gtl.parameters.value:
     my_str += f"{i} "
 print(my_str)
 print(gtl.parameters.value)
+
+periph_bd = BdAddress(BLE_ADDR_TYPE.PUBLIC_ADDRESS, bytes.fromhex("482335001B53"))  # [72, 35, 53, 0, 27, 83]
+print(periph_bd)

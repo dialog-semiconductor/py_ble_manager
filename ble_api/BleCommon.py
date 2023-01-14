@@ -149,6 +149,10 @@ class BdAddress():  # TODO rename BdAddress to differentiate from ctypes structu
         # TODO raise error on bytes len
         self.addr = addr if addr else bytes()
 
+    def __repr__(self):
+
+        return f"{type(self).__name__}(addr_type={BLE_ADDR_TYPE(self.addr_type)}, addr={list(self.addr)})"
+
 
 class BleEventBase():
     def __init__(self, evt_code) -> None:

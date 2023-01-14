@@ -100,10 +100,10 @@ class BleDevParamsDefault(BleDevParams):
         self.adv_filter_policy = ADV_FILT_POL.ADV_ALLOW_SCAN_ANY_CONN_ANY
         self.adv_data_length = 28
 
-        self.adv_data[0] = len(name) + 2
+        self.adv_data[0] = len(name) + 1  # SDK has 0x0C? Should be 0x0B??
         self.adv_data[1] = GAP_DATA_TYPE.GAP_DATA_TYPE_LOCAL_NAME
         self.adv_data[2: (2 + len(name))] = name
-        self.scan_rsp_data_length = 31  # Length of scan response
+        self.scan_rsp_data_length = 0  # Length of scan response
         self.scan_rsp_data = (c_uint8 * SCAN_RSP_DATA_LEN)()
         # Scan parameters used for connection procedures
         self.scan_params.interval = (100) * 1000 // 625  # TODO make function

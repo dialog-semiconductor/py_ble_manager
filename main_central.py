@@ -2,8 +2,8 @@ import asyncio
 
 # TODO simplify imports for user
 from ble_api.BleCentral import BleCentral
-from ble_api.BleCommon import BleEventBase
-from ble_api.BleGap import GAP_SCAN_TYPE, GAP_SCAN_MODE, BleEventGapAdvReport, BleAdvData, BleEventGapScanCompleted
+from ble_api.BleCommon import BleEventBase, BdAddress, BLE_ADDR_TYPE
+from ble_api.BleGap import GAP_SCAN_TYPE, GAP_SCAN_MODE, BleEventGapAdvReport, BleAdvData, BleEventGapScanCompleted, gap_conn_params
 
 
 async def user_main():
@@ -26,12 +26,20 @@ async def ble_task():
     await central.init()
     await central.start()
 
-    await central.scan_start(GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
-                             GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
-                             160,
-                             80,
-                             False,
-                             True)
+    
+    # await central.scan_start(GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
+    #                         GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
+    #                         160,
+    #                         80,
+    #                         False,
+    #                         True)
+    
+
+    
+    periph_bd = BdAddress(BLE_ADDR_TYPE.PUBLIC_ADDRESS, bytes.fromhex("531B00352348")) # addr is backwards
+    
+    periph_conn_params = gap_conn_params(0, 1000, 0, 5)
+    await central.connect(periph_bd, periph_conn_params)  # Getting 0xA2 status from Gtl GapmCptEvt
 
     ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
     pending = [ble_event_task]
@@ -49,17 +57,18 @@ async def ble_task():
                 if evt is not None:
                     # TODO switch on event type
                     if isinstance(evt, BleEventGapAdvReport):
-
-                        reports = central.parse_adv_data(evt)  # only parses the adv data
-                        adv_reports.append(reports)
+                        if evt.address.addr == periph_bd.addr:
+                            pass
+                        #reports = central.parse_adv_data(evt)  # only parses the adv data
+                        #dv_reports.append(reports)
 
                     if isinstance(evt, BleEventGapScanCompleted):
                         for report in adv_reports:
                             report_str = None
-                            for adv_data in report:
-                                report_str = f"adv_data={adv_data}\n"
-                            print(f"Report: {report_str}")
-
+                            #for adv_data in report:
+                            #    report_str = f"adv_data={adv_data}\n"
+                            #print(f"Report: {report_str}")
+                            pass
                 ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
                 pending.add(ble_event_task)
 

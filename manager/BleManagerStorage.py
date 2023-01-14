@@ -216,6 +216,8 @@ class StoredDeviceQueue(SearchableQueue):
 
     def remove_device(self, device: StoredDevice):
         self.queue.remove(device)
+        device.app_values = None
+        device.pending_events = None
 
         '''
         device.app_value = SearchableQueue()  # TODO Is this necessary, will no longer be a reference to device

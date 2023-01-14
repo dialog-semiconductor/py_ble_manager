@@ -4,9 +4,9 @@ from ctypes import c_uint8
 from ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_OWN_ADDR_TYPE, BLE_ADDR_TYPE
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BleEventGapConnected, BleEventGapDisconnected,  \
     BleEventGapAdvCompleted, BLE_CONN_IDX_INVALID, GAP_SEC_LEVEL, GAP_SCAN_TYPE, BleEventGapAdvReport, \
-    BleEventGapScanCompleted
+    BleEventGapScanCompleted, BleEventGapConnectionCompleted
 from gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd, GapcGetDevInfoReqInd, GapcGetDevInfoCfm, \
-    GapcDisconnectInd
+    GapcDisconnectInd, GapcCmpEvt
 from gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd, \
     GapmStartScanCmd, GapmAdvReportInd
 from gtl_port.co_error import CO_ERROR
@@ -19,7 +19,7 @@ from manager.BleDevParams import BleDevParamsDefault
 from manager.BleManagerCommon import BleManagerBase
 from manager.BleManagerCommonMsgs import BleMgrMsgBase
 from manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp, \
-    BleMgrGapRoleSetCmd, BleMgrGapConnectCmd, BleMgrGapScanStartCmd, BleMgrGapScanStartRsp
+    BleMgrGapRoleSetCmd, BleMgrGapConnectCmd, BleMgrGapScanStartCmd, BleMgrGapScanStartRsp, BleMgrGapConnectRsp
 from manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from manager.GtlWaitQueue import GtlWaitQueue
 
@@ -97,7 +97,8 @@ class BleManagerGap(BleManagerBase):
             GAPC_MSG_ID.GAPC_ENCRYPT_IND: None,
             GAPM_MSG_ID.GAPM_ADDR_SOLVED_IND: None,
             GAPC_MSG_ID.GAPC_LE_PKT_SIZE_IND: None,
-            GAPM_MSG_ID.GAPM_CMP_EVT: self.cmp_evt_handler,
+            GAPM_MSG_ID.GAPM_CMP_EVT: self.gapm_cmp_evt_handler,
+            GAPC_MSG_ID.GAPC_CMP_EVT: self.gapc_cmp_evt_handler
         }
 
     def _adv_cmp_evt_handler(self, gtl: GapmCmpEvt):
@@ -197,6 +198,42 @@ class BleManagerGap(BleManagerBase):
                 # endif /* (dg_configBLE_SKIP_LATENCY_API == 1) */
 
                 self._mgr_event_queue_send(evt)
+
+    def _connect_cmp_evt_handler(self, gtl: GapmCmpEvt):
+
+        self.dev_params.connecting = False
+
+        if gtl.parameters.status == HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
+            dev = self._stored_device_list.find_device_by_connenting()
+            if dev:
+                dev.connecting = False
+                if not dev.bonded:
+                    self._stored_device_list.remove_device(dev)
+
+        evt = BleEventGapConnectionCompleted()
+
+        match gtl.parameters.status:
+            case HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
+                evt.status = BLE_ERROR.BLE_STATUS_OK
+            case HOST_STACK_ERROR_CODE.GAP_ERR_CANCELED:
+                evt.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
+            case HOST_STACK_ERROR_CODE.GAP_ERR_INVALID_PARAM:
+                evt.status = BLE_ERROR.BLE_ERROR_INVALID_PARAM
+            case HOST_STACK_ERROR_CODE.GAP_ERR_NOT_SUPPORTED \
+                    | HOST_STACK_ERROR_CODE.GAP_ERR_PRIVACY_CFG_PB:
+
+                evt.status = BLE_ERROR.BLE_ERROR_NOT_SUPPORTED
+
+            case HOST_STACK_ERROR_CODE.LL_ERR_UNSPECIFIED_ERROR:
+                evt.status = BLE_ERROR.BLE_ERROR_INS_BANDWIDTH
+            case _:
+                print(f"BleManagerGap._connect_cmp_evt_handler. gtl.status = {hex(gtl.parameters.status)}")
+                # evt.status = gtl.parameters.status  # TODO this throws a ValueError is not a valid BLE_ERROR
+                evt.status  = BLE_ERROR.BLE_ERROR_FAILED
+
+        print(f"Putting event on q for app {evt}")
+        self._mgr_event_queue_send(evt)
+
 
     def _dev_params_to_gtl(self) -> GapmSetDevConfigCmd:
         gtl = GapmSetDevConfigCmd()
@@ -391,7 +428,16 @@ class BleManagerGap(BleManagerBase):
         response = BleMgrGapAdvStartRsp(BLE_ERROR.BLE_STATUS_OK)
         self._mgr_response_queue_send(response)
 
-    def cmp_evt_handler(self, gtl: GapmCmpEvt) -> bool:
+    def gapc_cmp_evt_handler(self, gtl: GapcCmpEvt) -> bool:
+
+        match gtl.parameters.operation:
+
+
+            case _:
+                return False
+        return True
+
+    def gapm_cmp_evt_handler(self, gtl: GapmCmpEvt) -> bool:
 
         # TODO replace this with another dictionary??
         match gtl.parameters.operation:
@@ -407,6 +453,9 @@ class BleManagerGap(BleManagerBase):
 
                 self._scan_cmp_evt_handler(gtl)
 
+            case GAPM_OPERATION.GAPM_CONNECTION_DIRECT:
+                self._connect_cmp_evt_handler(gtl)
+
             case _:
                 return False
         return True
@@ -419,7 +468,7 @@ class BleManagerGap(BleManagerBase):
         # ble_mgr_gap_connect_cmd_exec(param); # TODO This function implemented below. Separate func?
         # endif
 
-        response = BLE_ERROR.BLE_ERROR_FAILED
+        response = BleMgrGapConnectRsp(BLE_ERROR.BLE_ERROR_FAILED)
 
         dev = self._stored_device_list.find_device_by_connenting()
         if dev:
@@ -464,7 +513,7 @@ class BleManagerGap(BleManagerBase):
                     dev.ce_len_max = gtl.parameters.ce_len_max
 
                     self._adapter_command_queue_send(gtl)
-                    response = BLE_ERROR.BLE_STATUS_OK
+                    response.status = BLE_ERROR.BLE_STATUS_OK
 
         self._mgr_response_queue_send(response)
 

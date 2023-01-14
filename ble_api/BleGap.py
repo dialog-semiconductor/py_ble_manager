@@ -97,6 +97,7 @@ class BLE_GAP_ROLE(IntEnum):
 
 
 class GAP_DATA_TYPE(IntEnum):
+    GAP_DATA_TYPE_NONE = 0x00
     # Flags
     GAP_DATA_TYPE_FLAGS = 0x01
     # Incomplete List of 16-bit Service Class UUIDs
@@ -289,6 +290,14 @@ class BleEventGapConnected(BleEventBase):
         self.own_addr = own_addr if own_addr else BdAddress()
         self.peer_address = peer_address if peer_address else BdAddress()
         self.conn_params = conn_params if conn_params else gap_conn_params()
+
+
+class BleEventGapConnectionCompleted(BleEventBase):
+    def __init__(self,
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED)
+        self.status = status
 
 
 class BleEventGapDisconnected(BleEventBase):

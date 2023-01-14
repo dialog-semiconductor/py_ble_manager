@@ -1,6 +1,6 @@
 from ble_api.BleDeviceBase import BleDeviceBase
 from ble_api.BleCommon import BLE_ERROR, BdAddress
-from ble_api.BleGap import BLE_GAP_ROLE, gap_conn_params, GAP_SCAN_TYPE, GAP_SCAN_MODE, BleEventGapAdvReport, BleAdvData
+from ble_api.BleGap import BLE_GAP_ROLE, gap_conn_params, GAP_SCAN_TYPE, GAP_SCAN_MODE, BleEventGapAdvReport, BleAdvData, GAP_DATA_TYPE
 
 
 class BleCentral(BleDeviceBase):
@@ -18,8 +18,17 @@ class BleCentral(BleDeviceBase):
         adv_data_structs: BleAdvData = []
         # print(f"Parsing evt.data={list(evt.data)}")
         if evt.length > 0:
-            while data_ptr <= 31 and data_ptr < evt.length:
+            while data_ptr < 31 and data_ptr < evt.length:
+
+                print(f"data{list(evt.data)}")
+                print(f"data_ptr = {data_ptr}, len{evt.length}, struct = {adv_data_structs}")
+                print()
+                
                 struct = BleAdvData(len=evt.data[data_ptr], type=evt.data[data_ptr + 1])
+
+                if struct.len == 0 or struct.type == GAP_DATA_TYPE.GAP_DATA_TYPE_NONE:
+                    break
+
                 data_ptr += 2
                 struct.data = evt.data[data_ptr:(data_ptr + struct.len - 1)]  # -1 as calc includes AD Type
                 data_ptr += struct.len - 1  # -1 as calc includes AD Type

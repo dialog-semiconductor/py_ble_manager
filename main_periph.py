@@ -48,7 +48,7 @@ async def main():
 
 async def ble_task(sample_q: asyncio.Queue):
 
-    periph = BlePeripheral("COM40")
+    periph = BlePeripheral("COM17")
     await periph.init()
     await periph.start()
 
