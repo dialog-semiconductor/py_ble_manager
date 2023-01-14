@@ -1,5 +1,5 @@
 from ble_api.BleDeviceBase import BleDeviceBase
-from ble_api.BleCommon import BLE_ERROR, bd_address
+from ble_api.BleCommon import BLE_ERROR, BdAddress
 from ble_api.BleGap import BLE_GAP_ROLE, gap_conn_params, GAP_SCAN_TYPE, GAP_SCAN_MODE, BleEventGapAdvReport, BleAdvData
 
 
@@ -10,7 +10,7 @@ class BleCentral(BleDeviceBase):
     async def start(self) -> BLE_ERROR:
         return await super().start(BLE_GAP_ROLE.GAP_CENTRAL_ROLE)
 
-    async def connect(self, peer_addr: bd_address, conn_params: gap_conn_params) -> None:
+    async def connect(self, peer_addr: BdAddress, conn_params: gap_conn_params) -> None:
         return await self.ble_gap.connect(peer_addr, conn_params)
 
     def parse_adv_data(self, evt: BleEventGapAdvReport) -> list[BleAdvData]:

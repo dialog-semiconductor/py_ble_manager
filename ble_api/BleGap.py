@@ -1,5 +1,5 @@
 from enum import IntEnum, auto
-from ble_api.BleCommon import BleEventBase, bd_address, BLE_ERROR, BLE_EVT_GAP
+from ble_api.BleCommon import BleEventBase, BdAddress, BLE_ERROR, BLE_EVT_GAP
 
 
 BLE_CONN_IDX_INVALID = 0xFFFF
@@ -264,14 +264,14 @@ class BleEventGapAdvCompleted(BleEventBase):
 class BleEventGapAdvReport(BleEventBase):
     def __init__(self,
                  type: int = 0,  # TODO is there an enum for this?
-                 address: bd_address = None,
+                 address: BdAddress = None,
                  rssi: int = 0,
                  length: int = 0,
                  data: bytes = None
                  ) -> None:
         super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_ADV_REPORT)
         self.type = type
-        self.address = address if address else bd_address()
+        self.address = address if address else BdAddress()
         self.rssi = rssi
         self.length = length
         self.data = data if data else bytes()
@@ -280,26 +280,26 @@ class BleEventGapAdvReport(BleEventBase):
 class BleEventGapConnected(BleEventBase):
     def __init__(self,
                  conn_idx: int = 0,
-                 own_addr: bd_address = None,
-                 peer_address: bd_address = None,
+                 own_addr: BdAddress = None,
+                 peer_address: BdAddress = None,
                  conn_params: gap_conn_params = None
                  ) -> None:
         super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED)
         self.conn_idx = conn_idx
-        self.own_addr = own_addr if own_addr else bd_address()
-        self.peer_address = peer_address if peer_address else bd_address()
+        self.own_addr = own_addr if own_addr else BdAddress()
+        self.peer_address = peer_address if peer_address else BdAddress()
         self.conn_params = conn_params if conn_params else gap_conn_params()
 
 
 class BleEventGapDisconnected(BleEventBase):
     def __init__(self,
                  conn_idx: int = 0,
-                 address: bd_address = None,
+                 address: BdAddress = None,
                  reason: int = 0,  # TODO BLE Api Enum for this?
                  ) -> None:
         super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED)
         self.conn_idx = conn_idx
-        self.address = address if address else bd_address()
+        self.address = address if address else BdAddress()
         self.reason = reason
 
 

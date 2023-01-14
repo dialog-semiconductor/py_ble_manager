@@ -1,6 +1,6 @@
 from typing import Callable
 
-from ble_api.BleCommon import bd_address
+from ble_api.BleCommon import BdAddress
 from ble_api.BleGap import GAP_SEC_LEVEL, BLE_GAP_PHY
 
 
@@ -71,7 +71,7 @@ class StoredDevice():
     def __init__(self) -> None:
 
         self.next = None
-        self.addr: bd_address = bd_address()
+        self.addr: BdAddress = BdAddress()
         self.conn_idx: int = 0
 
         # state flags
@@ -185,7 +185,7 @@ class StoredDeviceQueue(SearchableQueue):
 
         return found
 
-    def find_device_by_address(self, addr: bd_address = None, create: bool = False) -> StoredDevice:
+    def find_device_by_address(self, addr: BdAddress = None, create: bool = False) -> StoredDevice:
 
         found = None
         if addr is not None:

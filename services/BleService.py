@@ -1,4 +1,4 @@
-from ble_api.BleAtt import att_uuid, ATT_PERM, ATT_ERROR
+from ble_api.BleAtt import AttUuid, ATT_PERM, ATT_ERROR
 from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
 from ble_api.BleGatts import GATTS_FLAGS, BleEventGattsReadReq, BleEventGattsEventSent, BleEventGattsPrepareWriteReq
@@ -15,24 +15,24 @@ class AttributeHandle():
 
 class GattServiceDef():
     def __init__(self,
-                 uuid: att_uuid = None,
+                 uuid: AttUuid = None,
                  type: GATT_SERVICE = GATT_SERVICE.GATT_SERVICE_PRIMARY,
                  num_attrs: int = 0) -> None:
-        self.uuid = uuid if uuid else att_uuid()
+        self.uuid = uuid if uuid else AttUuid()
         self.type = type
         self.num_attrs = num_attrs
 
 
 class CharacteristicDef():
     def __init__(self,
-                 uuid: att_uuid = None,
+                 uuid: AttUuid = None,
                  prop: GATT_PROP = GATT_PROP.GATT_PROP_NONE,
                  perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
                  max_len: int = 0,
                  flags: GATTS_FLAGS = GATTS_FLAGS.GATTS_FLAG_CHAR_NO_READ_REQ,
                  handle: AttributeHandle = None
                  ) -> None:
-        self.uuid = uuid if uuid else att_uuid()
+        self.uuid = uuid if uuid else AttUuid()
         self.prop = prop
         self.perm = perm
         self.max_len = max_len
@@ -42,13 +42,13 @@ class CharacteristicDef():
 
 class DescriptorDef():
     def __init__(self,
-                 uuid: att_uuid = None,
+                 uuid: AttUuid = None,
                  perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
                  max_len: int = 0,
                  flags: GATTS_FLAGS = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ,
                  handle: AttributeHandle = None
                  ) -> None:
-        self.uuid = uuid if uuid else att_uuid()
+        self.uuid = uuid if uuid else AttUuid()
         self.perm = perm
         self.max_len = max_len
         self.flags = flags

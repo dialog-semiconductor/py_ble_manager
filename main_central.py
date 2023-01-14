@@ -40,7 +40,6 @@ async def ble_task():
     while True:
         done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
 
-        
         for task in done:
 
             # Handle and BLE events that hace occurred
@@ -51,7 +50,7 @@ async def ble_task():
                     # TODO switch on event type
                     if isinstance(evt, BleEventGapAdvReport):
 
-                        reports = central.parse_adv_data(evt) # only parses the adv data
+                        reports = central.parse_adv_data(evt)  # only parses the adv data
                         adv_reports.append(reports)
 
                     if isinstance(evt, BleEventGapScanCompleted):

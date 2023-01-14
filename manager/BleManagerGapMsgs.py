@@ -1,6 +1,6 @@
 from enum import IntEnum, auto
 
-from ble_api.BleCommon import BLE_ERROR, bd_address
+from ble_api.BleCommon import BLE_ERROR, BdAddress
 from ble_api.BleGap import BLE_GAP_CONN_MODE, BLE_GAP_ROLE, gap_conn_params, GAP_SCAN_TYPE, GAP_SCAN_MODE
 from manager.BleManagerCommonMsgs import BLE_MGR_CMD_CAT, BleMgrMsgBase
 
@@ -109,13 +109,13 @@ class BleMgrGapConnectCancelCmd(BleMgrMsgBase):
 
 class BleMgrGapConnectCmd(BleMgrMsgBase):
     def __init__(self,
-                 peer_addr: bd_address = None,
+                 peer_addr: BdAddress = None,
                  conn_params: gap_conn_params = None,
                  ce_len_min: int = 0,
                  ce_len_max: int = 0
                  ) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CMD)
-        self.peer_addr = peer_addr if peer_addr else bd_address()
+        self.peer_addr = peer_addr if peer_addr else BdAddress()
         self.conn_params = conn_params if conn_params else gap_conn_params()
         self.ce_len_min = ce_len_min
         self.ce_len_max = ce_len_max

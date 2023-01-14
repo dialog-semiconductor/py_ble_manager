@@ -49,7 +49,7 @@ class ATT_UUID_TYPE(IntEnum):
     ATT_UUID_128 = 1
 
 
-class att_uuid():
+class AttUuid:
     def __init__(self, uuid: bytes = None) -> None:
         self.uuid = uuid if uuid else bytes([0, 0])
 

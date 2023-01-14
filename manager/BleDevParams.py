@@ -1,6 +1,6 @@
 from ctypes import c_uint8
 
-from ble_api.BleCommon import BLE_OWN_ADDR_TYPE, bd_address, own_address, irk, BLE_STATUS
+from ble_api.BleCommon import BLE_OWN_ADDR_TYPE, BdAddress, OwnAddress, Irk, BLE_STATUS
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_GAP_APPEARANCE, gap_chnl_map, GAP_DISC_MODE, ADV_FILT_POL, \
     gap_scan_params, gap_conn_params, GAP_IO_CAPABILITIES, GAP_DATA_TYPE
 from gtl_port.co_bt import ADV_DATA_LEN, SCAN_RSP_DATA_LEN, ADV_CHANNEL_MAP
@@ -27,9 +27,9 @@ class BleDevParams():
         # Privacy parameters
         self.addr_renew_duration = 0  # Random address renew duration
         # TODO ble_manager seems to redefine own_addr_t
-        self.own_addr = own_address()  # Provided own public address
+        self.own_addr = OwnAddress()  # Provided own public address
         # TODO redefines irk_t
-        self.irk = irk()  # IRK for device resolvable address
+        self.irk = Irk()  # IRK for device resolvable address
         self.addr_resolv_req_pending = 0  # Pending address resolve requests
         # Attribute database configuration
 
@@ -44,7 +44,7 @@ class BleDevParams():
         self.adv_intv_min = 0  # Minimum advertising interval
         self.adv_intv_max = 0  # Maximum advertising interval
         self.adv_filter_policy = ADV_FILT_POL.ADV_ALLOW_SCAN_ANY_CONN_ANY  # Advertising filter policy  # TODO use ble api
-        self.adv_direct_address = bd_address()  # Address used for directed advertising  # TODO use ble api
+        self.adv_direct_address = BdAddress()  # Address used for directed advertising  # TODO use ble api
         self.adv_data_length = 0  # Length of advertising data
         self.adv_data = (c_uint8 * ADV_DATA_LEN)()  # Advertising data  # TODO use ble api
         self.scan_rsp_data_length = 0  # Length of scan response

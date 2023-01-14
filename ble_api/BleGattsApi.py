@@ -1,6 +1,6 @@
 from adapter.BleAdapter import BleAdapter
 from ble_api.BleApiBase import BleApiBase
-from ble_api.BleAtt import att_uuid, ATT_PERM, ATT_ERROR
+from ble_api.BleAtt import AttUuid, ATT_PERM, ATT_ERROR
 from ble_api.BleCommon import BLE_ERROR
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP, GATT_EVENT
 from ble_api.BleGatts import GATTS_FLAGS
@@ -22,7 +22,7 @@ class BleGattsApi(BleApiBase):
         super().__init__(ble_manager, ble_adapter)
 
     async def add_characteristic(self,
-                                 uuid: att_uuid = att_uuid(),
+                                 uuid: AttUuid = None,
                                  prop: GATT_PROP = GATT_PROP.GATT_PROP_NONE,
                                  perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
                                  max_len: int = 0,
@@ -35,7 +35,7 @@ class BleGattsApi(BleApiBase):
         return response.status, response.h_offset, response.h_val_offset
 
     async def add_descriptor(self,
-                             uuid: att_uuid = att_uuid(),
+                             uuid: AttUuid = None,
                              perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
                              max_len: int = 0,
                              flags: GATTS_FLAGS = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ,
@@ -57,7 +57,7 @@ class BleGattsApi(BleApiBase):
         return response.status, response.h_offset
 
     async def add_service(self,
-                          uuid: att_uuid = None,
+                          uuid: AttUuid = None,
                           type: GATT_SERVICE = GATT_SERVICE.GATT_SERVICE_PRIMARY,
                           num_attrs: int = 0
                           ) -> BLE_ERROR:

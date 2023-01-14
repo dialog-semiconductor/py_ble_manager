@@ -143,7 +143,7 @@ class BLE_STATUS(IntEnum):
 
 
 # Bluetooth Device address
-class bd_address():  # TODO rename BdAddress to differentiate from ctypes structures?
+class BdAddress():  # TODO rename BdAddress to differentiate from ctypes structures?
     def __init__(self, addr_type: BLE_ADDR_TYPE = BLE_ADDR_TYPE.PUBLIC_ADDRESS, addr: bytes = None) -> None:
         self.addr_type = addr_type  # TODO determine address type by addr?
         # TODO raise error on bytes len
@@ -178,13 +178,13 @@ class BleEventBase():
 
         return return_string
 
-class irk():
+class Irk():
     def __init__(self, key: bytes = None) -> None:
         # TODO raise error on key len
         self.key = key if key else bytes()
 
 
-class own_address():
+class OwnAddress():
     def __init__(self, addr_type: BLE_OWN_ADDR_TYPE = BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS, addr: bytes = None) -> None:
         self.addr_type = addr_type
         # TODO raise error on bytes len
