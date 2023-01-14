@@ -51,7 +51,6 @@ class BleManagerGatts(BleManagerBase):
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SEND_EVENT_CMD: self.send_event_cmd_handler,
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_INCLUDE_ADD_CMD: self.service_add_include_cmd_handler,
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_PREPARE_WRITE_CFM_CMD: self.prepare_write_cfm_cmd_handler,
-            
         }
 
         self.evt_handlers = {
@@ -65,8 +64,8 @@ class BleManagerGatts(BleManagerBase):
         self._attr_idx = 0
         self._extended_prop = 0
 
-    # TODO need to rethink logic of this function as SDK using |= 
-    def _api_to_rwperm(self, prop: GATT_PROP, perm: ATTM_PERM, uuid_type: ATT_UUID_TYPE, current_perm: att_perm = None,):
+    # TODO need to rethink logic of this function as SDK using |=
+    def _api_to_rwperm(self, prop: GATT_PROP, perm: ATTM_PERM, uuid_type: ATT_UUID_TYPE, current_perm: att_perm = None):
 
         rwperm = current_perm if current_perm else att_perm()
 
@@ -275,7 +274,7 @@ class BleManagerGatts(BleManagerBase):
 
                 self._extended_prop = command.prop & (GATT_PROP.GATT_PROP_EXTENDED_RELIABLE_WRITE | GATT_PROP.GATT_PROP_EXTENDED_WRITABLE_AUXILIARIES)
 
-                 # TODO simplify calls into nested structures
+                # TODO simplify calls into nested structures
                 # Characteristic Attribute
                 att = gattm_att_desc()
                 att.uuid[:2] = [0x03, 0x28]

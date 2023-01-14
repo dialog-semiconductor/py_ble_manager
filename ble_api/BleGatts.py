@@ -1,4 +1,4 @@
-from enum import IntEnum, auto
+from enum import IntEnum
 
 from ble_api.BleCommon import BleEventBase, BLE_EVT_GATTS
 from ble_api.BleGatt import GATT_EVENT

@@ -3,7 +3,7 @@ from ctypes import c_uint8
 
 from ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_OWN_ADDR_TYPE, BLE_ADDR_TYPE
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BleEventGapConnected, BleEventGapDisconnected,  \
-    BleEventGapAdvCompleted, BLE_CONN_IDX_INVALID, GAP_SEC_LEVEL, GAP_SCAN_TYPE, GAP_SCAN_MODE, BleEventGapAdvReport, \
+    BleEventGapAdvCompleted, BLE_CONN_IDX_INVALID, GAP_SEC_LEVEL, GAP_SCAN_TYPE, BleEventGapAdvReport, \
     BleEventGapScanCompleted
 from gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd, GapcGetDevInfoReqInd, GapcGetDevInfoCfm, \
     GapcDisconnectInd
@@ -192,7 +192,7 @@ class BleManagerGap(BleManagerBase):
 
                 self._wait_q.flush(conn_idx)
                 # if (dg_configBLE_SKIP_LATENCY_API == 1)
-                # Clear skip slave latency setting 
+                # Clear skip slave latency setting
                 # ble_mgr_skip_latency_set(conn_idx, false);
                 # endif /* (dg_configBLE_SKIP_LATENCY_API == 1) */
 
@@ -312,7 +312,7 @@ class BleManagerGap(BleManagerBase):
         evt.length = gtl.parameters.report.data_len
         evt.data = bytes(gtl.parameters.report.data)
 
-        #evt.data = gtl.parameters.report.data[:gtl.parameters.report.data_len]
+        # evt.data = gtl.parameters.report.data[:gtl.parameters.report.data_len]
 
         self._mgr_event_queue_send(evt)
 
@@ -346,8 +346,10 @@ class BleManagerGap(BleManagerBase):
 
         match self.dev_params.own_addr.addr_type:
             case BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS \
-                 | BLE_OWN_ADDR_TYPE.PRIVATE_STATIC_ADDRESS:
+                    | BLE_OWN_ADDR_TYPE.PRIVATE_STATIC_ADDRESS:
+
                 message.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_STATIC_ADDR
+
             case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_RESOLVABLE_ADDRESS:
                 message.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_GEN_RSLV_ADDR
             case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_NONRESOLVABLE_ADDRESS:
@@ -433,12 +435,12 @@ class BleManagerGap(BleManagerBase):
                                 | BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS:
 
                             gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_STATIC_ADDR
-                            
+
                         case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_RESOLVABLE_ADDRESS \
                                 | BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
 
                             gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_GEN_RSLV_ADDR
-                            
+
                         case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_NONRESOLVABLE_ADDRESS:
                             gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_GEN_NON_RSLV_ADDR
 
@@ -468,7 +470,7 @@ class BleManagerGap(BleManagerBase):
         evt = BleEventGapConnected()
         evt.conn_idx = self._task_to_connidx(gtl.src_id)
         evt.own_addr.addr_type = self.dev_params.own_addr.addr_type
-        evt.own_addr.addr = self.dev_params.own_addr.addr 
+        evt.own_addr.addr = self.dev_params.own_addr.addr
         # if (dg_configBLE_PRIVACY_1_2 == 1)
         # evt.peer_address.addr_type = gtl.parameters.peer_addr_type & 0x01
         # else
@@ -601,7 +603,7 @@ class BleManagerGap(BleManagerBase):
 
                 case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_RESOLVABLE_ADDRESS \
                         | BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
- 
+
                     gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_GEN_RSLV_ADDR
 
                 case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_NONRESOLVABLE_ADDRESS:
@@ -626,6 +628,7 @@ class BleManagerGap(BleManagerBase):
             response.status = BLE_ERROR.BLE_STATUS_OK
 
         self._mgr_response_queue_send(response)
+
 
 '''
 static const ble_mgr_cmd_handler_t h_gap[BLE_MGR_CMD_GET_IDX(BLE_MGR_GAP_LAST_CMD)] = {

@@ -4,8 +4,6 @@ import asyncio
 from ble_api.BlePeripheral import BlePeripheral
 from ble_api.BleAtt import ATT_ERROR
 from ble_api.BleCommon import BleEventBase
-from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
-from ble_api.BleGatt import GATT_EVENT
 from services.CustomBleService import CustomBleService, CustomBleServiceCallbacks
 
 
@@ -30,7 +28,7 @@ async def app_char2_write_callback(svc: CustomBleService, conn_idx: int, value: 
 
 async def app_char3_ccc_changed_callback(svc: CustomBleService, conn_idx: int, value: int):
     print(f"app_char3_ccc_changed_callback. conn_idx={conn_idx}, value={value}")
-    
+
 
 async def user_main(sample_q: asyncio.Queue):
     elapsed = 0

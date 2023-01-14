@@ -330,6 +330,7 @@ class GATTC_SDP_ATT_TYPE(IntEnum):
     # Attribute Descriptor
     GATTC_SDP_ATT_DESC = auto()
 
+
 '''
 # Command complete event data structure
 struct gattc_op_cmd
@@ -1327,7 +1328,7 @@ class gattc_sdp_att(LittleEndianStructure):
 
         self.att_type = att_type
         self.uuid = uuid
-        
+
         super().__init__(_att_type=self.att_type,
                          uuid_len=self.uuid_len,
                          _uuid=self._uuid,
