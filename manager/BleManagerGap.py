@@ -10,7 +10,7 @@ from gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqIn
 from gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd, \
     GapmStartScanCmd, GapmAdvReportInd
 from gtl_port.co_error import CO_ERROR
-from gtl_port.gap import GAP_ROLE, GAP_AUTH_MASK
+from gtl_port.gap import GAP_ROLE, GAP_AUTH_MASK, gap_bdaddr
 from gtl_port.gapc import GAPC_FIELDS_MASK
 from gtl_port.gapc_task import GAPC_MSG_ID, GAPC_DEV_INFO
 from gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, GAPM_ADDR_TYPE, GAPM_OWN_ADDR, SCAN_FILTER_POLICY, SCAN_DUP_FILTER_POLICY
@@ -502,8 +502,11 @@ class BleManagerGap(BleManagerBase):
                     gtl.parameters.ce_len_min = command.ce_len_min if command.ce_len_min else 8  # TODO implement ifdef
                     gtl.parameters.ce_len_max = command.ce_len_max if command.ce_len_max else 8
                     gtl.parameters.nb_peers = 1
+                    gtl.parameters.peers = (gap_bdaddr * gtl.parameters.nb_peers)()
                     gtl.parameters.peers[0].addr_type = command.peer_addr.addr_type
                     gtl.parameters.peers[0].addr.addr[:] = command.peer_addr.addr
+
+                    print(f"peer: type={gtl.parameters.peers[0].addr_type} addr={list(gtl.parameters.peers[0].addr.addr[:])}. command={list(command.peer_addr.addr)}")
 
                     self.dev_params.connecting = True
                     dev.ce_len_min = gtl.parameters.ce_len_min

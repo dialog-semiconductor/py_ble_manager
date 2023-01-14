@@ -35,7 +35,7 @@ async def ble_task():
 
     periph_bd = BdAddress(BLE_ADDR_TYPE.PUBLIC_ADDRESS, bytes.fromhex("531B00352348"))  # addr is backwards
 
-    periph_conn_params = gap_conn_params(0, 1000, 0, 5)
+    periph_conn_params = gap_conn_params(20, 100, 3, 5)
     await central.connect(periph_bd, periph_conn_params)  # Getting 0xA2 status from Gtl GapmCptEvt
 
     ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
