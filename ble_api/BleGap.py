@@ -269,7 +269,7 @@ class BleEventGapAdvReport(BleEventBase):
                  length: int = 0,
                  data: bytes = None
                  ) -> None:
-        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_ADV_COMPLETED)
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_ADV_REPORT)
         self.type = type
         self.address = address if address else bd_address()
         self.rssi = rssi

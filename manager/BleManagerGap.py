@@ -301,7 +301,8 @@ class BleManagerGap(BleManagerBase):
         evt = BleEventGapAdvReport()
         # TODO is there an enum BleEventGapAdvReport.type?
         evt.type = gtl.parameters.report.evt_type
-        evt.rssi = gtl.parameters.report.rssi
+        evt.rssi = (gtl.parameters.report.rssi & 0x7F) 
+        evt.rssi = (-1 * evt.rssi) if (gtl.parameters.report.rssi & 0x80) else evt.rssi
         # if (dg_configBLE_PRIVACY_1_2 == 1)
         # Mask the flag indicating that the address was resolved by the controller */
         # evt->address.addr_type = gevt->report.adv_addr_type & 0x01;

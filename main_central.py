@@ -39,6 +39,7 @@ async def ble_task():
     while True:
         done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
 
+        adv_reports= []
         for task in done:
 
             # Handle and BLE events that hace occurred
@@ -48,6 +49,7 @@ async def ble_task():
                 if evt is not None:
                     # TODO switch on event type
                     if isinstance(evt, BleEventGapAdvReport):
+                        adv_reports.append(evt)
                         parse_adv_data(evt)
 
                 ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
