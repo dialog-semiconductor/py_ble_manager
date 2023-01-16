@@ -71,3 +71,7 @@ class AttUuid:
             raise ValueError("UUID length must be 2 or 16")
 
     uuid = property(_get_uuid, _set_uuid)
+
+    def __repr__(self):
+
+        return f"{type(self).__name__}(type={ATT_UUID_TYPE(self.type)}, uuid={list(self.uuid)})"

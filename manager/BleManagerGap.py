@@ -228,10 +228,11 @@ class BleManagerGap(BleManagerBase):
                 evt.status = BLE_ERROR.BLE_ERROR_INS_BANDWIDTH
             case _:
                 print(f"BleManagerGap._connect_cmp_evt_handler. gtl.status = {hex(gtl.parameters.status)}")
-                # evt.status = gtl.parameters.status  # TODO this throws a ValueError is not a valid BLE_ERROR
+                # evt.status = gtl.parameters.status  # TODO this throws a ValueError if not a valid BLE_ERROR
+                # need to be able to set a BLE_ERROR that is not defined. Could make a LittleEndianStructure
+
                 evt.status = BLE_ERROR.BLE_ERROR_FAILED
 
-        print(f"Putting event on q for app {evt}")
         self._mgr_event_queue_send(evt)
 
     def _dev_params_to_gtl(self) -> GapmSetDevConfigCmd:
@@ -506,7 +507,6 @@ class BleManagerGap(BleManagerBase):
                     gtl.parameters.peers[0].addr_type = command.peer_addr.addr_type
                     gtl.parameters.peers[0].addr.addr[:] = command.peer_addr.addr
 
-                    print(f"peer: type={gtl.parameters.peers[0].addr_type} addr={list(gtl.parameters.peers[0].addr.addr[:])}. command={list(command.peer_addr.addr)}")
 
                     self.dev_params.connecting = True
                     dev.ce_len_min = gtl.parameters.ce_len_min

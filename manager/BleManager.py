@@ -2,6 +2,8 @@ import asyncio
 
 from ble_api.BleCommon import BLE_ERROR, BLE_STATUS, BleEventBase
 from gtl_messages.gtl_message_base import GtlMessageBase
+from gtl_messages.gtl_message_gattc import GattcCmpEvt
+from gtl_port.gattc_task import GATTC_MSG_ID, GATTC_OPERATION
 from manager.BleManagerBase import BleManagerBase
 from manager.BleManagerCommon import BleManagerCommon
 from manager.BleManagerCommonMsgs import BLE_MGR_CMD_CAT, BleMgrMsgBase
@@ -50,21 +52,39 @@ class BleManager(BleManagerBase):
     async def _api_commmand_queue_get(self) -> BleMgrMsgBase:
         return await self._mgr_command_q.get()
 
+    def gattc_cmp_evt_handler(self, evt: GattcCmpEvt):
+        if (evt.parameters.operation == GATTC_OPERATION.GATTC_NOTIFY
+            or evt.parameters.operation == GATTC_OPERATION.GATTC_INDICATE
+            or evt.parameters.operation == GATTC_OPERATION.GATTC_SVC_CHANGED):
+
+            self.gatts_mgr.cmp_evt_handler(evt)
+        else:
+            self.gattc_mgr.cmp_evt_handler(evt)
+
+
     def _handle_evt_or_ind(self, message: GtlMessageBase):
 
         # TODO make list of handlers from all avail classes. If get back a handler, call it
         handled = False
 
-        for handlers in self.evt_handlers:
-            handler = handlers.get(message.msg_id)
-            if handler:
-                response = None
-                response = handler(message)
-                if response is None:
-                    handled = True
-                else:
-                    handled = response
-                break
+        # If this is a GATTC_CMP_EVT need to determine if will be handled by gattc_mgr or gatts_mgr
+        if message.msg_id == GATTC_MSG_ID.GATTC_CMP_EVT:
+            response = self.gattc_cmp_evt_handler(message)
+            if response is None:
+                handled = True
+            else:
+                handled = response
+        else:
+            for handlers in self.evt_handlers:
+                handler = handlers.get(message.msg_id)
+                if handler:
+                    response = None
+                    response = handler(message)
+                    if response is None:
+                        handled = True
+                    else:
+                        handled = response
+                    break
         return handled
 
     def _mgr_command_queue_send(self, command: BleMgrMsgBase):

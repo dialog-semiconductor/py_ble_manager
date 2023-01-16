@@ -100,7 +100,7 @@ class BLE_EVT_GAP(IntEnum):
     BLE_EVT_GAP_PEER_VERSION = auto()
     # Peer features
     BLE_EVT_GAP_PEER_FEATURES = auto()
-    # Local Transmit Power Level event
+    # Local Transmit Power Level event*
     BLE_EVT_GAP_LOCAL_TX_PWR = auto()
     # Transmit Power Reporting
     BLE_EVT_GAP_TX_PWR_REPORT = auto()
@@ -110,6 +110,33 @@ class BLE_EVT_GAP(IntEnum):
     # LTK
     BLE_EVT_GAP_LTK = auto()
 # endif
+
+
+class BLE_EVT_GATTC(IntEnum):
+    # Service found during browsing procedure
+    BLE_EVT_GATTC_BROWSE_SVC = BLE_EVT_CAT.BLE_EVT_CAT_GATTC << 8
+    # Browsing procedure completed
+    BLE_EVT_GATTC_BROWSE_COMPLETED = auto()
+    # Service found during discovery
+    BLE_EVT_GATTC_DISCOVER_SVC = auto()
+    # Included service found during discovery
+    BLE_EVT_GATTC_DISCOVER_INCLUDE = auto()
+    # Characteristic found during discovery
+    BLE_EVT_GATTC_DISCOVER_CHAR = auto()
+    # Characteristic descriptor found during discovery
+    BLE_EVT_GATTC_DISCOVER_DESC = auto()
+    # Discovery completed
+    BLE_EVT_GATTC_DISCOVER_COMPLETED = auto()
+    # Read attribute value completed
+    BLE_EVT_GATTC_READ_COMPLETED = auto()
+    # Write attribute value completed
+    BLE_EVT_GATTC_WRITE_COMPLETED = auto()
+    # Value notification received
+    BLE_EVT_GATTC_NOTIFICATION = auto()
+    # value indication received
+    BLE_EVT_GATTC_INDICATION = auto()
+    # MTU changes for peer
+    BLE_EVT_GATTC_MTU_CHANGED = auto()
 
 
 # TODO rename BLE_GATTS_EVT? Moved here for __repr__ method of BleEventBase
@@ -132,7 +159,7 @@ class BLE_OWN_ADDR_TYPE(IntEnum):
     PRIVATE_RANDOM_NONRESOLVABLE_ADDRESS = auto()  # Private Random Non-resolvable Address
 # if (dg_configBLE_PRIVACY_1_2 == 1)
     PRIVATE_CNTL = auto()  # Private Random Resolvable address using LE privacy v1.2
-# endif /* (dg_configBLE_PRIVACY_1_2 == 1) */
+# endif /* (dg_configBLE_PRIVACY_1_2 == 1) 
 
 
 class BLE_STATUS(IntEnum):

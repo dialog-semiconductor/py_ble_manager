@@ -56,7 +56,8 @@ class BleManagerGatts(BleManagerBase):
         self.evt_handlers = {
             GATTC_MSG_ID.GATTC_READ_REQ_IND: self.read_value_req_evt_handler,  # TODO why is this in Gatts and not Gattc???
             GATTC_MSG_ID.GATTC_WRITE_REQ_IND: self.write_value_req_evt_handler,   # TODO why is this in Gatts and not Gattc???
-            GATTC_MSG_ID.GATTC_CMP_EVT: self.cmp_evt_handler,   # TODO why is this in Gatts and not Gattc???
+            # Ble Manager calls cmp_evt_handler directly as it determines if gatts or gattc is the appropriate handler
+            # GATTC_MSG_ID.GATTC_CMP_EVT: self.cmp_evt_handler,   # TODO why is this in Gatts and not Gattc???
             GATTC_MSG_ID.GATTC_ATT_INFO_REQ_IND: self.prepare_write_req_evt_handler
         }
 

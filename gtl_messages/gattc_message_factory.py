@@ -35,8 +35,8 @@ class GattcMessageFactory():
                 parameters = gattc_disc_svc_ind()
                 parameters.start_hdl = int.from_bytes(params_buf[0:2], "little", signed=False)
                 parameters.end_hdl = int.from_bytes(params_buf[2:4], "little", signed=False)
-                # params_buf[4:6] skipped to account for length
-                parameters.uuid = (c_uint8 * len(params_buf[6:])).from_buffer_copy(params_buf[6:])
+                # params_buf[4:5] skipped to account for length
+                parameters.uuid = (c_uint8 * len(params_buf[5:-1])).from_buffer_copy(params_buf[5:-1])  # -1 to account for padding
                 return GattcDiscSvcInd(parameters=parameters)
 
             else:
