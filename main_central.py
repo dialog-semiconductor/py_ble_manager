@@ -3,7 +3,7 @@ import asyncio
 # TODO simplify imports for user
 from ble_api.BleCentral import BleCentral
 from ble_api.BleCommon import BleEventBase, BdAddress, BLE_ADDR_TYPE
-from ble_api.BleGap import BleEventGapAdvReport, BleEventGapScanCompleted, gap_conn_params
+from ble_api.BleGap import BleEventGapAdvReport, BleEventGapScanCompleted, gap_conn_params, BleEventGapConnected
 
 
 async def user_main():
@@ -35,8 +35,11 @@ async def ble_task():
 
     periph_bd = BdAddress(BLE_ADDR_TYPE.PUBLIC_ADDRESS, bytes.fromhex("531B00352348"))  # addr is backwards
 
-    periph_conn_params = gap_conn_params(50*100//125, 70*100//125, 0, 420//10)
+    # TODO do these conversions when setting gap_conn_params
+    periph_conn_params = gap_conn_params(50, 70, 0, 420)
     await central.connect(periph_bd, periph_conn_params)  # Getting 0xA2 status from Gtl GapmCptEvt
+
+    # TODO ble_gattc_browse
 
     ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
     pending = [ble_event_task]
@@ -53,6 +56,7 @@ async def ble_task():
                 print(f"Main rx'd event: {evt}.\n")
                 if evt is not None:
                     # TODO switch on event type
+                    # if evt.evt_code == BLE_EVT_GAP.BLE_EVT_GAP_ADV_REPORT
                     if isinstance(evt, BleEventGapAdvReport):
                         if evt.address.addr == periph_bd.addr:
                             pass
@@ -66,8 +70,18 @@ async def ble_task():
                         #    report_str = f"adv_data={adv_data}\n"
                         # print(f"Report: {report_str}")
                         pass
+                    
+                    if isinstance(evt, BleEventGapConnected):
+                        await handle_evt_gap_connected(central, evt)
+
                 ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
                 pending.add(ble_event_task)
+
+
+async def handle_evt_gap_connected(central: BleCentral, evt: BleEventGapConnected):
+    #central.browse
+    response = await central.discover_services(evt.conn_idx, None)
+    print(f"handle_evt_gap_connected. response = {response}")
 
 
 asyncio.run(main())

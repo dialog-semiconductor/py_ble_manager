@@ -6,6 +6,7 @@ from manager.BleManagerBase import BleManagerBase
 from manager.BleManagerCommon import BleManagerCommon
 from manager.BleManagerCommonMsgs import BLE_MGR_CMD_CAT, BleMgrMsgBase
 from manager.BleManagerGap import BleManagerGap
+from manager.BleManagerGattc import BleManagerGattc
 from manager.BleManagerGatts import BleManagerGatts
 from manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from manager.GtlWaitQueue import GtlWaitQueue
@@ -28,17 +29,20 @@ class BleManager(BleManagerBase):
         self._wait_q = GtlWaitQueue()
         self._stored_device_list = StoredDeviceQueue()
         self._ble_stack_initialized = False
-        self.gap_mgr = BleManagerGap(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q, self._stored_device_list)
         self.common_mgr = BleManagerCommon(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q, self._stored_device_list)
+        self.gap_mgr = BleManagerGap(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q, self._stored_device_list)
+        self.gattc_mgr = BleManagerGattc(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q, self._stored_device_list)
         self.gatts_mgr = BleManagerGatts(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q, self._stored_device_list)
 
         self.cmd_handlers = {
             BLE_MGR_CMD_CAT.BLE_MGR_COMMON_CMD_CAT: self.common_mgr,
             BLE_MGR_CMD_CAT.BLE_MGR_GAP_CMD_CAT: self.gap_mgr,
             BLE_MGR_CMD_CAT.BLE_MGR_GATTS_CMD_CAT: self.gatts_mgr,
-            BLE_MGR_CMD_CAT.BLE_MGR_GATTC_CMD_CAT: None,
+            BLE_MGR_CMD_CAT.BLE_MGR_GATTC_CMD_CAT: self.gattc_mgr,
             BLE_MGR_CMD_CAT.BLE_MGR_L2CAP_CMD_CAT: None,
         }
+
+        self.evt_handlers = [self.gap_mgr.evt_handlers, self.gattc_mgr.evt_handlers, self.gatts_mgr.evt_handlers]
 
     async def _adapter_event_queue_get(self) -> BleEventBase:
         return await self._adapter_event_q.get()
@@ -49,11 +53,9 @@ class BleManager(BleManagerBase):
     def _handle_evt_or_ind(self, message: GtlMessageBase):
 
         # TODO make list of handlers from all avail classes. If get back a handler, call it
-        event_handlers = [self.gap_mgr.evt_handlers, self.gatts_mgr.evt_handlers]
-
         handled = False
 
-        for handlers in event_handlers:
+        for handlers in self.evt_handlers:
             handler = handlers.get(message.msg_id)
             if handler:
                 response = None
@@ -116,7 +118,7 @@ class BleManager(BleManagerBase):
         if task.exception():
             task.result()  # Raise the exception
 
-    async def cmd_execute(self, command: BleMgrMsgBase) -> BLE_ERROR:  # TODO fix typing of return, return multiple
+    async def cmd_execute(self, command: BleMgrMsgBase) -> BLE_ERROR: # TODO fix typing of return, return multiple 
         ble_status = self.gap_mgr.dev_params.status
         if ble_status == BLE_STATUS.BLE_IS_BUSY or ble_status == BLE_STATUS.BLE_IS_RESET:
             return BLE_ERROR.BLE_ERROR_BUSY

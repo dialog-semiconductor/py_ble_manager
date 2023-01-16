@@ -5,6 +5,7 @@ from ble_api.BleCommon import BleEventBase, BLE_ERROR
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_EVT_GAP, BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGapApi import BleGapApi
 from ble_api.BleGatt import GATT_EVENT
+from ble_api.BleGattcApi import BleGattcApi
 from ble_api.BleGatts import BLE_EVT_GATTS, BleEventGattsReadReq, BleEventGattsWriteReq
 from ble_api.BleGattsApi import BleGattsApi
 from ble_api.BleStorageApi import BleStorageApi
@@ -26,6 +27,7 @@ class BleDeviceBase():
         self.ble_manager = BleManager(app_command_q, app_resposne_q, app_event_q, adapter_command_q, adapter_event_q)
         self.ble_adapter = BleAdapter(com_port, adapter_command_q, adapter_event_q)
         self.ble_gap = BleGapApi(self.ble_manager, self.ble_adapter)
+        self.ble_gattc = BleGattcApi(self.ble_manager, self.ble_adapter)
         self.ble_gatts = BleGattsApi(self.ble_manager, self.ble_adapter)
         self.ble_storage = BleStorageApi(self.ble_manager, self.ble_adapter)
 

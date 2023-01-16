@@ -1,8 +1,13 @@
 import asyncio
+from ctypes import c_uint8
 
+from ble_api.BleAtt import ATT_UUID_TYPE, AttUuid
 from ble_api.BleCommon import BleEventBase, BLE_ERROR
+from gtl_messages.gtl_message_gattc import GattcDiscCmd
+from gtl_port.gattc_task import GATTC_OPERATION
 from manager.BleManagerBase import BleManagerBase
 from manager.BleManagerCommonMsgs import BleMgrMsgBase
+from manager.BleManagerGattcMsgs import BLE_CMD_GATTC_OPCODE, BleMgrGattcDiscoverSvcCmd, BleMgrGattcDiscoverSvcRsp
 from manager.BleManagerStorage import StoredDeviceQueue
 from manager.GtlWaitQueue import GtlWaitQueue
 
@@ -18,12 +23,35 @@ class BleManagerGattc(BleManagerBase):
 
         super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q, stored_device_q)
 
-        '''
         self.cmd_handlers = {
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ROLE_SET_CMD: self.gap_role_set_cmd_handler,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_START_CMD: self.gap_adv_start_cmd_handler
+            BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_SVC_CMD: self.discover_svc_cmd_handler,
         }
-        '''
+
+    def discover_svc_cmd_handler(self, command: BleMgrGattcDiscoverSvcCmd):
+        response = BleMgrGattcDiscoverSvcRsp(BLE_ERROR.BLE_ERROR_FAILED)
+
+        dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
+        if not dev:
+            response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
+        else:
+            gtl = GattcDiscCmd()
+            # depends on uuid default to None in BleMgrGattcDiscoverSvcCmd
+            if command.uuid:
+                gtl.parameters.operation = GATTC_OPERATION.GATTC_DISC_BY_UUID_SVC
+                gtl.parameters.uuid = (c_uint8 * len(command.uuid.uuid)).from_buffer_copy(command.uuid.uuid)
+            else:
+                gtl.parameters.operation = GATTC_OPERATION.GATTC_DISC_ALL_SVC
+                gtl.parameters.uuid = (c_uint8 * 2)()
+
+            gtl.parameters.seq_num = command.conn_idx
+            gtl.parameters.start_hdl = 1
+            gtl.parameters.end_hdl = 0xFFFF
+
+            self._adapter_command_queue_send(gtl)
+
+            response.status = BLE_ERROR.BLE_STATUS_OK
+
+        self._mgr_response_queue_send(response)
 
 
 '''

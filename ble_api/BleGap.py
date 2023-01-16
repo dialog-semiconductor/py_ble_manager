@@ -237,11 +237,11 @@ class gap_chnl_map():
 # GAP connection parameters
 class gap_conn_params():
     # TODO is ctypes array appriopriate at this layer?
-    def __init__(self, interval_min: int = 0, interval_max: int = 0, slave_latency: int = 0, sup_timeout: int = 0) -> None:
-        self.interval_min = interval_min  # Minimum connection interval
-        self.interval_max = interval_max  # Maximum connection interval
+    def __init__(self, interval_min_ms: int = 0, interval_max_ms: int = 0, slave_latency: int = 0, sup_timeout_ms: int = 0) -> None:
+        self.interval_min = interval_min_ms * 100 // 125  # Minimum connection interval
+        self.interval_max = interval_max_ms * 100 // 125  # Maximum connection interval
         self.slave_latency = slave_latency  # Slave latency
-        self.sup_timeout = sup_timeout  # Supervision timeout
+        self.sup_timeout = sup_timeout_ms // 10  # Supervision timeout
 
 
 # GAP scan parameters

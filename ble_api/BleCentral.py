@@ -1,3 +1,4 @@
+from ble_api.BleAtt import AttUuid
 from ble_api.BleDeviceBase import BleDeviceBase
 from ble_api.BleCommon import BLE_ERROR, BdAddress
 from ble_api.BleGap import BLE_GAP_ROLE, gap_conn_params, GAP_SCAN_TYPE, GAP_SCAN_MODE, BleEventGapAdvReport, BleAdvData, GAP_DATA_TYPE
@@ -12,6 +13,9 @@ class BleCentral(BleDeviceBase):
 
     async def connect(self, peer_addr: BdAddress, conn_params: gap_conn_params) -> None:
         return await self.ble_gap.connect(peer_addr, conn_params)
+
+    async def discover_services(self, conn_idx: int, uuid: AttUuid):
+        return await self.ble_gattc.discover_services(conn_idx, uuid)
 
     def parse_adv_data(self, evt: BleEventGapAdvReport) -> list[BleAdvData]:
         data_ptr = 0

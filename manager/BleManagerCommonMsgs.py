@@ -26,6 +26,14 @@ class BleMgrMsgBase():
         self.opcode = opcode
 
 
+'''
+class BleMgrMsgBaseRsp(BleMgrMsgBase):  # TODO reponses should inherit fromm this class instead of BleMgrMsgBase
+    def __init__(self, opcode, status: BLE_ERROR) -> None:
+        self.status = status
+        super().__init__(opcode=opcode)
+'''
+
+
 class BleMgrCommonResetCmd(BleMgrMsgBase):
     def __init__(self) -> None:
         super().__init__(opcode=BLE_MGR_COMMON_CMD_OPCODE.BLE_MGR_COMMON_RESET_CMD)
