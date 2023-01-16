@@ -4,6 +4,7 @@ from ctypes import c_uint8
 from ble_api.BleAtt import ATT_UUID_TYPE, AttUuid
 from ble_api.BleCommon import BleEventBase, BLE_ERROR
 from ble_api.BleGattc import BleEventGattcDiscoverSvc, BleEventGattcDiscoverCompleted, GATTC_DISCOVERY_TYPE
+from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gattc import GattcDiscCmd, GattcDiscSvcInd, GattcCmpEvt
 from gtl_port.gattc_task import GATTC_OPERATION, GATTC_MSG_ID
 from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
@@ -19,7 +20,7 @@ class BleManagerGattc(BleManagerBase):
     def __init__(self,
                  mgr_response_q: asyncio.Queue[BLE_ERROR],
                  mgr_event_q: asyncio.Queue[BleEventBase],
-                 adapter_command_q: asyncio.Queue[BleMgrMsgBase],
+                 adapter_command_q: asyncio.Queue[GtlMessageBase],
                  wait_q: GtlWaitQueue,
                  stored_device_q: StoredDeviceQueue) -> None:
 

@@ -7,6 +7,7 @@ from ble_api.BleGap import BLE_CONN_IDX_INVALID
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP, GATT_EVENT
 from ble_api.BleGatts import BleEventGattsReadReq, BleEventGattsWriteReq, BleEventGattsEventSent, BleEventGattsPrepareWriteReq
 from ble_api.BleUuid import UUID_GATT_CHAR_EXT_PROPERTIES
+from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gattc import GattcReadReqInd, GattcReadCfm, GattcWriteCfm, GattcWriteReqInd, GattcSendEvtCmd, \
     GATTC_OPERATION, GattcCmpEvt, GattcAttInfoReqInd, GattcAttInfoCfm
 from gtl_messages.gtl_message_gattm import GattmAddSvcReq, GattmAddSvcRsp, GattmAttSetValueReq, GattmAttSetValueRsp, GattmAttGetValueReq, \
