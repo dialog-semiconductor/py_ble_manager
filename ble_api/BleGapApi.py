@@ -40,6 +40,7 @@ class BleGapApi(BleApiBase):
 
         command = BleMgrGapScanStartCmd(type, mode, interval, window, filt_wlist, filt_dupl)
         response: BleMgrGapScanStartRsp = await self.ble_manager.cmd_execute(command)
+
         return response.status
 
     async def start_advertising(self,
@@ -48,4 +49,5 @@ class BleGapApi(BleApiBase):
 
         command = BleMgrGapAdvStartCmd(adv_type)
         response: BleMgrGapAdvStartRsp = await self.ble_manager.cmd_execute(command)
+        
         return response.status

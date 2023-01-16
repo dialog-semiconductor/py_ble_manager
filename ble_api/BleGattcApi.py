@@ -16,4 +16,5 @@ class BleGattcApi(BleApiBase):
     async def discover_services(self, conn_idx: int, uuid: AttUuid):
         command = BleMgrGattcDiscoverSvcCmd(conn_idx, uuid)
         response: BleMgrGattcDiscoverSvcRsp = await self.ble_manager.cmd_execute(command)
+        
         return response.status
