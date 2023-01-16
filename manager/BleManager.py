@@ -6,7 +6,7 @@ from gtl_messages.gtl_message_gattc import GattcCmpEvt
 from gtl_port.gattc_task import GATTC_MSG_ID, GATTC_OPERATION
 from manager.BleManagerBase import BleManagerBase
 from manager.BleManagerCommon import BleManagerCommon
-from manager.BleManagerCommonMsgs import BLE_MGR_CMD_CAT, BleMgrMsgBase
+from manager.BleManagerCommonMsgs import BLE_MGR_CMD_CAT, BleMgrMsgBase, BleMgrMsgRsp
 from manager.BleManagerGap import BleManagerGap
 from manager.BleManagerGattc import BleManagerGattc
 from manager.BleManagerGatts import BleManagerGatts
@@ -20,7 +20,7 @@ class BleManager(BleManagerBase):
                  mgr_command_q: asyncio.Queue[BleMgrMsgBase],
                  mgr_response_q: asyncio.Queue[BLE_ERROR],
                  mgr_event_q: asyncio.Queue[BleEventBase],
-                 adapter_command_q: asyncio.Queue[BleMgrMsgBase],
+                 adapter_command_q: asyncio.Queue[GtlMessageBase],
                  adapter_event_q: asyncio.Queue[GtlMessageBase]) -> None:
 
         self._mgr_command_q: asyncio.Queue[BleMgrMsgBase] = mgr_command_q
@@ -138,10 +138,10 @@ class BleManager(BleManagerBase):
         if task.exception():
             task.result()  # Raise the exception
 
-    async def cmd_execute(self, command: BleMgrMsgBase) -> BLE_ERROR: # TODO fix typing of return, return multiple 
+    async def cmd_execute(self, command: BleMgrMsgBase) -> BLE_ERROR:
         ble_status = self.gap_mgr.dev_params.status
         if ble_status == BLE_STATUS.BLE_IS_BUSY or ble_status == BLE_STATUS.BLE_IS_RESET:
-            return BLE_ERROR.BLE_ERROR_BUSY
+            return False
 
         self._mgr_command_queue_send(command)
         response = await self._mgr_response_queue_get()

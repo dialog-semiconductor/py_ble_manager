@@ -17,7 +17,7 @@ class BleManagerCommon(BleManagerBase):
     def __init__(self,
                  mgr_response_q: asyncio.Queue[BLE_ERROR],
                  mgr_event_q: asyncio.Queue[BleEventBase],
-                 adapter_command_q: asyncio.Queue[BleMgrMsgBase],
+                 adapter_command_q: asyncio.Queue[GtlMessageBase],
                  wait_q: GtlWaitQueue,
                  stored_device_q: StoredDeviceQueue
                  ) -> None:

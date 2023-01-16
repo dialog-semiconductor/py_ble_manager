@@ -5,27 +5,7 @@ from ble_api.BleAtt import AttUuid, ATT_PERM, ATT_ERROR
 from ble_api.BleCommon import BLE_ERROR, BLE_EVT_CAT
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP, GATT_EVENT
 from ble_api.BleGatts import GATTS_FLAGS
-from manager.BleManagerCommonMsgs import BleMgrMsgBase, BLE_MGR_CMD_CAT
-
-
-class BLE_CMD_GATTS_OPCODE(IntEnum):
-    BLE_MGR_GATTS_SERVICE_ADD_CMD = BLE_MGR_CMD_CAT.BLE_MGR_GATTS_CMD_CAT << 8
-    BLE_MGR_GATTS_SERVICE_INCLUDE_ADD_CMD = auto()
-    BLE_MGR_GATTS_SERVICE_CHARACTERISTIC_ADD_CMD = auto()
-    BLE_MGR_GATTS_SERVICE_DESCRIPTOR_ADD_CMD = auto()
-    BLE_MGR_GATTS_SERVICE_REGISTER_CMD = auto()
-    BLE_MGR_GATTS_SERVICE_ENABLE_CMD = auto()
-    BLE_MGR_GATTS_SERVICE_DISABLE_CMD = auto()
-    BLE_MGR_GATTS_SERVICE_CHARACTERISTIC_GET_PROP_CMD = auto()
-    BLE_MGR_GATTS_SERVICE_CHARACTERISTIC_SET_PROP_CMD = auto()
-    BLE_MGR_GATTS_GET_VALUE_CMD = auto()
-    BLE_MGR_GATTS_SET_VALUE_CMD = auto()
-    BLE_MGR_GATTS_READ_CFM_CMD = auto()
-    BLE_MGR_GATTS_WRITE_CFM_CMD = auto()
-    BLE_MGR_GATTS_PREPARE_WRITE_CFM_CMD = auto()
-    BLE_MGR_GATTS_SEND_EVENT_CMD = auto()
-    BLE_MGR_GATTS_SERVICE_CHANGED_IND_CMD = auto()
-    BLE_MGR_GATTS_LAST_CMD = auto()
+from manager.BleManagerCommonMsgs import BleMgrMsgBase, BleMgrMsgRsp, BLE_MGR_CMD_CAT, BLE_CMD_GATTS_OPCODE
 
 
 class BLE_EVT_GATTS(IntEnum):
@@ -49,13 +29,13 @@ class BleMgrGattsGetValueCmd(BleMgrMsgBase):
         self.max_len = max_len
 
 
-class BleMgrGattsGetValueRsp(BleMgrMsgBase):
+class BleMgrGattsGetValueRsp(BleMgrMsgRsp):
     def __init__(self,
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
                  value: bytes = None
                  ) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_GET_VALUE_CMD)
-        self.status = status
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_GET_VALUE_CMD,
+                         status=status)
         self.value = value if value else bytes()
 
 
@@ -73,12 +53,12 @@ class BleMgrGattsPrepareWriteCfmCmd(BleMgrMsgBase):
         self.status = status
 
 
-class BleMgrGattsPrepareWriteCfmRsp(BleMgrMsgBase):
+class BleMgrGattsPrepareWriteCfmRsp(BleMgrMsgRsp):
     def __init__(self,
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
                  ) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_PREPARE_WRITE_CFM_CMD)
-        self.status = status
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_PREPARE_WRITE_CFM_CMD,
+                         status=status)
 
 
 class BleMgrGattsReadCfmCmd(BleMgrMsgBase):
@@ -95,12 +75,12 @@ class BleMgrGattsReadCfmCmd(BleMgrMsgBase):
         self.value = value if value else bytes()
 
 
-class BleMgrGattsReadCfmRsp(BleMgrMsgBase):
+class BleMgrGattsReadCfmRsp(BleMgrMsgRsp):
     def __init__(self,
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
                  ) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_READ_CFM_CMD)
-        self.status = status
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_READ_CFM_CMD,
+                         status=status)
 
 
 class BleMgrGattsSendEventCmd(BleMgrMsgBase):
@@ -117,12 +97,12 @@ class BleMgrGattsSendEventCmd(BleMgrMsgBase):
         self.value = value
 
 
-class BleMgrGattsSendEventRsp(BleMgrMsgBase):
+class BleMgrGattsSendEventRsp(BleMgrMsgRsp):
     def __init__(self,
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
                  ) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SEND_EVENT_CMD)
-        self.status = status
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SEND_EVENT_CMD,
+                         status=status)
 
 
 class BleMgrGattsServiceAddCharacteristicCmd(BleMgrMsgBase):
@@ -141,14 +121,14 @@ class BleMgrGattsServiceAddCharacteristicCmd(BleMgrMsgBase):
         self.flags = flags
 
 
-class BleMgrGattsServiceAddCharacteristicRsp(BleMgrMsgBase):
+class BleMgrGattsServiceAddCharacteristicRsp(BleMgrMsgRsp):
     def __init__(self,
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
                  h_offset: int = 0,
                  h_val_offset: int = 0
                  ) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_CHARACTERISTIC_ADD_CMD)
-        self.status = status
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_CHARACTERISTIC_ADD_CMD,
+                         status=status)
         self.h_offset = h_offset
         self.h_val_offset = h_val_offset
 
@@ -164,10 +144,10 @@ class BleMgrGattsServiceAddCmd(BleMgrMsgBase):
         self.num_attrs = num_attrs
 
 
-class BleMgrGattsServiceAddRsp(BleMgrMsgBase):
+class BleMgrGattsServiceAddRsp(BleMgrMsgRsp):
     def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_ADD_CMD)
-        self.status = status
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_ADD_CMD,
+                         status=status)
 
 
 class BleMgrGattsServiceAddDescriptorCmd(BleMgrMsgBase):
@@ -184,13 +164,13 @@ class BleMgrGattsServiceAddDescriptorCmd(BleMgrMsgBase):
         self.flags = flags
 
 
-class BleMgrGattsServiceAddDescriptorRsp(BleMgrMsgBase):
+class BleMgrGattsServiceAddDescriptorRsp(BleMgrMsgRsp):
     def __init__(self,
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
                  h_offset: int = 0,
                  ) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_DESCRIPTOR_ADD_CMD)
-        self.status = status
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_DESCRIPTOR_ADD_CMD,
+                         status=status)
         self.h_offset = h_offset
 
 
@@ -202,13 +182,13 @@ class BleMgrGattsServiceAddIncludeCmd(BleMgrMsgBase):
         self.handle = handle
 
 
-class BleMgrGattsServiceAddIncludeRsp(BleMgrMsgBase):
+class BleMgrGattsServiceAddIncludeRsp(BleMgrMsgRsp):
     def __init__(self,
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
                  h_offset: int = 0,
                  ) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_INCLUDE_ADD_CMD)
-        self.status = status
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_INCLUDE_ADD_CMD,
+                         status=status)
         self.h_offset = h_offset
 
 
@@ -217,12 +197,12 @@ class BleMgrGattsServiceRegisterCmd(BleMgrMsgBase):
         super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_REGISTER_CMD)
 
 
-class BleMgrGattsServiceRegisterRsp(BleMgrMsgBase):
+class BleMgrGattsServiceRegisterRsp(BleMgrMsgRsp):
     def __init__(self,
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
                  handle: int = 0) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_REGISTER_CMD)
-        self.status = status
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_REGISTER_CMD,
+                         status=status)
         self.handle = handle
 
 
@@ -236,12 +216,12 @@ class BleMgrGattsSetValueCmd(BleMgrMsgBase):
         self.value = value if value else bytes()
 
 
-class BleMgrGattsSetValueRsp(BleMgrMsgBase):
+class BleMgrGattsSetValueRsp(BleMgrMsgRsp):
     def __init__(self,
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
                  ) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SET_VALUE_CMD)
-        self.status = status
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SET_VALUE_CMD,
+                         status=status)
 
 
 class BleMgrGattsWriteCfmCmd(BleMgrMsgBase):
@@ -256,9 +236,9 @@ class BleMgrGattsWriteCfmCmd(BleMgrMsgBase):
         self.status = status
 
 
-class BleMgrGattsWriteCfmRsp(BleMgrMsgBase):
+class BleMgrGattsWriteCfmRsp(BleMgrMsgRsp):
     def __init__(self,
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
                  ) -> None:
-        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_WRITE_CFM_CMD)
-        self.status = status
+        super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_WRITE_CFM_CMD,
+                         status=status)

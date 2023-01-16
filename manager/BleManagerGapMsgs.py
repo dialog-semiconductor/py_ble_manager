@@ -2,56 +2,7 @@ from enum import IntEnum, auto
 
 from ble_api.BleCommon import BLE_ERROR, BdAddress
 from ble_api.BleGap import BLE_GAP_CONN_MODE, BLE_GAP_ROLE, gap_conn_params, GAP_SCAN_TYPE, GAP_SCAN_MODE
-from manager.BleManagerCommonMsgs import BLE_MGR_CMD_CAT, BleMgrMsgBase
-
-
-class BLE_CMD_GAP_OPCODE(IntEnum):
-    BLE_MGR_GAP_ADDRESS_SET_CMD = BLE_MGR_CMD_CAT.BLE_MGR_GAP_CMD_CAT << 8
-    BLE_MGR_GAP_DEVICE_NAME_SET_CMD = auto()
-    BLE_MGR_GAP_APPEARANCE_SET_CMD = auto()
-    BLE_MGR_GAP_PPCP_SET_CMD = auto()
-    BLE_MGR_GAP_ADV_START_CMD = auto()
-    BLE_MGR_GAP_ADV_STOP_CMD = auto()
-    BLE_MGR_GAP_ADV_DATA_SET_CMD = auto()
-    BLE_MGR_GAP_ADV_SET_PERMUTATION_CMD = auto()
-    BLE_MGR_GAP_SCAN_START_CMD = auto()
-    BLE_MGR_GAP_SCAN_STOP_CMD = auto()
-    BLE_MGR_GAP_CONNECT_CMD = auto()
-    BLE_MGR_GAP_CONNECT_CANCEL_CMD = auto()
-    BLE_MGR_GAP_DISCONNECT_CMD = auto()
-    BLE_MGR_GAP_PEER_VERSION_GET_CMD = auto()
-    BLE_MGR_GAP_PEER_FEATURES_GET_CMD = auto()
-    BLE_MGR_GAP_CONN_RSSI_GET_CMD = auto()
-    BLE_MGR_GAP_ROLE_SET_CMD = auto()
-    BLE_MGR_GAP_MTU_SIZE_SET_CMD = auto()
-    BLE_MGR_GAP_CHANNEL_MAP_SET_CMD = auto()
-    BLE_MGR_GAP_CONN_PARAM_UPDATE_CMD = auto()
-    BLE_MGR_GAP_CONN_PARAM_UPDATE_REPLY_CMD = auto()
-    BLE_MGR_GAP_PAIR_CMD = auto()
-    BLE_MGR_GAP_PAIR_REPLY_CMD = auto()
-    BLE_MGR_GAP_PASSKEY_REPLY_CMD = auto()
-    BLE_MGR_GAP_UNPAIR_CMD = auto()
-    BLE_MGR_GAP_SET_SEC_LEVEL_CMD = auto()
-# if (dg_configBLE_SKIP_LATENCY_API == 1) # TODO need to handle these defines
-    BLE_MGR_GAP_SKIP_LATENCY_CMD = auto()
-# endif /* (dg_configBLE_SKIP_LATENCY_API == 1)
-    BLE_MGR_GAP_DATA_LENGTH_SET_CMD = auto()
-# if (dg_configBLE_SECURE_CONNECTIONS == 1)
-    BLE_MGR_GAP_NUMERIC_REPLY_CMD = auto()
-# endif /* (dg_configBLE_SECURE_CONNECTIONS == 1)
-    BLE_MGR_GAP_ADDRESS_RESOLVE_CMD = auto()
-# if (dg_configBLE_2MBIT_PHY == 1)
-    BLE_MGR_GAP_PHY_SET_CMD = auto()
-# endif /* (dg_configBLE_2MBIT_PHY == 1)
-    BLE_MGR_GAP_TX_POWER_SET_CMD = auto()
-    BLE_MGR_GAP_CONN_TX_POWER_SET_CMD = auto()
-    BLE_MGR_GAP_LOCAL_TX_POWER_GET_CMD = auto()
-    BLE_MGR_GAP_REMOTE_TX_POWER_GET_CMD = auto()
-    BLE_MGR_GAP_PATH_LOSS_REPORT_PARAMS_SET_CMD = auto()
-    BLE_MGR_GAP_PATH_LOSS_REPORT_EN_CMD = auto()
-    BLE_MGR_GAP_TX_PWR_REPORT_EN_CMD = auto()
-    BLE_MGR_GAP_RF_PATH_COMPENSATION_SET_CMD = auto()
-    BLE_MGR_GAP_LAST_CMD = auto()
+from manager.BleManagerCommonMsgs import BLE_MGR_CMD_CAT, BleMgrMsgBase, BleMgrMsgRsp, BLE_CMD_GAP_OPCODE
 
 
 # TODO most of these Cmd clases need to their definition to be completed
@@ -76,10 +27,10 @@ class BleMgrGapAdvStartCmd(BleMgrMsgBase):
         self.adv_type = adv_type  # TODO raise error on bad arg
 
 
-class BleMgrGapAdvStartRsp(BleMgrMsgBase):
+class BleMgrGapAdvStartRsp(BleMgrMsgRsp):
     def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
-        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_START_CMD)
-        self.status = status
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_START_CMD,
+                         status=status)
 
 
 class BleMgrGapAdvStopCmd(BleMgrMsgBase):
@@ -121,10 +72,10 @@ class BleMgrGapConnectCmd(BleMgrMsgBase):
         self.ce_len_max = ce_len_max
 
 
-class BleMgrGapConnectRsp(BleMgrMsgBase):
+class BleMgrGapConnectRsp(BleMgrMsgRsp):
     def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
-        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CMD)
-        self.status = status
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CMD,
+                         status=status)
 
 
 class BleMgrGapConnParamUpdateCmd(BleMgrMsgBase):
@@ -223,16 +174,16 @@ class BleMgrGapRoleSetCmd(BleMgrMsgBase):
         self.role = role
 
 
-class BleMgrGapRoleSetRsp(BleMgrMsgBase):
+class BleMgrGapRoleSetRsp(BleMgrMsgRsp):
     def __init__(self,
                  new_role: BLE_GAP_ROLE = BLE_GAP_ROLE.GAP_NO_ROLE,
                  prev_role: BLE_GAP_ROLE = BLE_GAP_ROLE.GAP_NO_ROLE,
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED
                  ) -> None:
-        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ROLE_SET_CMD)
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ROLE_SET_CMD,
+                         status=status)
         self.new_role = new_role
         self.prev_role = prev_role
-        self.status = status
 
 
 class BleMgrGapRfPathCompensationSetCmd(BleMgrMsgBase):
@@ -278,12 +229,12 @@ class BleMgrGapScanStartCmd(BleMgrMsgBase):
         self.filt_dupl = filt_dupl
 
 
-class BleMgrGapScanStartRsp(BleMgrMsgBase):
+class BleMgrGapScanStartRsp(BleMgrMsgRsp):
     def __init__(self,
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED
                  ) -> None:
-        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SCAN_START_CMD)
-        self.status = status
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SCAN_START_CMD,
+                         status=status)
 
 
 class BleMgrGapScanStopCmd(BleMgrMsgBase):
