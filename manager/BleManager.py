@@ -138,7 +138,7 @@ class BleManager(BleManagerBase):
         if task.exception():
             task.result()  # Raise the exception
 
-    async def cmd_execute(self, command: BleMgrMsgBase) -> BLE_ERROR:
+    async def cmd_execute(self, command: BleMgrMsgBase) -> BLE_ERROR:  # TODO need to handle case where return False
         ble_status = self.gap_mgr.dev_params.status
         if ble_status == BLE_STATUS.BLE_IS_BUSY or ble_status == BLE_STATUS.BLE_IS_RESET:
             return False
