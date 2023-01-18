@@ -4,7 +4,7 @@ from ble_api.BleCommon import BdAddress
 from ble_api.BleGap import GAP_SEC_LEVEL, BLE_GAP_PHY
 
 
-class SearchableQueue():
+class SearchableQueue():  # TODO mode to queue files
     def __init__(self) -> None:
         self.queue = []
 
@@ -13,6 +13,18 @@ class SearchableQueue():
 
     def remove(self, elem) -> None:
         self.queue.remove(elem)
+
+    def peek(self):
+        if len(self.queue) >= 1:
+            return self.queue[0]
+        else:
+            return None
+
+    def peek_back(self):
+        if len(self.queue) >= 1:
+            return self.queue[-1]
+        else:
+            return None
 
 
 class PendingEvent():

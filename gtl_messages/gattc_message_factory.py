@@ -1,8 +1,9 @@
 from ctypes import c_uint8
 
 from gtl_messages.gtl_message_base import GTL_INITIATOR
-from gtl_messages.gtl_message_gattc import GattcReadReqInd, GattcWriteReqInd, GattcCmpEvt, GattcDiscSvcInd
-from gtl_port.gattc_task import GATTC_MSG_ID, gattc_read_req_ind, gattc_write_req_ind, gattc_cmp_evt, gattc_disc_svc_ind
+from gtl_messages.gtl_message_gattc import GattcReadReqInd, GattcWriteReqInd, GattcCmpEvt, GattcDiscSvcInd, GattcDiscCharInd
+from gtl_port.gattc_task import GATTC_MSG_ID, gattc_read_req_ind, gattc_write_req_ind, gattc_cmp_evt, gattc_disc_svc_ind, \
+    gattc_disc_char_ind
 
 
 class GattcMessageFactory():
@@ -38,6 +39,15 @@ class GattcMessageFactory():
                 # params_buf[4:5] skipped to account for length
                 parameters.uuid = (c_uint8 * len(params_buf[5:-1])).from_buffer_copy(params_buf[5:-1])  # -1 to account for padding
                 return GattcDiscSvcInd(parameters=parameters)
+
+            elif msg_id == GATTC_MSG_ID.GATTC_DISC_CHAR_IND:
+                parameters = gattc_disc_char_ind()
+                parameters.attr_hdl = int.from_bytes(params_buf[0:2], "little", signed=False)
+                parameters.pointer_hdl = int.from_bytes(params_buf[2:4], "little", signed=False)
+                parameters.prop = int.from_bytes(params_buf[4:5], "little", signed=False)
+                # params_buf[5:6] skipped to account for length
+                parameters.uuid = (c_uint8 * len(params_buf[6:])).from_buffer_copy(params_buf[6:])
+                return GattcDiscCharInd(parameters=parameters)
 
             else:
                 raise AssertionError(f"GattcMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")

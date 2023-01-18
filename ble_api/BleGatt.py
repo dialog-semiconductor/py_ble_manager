@@ -9,7 +9,7 @@ class GATT_EVENT(IntEnum):
 
 
 # GATT characteristic properties
-class GATT_PROP(IntEnum):
+class GATT_PROP(IntEnum):  # TODO need a ctypes bitfield? Cannot easily do bit manipulation with IntEnum
     GATT_PROP_NONE = 0
     GATT_PROP_BROADCAST = 0x0001
     GATT_PROP_READ = 0x0002

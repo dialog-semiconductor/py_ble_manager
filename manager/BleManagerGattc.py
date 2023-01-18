@@ -3,14 +3,16 @@ from ctypes import c_uint8
 
 from ble_api.BleAtt import ATT_UUID_TYPE, AttUuid
 from ble_api.BleCommon import BleEventBase, BLE_ERROR
-from ble_api.BleGattc import BleEventGattcDiscoverSvc, BleEventGattcDiscoverCompleted, GATTC_DISCOVERY_TYPE
+from ble_api.BleGattc import BleEventGattcDiscoverSvc, BleEventGattcDiscoverCompleted, GATTC_DISCOVERY_TYPE, \
+    BleEventGattcDiscoverChar
 from gtl_messages.gtl_message_base import GtlMessageBase
-from gtl_messages.gtl_message_gattc import GattcDiscCmd, GattcDiscSvcInd, GattcCmpEvt
+from gtl_messages.gtl_message_gattc import GattcDiscCmd, GattcDiscSvcInd, GattcCmpEvt, GattcDiscCharInd
 from gtl_port.gattc_task import GATTC_OPERATION, GATTC_MSG_ID
 from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from manager.BleManagerBase import BleManagerBase
 from manager.BleManagerCommonMsgs import BleMgrMsgBase
-from manager.BleManagerGattcMsgs import BLE_CMD_GATTC_OPCODE, BleMgrGattcDiscoverSvcCmd, BleMgrGattcDiscoverSvcRsp
+from manager.BleManagerGattcMsgs import BLE_CMD_GATTC_OPCODE, BleMgrGattcDiscoverSvcCmd, \
+    BleMgrGattcDiscoverSvcRsp, BleMgrGattcDiscoverCharCmd, BleMgrGattcDiscoverCharRsp
 from manager.BleManagerStorage import StoredDeviceQueue
 from manager.GtlWaitQueue import GtlWaitQueue
 
@@ -27,13 +29,24 @@ class BleManagerGattc(BleManagerBase):
         super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q, stored_device_q)
 
         self.cmd_handlers = {
+            BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_BROWSE_CMD: None,
+            BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_BROWSE_RANGE_CMD: None,
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_SVC_CMD: self.discover_svc_cmd_handler,
+            BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_INCLUDE_CMD: None,
+            BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_CHAR_CMD: self.discover_char_cmd_handler,
+            BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_DESC_CMD: None,
+            BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_READ_CMD: None,
+            BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_WRITE_GENERIC_CMD: None,
+            BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_WRITE_EXECUTE_CMD: None,
+            BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_EXCHANGE_MTU_CMD: None,
+
         }
 
         self.evt_handlers = {
             # Ble Manager calls cmp_evt_handler directly as it determines if gatts or gattc is the appropriate handler
             # GATTC_MSG_ID.GATTC_CMP_EVT: self.cmp_evt_handler,
             GATTC_MSG_ID.GATTC_DISC_SVC_IND: self.disc_svc_ind_evt_handler,
+            GATTC_MSG_ID.GATTC_DISC_CHAR_IND: self.disc_char_ind_evt_handler,
         }
 
     def _cmp_discovery_evt_handler(self, gtl: GattcCmpEvt):
@@ -68,7 +81,7 @@ class BleManagerGattc(BleManagerBase):
     def cmp_evt_handler(self, gtl: GattcCmpEvt):
 
         match gtl.parameters.operation:
-            case (GATTC_OPERATION.GATTC_DISC_BY_UUID_SVC 
+            case (GATTC_OPERATION.GATTC_DISC_BY_UUID_SVC
                     | GATTC_OPERATION.GATTC_DISC_BY_UUID_CHAR
                     | GATTC_OPERATION.GATTC_DISC_ALL_SVC
                     | GATTC_OPERATION.GATTC_DISC_ALL_CHAR
@@ -82,6 +95,16 @@ class BleManagerGattc(BleManagerBase):
 
         return True
 
+    def disc_char_ind_evt_handler(self, gtl: GattcDiscCharInd):
+        evt = BleEventGattcDiscoverChar()
+        evt.conn_idx = self._task_to_connidx(gtl.src_id)
+        print(f"disc_char_ind_evt_handler { bytes(gtl.parameters.uuid).hex()} len={len(bytes(gtl.parameters.uuid))}")
+        evt.uuid.uuid = bytes(gtl.parameters.uuid)
+        evt.handle = gtl.parameters.attr_hdl
+        evt.value_handle = gtl.parameters.pointer_hdl
+        evt.properties = gtl.parameters.prop
+        self._mgr_event_queue_send(evt)
+
     def disc_svc_ind_evt_handler(self, gtl: GattcDiscSvcInd):
         evt = BleEventGattcDiscoverSvc()
         evt.conn_idx = self._task_to_connidx(gtl.src_id)
@@ -90,10 +113,39 @@ class BleManagerGattc(BleManagerBase):
         evt.uuid.uuid = bytes(gtl.parameters.uuid)
         self._mgr_event_queue_send(evt)
 
+    def discover_char_cmd_handler(self, command: BleMgrGattcDiscoverCharCmd):
+
+        # TODO needs to be tested
+        response = BleMgrGattcDiscoverCharRsp(BLE_ERROR.BLE_ERROR_FAILED)
+
+        dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
+        if not dev:
+            response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
+        else:
+            gtl = GattcDiscCmd()
+            # depends on uuid default to None in BleMgrGattcDiscoverCharCmd
+            if command.uuid:
+                gtl.parameters.operation = GATTC_OPERATION.GATTC_DISC_BY_UUID_CHAR
+                gtl.parameters.uuid = (c_uint8 * len(command.uuid.uuid)).from_buffer_copy(command.uuid.uuid)
+            else:
+                gtl.parameters.operation = GATTC_OPERATION.GATTC_DISC_ALL_CHAR
+                gtl.parameters.uuid = (c_uint8 * 2)()
+
+            gtl.parameters.seq_num = command.conn_idx
+            gtl.parameters.start_hdl = command.start_h
+            gtl.parameters.end_hdl = command.end_h
+
+            self._adapter_command_queue_send(gtl)
+
+            response.status = BLE_ERROR.BLE_STATUS_OK
+
+        self._mgr_response_queue_send(response)
+
     def discover_svc_cmd_handler(self, command: BleMgrGattcDiscoverSvcCmd):
         response = BleMgrGattcDiscoverSvcRsp(BLE_ERROR.BLE_ERROR_FAILED)
 
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
+
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
         else:

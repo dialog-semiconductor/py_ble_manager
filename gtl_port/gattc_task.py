@@ -545,7 +545,6 @@ class gattc_disc_char_ind(LittleEndianStructure):
                  attr_hdl: c_uint16 = 0,
                  pointer_hdl: c_uint16 = 0,
                  prop: ATT_CHAR_PROP = ATT_CHAR_PROP.READ,  # TODO difference between attribute prop and permissons
-                 end_hdl: c_uint16 = 0,
                  uuid: Array[c_uint8] = None):
 
         self.attr_hdl = attr_hdl

@@ -14,6 +14,13 @@ class BleCentral(BleDeviceBase):
     async def connect(self, peer_addr: BdAddress, conn_params: gap_conn_params) -> None:
         return await self.ble_gap.connect(peer_addr, conn_params)
 
+    async def discover_characteristics(self,
+                                       conn_idx: int,
+                                       start_h: int,
+                                       end_h: int,
+                                       uuid: AttUuid):
+        return await self.ble_gattc.discover_characteristics(conn_idx, start_h, end_h, uuid)
+
     async def discover_services(self, conn_idx: int, uuid: AttUuid):
         return await self.ble_gattc.discover_services(conn_idx, uuid)
 
