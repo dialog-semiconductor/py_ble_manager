@@ -67,11 +67,6 @@ class GattCharacteristicDef():
         self.desc_defs: list[DescriptorDef] = descriptor_defs if descriptor_defs else []
 
 
-class BleServiceCallbacks():
-    def __init__(self) -> None:
-        pass
-
-
 class BleServiceBase():
     def __init__(self) -> None:
         self.start_h = 0  # Service start handle

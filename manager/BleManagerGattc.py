@@ -60,6 +60,7 @@ class BleManagerGattc(BleManagerBase):
             GATTC_MSG_ID.GATTC_SVC_CHANGED_CFG_IND: None,
         }
 
+
     def _cmp_browse_evt_handler(self, gtl: GattcCmpEvt):
         evt = BleEventGattcBrowseCompleted()
         evt.conn_idx = self._task_to_connidx(gtl.src_id)
@@ -100,10 +101,10 @@ class BleManagerGattc(BleManagerBase):
         self._mgr_event_queue_send(evt)
 
     def _cmp_read_evt_handler(self, gtl):
-        pass
+        return False
 
     def _cmp_write_evt_handler(self, gtl):
-        pass
+        return False
 
     def browse_cmd_handler(self, command: BleMgrGattcBrowseCmd):
         response = BleMgrGattcBrowseRsp(BLE_ERROR.BLE_ERROR_FAILED)
@@ -129,6 +130,8 @@ class BleManagerGattc(BleManagerBase):
 
         match gtl.parameters.operation:
 
+            case GATTC_OPERATION.GATTC_SVC_CHANGED:
+                pass
             case (GATTC_OPERATION.GATTC_SDP_DISC_SVC
                     | GATTC_OPERATION.GATTC_SDP_DISC_SVC_ALL):
 
@@ -144,18 +147,19 @@ class BleManagerGattc(BleManagerBase):
                 self._cmp_discovery_evt_handler(gtl)
 
             case GATTC_OPERATION.GATTC_READ:
-                self._cmp_read_evt_handler(gtl)
+                # TODO should not return value
+                return self._cmp_read_evt_handler(gtl)
 
             case (GATTC_OPERATION.GATTC_WRITE
                     | GATTC_OPERATION.GATTC_WRITE_NO_RESPONSE
                     | GATTC_OPERATION.GATTC_EXEC_WRITE):
 
-                self._cmp_write_evt_handler(gtl)
+                # TODO should not return value
+                return self._cmp_write_evt_handler(gtl)
 
             case GATTC_OPERATION.GATTC_MTU_EXCH:
                 pass
             case _:
-                print("BleManagerGattc cmp_evt_handler unhandled event")
                 return False
 
         return True

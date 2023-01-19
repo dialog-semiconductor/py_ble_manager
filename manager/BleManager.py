@@ -54,8 +54,7 @@ class BleManager(BleManagerBase):
 
     def gattc_cmp_evt_handler(self, evt: GattcCmpEvt):
         if (evt.parameters.operation == GATTC_OPERATION.GATTC_NOTIFY
-            or evt.parameters.operation == GATTC_OPERATION.GATTC_INDICATE
-            or evt.parameters.operation == GATTC_OPERATION.GATTC_SVC_CHANGED):
+            or evt.parameters.operation == GATTC_OPERATION.GATTC_INDICATE):
 
             self.gatts_mgr.cmp_evt_handler(evt)
         else:

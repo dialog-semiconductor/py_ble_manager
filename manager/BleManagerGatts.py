@@ -42,23 +42,28 @@ class BleManagerGatts(BleManagerBase):
 
         self.cmd_handlers = {
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_ADD_CMD: self.service_add_cmd_handler,
+            BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_INCLUDE_ADD_CMD: self.service_add_include_cmd_handler,
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_CHARACTERISTIC_ADD_CMD: self.service_add_characteristic_cmd_handler,
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_DESCRIPTOR_ADD_CMD: self.service_add_descriptor_cmd_handler,
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_REGISTER_CMD: self.service_register_cmd_handler,
-            BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_READ_CFM_CMD: self.read_cfm_cmd_handler,
+            BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_ENABLE_CMD: None,
+            BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_DISABLE_CMD: None,
+            BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_CHARACTERISTIC_GET_PROP_CMD: None,
+            BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_CHARACTERISTIC_SET_PROP_CMD: None,
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_GET_VALUE_CMD: self.get_value_cmd_handler,
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SET_VALUE_CMD: self.set_value_cmd_handler,
+            BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_READ_CFM_CMD: self.read_cfm_cmd_handler,
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_WRITE_CFM_CMD: self.write_cfm_cmd_handler,
-            BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SEND_EVENT_CMD: self.send_event_cmd_handler,
-            BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_INCLUDE_ADD_CMD: self.service_add_include_cmd_handler,
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_PREPARE_WRITE_CFM_CMD: self.prepare_write_cfm_cmd_handler,
+            BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SEND_EVENT_CMD: self.send_event_cmd_handler,
+            BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_CHANGED_IND_CMD: None,
         }
 
         self.evt_handlers = {
-            GATTC_MSG_ID.GATTC_READ_REQ_IND: self.read_value_req_evt_handler,  # TODO why is this in Gatts and not Gattc???
-            GATTC_MSG_ID.GATTC_WRITE_REQ_IND: self.write_value_req_evt_handler,   # TODO why is this in Gatts and not Gattc???
+            GATTC_MSG_ID.GATTC_READ_REQ_IND: self.read_value_req_evt_handler,
+            GATTC_MSG_ID.GATTC_WRITE_REQ_IND: self.write_value_req_evt_handler,
             # Ble Manager calls cmp_evt_handler directly as it determines if gatts or gattc is the appropriate handler
-            # GATTC_MSG_ID.GATTC_CMP_EVT: self.cmp_evt_handler,   # TODO why is this in Gatts and not Gattc???
+            # GATTC_MSG_ID.GATTC_CMP_EVT: self.cmp_evt_handler,
             GATTC_MSG_ID.GATTC_ATT_INFO_REQ_IND: self.prepare_write_req_evt_handler
         }
 
@@ -148,19 +153,17 @@ class BleManagerGatts(BleManagerBase):
     def cmp_evt_handler(self, evt: GattcCmpEvt) -> bool:
 
         match evt.parameters.operation:
-            case GATTC_OPERATION.GATTC_NOTIFY:
-                self.event_sent_evt_handler(evt)
-            case GATTC_OPERATION.GATTC_INDICATE:
-                self.event_sent_evt_handler(evt)
-            case GATTC_OPERATION.GATTC_SVC_CHANGED:
-                pass
+            case (GATTC_OPERATION.GATTC_NOTIFY
+                    | GATTC_OPERATION.GATTC_INDICATE):
+
+                self._event_sent_evt_handler(evt)
             case _:
                 print("BleManagerGatts cmp_evt_handler unhandled event")
                 return False
 
         return True
 
-    def event_sent_evt_handler(self, gtl: GattcCmpEvt):
+    def _event_sent_evt_handler(self, gtl: GattcCmpEvt):
         evt = BleEventGattsEventSent()
         evt.conn_idx = self._task_to_connidx(gtl.src_id)
         evt.handle = gtl.parameters.seq_num
@@ -459,5 +462,5 @@ static const ble_mgr_cmd_handler_t h_gatts[BLE_MGR_CMD_GET_IDX(BLE_MGR_GATTS_LAS
 void ble_mgr_gatts_read_value_req_evt_handler(ble_gtl_msg_t *gtl);   STARTED
 void ble_mgr_gatts_write_value_req_evt_handler(ble_gtl_msg_t *gtl);  STARTED
 void ble_mgr_gatts_prepare_write_req_evt_handler(ble_gtl_msg_t *gtl); STARTED UNTESTED
-void ble_mgr_gatts_event_sent_evt_handler(ble_gtl_msg_t *gtl);       STARTED
+void ble_mgr_gatts__event_sent_evt_handler(ble_gtl_msg_t *gtl);       STARTED
 '''

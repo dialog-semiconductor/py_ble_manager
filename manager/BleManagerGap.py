@@ -13,7 +13,7 @@ from gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertis
 from gtl_port.co_error import CO_ERROR
 from gtl_port.gap import GAP_ROLE, GAP_AUTH_MASK, gap_bdaddr
 from gtl_port.gapc import GAPC_FIELDS_MASK
-from gtl_port.gapc_task import GAPC_MSG_ID, GAPC_DEV_INFO
+from gtl_port.gapc_task import GAPC_MSG_ID, GAPC_DEV_INFO, GAPC_OPERATION
 from gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, GAPM_ADDR_TYPE, GAPM_OWN_ADDR, SCAN_FILTER_POLICY, SCAN_DUP_FILTER_POLICY
 from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from manager.BleDevParams import BleDevParamsDefault
@@ -75,6 +75,7 @@ class BleManagerGap(BleManagerBase):
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SKIP_LATENCY_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DATA_LENGTH_SET_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_NUMERIC_REPLY_CMD: None,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADDRESS_RESOLVE_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PHY_SET_CMD: None
         }
 
@@ -87,6 +88,7 @@ class BleManagerGap(BleManagerBase):
             GAPC_MSG_ID.GAPC_SET_DEV_INFO_REQ_IND: None,
             GAPC_MSG_ID.GAPC_DISCONNECT_IND: self.disconnected_evt_handler,
             GAPC_MSG_ID.GAPC_PEER_VERSION_IND: None,
+            GAPC_MSG_ID.GAPC_PEER_FEATURES_IND: None,
             GAPC_MSG_ID.GAPC_CON_RSSI_IND: None,
             GAPC_MSG_ID.GAPC_PARAM_UPDATE_REQ_IND: None,
             GAPC_MSG_ID.GAPC_PARAM_UPDATED_IND: None,
@@ -164,6 +166,24 @@ class BleManagerGap(BleManagerBase):
             gtl_role |= GAP_ROLE.GAP_ROLE_OBSERVER
 # endif /* (dg_configBLE_OBSERVER == 1) */
         return gtl_role
+
+    def _cmp_address_resolve_evt_handler(self, gtl):
+        return False
+
+    def _cmp_bond_evt_handler(gtl):
+        return False
+
+    def _cmp_data_length_set_evt_handler(self, gtl):
+        return False
+
+    def _cmp_disconnect_evt_handler(self, gtl):
+        return False
+
+    def _cmp_security_req_evt_handler(self, gtl):
+        return False
+
+    def _cmp_update_params_evt_handler(self, gtl):
+        return False
 
     def _conn_cleanup(self, conn_idx: int = 0, reason: CO_ERROR = CO_ERROR.CO_ERROR_NO_ERROR) -> None:
         dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
@@ -432,6 +452,40 @@ class BleManagerGap(BleManagerBase):
     def gapc_cmp_evt_handler(self, gtl: GapcCmpEvt) -> bool:
 
         match gtl.parameters.operation:
+            case GAPC_OPERATION.GAPC_DISCONNECT:
+                # TODO should not return value
+                return self._cmp_disconnect_evt_handler(gtl)
+            case GAPC_OPERATION.GAPC_UPDATE_PARAMS:
+                # TODO should not return value
+                return self._cmp_update_params_evt_handler(gtl)
+            case GAPC_OPERATION.GAPC_SET_LE_PKT_SIZE:
+                # TODO should not return value
+                return self._cmp_data_length_set_evt_handler(gtl)
+            case (GAPC_OPERATION.GAPC_GET_PEER_VERSION
+                    | GAPC_OPERATION.GAPC_GET_PEER_FEATURES
+                    | GAPC_OPERATION.GAPC_GET_CON_RSSI
+                    # | GAPC_OPERATION.GAPC_SET_TX_PWR
+                    # | GAPC_OPERATION.GAPC_LE_RD_TX_PWR_LVL_ENH
+                    # | GAPC_OPERATION.GAPC_LE_RD_REM_TX_PWR_LVL
+                    # | GAPC_OPERATION.GAPC_LE_SET_PATH_LOSS_REPORT_PARAMS
+                    # | GAPC_OPERATION.GAPC_LE_SET_PATH_LOSS_REPORT_EN
+                    #  GAPC_OPERATION.GAPC_LE_SET_TX_PWR_REPORT_EN)
+                  ):
+
+                  pass
+
+            case GAPC_OPERATION.GAPC_BOND:
+                # TODO should not return value
+                return self._cmp_bond_evt_handler(gtl)
+            case GAPC_OPERATION.GAPC_ENCRYPT:
+                pass
+            case GAPC_OPERATION.GAPC_SECURITY_REQ:
+                # TODO should not return value
+                return self._cmp_security_req_evt_handler(gtl)
+
+            # case GAPC_OPERATION.GAPC_LE_CB_CONNECTION:  # TODO separate L2CAP Manager
+               # ble_mgr_gapc_cmp__le_cb_connection_evt_handler(gtl);
+                
             case _:
                 return False
         return True
@@ -447,6 +501,11 @@ class BleManagerGap(BleManagerBase):
 
                 self._adv_cmp_evt_handler(gtl)
 
+            case GAPM_OPERATION.GAPM_UPDATE_ADVERTISE_DATA:
+                pass
+            # case GAPM_OPERATION.GAPM_CANCEL_ADVERTISE: RWBLE >= 9
+            #    pass
+
             case GAPM_OPERATION.GAPM_SCAN_ACTIVE \
                     | GAPM_OPERATION.GAPM_SCAN_PASSIVE:
 
@@ -454,6 +513,29 @@ class BleManagerGap(BleManagerBase):
 
             case GAPM_OPERATION.GAPM_CONNECTION_DIRECT:
                 self._connect_cmp_evt_handler(gtl)
+
+            # case GAPM_OPERATION.GAPM_CANCEL_CONNECTION: RWBLE >= 9
+            #    pass
+
+            case GAPM_OPERATION.GAPM_SET_CHANNEL_MAP:
+                pass
+            case GAPM_OPERATION.GAPM_SET_SUGGESTED_DFLT_LE_DATA_LEN:
+                # TODO should not return value
+                return self._cmp_data_length_set_evt_handler(gtl)
+            case GAPM_OPERATION.GAPM_RESOLV_ADDR:
+                # TODO should not return value
+                return self._cmp_address_resolve_evt_handler(gtl)
+            case (GAPM_OPERATION.RESET
+                    | GAPM_OPERATION.GAPM_CANCEL
+                    | GAPM_OPERATION.GAPM_SET_DEV_CONFIG
+                    | GAPM_OPERATION.GAPM_SET_DEV_CONFIG
+                    | GAPM_OPERATION.GAPM_GET_DEV_BDADDR
+                    # | GAPM_OPERATION.GAPM_SET_TX_PW
+                    # | GAPM_OPERATION.GAPM_LE_WR_RF_PATH_COMPENS
+                    # | GAPM_OPERATION.GAPM_SET_ADV_PERMUTATION 
+                  ):
+
+                pass
 
             case _:
                 return False
@@ -724,7 +806,6 @@ static const ble_mgr_cmd_handler_t h_gap[BLE_MGR_CMD_GET_IDX(BLE_MGR_GAP_LAST_CM
 };
 
 void ble_mgr_gap_dev_bdaddr_ind_evt_handler(ble_gtl_msg_t *gtl);
-void dev_bdaddr_ind_evt_handler(ble_gtl_msg_t *gtl);
 void ble_mgr_gap_adv_report_evt_handler(ble_gtl_msg_t *gtl);
 void ble_mgr_gap_connected_evt_handler(ble_gtl_msg_t *gtl);                 STARTED
 void ble_mgr_gap_get_device_info_req_evt_handler(ble_gtl_msg_t *gtl);       STARTED
@@ -752,6 +833,8 @@ void ble_mgr_gap_addr_solved_evt_handler(ble_gtl_msg_t *gtl);
 void ble_mgr_gap_le_pkt_size_ind_evt_handler(ble_gtl_msg_t *gtl);
 void ble_mgr_gap_cmp__data_length_set_evt_handler(ble_gtl_msg_t *gtl);
 void ble_mgr_gapm_cmp__address_resolve_evt_handler(ble_gtl_msg_t *gtl);
+
+Unsure about these 4
 void ble_mgr_gap_le_phy_ind_handler(ble_gtl_msg_t *gtl);
 void ble_mgr_gap_le_rd_tx_pwr_lvl_enh_ind_handler(ble_gtl_msg_t *gtl);
 void ble_mgr_gap_le_tx_pwr_lvl_report_ind_handler(ble_gtl_msg_t *gtl);
