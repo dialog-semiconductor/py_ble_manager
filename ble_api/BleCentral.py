@@ -8,17 +8,24 @@ class BleCentral(BleDeviceBase):
     def __init__(self, com_port: str):
         super().__init__(com_port)
 
-    async def start(self) -> BLE_ERROR:
-        return await super().start(BLE_GAP_ROLE.GAP_CENTRAL_ROLE)
+    async def browse(self, conn_idx: int, uuid: AttUuid) -> BLE_ERROR:
+        return await self.ble_gattc.browse(conn_idx, uuid)
+
 
     async def connect(self, peer_addr: BdAddress, conn_params: gap_conn_params) -> None:
         return await self.ble_gap.connect(peer_addr, conn_params)
+
+    async def discover_descriptors(self,
+                                   conn_idx: int,
+                                   start_h: int,
+                                   end_h: int) -> BLE_ERROR:
+        return await self.ble_gattc.discover_descriptors(conn_idx, start_h, end_h)
 
     async def discover_characteristics(self,
                                        conn_idx: int,
                                        start_h: int,
                                        end_h: int,
-                                       uuid: AttUuid):
+                                       uuid: AttUuid) -> BLE_ERROR:
         return await self.ble_gattc.discover_characteristics(conn_idx, start_h, end_h, uuid)
 
     async def discover_services(self, conn_idx: int, uuid: AttUuid):
@@ -57,3 +64,6 @@ class BleCentral(BleDeviceBase):
                          ) -> BLE_ERROR:
 
         return await self.ble_gap.scan_start(type, mode, interval, window, filt_wlist, filt_dupl)
+
+    async def start(self) -> BLE_ERROR:
+        return await super().start(BLE_GAP_ROLE.GAP_CENTRAL_ROLE)

@@ -6,7 +6,8 @@ from ble_api.BleGatt import GATT_SERVICE, GATT_PROP, GATT_EVENT
 from ble_api.BleGatts import GATTS_FLAGS
 from manager.BleManager import BleManager
 from manager.BleManagerGattcMsgs import BleMgrGattcDiscoverSvcCmd, BleMgrGattcDiscoverSvcRsp, \
-    BleMgrGattcDiscoverCharCmd, BleMgrGattcDiscoverCharRsp
+    BleMgrGattcDiscoverCharCmd, BleMgrGattcDiscoverCharRsp, BleMgrGattcDiscoverDescCmd, BleMgrGattcDiscoverDescRsp, \
+    BleMgrGattcBrowseCmd, BleMgrGattcBrowseRsp
 
 
 class BleGattcApi(BleApiBase):
@@ -14,13 +15,32 @@ class BleGattcApi(BleApiBase):
     def __init__(self, ble_manager: BleManager, ble_adapter: BleAdapter):
         super().__init__(ble_manager, ble_adapter)
 
+    async def browse(self,
+                     conn_idx: int,
+                     uuid: AttUuid) -> BLE_ERROR:
+
+        command = BleMgrGattcBrowseCmd(conn_idx, uuid)
+        resposne: BleMgrGattcBrowseRsp = await self.ble_manager.cmd_execute(command)
+
+        return resposne.status
+
     async def discover_characteristics(self,
                                        conn_idx: int,
                                        start_h: int,
                                        end_h: int,
-                                       uuid: AttUuid):
+                                       uuid: AttUuid) -> BLE_ERROR:
         command = BleMgrGattcDiscoverCharCmd(conn_idx, start_h, end_h, uuid)
         response: BleMgrGattcDiscoverCharRsp = await self.ble_manager.cmd_execute(command)
+
+        return response.status
+
+    async def discover_descriptors(self,
+                                   conn_idx: int,
+                                   start_h: int,
+                                   end_h: int) -> BLE_ERROR:
+
+        command = BleMgrGattcDiscoverDescCmd(conn_idx, start_h, end_h)
+        response: BleMgrGattcDiscoverDescRsp = await self.ble_manager.cmd_execute(command)
 
         return response.status
 

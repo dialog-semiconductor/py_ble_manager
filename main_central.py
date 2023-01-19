@@ -5,7 +5,7 @@ from ble_api.BleCentral import BleCentral
 from ble_api.BleCommon import BleEventBase, BdAddress, BLE_ADDR_TYPE
 from ble_api.BleGap import BleEventGapAdvReport, BleEventGapScanCompleted, gap_conn_params, BleEventGapConnected
 from ble_api.BleGattc import BleEventGattcDiscoverSvc, BleEventGattcDiscoverCompleted, GATTC_DISCOVERY_TYPE, \
-    BleEventGattcDiscoverChar
+    BleEventGattcDiscoverChar, BleEventGattcDiscoverDesc, BleEventGattcBrowseCompleted, BleEventGattcBrowseSvc
 
 from manager.BleManagerStorage import SearchableQueue
 from services.BleService import BleServiceBase
@@ -77,6 +77,9 @@ async def ble_task():
                         # print(f"Report: {report_str}")
                         pass
 
+                    if isinstance(evt, BleEventGapConnected):
+                        await handle_evt_gap_connected(central, evt)
+
                     if isinstance(evt, BleEventGattcDiscoverSvc):
                         handle_evt_gattc_discover_svc(central, evt, services)
 
@@ -85,11 +88,22 @@ async def ble_task():
                         if evt.type == GATTC_DISCOVERY_TYPE.GATTC_DISCOVERY_TYPE_SVC:
                             await handle_evt_gattc_discover_completed(central, evt, services)
 
-                    if isinstance(evt, BleEventGapConnected):
-                        await handle_evt_gap_connected(central, evt)
+                    if isinstance(evt, BleEventGattcDiscoverChar):
+                        handle_evt_gattc_discover_char(central, evt)
 
                     if isinstance(evt, BleEventGattcDiscoverChar):
                         handle_evt_gattc_discover_char(central, evt)
+
+                    if isinstance(evt, BleEventGattcDiscoverDesc):
+                        handle_evt_gattc_discover_desc(central, evt)
+
+                    if isinstance(evt, BleEventGattcBrowseSvc):
+                        handle_evt_gattc_browse_svc(central, evt)
+
+                    if isinstance(evt, BleEventGattcBrowseCompleted):
+                        handle_evt_gattc_browse_completed(central, evt)
+
+                        
 
                 ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
                 pending.add(ble_event_task)
@@ -111,7 +125,7 @@ async def handle_evt_gattc_discover_completed(central: BleCentral, evt: BleEvent
     # TODO discover included services
 
     elif evt.type == GATTC_DISCOVERY_TYPE.GATTC_DISCOVERY_TYPE_CHARACTERISTICS:
-        # TODO discover descriptors
+        # await central.discover_descriptors(evt.conn_idx. )
         pass
 
 
@@ -120,9 +134,28 @@ def handle_evt_gattc_discover_char(central: BleCentral, evt: BleEventGattcDiscov
     pass
 
 
+def handle_evt_gattc_discover_desc(central: BleCentral, evt: BleEventGattcDiscoverDesc):
+    print(f"main_central handle_evt_gattc_discover_desc unimplemented. evt={evt}")
+    pass
+
+
 async def handle_evt_gap_connected(central: BleCentral, evt: BleEventGapConnected):
-    response = await central.discover_services(evt.conn_idx, None)
+    #response = await central.discover_services(evt.conn_idx, None)
+    #print(f"handle_evt_gap_connected. response = {response}")
+
+    response = await central.browse(evt.conn_idx, None)
     print(f"handle_evt_gap_connected. response = {response}")
+
+
+def handle_evt_gattc_browse_svc(central: BleCentral, evt: BleEventGattcDiscoverDesc):
+    print(f"main_central handle_evt_gattc_browse_svc unimplemented. evt={evt}")
+    pass
+
+
+def handle_evt_gattc_browse_completed(central: BleCentral, evt: BleEventGattcDiscoverDesc):
+    print(f"main_central handle_evt_gattc_browse_completed unimplemented. evt={evt}")
+    pass
+
 
 
 asyncio.run(main())
