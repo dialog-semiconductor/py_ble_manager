@@ -5,7 +5,7 @@ from ble_api.BleAtt import ATT_UUID_TYPE, AttUuid
 from ble_api.BleCommon import BleEventBase, BLE_ERROR
 from ble_api.BleGattc import BleEventGattcDiscoverSvc, BleEventGattcDiscoverCompleted, GATTC_DISCOVERY_TYPE, \
     BleEventGattcDiscoverChar, BleEventGattcDiscoverDesc, BleEventGattcBrowseSvc, BleEventGattcBrowseCompleted, \
-    GattcItem, GATTC_ITEM_TYPE
+    GattcItem, GATTC_ITEM_TYPE, GattcServiceData, GattcCharacteristicData
 from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gattc import GattcDiscCmd, GattcDiscSvcInd, GattcCmpEvt, GattcDiscCharInd, GattcSdpSvcDiscCmd, \
     GattcSdpSvcInd, GATTC_SDP_ATT_TYPE
@@ -275,19 +275,20 @@ class BleManagerGattc(BleManagerBase):
             if (info.att_type != GATTC_SDP_ATT_TYPE.GATTC_SDP_NONE
                     and info.att_type != GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_VAL):
 
-                item: GattcItem = evt.items[evt.num_items]
-                evt.num_items += 1
+                item = GattcItem()
                 item.handle = gtl.parameters.start_hdl + i + 1
 
                 match info.att_type:
                     case GATTC_SDP_ATT_TYPE.GATTC_SDP_INC_SVC:
                         # TODO  TYPE DOES NOT SEEM TO BE RECOGNIZED
                         item.type = GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_INCLUDE
+                        item.service_data = GattcServiceData()
                         item.service_data.start_h = info.inc_svc.start_hdl
                         item.service_data.end_h = info.inc_svc.end_hdl
                         item.uuid = bytes(info.inc_svc.uuid)
                     case GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_CHAR:
                         item.type = GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_CHARACTERISTIC
+                        item.char_data = GattcCharacteristicData()
                         item.char_data.value_handle = info.att_char.handle
                         item.char_data.properties = info.att_char.prop
 
@@ -305,6 +306,9 @@ class BleManagerGattc(BleManagerBase):
                     case GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_DESC:
                         item.type = GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_DESCRIPTOR
                         item.uuid = bytes(info.att.uuid)
+
+                evt.items.append(item)
+                evt.num_items += 1
 
         if not ignore:
             self._mgr_event_queue_send(evt)

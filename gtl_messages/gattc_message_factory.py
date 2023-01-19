@@ -4,7 +4,8 @@ from gtl_messages.gtl_message_base import GTL_INITIATOR
 from gtl_messages.gtl_message_gattc import GattcReadReqInd, GattcWriteReqInd, GattcCmpEvt, GattcDiscSvcInd, GattcDiscCharInd, \
     GattcSdpSvcInd
 from gtl_port.gattc_task import GATTC_MSG_ID, gattc_read_req_ind, gattc_write_req_ind, gattc_cmp_evt, gattc_disc_svc_ind, \
-    gattc_disc_char_ind, gattc_sdp_svc_ind
+    gattc_disc_char_ind, gattc_sdp_svc_ind, gattc_sdp_att_info, GATTC_SDP_ATT_TYPE, gattc_sdp_att_char,\
+    gattc_sdp_include_svc, gattc_sdp_att
 
 
 class GattcMessageFactory():
@@ -50,10 +51,17 @@ class GattcMessageFactory():
                 parameters.uuid = (c_uint8 * len(params_buf[6:])).from_buffer_copy(params_buf[6:])
                 return GattcDiscCharInd(parameters=parameters)
 
-            #elif msg_id == GATTC_MSG_ID.GATTC_SDP_SVC_IND:
-            #    parameters = gattc_sdp_svc_ind()
+            elif msg_id == GATTC_MSG_ID.GATTC_SDP_SVC_IND:
+                parameters = gattc_sdp_svc_ind()
+                # params_buf[0:1] skipped to account for uuid length
+                parameters.uuid = (c_uint8 * len(params_buf[1:17])).from_buffer_copy(params_buf[1:17])
+                # params_buf[17:18] skipped to account for padding
+                parameters.start_hdl = int.from_bytes(params_buf[18:20], "little", signed=False)
+                parameters.end_hdl = int.from_bytes(params_buf[20:22], "little", signed=False)
+                # max size for gattc_sdp_att_info is 22
+                parameters.info = (gattc_sdp_att_info * (len(params_buf[22:]) // 22)).from_buffer_copy(params_buf[22:])
 
-            #    return GattcSdpSvcInd(parameters=parameters)
+                return GattcSdpSvcInd(parameters=parameters)
 
             else:
                 raise AssertionError(f"GattcMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")

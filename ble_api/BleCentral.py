@@ -5,8 +5,8 @@ from ble_api.BleGap import BLE_GAP_ROLE, gap_conn_params, GAP_SCAN_TYPE, GAP_SCA
 
 
 class BleCentral(BleDeviceBase):
-    def __init__(self, com_port: str):
-        super().__init__(com_port)
+    def __init__(self, com_port: str, gtl_debug: bool = False):
+        super().__init__(com_port, gtl_debug)
 
     async def browse(self, conn_idx: int, uuid: AttUuid) -> BLE_ERROR:
         return await self.ble_gattc.browse(conn_idx, uuid)

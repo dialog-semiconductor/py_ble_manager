@@ -8,9 +8,13 @@ from gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, gapm_reset_cmd
 
 
 class BleAdapter():
+    def __init__(self,
+                 com_port: str,
+                 command_q: asyncio.Queue[GtlMessageBase],
+                 event_q: asyncio.Queue[GtlMessageBase],
+                 gtl_debug: bool = False) -> None:
 
-    def __init__(self, com_port: str, command_q: asyncio.Queue[GtlMessageBase], event_q: asyncio.Queue[GtlMessageBase]) -> None:
-
+        self.gtl_debug = gtl_debug
         self.event_observers = []
         self.command_q: asyncio.Queue[GtlMessageBase] = command_q
         self.event_q: asyncio.Queue[GtlMessageBase] = event_q
@@ -56,7 +60,8 @@ class BleAdapter():
 
     def _process_serial_rx_queue(self, byte_string: bytes):
         msg = GtlMessageFactory().create_message(byte_string)  # # TODO catch error
-        print(f"<-- Rx: {msg}\n")
+        if self.gtl_debug:
+            print(f"<-- Rx: {msg}\n")
 
         if msg:
             if msg.msg_id == GAPM_MSG_ID.GAPM_DEVICE_READY_IND:
@@ -74,7 +79,8 @@ class BleAdapter():
             print("BleAdapter unhandled serial message")
 
     def _send_serial_message(self, message: GtlMessageBase):
-        print(f"--> Tx: {message}\n")
+        if self.gtl_debug:
+            print(f"--> Tx: {message}\n")
         self.serial_tx_queue.put_nowait(message.to_bytes())
 
     async def _serial_rx_queue_get(self) -> bytes:

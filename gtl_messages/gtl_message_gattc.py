@@ -384,7 +384,7 @@ class GattcSdpSvcInd(GtlMessageBase):
                 message.extend(bytearray(info.att_char))
             elif info.att_type == GATTC_SDP_ATT_TYPE.GATTC_SDP_INC_SVC:
                 message.extend(bytearray(info.inc_svc))
-            if info.att_type == GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_VAL or info.att_type == GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_DESC:
+            elif info.att_type == GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_VAL or info.att_type == GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_DESC:
                 message.extend(bytearray(info.att))
 
         return message

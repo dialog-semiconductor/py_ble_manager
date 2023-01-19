@@ -16,7 +16,7 @@ from services.BleService import BleServiceBase
 
 
 class BleDeviceBase():
-    def __init__(self, com_port: str):
+    def __init__(self, com_port: str, gtl_debug: bool = False):
         app_command_q = asyncio.Queue()
         app_resposne_q = asyncio.Queue()
         app_event_q = asyncio.Queue()
@@ -25,7 +25,7 @@ class BleDeviceBase():
         adapter_event_q = asyncio.Queue()
 
         self.ble_manager = BleManager(app_command_q, app_resposne_q, app_event_q, adapter_command_q, adapter_event_q)
-        self.ble_adapter = BleAdapter(com_port, adapter_command_q, adapter_event_q)
+        self.ble_adapter = BleAdapter(com_port, adapter_command_q, adapter_event_q, gtl_debug)
         self.ble_gap = BleGapApi(self.ble_manager, self.ble_adapter)
         self.ble_gattc = BleGattcApi(self.ble_manager, self.ble_adapter)
         self.ble_gatts = BleGattsApi(self.ble_manager, self.ble_adapter)

@@ -28,7 +28,7 @@ async def ble_task():
 
     services = SearchableQueue()
 
-    central = BleCentral("COM17")
+    central = BleCentral("COM17", gtl_debug=False)
     await central.init()
     await central.start()
 
@@ -59,7 +59,7 @@ async def ble_task():
             # Handle and BLE events that hace occurred
             if task is ble_event_task:
                 evt: BleEventBase = task.result()  # TODO how does timeout error affect result
-                print(f"Main rx'd event: {evt}.\n")
+                # print(f"Main rx'd event: {evt}.\n")
                 if evt is not None:
                     # TODO switch on event type
                     # if evt.evt_code == BLE_EVT_GAP.BLE_EVT_GAP_ADV_REPORT
@@ -140,15 +140,17 @@ def handle_evt_gattc_discover_desc(central: BleCentral, evt: BleEventGattcDiscov
 
 
 async def handle_evt_gap_connected(central: BleCentral, evt: BleEventGapConnected):
-    #response = await central.discover_services(evt.conn_idx, None)
+    # response = await central.discover_services(evt.conn_idx, None)
     #print(f"handle_evt_gap_connected. response = {response}")
-
+ 
     response = await central.browse(evt.conn_idx, None)
     print(f"handle_evt_gap_connected. response = {response}")
 
 
-def handle_evt_gattc_browse_svc(central: BleCentral, evt: BleEventGattcDiscoverDesc):
+def handle_evt_gattc_browse_svc(central: BleCentral, evt: BleEventGattcBrowseSvc):
     print(f"main_central handle_evt_gattc_browse_svc unimplemented. evt={evt}")
+
+    
     pass
 
 

@@ -16,8 +16,8 @@ from services.BleService import BleServiceBase
 
 
 class BlePeripheral(BleDeviceBase):
-    def __init__(self, com_port: str):
-        super().__init__(com_port)
+    def __init__(self, com_port: str, gtl_debug: bool = False):
+        super().__init__(com_port, gtl_debug)
 
     def _find_service_by_handle(self, handle: int) -> BleServiceBase:
         for service in self._services:

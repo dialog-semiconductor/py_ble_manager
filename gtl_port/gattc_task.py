@@ -1261,7 +1261,7 @@ class gattc_sdp_include_svc(LittleEndianStructure):
         super().__init__(att_type=self.att_type,
                          uuid_len=self.uuid_len,
                          _uuid=self._uuid,
-                         padding=(c_uint8 * 4)(),
+                         # padding=(c_uint8 * 4)(), # TODO manual says there is padding here, but I think it may be wrong
                          start_hdl=self.start_hdl,
                          end_hdl=self.end_hdl)
 
@@ -1272,7 +1272,7 @@ class gattc_sdp_include_svc(LittleEndianStructure):
                 ("uuid_len", c_uint8),
                 # Included Service UUID
                 ("_uuid", c_uint8 * ATT_UUID_128_LEN),
-                ("padding", c_uint8 * 4),
+                # ("padding", c_uint8 * 4),
                 # Included service Start Handle
                 ("start_hdl", c_uint16),
                 # Included service End Handle
