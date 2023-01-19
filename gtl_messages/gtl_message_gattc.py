@@ -481,6 +481,13 @@ class GattcWriteCmd(GtlMessageBase):
 
     par_len = property(get_par_len, set_par_len)
 
+    def _struct_to_bytearray(self, parameters: gattc_write_cmd):
+        message = super()._struct_to_bytearray(parameters)
+        if parameters.length % 2:  # TODO seems there is a padding byte added for odd length values, need confirm
+            message.extend(c_uint8(0))
+        return message
+
+
     
 # TODO GATTC_WRITE_EXECUTE_CMD
 # TODO setup Git Action for unit tests

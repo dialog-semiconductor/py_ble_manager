@@ -14,13 +14,15 @@ from manager.BleManagerGattsMsgs import BleMgrGattsGetValueRsp
 from services.BleService import *
 
 
-char = GattCharacteristicDef()
+expected = "050A0C0C0010000E000C01090003000000010000000100"
 
-char.char_def.prop = GATT_PROP.GATT_PROP_READ | GATT_PROP.GATT_PROP_WRITE
-char.char_def.perm = ATT_PERM.ATT_PERM_RW
-char.char_def.max_len = 2
-char.char_def.flags = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ
+test_message = GattcWriteCmd()
+test_message.parameters.operation =  GATTC_OPERATION.GATTC_WRITE
+test_message.parameters.auto_execute = True
+test_message.parameters.seq_num = 9
+test_message.parameters.handle = 3
+value = bytearray.fromhex("01")
+test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
 
-print(GATT_PROP.GATT_PROP_READ)
-print(GATT_PROP.GATT_PROP_WRITE)
-print(GATT_PROP(char.char_def.prop))
+print(expected)
+print(test_message.to_hex())
