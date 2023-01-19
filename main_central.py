@@ -28,7 +28,7 @@ async def ble_task():
 
     services = SearchableQueue()
 
-    central = BleCentral("COM15")
+    central = BleCentral("COM17")
     await central.init()
     await central.start()
 
