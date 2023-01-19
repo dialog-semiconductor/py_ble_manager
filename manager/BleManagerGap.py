@@ -18,7 +18,6 @@ from gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, GAPM_ADDR_TYPE, GAPM
 from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from manager.BleDevParams import BleDevParamsDefault
 from manager.BleManagerCommon import BleManagerBase
-from manager.BleManagerCommonMsgs import BleMgrMsgBase
 from manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp, \
     BleMgrGapRoleSetCmd, BleMgrGapConnectCmd, BleMgrGapScanStartCmd, BleMgrGapScanStartRsp, BleMgrGapConnectRsp
 from manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
@@ -472,7 +471,7 @@ class BleManagerGap(BleManagerBase):
                     #  GAPC_OPERATION.GAPC_LE_SET_TX_PWR_REPORT_EN)
                   ):
 
-                  pass
+                pass
 
             case GAPC_OPERATION.GAPC_BOND:
                 # TODO should not return value
@@ -484,8 +483,8 @@ class BleManagerGap(BleManagerBase):
                 return self._cmp_security_req_evt_handler(gtl)
 
             # case GAPC_OPERATION.GAPC_LE_CB_CONNECTION:  # TODO separate L2CAP Manager
-               # ble_mgr_gapc_cmp__le_cb_connection_evt_handler(gtl);
-                
+            #   ble_mgr_gapc_cmp__le_cb_connection_evt_handler(gtl);
+
             case _:
                 return False
         return True
@@ -532,7 +531,7 @@ class BleManagerGap(BleManagerBase):
                     | GAPM_OPERATION.GAPM_GET_DEV_BDADDR
                     # | GAPM_OPERATION.GAPM_SET_TX_PW
                     # | GAPM_OPERATION.GAPM_LE_WR_RF_PATH_COMPENS
-                    # | GAPM_OPERATION.GAPM_SET_ADV_PERMUTATION 
+                    # | GAPM_OPERATION.GAPM_SET_ADV_PERMUTATION
                   ):
 
                 pass
@@ -589,7 +588,6 @@ class BleManagerGap(BleManagerBase):
                     gtl.parameters.peers = (gap_bdaddr * gtl.parameters.nb_peers)()
                     gtl.parameters.peers[0].addr_type = command.peer_addr.addr_type
                     gtl.parameters.peers[0].addr.addr[:] = command.peer_addr.addr
-
 
                     self.dev_params.connecting = True
                     dev.ce_len_min = gtl.parameters.ce_len_min

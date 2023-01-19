@@ -1,7 +1,6 @@
 import asyncio
 from ctypes import c_uint8
 
-from ble_api.BleAtt import ATT_UUID_TYPE, AttUuid
 from ble_api.BleCommon import BleEventBase, BLE_ERROR
 from ble_api.BleGattc import BleEventGattcDiscoverSvc, BleEventGattcDiscoverCompleted, GATTC_DISCOVERY_TYPE, \
     BleEventGattcDiscoverChar, BleEventGattcDiscoverDesc, BleEventGattcBrowseSvc, BleEventGattcBrowseCompleted, \
@@ -12,7 +11,6 @@ from gtl_messages.gtl_message_gattc import GattcDiscCmd, GattcDiscSvcInd, GattcC
 from gtl_port.gattc_task import GATTC_OPERATION, GATTC_MSG_ID, gattc_sdp_att_info
 from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from manager.BleManagerBase import BleManagerBase
-from manager.BleManagerCommonMsgs import BleMgrMsgBase
 from manager.BleManagerGattcMsgs import BLE_CMD_GATTC_OPCODE, BleMgrGattcDiscoverSvcCmd, \
     BleMgrGattcDiscoverSvcRsp, BleMgrGattcDiscoverCharCmd, BleMgrGattcDiscoverCharRsp, BleMgrGattcDiscoverDescCmd, \
     BleMgrGattcDiscoverDescRsp, BleMgrGattcBrowseCmd, BleMgrGattcBrowseRsp
@@ -60,7 +58,6 @@ class BleManagerGattc(BleManagerBase):
             GATTC_MSG_ID.GATTC_SVC_CHANGED_CFG_IND: None,
         }
 
-
     def _cmp_browse_evt_handler(self, gtl: GattcCmpEvt):
         evt = BleEventGattcBrowseCompleted()
         evt.conn_idx = self._task_to_connidx(gtl.src_id)
@@ -74,7 +71,7 @@ class BleManagerGattc(BleManagerBase):
     def _cmp_discovery_evt_handler(self, gtl: GattcCmpEvt):
         evt = BleEventGattcDiscoverCompleted()
         evt.conn_idx = self._task_to_connidx(gtl.src_id)
-        if (gtl.parameters.status == HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR 
+        if (gtl.parameters.status == HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR
                 or gtl.parameters.status == HOST_STACK_ERROR_CODE.ATT_ERR_ATTRIBUTE_NOT_FOUND):
 
             evt.status = BLE_ERROR.BLE_STATUS_OK

@@ -52,14 +52,13 @@ class BleManager(BleManagerBase):
     async def _api_commmand_queue_get(self) -> BleMgrMsgBase:
         return await self._mgr_command_q.get()
 
-    def gattc_cmp_evt_handler(self, evt: GattcCmpEvt):
+    def _gattc_cmp_evt_handler(self, evt: GattcCmpEvt):
         if (evt.parameters.operation == GATTC_OPERATION.GATTC_NOTIFY
-            or evt.parameters.operation == GATTC_OPERATION.GATTC_INDICATE):
+                or evt.parameters.operation == GATTC_OPERATION.GATTC_INDICATE):
 
             self.gatts_mgr.cmp_evt_handler(evt)
         else:
             self.gattc_mgr.cmp_evt_handler(evt)
-
 
     def _handle_evt_or_ind(self, message: GtlMessageBase):
 
@@ -68,7 +67,7 @@ class BleManager(BleManagerBase):
 
         # If this is a GATTC_CMP_EVT need to determine if will be handled by gattc_mgr or gatts_mgr
         if message.msg_id == GATTC_MSG_ID.GATTC_CMP_EVT:
-            response = self.gattc_cmp_evt_handler(message)
+            response = self._gattc_cmp_evt_handler(message)
             if response is None:
                 handled = True
             else:
