@@ -62,16 +62,15 @@ class BleManager(BleManagerBase):
 
     def _handle_evt_or_ind(self, message: GtlMessageBase):
 
-        # TODO make list of handlers from all avail classes. If get back a handler, call it
-        handled = False
+        is_handled = False
 
         # If this is a GATTC_CMP_EVT need to determine if will be handled by gattc_mgr or gatts_mgr
         if message.msg_id == GATTC_MSG_ID.GATTC_CMP_EVT:
             response = self._gattc_cmp_evt_handler(message)
             if response is None:
-                handled = True
+                is_handled = True
             else:
-                handled = response
+                is_handled = response
         else:
             for handlers in self.evt_handlers:
                 handler = handlers.get(message.msg_id)
@@ -79,11 +78,11 @@ class BleManager(BleManagerBase):
                     response = None
                     response = handler(message)
                     if response is None:
-                        handled = True
+                        is_handled = True
                     else:
-                        handled = response
+                        is_handled = response
                     break
-        return handled
+        return is_handled
 
     def _mgr_command_queue_send(self, command: BleMgrMsgBase):
         self._mgr_command_q.put_nowait(command)

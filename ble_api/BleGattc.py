@@ -1,6 +1,6 @@
 from enum import IntEnum
 
-from ble_api.BleAtt import AttUuid
+from ble_api.BleAtt import AttUuid, ATT_ERROR
 from ble_api.BleCommon import BleEventBase, BLE_EVT_GATTC, BLE_ERROR
 from ble_api.BleGatt import GATT_PROP
 
@@ -132,3 +132,18 @@ class BleEventGattcDiscoverSvc(BleEventBase):
         self.start_h = start_h
         self.end_h = end_h
 
+
+class BleEventGattcReadCompleted(BleEventBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 handle: int = 0,
+                 status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK,
+                 offset: int = 0,
+                 value: bytes = None,
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_SVC)
+        self.conn_idx = conn_idx
+        self.handle = handle
+        self.status = status
+        self.offset = offset
+        self.value = value if value else bytes()

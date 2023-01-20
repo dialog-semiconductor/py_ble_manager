@@ -1,19 +1,21 @@
 import asyncio
 from ctypes import c_uint8
 
+from ble_api.BleAtt import ATT_ERROR
 from ble_api.BleCommon import BleEventBase, BLE_ERROR
 from ble_api.BleGattc import BleEventGattcDiscoverSvc, BleEventGattcDiscoverCompleted, GATTC_DISCOVERY_TYPE, \
     BleEventGattcDiscoverChar, BleEventGattcDiscoverDesc, BleEventGattcBrowseSvc, BleEventGattcBrowseCompleted, \
-    GattcItem, GATTC_ITEM_TYPE, GattcServiceData, GattcCharacteristicData
+    GattcItem, GATTC_ITEM_TYPE, GattcServiceData, GattcCharacteristicData, BleEventGattcReadCompleted
 from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gattc import GattcDiscCmd, GattcDiscSvcInd, GattcCmpEvt, GattcDiscCharInd, GattcSdpSvcDiscCmd, \
-    GattcSdpSvcInd, GATTC_SDP_ATT_TYPE
-from gtl_port.gattc_task import GATTC_OPERATION, GATTC_MSG_ID, gattc_sdp_att_info
+    GattcSdpSvcInd, GattcReadCmd, GattcReadInd
+from gtl_port.gattc_task import GATTC_OPERATION, GATTC_MSG_ID, gattc_sdp_att_info, GATTC_SDP_ATT_TYPE, gattc_read_simple
 from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from manager.BleManagerBase import BleManagerBase
 from manager.BleManagerGattcMsgs import BLE_CMD_GATTC_OPCODE, BleMgrGattcDiscoverSvcCmd, \
     BleMgrGattcDiscoverSvcRsp, BleMgrGattcDiscoverCharCmd, BleMgrGattcDiscoverCharRsp, BleMgrGattcDiscoverDescCmd, \
-    BleMgrGattcDiscoverDescRsp, BleMgrGattcBrowseCmd, BleMgrGattcBrowseRsp
+    BleMgrGattcDiscoverDescRsp, BleMgrGattcBrowseCmd, BleMgrGattcBrowseRsp, BleMgrGattcReadCmd, BleMgrGattcReadRsp, \
+    BleMgrGattcWriteGenericCmd, BleMgrGattcWriteGenericRsp
 from manager.BleManagerStorage import StoredDeviceQueue
 from manager.GtlWaitQueue import GtlWaitQueue
 
@@ -37,7 +39,7 @@ class BleManagerGattc(BleManagerBase):
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_CHAR_CMD: self.discover_char_cmd_handler,
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_DESC_CMD: self.discover_desc_cmd_handler,
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_READ_CMD: None,
-            BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_WRITE_GENERIC_CMD: None,
+            BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_WRITE_GENERIC_CMD: self.write_generic_cmd_handler,
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_WRITE_EXECUTE_CMD: None,
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_EXCHANGE_MTU_CMD: None,
 
@@ -52,7 +54,7 @@ class BleManagerGattc(BleManagerBase):
             GATTC_MSG_ID.GATTC_DISC_SVC_INCL_IND: None,
             GATTC_MSG_ID.GATTC_DISC_CHAR_IND: self.disc_char_ind_evt_handler,
             GATTC_MSG_ID.GATTC_DISC_CHAR_DESC_IND: self.disc_char_desc_ind_evt_handler,
-            GATTC_MSG_ID.GATTC_READ_IND: None,
+            GATTC_MSG_ID.GATTC_READ_IND: self.read_ind_evt_handler,
             GATTC_MSG_ID.GATTC_EVENT_IND: None,
             GATTC_MSG_ID.GATTC_EVENT_REQ_IND: None,
             GATTC_MSG_ID.GATTC_SVC_CHANGED_CFG_IND: None,
@@ -254,6 +256,34 @@ class BleManagerGattc(BleManagerBase):
 
         self._mgr_response_queue_send(response)
 
+    def read_ind_evt_handler(self, gtl: GattcReadInd):  # TODO need to test
+        evt = BleEventGattcReadCompleted()
+        evt.conn_idx = self._task_to_connidx(gtl.src_id)
+        evt.handle = gtl.parameters.handle
+        evt.status = ATT_ERROR.ATT_ERROR_OK
+        evt.offset = gtl.parameters.offset
+        evt.value = bytes(gtl.parameters.value)
+        self._mgr_event_queue_send(evt)
+
+    def read_cmd_handler(self, command: BleMgrGattcReadCmd):  # TODO need to test
+        response = BleMgrGattcReadRsp(BLE_ERROR.BLE_ERROR_FAILED)
+
+        dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
+        if not dev:
+            response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
+        else:
+            gtl = GattcReadCmd()
+            gtl.parameters.operation = GATTC_OPERATION.GATTC_READ
+            gtl.parameters.seq_num = command.handle
+            gtl.parameters.req.simple = gattc_read_simple()
+            gtl.parameters.req.simple.handle = command.handle
+            gtl.parameters.req.simple.offset = command.offset
+            gtl.parameters.req.simple.length = 0
+            self._adapter_command_queue_send(gtl)
+            response.status = BLE_ERROR.BLE_STATUS_OK
+
+        self._mgr_response_queue_send(response)
+
     def sdp_svc_ind_evt_handler(self, gtl: GattcSdpSvcInd):
         evt = BleEventGattcBrowseSvc()
         num_handles = gtl.parameters.end_hdl - gtl.parameters.start_hdl
@@ -314,7 +344,10 @@ class BleManagerGattc(BleManagerBase):
         if not ignore:
             self._mgr_event_queue_send(evt)
 
-
+    def write_generic_cmd_handler(self, command: BleMgrGattcWriteGenericCmd):
+        response = BleMgrGattcWriteGenericRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        
+        
 '''
 static const ble_mgr_cmd_handler_t h_gattc[BLE_MGR_CMD_GET_IDX(BLE_MGR_GATTC_LAST_CMD)] = {
         ble_mgr_gattc_browse_cmd_handler,               STARTED
@@ -323,7 +356,7 @@ static const ble_mgr_cmd_handler_t h_gattc[BLE_MGR_CMD_GET_IDX(BLE_MGR_GATTC_LAS
         ble_mgr_gattc_discover_include_cmd_handler,
         ble_mgr_gattc_discover_char_cmd_handler,        STARTED
         ble_mgr_gattc_discover_desc_cmd_handler,        STARTED
-        ble_mgr_gattc_read_cmd_handler,
+        ble_mgr_gattc_read_cmd_handler,                 STARTED UNTESTED
         ble_mgr_gattc_write_generic_cmd_handler,
         ble_mgr_gattc_write_execute_cmd_handler,
         ble_mgr_gattc_exchange_mtu_cmd_handler,
@@ -338,7 +371,7 @@ void ble_mgr_gattc_disc_char_ind_evt_handler(ble_gtl_msg_t *gtl);           STAR
 void ble_mgr_gattc_disc_char_desc_ind_evt_handler(ble_gtl_msg_t *gtl);      STARTED UNTESTED
 void ble_mgr_gattc_cmp__discovery_evt_handler(ble_gtl_msg_t *gtl);          STARTED
 void ble_mgr_gattc_read_ind_evt_handler(ble_gtl_msg_t *gtl);
-void ble_mgr_gattc_cmp__read_evt_handler(ble_gtl_msg_t *gtl);
+void ble_mgr_gattc_cmp__read_evt_handler(ble_gtl_msg_t *gtl);               
 void ble_mgr_gattc_cmp__write_evt_handler(ble_gtl_msg_t *gtl);
 void ble_mgr_gattc_event_ind_evt_handler(ble_gtl_msg_t *gtl);
 void ble_mgr_gattc_event_req_ind_evt_handler(ble_gtl_msg_t *gtl);

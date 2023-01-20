@@ -54,6 +54,9 @@ class BleCentral(BleDeviceBase):
 
         return adv_data_structs
 
+    async def read(self, conn_idx: int, handle: int, offset: int) -> BLE_ERROR:
+        return await self.ble_gattc.read(conn_idx, handle, offset)
+
     async def scan_start(self,
                          type: GAP_SCAN_TYPE = GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
                          mode: GAP_SCAN_MODE = GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
@@ -67,3 +70,6 @@ class BleCentral(BleDeviceBase):
 
     async def start(self) -> BLE_ERROR:
         return await super().start(BLE_GAP_ROLE.GAP_CENTRAL_ROLE)
+
+    async def write(self, conn_idx: int, handle: int, offset: int, value: bytes) -> BLE_ERROR:
+        return await self.ble_gattc.write(conn_idx, handle, offset, value)
