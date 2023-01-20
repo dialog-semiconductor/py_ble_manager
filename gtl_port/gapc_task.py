@@ -517,18 +517,21 @@ class gapc_connection_cfm(LittleEndianStructure):
                 ("padding", c_uint16)]
 
 
-'''
 # Request disconnection of current link command.
-struct gapc_disconnect_cmd
-{
-    # GAP request type:
-    # - GAPC_DISCONNECT: Disconnect link.
-    uint8_t operation;
+class gapc_disconnect_cmd(LittleEndianStructure):
 
-    # Reason of disconnection
-    uint8_t reason;
-};
-'''
+    def __init__(self, reason: CO_ERROR = CO_ERROR.CO_ERROR_NO_ERROR) -> None:
+
+        self.operation = GAPC_OPERATION.GAPC_DISCONNECT
+        self.reason = reason
+        super().__init__(operation=self.operation,
+                         reason=self.reason)
+
+                # GAP request type:
+                # - GAPC_DISCONNECT: Disconnect link.
+    _fields_ = [("operation", c_uint8),
+                # Reason of disconnection
+                ("reason", c_uint8)]
 
 
 # Indicate that a link has been disconnected

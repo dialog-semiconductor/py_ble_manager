@@ -3,7 +3,7 @@ from .gtl_message_base import GtlMessageBase
 from gtl_port.gapc_task import GAPC_MSG_ID, gapc_connection_req_ind, gapc_connection_cfm, gapc_security_cmd, gapc_cmp_evt, gapc_get_info_cmd, \
     gapc_peer_features_ind, gapc_bond_req_ind, gapc_bond_cfm, gapc_sign_counter_ind, gapc_bond_ind, gapc_encrypt_req_ind, gapc_encrypt_cfm, \
     gapc_encrypt_ind, gapc_param_update_req_ind, gapc_param_update_cfm, gapc_param_update_cmd, gapc_get_dev_info_req_ind, \
-    gapc_get_dev_info_cfm, GAPC_DEV_INFO, gapc_disconnect_ind, gapc_param_updated_ind
+    gapc_get_dev_info_cfm, GAPC_DEV_INFO, gapc_disconnect_ind, gapc_param_updated_ind, gapc_disconnect_cmd
 from gtl_port.rwip_config import KE_API_ID
 
 
@@ -225,6 +225,19 @@ class GapcSignCounterInd(GtlMessageBase):
                          dst_id=KE_API_ID.TASK_ID_GTL,
                          src_id=((conidx << 8) | KE_API_ID.TASK_ID_GAPC),
                          par_len=8,
+                         parameters=self.parameters)
+
+
+class GapcDisconnectCmd(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gapc_disconnect_cmd = None):
+
+        self.parameters = parameters if parameters else gapc_disconnect_cmd()
+
+        super().__init__(msg_id=GAPC_MSG_ID.GAPC_DISCONNECT_CMD,
+                         dst_id=((conidx << 8) | KE_API_ID.TASK_ID_GAPC),
+                         src_id=KE_API_ID.TASK_ID_GTL,
+                         par_len=2,
                          parameters=self.parameters)
 
 

@@ -407,6 +407,25 @@ class TestGapcSignCounterInd(unittest.TestCase):
         
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+# Table 193
+class TestGapcDisconnectCmd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05040E0E00100002000113"
+
+    def test_parameters_updated_after_construction(self):
+        test_message = GapcDisconnectCmd()
+        test_message.parameters.reason = CO_ERROR.CO_ERROR_REMOTE_USER_TERM_CON
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_non_zero_conidx(self):
+        test_message = GapcDisconnectCmd(conidx=1)
+        test_message.parameters.reason = CO_ERROR.CO_ERROR_REMOTE_USER_TERM_CON
+        
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+
 # Table 201
 class TestGapcGetDevInfoReqInd(unittest.TestCase):
 
