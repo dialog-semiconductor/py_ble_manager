@@ -58,7 +58,7 @@ class BleGattcApi(BleApiBase):
         return response.status
 
     async def write(self, conn_idx: int, handle: int, offset: int, value: bytes) -> BLE_ERROR:
-        command = BleMgrGattcWriteGenericCmd(conn_idx, handle, offset, value)
+        command = BleMgrGattcWriteGenericCmd(conn_idx=conn_idx, handle=handle, offset=offset, value=value)
         response: BleMgrGattcWriteGenericRsp = await self.ble_manager.cmd_execute(command)
 
         return response.status

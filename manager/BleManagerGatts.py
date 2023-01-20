@@ -407,6 +407,7 @@ class BleManagerGatts(BleManagerBase):
             self._mgr_response_queue_send(response)
 
     def set_value_cmd_handler(self, command: BleMgrGattsSetValueCmd):
+
         gtl = GattmAttSetValueReq()
         gtl.parameters.handle = command.handle
         gtl.parameters.value = (c_uint8 * len(command.value)).from_buffer_copy(command.value)
@@ -420,23 +421,25 @@ class BleManagerGatts(BleManagerBase):
     def write_cfm_cmd_handler(self, command: BleMgrGattsWriteCfmCmd):
 
         response = BleMgrGattsWriteCfmRsp(BLE_ERROR.BLE_ERROR_FAILED)
-        # TODO need to get device from storage
+        dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
+        if not dev:
+            response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
+        else:
+            req = GattcWriteCfm()
+            req.parameters.handle = command.handle
+            req.parameters.status = command.status
+            self._adapter_command_queue_send(req)
+            response.status = BLE_ERROR.BLE_STATUS_OK
 
-        req = GattcWriteCfm()
-        req.parameters.handle = command.handle
-        req.parameters.status = command.status
-        self._adapter_command_queue_send(req)
-
-        response.status = BLE_ERROR.BLE_STATUS_OK
         self._mgr_response_queue_send(response)
 
     def write_value_req_evt_handler(self, gtl: GattcWriteReqInd):
+
         evt = BleEventGattsWriteReq(self._task_to_connidx(gtl.src_id))
         evt.handle = gtl.parameters.handle
         evt.offset = gtl.parameters.offset
         evt.value = bytes(gtl.parameters.value)
         self._mgr_event_queue_send(evt)
-
 
 '''
 static const ble_mgr_cmd_handler_t h_gatts[BLE_MGR_CMD_GET_IDX(BLE_MGR_GATTS_LAST_CMD)] = {

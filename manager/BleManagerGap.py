@@ -166,22 +166,22 @@ class BleManagerGap(BleManagerBase):
 # endif /* (dg_configBLE_OBSERVER == 1) */
         return gtl_role
 
-    def _cmp_address_resolve_evt_handler(self, gtl):
+    def _cmp_address_resolve_evt_handler(self, gtl: GapmCmpEvt):
         return False
 
-    def _cmp_bond_evt_handler(gtl):
+    def _cmp_bond_evt_handler(gtl: GapcCmpEvt):
         return False
 
-    def _cmp_data_length_set_evt_handler(self, gtl):
+    def _cmp_data_length_set_evt_handler(self, gtl):  # TODO called from GAPM and GAPC
         return False
 
-    def _cmp_disconnect_evt_handler(self, gtl):
+    def _cmp_disconnect_evt_handler(self, gtl: GapcCmpEvt):
         return False
 
-    def _cmp_security_req_evt_handler(self, gtl):
+    def _cmp_security_req_evt_handler(self, gtl: GapcCmpEvt):
         return False
 
-    def _cmp_update_params_evt_handler(self, gtl):
+    def _cmp_update_params_evt_handler(self, gtl: GapcCmpEvt):
         return False
 
     def _conn_cleanup(self, conn_idx: int = 0, reason: CO_ERROR = CO_ERROR.CO_ERROR_NO_ERROR) -> None:
@@ -524,7 +524,7 @@ class BleManagerGap(BleManagerBase):
             case GAPM_OPERATION.GAPM_RESOLV_ADDR:
                 # TODO should not return value
                 return self._cmp_address_resolve_evt_handler(gtl)
-            case (GAPM_OPERATION.RESET
+            case (GAPM_OPERATION.GAPM_RESET
                     | GAPM_OPERATION.GAPM_CANCEL
                     | GAPM_OPERATION.GAPM_SET_DEV_CONFIG
                     | GAPM_OPERATION.GAPM_SET_DEV_CONFIG

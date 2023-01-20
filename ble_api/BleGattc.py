@@ -25,7 +25,7 @@ class GattcServiceData():
                  start_h: int = 0,
                  end_h: int = 0):
         self.start_h = start_h
-        self.end_h = end_h 
+        self.end_h = end_h
 
 
 class GattcCharacteristicData():
@@ -147,3 +147,17 @@ class BleEventGattcReadCompleted(BleEventBase):
         self.status = status
         self.offset = offset
         self.value = value if value else bytes()
+
+
+class BleEventGattcWriteCompleted(BleEventBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 handle: int = 0,
+                 status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK,
+                 operation: int = 0,
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED)
+        self.conn_idx = conn_idx
+        self.handle = handle
+        self.status = status
+        self.operation = operation

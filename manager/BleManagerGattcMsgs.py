@@ -84,10 +84,20 @@ class BleMgrGattcReadRsp(BleMgrMsgRsp):
 
 
 class BleMgrGattcWriteGenericCmd(BleMgrMsgBase):
-    def __init__(self, conn_idx: int = 0, handle: int = 0, offset: int = 0, value: bytes = None) -> None:
+    def __init__(self,
+                 conn_idx: int = 0,
+                 handle: int = 0,
+                 no_response: bool = False,
+                 signed_write: bool = False,
+                 prepare: bool = False,
+                 offset: int = 0,
+                 value: bytes = None) -> None:
         super().__init__(opcode=BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_WRITE_GENERIC_CMD)
         self.conn_idx = conn_idx
         self.handle = handle
+        self.no_response = no_response
+        self.signed_write = signed_write
+        self.prepare = prepare
         self.offset = offset
         self.value = value if value else None
 

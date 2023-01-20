@@ -13,16 +13,33 @@ from ble_api.BleCommon import *
 from manager.BleManagerGattsMsgs import BleMgrGattsGetValueRsp
 from services.BleService import *
 
+import asyncio
+import aioconsole
 
-expected = "050A0C0C0010000E000C01090003000000010000000100"
 
-test_message = GattcWriteCmd()
-test_message.parameters.operation =  GATTC_OPERATION.GATTC_WRITE
-test_message.parameters.auto_execute = True
-test_message.parameters.seq_num = 9
-test_message.parameters.handle = 3
-value = bytearray.fromhex("01")
-test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+async def user_main():
+    elapsed = 0
+    delay = 1
+    while True:
+        await asyncio.sleep(delay)
+        elapsed += delay
+        # print(f"User Main. elapsed={elapsed}")
 
-print(expected)
-print(test_message.to_hex())
+async def console():
+    line = await aioconsole.ainput(">>> ")
+    print(line)
+
+async def main():
+    user_task = asyncio.create_task(user_main(), name='user_main')
+    console_task = asyncio.create_task(console(), name='console')
+    pending = [user_task, console_task]
+    while True:
+        done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
+   
+        for task in done:
+            if task is console_task:
+                 console_task = asyncio.create_task(console(), name='console')
+                 pending.add(console_task)
+
+
+asyncio.run(main())
