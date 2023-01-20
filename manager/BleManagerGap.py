@@ -672,7 +672,7 @@ class BleManagerGap(BleManagerBase):
         # TODO something with service changed characteristic value from storage
         self._adapter_command_queue_send(cfm)
 
-    def diconnect_cmd_handler(self, command: BleMgrGapDisconnectCmd) -> None:
+    def disconnect_cmd_handler(self, command: BleMgrGapDisconnectCmd) -> None:
         response = BleMgrGapDisconnectRsp(BLE_ERROR.BLE_ERROR_FAILED)
 
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
@@ -684,7 +684,6 @@ class BleManagerGap(BleManagerBase):
             response.status = BLE_ERROR.BLE_STATUS_OK
 
         self._mgr_response_queue_send(response)
-
 
     def disconnected_evt_handler(self, gtl: GapcDisconnectInd) -> None:
 
