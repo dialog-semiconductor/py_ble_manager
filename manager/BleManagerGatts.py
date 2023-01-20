@@ -196,7 +196,7 @@ class BleManagerGatts(BleManagerBase):
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
         else:
-            gtl = GattcAttInfoCfm()
+            gtl = GattcAttInfoCfm(conidx=command.conn_idx)
             gtl.parameters.handle = command.handle
             gtl.parameters.length = command.length
             gtl.parameters.status = command.status
@@ -222,7 +222,7 @@ class BleManagerGatts(BleManagerBase):
         if dev is None:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
         else:
-            cfm = GattcReadCfm(conidx=self._task_to_connidx(command.conn_idx))
+            cfm = GattcReadCfm(conidx=command.conn_idx)
             cfm.parameters.handle = command.handle
             cfm.parameters.status = command.status
             cfm.parameters.value = (c_uint8 * len(command.value)).from_buffer_copy(command.value)
@@ -252,7 +252,7 @@ class BleManagerGatts(BleManagerBase):
                 response.status = BLE_ERROR.BLE_ERROR_BUSY
             else:
                 dev.pending_events_put_handle(command.handle)
-                gtl = GattcSendEvtCmd()
+                gtl = GattcSendEvtCmd(conidx=command.conn_idx)
                 gtl.parameters.handle = command.handle
                 if command.type == GATT_EVENT.GATT_EVENT_NOTIFICATION:
                     gtl.parameters.operation = GATTC_OPERATION.GATTC_NOTIFY
@@ -425,7 +425,7 @@ class BleManagerGatts(BleManagerBase):
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
         else:
-            req = GattcWriteCfm()
+            req = GattcWriteCfm(conidx=command.conn_idx)
             req.parameters.handle = command.handle
             req.parameters.status = command.status
             self._adapter_command_queue_send(req)

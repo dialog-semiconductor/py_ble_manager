@@ -124,7 +124,7 @@ class BleManagerGattc(BleManagerBase):
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
         else:
-            gtl = GattcSdpSvcDiscCmd()
+            gtl = GattcSdpSvcDiscCmd(conidx=command.conn_idx)
             if command.uuid:
                 gtl.parameters.operation = GATTC_OPERATION.GATTC_SDP_DISC_SVC
                 gtl.parameters.uuid = (c_uint8 * len(command.uuid.uuid)).from_buffer_copy(command.uuid.uuid)
@@ -166,7 +166,7 @@ class BleManagerGattc(BleManagerBase):
                     | GATTC_OPERATION.GATTC_WRITE_NO_RESPONSE
                     | GATTC_OPERATION.GATTC_EXEC_WRITE):
 
-                self._cmp_write_evt_handler(gtl)s
+                self._cmp_write_evt_handler(gtl)
 
             case GATTC_OPERATION.GATTC_MTU_EXCH:
                 pass
@@ -207,7 +207,7 @@ class BleManagerGattc(BleManagerBase):
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
         else:
-            gtl = GattcDiscCmd()
+            gtl = GattcDiscCmd(conidx=command.conn_idx)
             # depends on uuid default to None in BleMgrGattcDiscoverCharCmd
             if command.uuid:
                 gtl.parameters.operation = GATTC_OPERATION.GATTC_DISC_BY_UUID_CHAR
@@ -232,7 +232,7 @@ class BleManagerGattc(BleManagerBase):
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
         else:
-            gtl = GattcDiscCmd()
+            gtl = GattcDiscCmd(conidx=command.conn_idx)
             gtl.parameters.operation = GATTC_OPERATION.GATTC_DISC_DESC_CHAR
             gtl.parameters.uuid = (c_uint8 * 2)()
             gtl.parameters.seq_num = command.conn_idx
@@ -251,7 +251,7 @@ class BleManagerGattc(BleManagerBase):
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
         else:
-            gtl = GattcDiscCmd()
+            gtl = GattcDiscCmd(conidx=command.conn_idx)
             # depends on uuid default to None in BleMgrGattcDiscoverSvcCmd
             if command.uuid:
                 gtl.parameters.operation = GATTC_OPERATION.GATTC_DISC_BY_UUID_SVC
@@ -284,7 +284,7 @@ class BleManagerGattc(BleManagerBase):
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
         else:
-            gtl = GattcReadCmd()
+            gtl = GattcReadCmd(conidx=command.conn_idx)
             gtl.parameters.operation = GATTC_OPERATION.GATTC_READ
             gtl.parameters.seq_num = command.handle
             gtl.parameters.req.simple = gattc_read_simple()
@@ -363,7 +363,7 @@ class BleManagerGattc(BleManagerBase):
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
         else:
-            gtl = GattcWriteCmd()
+            gtl = GattcWriteCmd(conidx=command.conn_idx)
             if command.no_response:
                 gtl.parameters.operation = GATTC_OPERATION.GATTC_WRITE_NO_RESPONSE
                 if command.signed_write:
