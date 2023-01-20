@@ -72,6 +72,12 @@ att_uuid = AttUuid(uuid_from_str(uuid))
 return_string = uuid_to_str(att_uuid)
 print(return_string)
 
-st = "GAPBROWSE"
+st = "1234"
 
-print(st.split())
+print(bytes.fromhex(st))
+
+print(hex(int("1")))
+
+st = "1"
+
+print(bytes.fromhex(st))

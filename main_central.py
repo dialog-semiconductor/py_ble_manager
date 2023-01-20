@@ -41,7 +41,7 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
 
     services = SearchableQueue()
 
-    central = BleCentral("COM17", gtl_debug=True)
+    central = BleCentral("COM17", gtl_debug=False)
     await central.init()
     await central.start()
 
@@ -100,7 +100,7 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
                             if len(args) == 4:
                                 conn_idx = int(args[1])
                                 handle = int(args[2])
-                                value = bytes(args[3], 'utf-8')  # TODO this is converting to ascii
+                                value = bytes.fromhex(args[3])  # TODO requires leading 0 for 0x1GAP
                                 error = await central.write(conn_idx, handle, 0, value)
 
                         case "GATTREAD": # TODO char handle displayed by browse is acutally the declaration. The value is +1
@@ -231,7 +231,7 @@ def handle_evt_gattc_read_completed(central, evt: BleEventGattcReadCompleted):
 
 
 def handle_evt_gattc_write_completed(central, evt: BleEventGattcWriteCompleted):
-    print(f"Read Complete conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status}")
+    print(f"Write Complete conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status}")
 
 
 def handle_evt_gattc_browse_svc(central: BleCentral, evt: BleEventGattcBrowseSvc):

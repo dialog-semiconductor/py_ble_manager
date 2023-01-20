@@ -2,10 +2,10 @@ from ctypes import c_uint8
 
 from gtl_messages.gtl_message_base import GTL_INITIATOR
 from gtl_messages.gtl_message_gattc import GattcReadReqInd, GattcWriteReqInd, GattcCmpEvt, GattcDiscSvcInd, GattcDiscCharInd, \
-    GattcSdpSvcInd, GattcReadInd
+    GattcSdpSvcInd, GattcReadInd, GattcEventInd, GattcEventReqInd
 from gtl_port.gattc_task import GATTC_MSG_ID, gattc_read_req_ind, gattc_write_req_ind, gattc_cmp_evt, gattc_disc_svc_ind, \
     gattc_disc_char_ind, gattc_sdp_svc_ind, gattc_sdp_att_info, GATTC_SDP_ATT_TYPE, gattc_sdp_att_char,\
-    gattc_sdp_include_svc, gattc_sdp_att, gattc_read_ind
+    gattc_sdp_include_svc, gattc_sdp_att, gattc_read_ind, gattc_event_ind, gattc_event_req_ind
 
 
 class GattcMessageFactory():
@@ -27,7 +27,10 @@ class GattcMessageFactory():
                 parameters = gattc_write_req_ind()
                 parameters.handle = int.from_bytes(params_buf[0:2], "little", signed=False)
                 parameters.offset = int.from_bytes(params_buf[2:4], "little", signed=False)
-                # params_buf[4:6] skipped to account for length
+
+                length = int.from_bytes(params_buf[4:6], "little", signed=False)
+                assert length == len(params_buf[6:])  # Check for mismatch in value length and remaining bytes
+
                 parameters.value = (c_uint8 * len(params_buf[6:])).from_buffer_copy(params_buf[6:])
                 return GattcWriteReqInd(parameters=parameters)
 
@@ -38,7 +41,10 @@ class GattcMessageFactory():
                 parameters = gattc_disc_svc_ind()
                 parameters.start_hdl = int.from_bytes(params_buf[0:2], "little", signed=False)
                 parameters.end_hdl = int.from_bytes(params_buf[2:4], "little", signed=False)
-                # params_buf[4:5] skipped to account for length
+
+                length = int.from_bytes(params_buf[4:5], "little", signed=False)
+                assert length == len(params_buf[5:-1])  # Check for mismatch in value length and remaining bytes
+
                 parameters.uuid = (c_uint8 * len(params_buf[5:-1])).from_buffer_copy(params_buf[5:-1])  # -1 to account for padding
                 return GattcDiscSvcInd(parameters=parameters)
 
@@ -47,7 +53,10 @@ class GattcMessageFactory():
                 parameters.attr_hdl = int.from_bytes(params_buf[0:2], "little", signed=False)
                 parameters.pointer_hdl = int.from_bytes(params_buf[2:4], "little", signed=False)
                 parameters.prop = int.from_bytes(params_buf[4:5], "little", signed=False)
-                # params_buf[5:6] skipped to account for length
+
+                length = int.from_bytes(params_buf[5:6], "little", signed=False)
+                assert length == len(params_buf[6:])  # Check for mismatch in value length and remaining bytes
+
                 parameters.uuid = (c_uint8 * len(params_buf[6:])).from_buffer_copy(params_buf[6:])
                 return GattcDiscCharInd(parameters=parameters)
 
@@ -67,10 +76,37 @@ class GattcMessageFactory():
                 parameters = gattc_read_ind()
                 parameters.handle = int.from_bytes(params_buf[0:2], "little", signed=False)
                 parameters.offset = int.from_bytes(params_buf[2:4], "little", signed=False)
-                # params_buf[4:6] as length assigned automatically
+
+                length = int.from_bytes(params_buf[4:6], "little", signed=False)
+                assert length == len(params_buf[6:])  # Check for mismatch in value length and remaining bytes
+
                 parameters.value = (c_uint8 * len(params_buf[6:])).from_buffer_copy(params_buf[6:])
 
                 return GattcReadInd(parameters=parameters)
+
+            elif msg_id == GATTC_MSG_ID.GATTC_EVENT_IND:
+                parameters = gattc_event_ind()
+                parameters.type = int.from_bytes(params_buf[0:1], "little", signed=False)
+                # params_buf[1:2] skipped to account for padding
+
+                length = int.from_bytes(params_buf[2:4], "little", signed=False)
+                parameters.handle = int.from_bytes(params_buf[4:6], "little", signed=False)
+                assert length == len(params_buf[6:])  # Check for mismatch in value length and remaining bytes
+
+                parameters.value = (c_uint8 * len(params_buf[6:])).from_buffer_copy(params_buf[6:])
+                return GattcEventInd(parameters=parameters)
+
+            elif msg_id == GATTC_MSG_ID.GATTC_EVENT_IND:
+                parameters = gattc_event_req_ind()
+                parameters.type = int.from_bytes(params_buf[0:1], "little", signed=False)
+                # params_buf[1:2] skipped to account for padding
+
+                length = int.from_bytes(params_buf[2:4], "little", signed=False)
+                parameters.handle = int.from_bytes(params_buf[4:6], "little", signed=False)
+                assert length == len(params_buf[6:])  # Check for mismatch in value length and remaining bytes
+
+                parameters.value = (c_uint8 * len(params_buf[6:])).from_buffer_copy(params_buf[6:])
+                return GattcEventReqInd(parameters=parameters)
 
             else:
                 raise AssertionError(f"GattcMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")
