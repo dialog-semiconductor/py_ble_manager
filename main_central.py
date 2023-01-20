@@ -204,12 +204,12 @@ def handle_evt_gattc_browse_svc(central: BleCentral, evt: BleEventGattcBrowseSvc
 
     print(f"Service discovered: uuid={uuid_to_str(evt.uuid)}. handle={evt.start_h}")
     for item in evt.items:
-        if item.type == GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_DESCRIPTOR:
+        if item.type == GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_INCLUDE:
             print(f"\tIncluded service discovered: handle={item.handle}, uuid={uuid_to_str(item.uuid)}")
         elif item.type == GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_CHARACTERISTIC:
             # TODO format properties function
             print(f"\tCharacteristic discovered: handle={item.handle}, uuid={uuid_to_str(item.uuid)}, prop={item.char_data.properties}")
-        elif item.type == GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_CHARACTERISTIC:
+        elif item.type == GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_DESCRIPTOR:
             # TODO format properties function
             print(f"\t\tDescriptor discovered: handle={item.handle}, uuid={uuid_to_str(item.uuid)}")
 
