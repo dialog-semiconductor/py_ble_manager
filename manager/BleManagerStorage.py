@@ -207,6 +207,7 @@ class StoredDeviceQueue(SearchableQueue):
 
             if found is None and create:
                 new_device = StoredDevice()
+                new_device.addr = addr
                 new_device.mtu = 23
                 self.push(new_device)
                 found = new_device

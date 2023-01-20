@@ -102,7 +102,7 @@ class CustomBleService(BleServiceBase):
         print("CustomBleService disconnected_evt")
 
     async def read_req(self, evt: BleEventGattsReadReq):
-        print("CustomBleService write_req")
+        print("CustomBleService read_req")
 
         if evt.handle == self.char_1_value_h.value:
             if self.callbacks.char1_read:

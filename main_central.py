@@ -4,12 +4,12 @@ import aioconsole
 # TODO simplify imports for user
 from ble_api.BleAtt import AttUuid, ATT_UUID_TYPE
 from ble_api.BleCentral import BleCentral
-from ble_api.BleCommon import BleEventBase, BdAddress, BLE_ADDR_TYPE, BLE_HCI_ERROR
+from ble_api.BleCommon import BleEventBase, BdAddress, BLE_ADDR_TYPE, BLE_HCI_ERROR, BLE_ERROR
 from ble_api.BleGap import BleEventGapAdvReport, BleEventGapScanCompleted, GapConnParams, BleEventGapConnected, \
     BleEventGapDisconnected
 from ble_api.BleGattc import BleEventGattcDiscoverSvc, BleEventGattcDiscoverCompleted, GATTC_DISCOVERY_TYPE, \
     BleEventGattcDiscoverChar, BleEventGattcDiscoverDesc, BleEventGattcBrowseCompleted, BleEventGattcBrowseSvc, \
-    GATTC_ITEM_TYPE
+    GATTC_ITEM_TYPE, BleEventGattcNotification, BleEventGattcReadCompleted, BleEventGattcWriteCompleted
 from manager.BleManagerStorage import SearchableQueue
 from services.BleService import BleServiceBase
 
@@ -41,7 +41,7 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
 
     services = SearchableQueue()
 
-    central = BleCentral("COM17", gtl_debug=False)
+    central = BleCentral("COM17", gtl_debug=True)
     await central.init()
     await central.start()
 
@@ -65,36 +65,54 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
 
         for task in done:
 
-             # Handle and BLE events that hace occurred
+            # Handle and BLE events that hace occurred
             if task is console_command_task:
                 command: str = task.result()
                 print(f"ble_taks received command: {command}")
 
-                if command.find("GAPCONNECT") != -1:
-                    periph_bd = BdAddress(BLE_ADDR_TYPE.PUBLIC_ADDRESS, bytes.fromhex("531B00352348"))  # addr is backwards
+                error = BLE_ERROR.BLE_ERROR_FAILED
+                args = command.split()
+                if len(args) > 0:
+                    ble_func = args[0]                    
+                    match ble_func:
+                        case "GAPCONNECT":
+                            periph_bd = BdAddress(BLE_ADDR_TYPE.PUBLIC_ADDRESS, bytes.fromhex("531B00352348"))  # addr is backwards
+                            periph_conn_params = GapConnParams(50, 70, 0, 420)
+                            error = await central.connect(periph_bd, periph_conn_params)
 
-                    # TODO do these conversions when setting GapConnParams
-                    periph_conn_params = GapConnParams(50, 70, 0, 420)
-                    await central.connect(periph_bd, periph_conn_params)
+                        case "GAPBROWSE":
+                            if len(args) == 2:
+                                conn_idx = int(args[1])
+                                error = await central.browse(conn_idx, None)
 
-                elif command.find("GAPBROWSE") != -1:
-                    conn_idx = int(command.split()[1])
-                    await central.browse(conn_idx, None)
+                        case "GAPDISCONNECT":
+                            if len(args) >= 2:
+                                conn_idx = int(args[1])
+                                if len(args) == 3:
+                                    reason = BLE_HCI_ERROR(int(args[2]))
+                                    if reason == BLE_HCI_ERROR.BLE_HCI_ERROR_NO_ERROR:
+                                        reason = BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON
+                                else:
+                                    reason = BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON
+                                error = await central.disconect(conn_idx, reason)
 
-                elif command.find("GAPDISCONNECT") != -1:
-                    args = command.split()
-                    conn_idx = int(args[1])
-                    if len(args) == 3:
-                        reason = BLE_HCI_ERROR(int(args[2]))
-                        if reason == BLE_HCI_ERROR.BLE_HCI_ERROR_NO_ERROR:
-                            reason = BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON
-                    else:
-                        reason = BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON
-                    await central.disconect(conn_idx, reason)
+                        case "GATTWRITE":
+                            if len(args) == 4:
+                                conn_idx = int(args[1])
+                                handle = int(args[2])
+                                value = bytes(args[3], 'utf-8')  # TODO this is converting to ascii
+                                error = await central.write(conn_idx, handle, 0, value)
 
-                else:
-                    response = "Invalid command"
-                    response_q.put_nowait(response)
+                        case "GATTREAD": # TODO char handle displayed by browse is acutally the declaration. The value is +1
+                            if len(args) == 3:
+                                conn_idx = int(args[1])
+                                handle = int(args[2])
+                                error = await central.read(conn_idx, handle, 0)
+
+                        case _:
+                            pass
+
+                response_q.put_nowait(str(error))
 
                 console_command_task = asyncio.create_task(command_q.get(), name='GetConsoleCommand')
                 pending.add(console_command_task)
@@ -123,13 +141,9 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
 
                     if isinstance(evt, BleEventGapConnected):
                         handle_evt_gap_connected(central, evt)
-                        response = "Success" # TODO need to refine responses
-                        response_q.put_nowait(response)
 
                     if isinstance(evt, BleEventGapDisconnected):
                         handle_evt_gap_disconnected(central, evt)
-                        response = "Success" # TODO need to refine responses
-                        response_q.put_nowait(response)
 
                     if isinstance(evt, BleEventGattcDiscoverSvc):
                         handle_evt_gattc_discover_svc(central, evt, services)
@@ -153,8 +167,16 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
 
                     if isinstance(evt, BleEventGattcBrowseCompleted):
                         handle_evt_gattc_browse_completed(central, evt)
-                        response = "Success"
-                        response_q.put_nowait(response)
+
+                    if isinstance(evt, BleEventGattcNotification):
+                        handle_evt_gattc_notification(central, evt)
+
+                    if isinstance(evt, BleEventGattcReadCompleted):
+                        handle_evt_gattc_read_completed(central, evt)
+
+                    if isinstance(evt, BleEventGattcWriteCompleted):
+                        handle_evt_gattc_write_completed(central, evt)
+
 
                 ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
                 pending.add(ble_event_task)
@@ -200,6 +222,18 @@ def handle_evt_gap_disconnected(central: BleCentral, evt: BleEventGapDisconnecte
     print(f"Disconnected from to: addr={[hex(x) for x in evt.address.addr]}")
 
 
+def handle_evt_gattc_notification(central, evt: BleEventGattcNotification):
+    print(f"Received Notification. conn_idx={evt.conn_idx}, handle={evt.handle}, value=0x{evt.value.hex()}")
+
+
+def handle_evt_gattc_read_completed(central, evt: BleEventGattcReadCompleted):
+    print(f"Read Complete conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status}, value=0x{evt.value.hex()}")
+
+
+def handle_evt_gattc_write_completed(central, evt: BleEventGattcWriteCompleted):
+    print(f"Read Complete conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status}")
+
+
 def handle_evt_gattc_browse_svc(central: BleCentral, evt: BleEventGattcBrowseSvc):
 
     print(f"Service discovered: uuid={uuid_to_str(evt.uuid)}. handle={evt.start_h}")
@@ -208,7 +242,8 @@ def handle_evt_gattc_browse_svc(central: BleCentral, evt: BleEventGattcBrowseSvc
             print(f"\tIncluded service discovered: handle={item.handle}, uuid={uuid_to_str(item.uuid)}")
         elif item.type == GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_CHARACTERISTIC:
             # TODO format properties function
-            print(f"\tCharacteristic discovered: handle={item.handle}, uuid={uuid_to_str(item.uuid)}, prop={item.char_data.properties}")
+            print(f"\tCharacteristic discovered: handle={item.handle}, uuid={uuid_to_str(item.uuid)}, prop={item.char_data.properties} "
+                  + f"{format_properties(item.char_data.properties)}")
         elif item.type == GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_DESCRIPTOR:
             # TODO format properties function
             print(f"\t\tDescriptor discovered: handle={item.handle}, uuid={uuid_to_str(item.uuid)}")
@@ -235,6 +270,14 @@ def uuid_to_str(uuid: AttUuid) -> str:
             return_string += byte_string
 
     return return_string
+
+
+def format_properties(prop: int) -> str:
+    propr_str = "BRXWNISE"  # each letter corresponds to single property
+    for i in range(0,8):
+        if prop & (1 << i) == 0:
+            propr_str = propr_str.replace(propr_str[i], '-')
+    return propr_str
 
 
 asyncio.run(main())

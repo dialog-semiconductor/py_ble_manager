@@ -72,6 +72,6 @@ att_uuid = AttUuid(uuid_from_str(uuid))
 return_string = uuid_to_str(att_uuid)
 print(return_string)
 
+st = "GAPBROWSE"
 
-for i in range(1,-1,-1):
-    print(i)
+print(st.split())

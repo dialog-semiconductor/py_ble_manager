@@ -6,10 +6,10 @@ from ble_api.BleCommon import BleEventBase, BLE_ERROR
 from ble_api.BleGattc import BleEventGattcDiscoverSvc, BleEventGattcDiscoverCompleted, GATTC_DISCOVERY_TYPE, \
     BleEventGattcDiscoverChar, BleEventGattcDiscoverDesc, BleEventGattcBrowseSvc, BleEventGattcBrowseCompleted, \
     GattcItem, GATTC_ITEM_TYPE, GattcServiceData, GattcCharacteristicData, BleEventGattcReadCompleted,\
-    BleEventGattcWriteCompleted
+    BleEventGattcWriteCompleted, BleEventGattcNotification, BleEventGattcIndication
 from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gattc import GattcDiscCmd, GattcDiscSvcInd, GattcCmpEvt, GattcDiscCharInd, GattcSdpSvcDiscCmd, \
-    GattcSdpSvcInd, GattcReadCmd, GattcReadInd, GattcWriteCmd
+    GattcSdpSvcInd, GattcReadCmd, GattcReadInd, GattcWriteCmd, GattcEventInd, GattcEventReqInd, GattcEventCfm
 from gtl_port.gattc_task import GATTC_OPERATION, GATTC_MSG_ID, gattc_sdp_att_info, GATTC_SDP_ATT_TYPE, gattc_read_simple
 from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from manager.BleManagerBase import BleManagerBase
@@ -39,7 +39,7 @@ class BleManagerGattc(BleManagerBase):
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_INCLUDE_CMD: None,
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_CHAR_CMD: self.discover_char_cmd_handler,
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_DESC_CMD: self.discover_desc_cmd_handler,
-            BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_READ_CMD: None,
+            BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_READ_CMD: self.read_cmd_handler,
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_WRITE_GENERIC_CMD: self.write_generic_cmd_handler,
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_WRITE_EXECUTE_CMD: None,
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_EXCHANGE_MTU_CMD: None,
@@ -56,8 +56,8 @@ class BleManagerGattc(BleManagerBase):
             GATTC_MSG_ID.GATTC_DISC_CHAR_IND: self.disc_char_ind_evt_handler,
             GATTC_MSG_ID.GATTC_DISC_CHAR_DESC_IND: self.disc_char_desc_ind_evt_handler,
             GATTC_MSG_ID.GATTC_READ_IND: self.read_ind_evt_handler,
-            GATTC_MSG_ID.GATTC_EVENT_IND: None,
-            GATTC_MSG_ID.GATTC_EVENT_REQ_IND: None,
+            GATTC_MSG_ID.GATTC_EVENT_IND: self.event_ind_evt_handler,  # Notifications
+            GATTC_MSG_ID.GATTC_EVENT_REQ_IND: self.event_req_ind_evt_handler,  # Indications
             GATTC_MSG_ID.GATTC_SVC_CHANGED_CFG_IND: None,
         }
 
@@ -104,11 +104,11 @@ class BleManagerGattc(BleManagerBase):
 
         # if no error ignore, we replied in read_ind_evt_handler()
         if gtl.parameters.status != HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR:
-           evt = BleEventGattcReadCompleted()
-           evt.conn_idx = self._task_to_connidx(gtl.src_id)
-           evt.handle = gtl.parameters.seq_num
-           evt.status = gtl.parameters.status
-           self._mgr_event_queue_send(evt)
+            evt = BleEventGattcReadCompleted()
+            evt.conn_idx = self._task_to_connidx(gtl.src_id)
+            evt.handle = gtl.parameters.seq_num
+            evt.status = gtl.parameters.status
+            self._mgr_event_queue_send(evt)
 
     def _cmp_write_evt_handler(self, gtl: GattcCmpEvt):
         evt = BleEventGattcWriteCompleted()
@@ -267,6 +267,30 @@ class BleManagerGattc(BleManagerBase):
             response.status = BLE_ERROR.BLE_STATUS_OK
 
         self._mgr_response_queue_send(response)
+
+    def event_ind_evt_handler(self, gtl: GattcEventInd) -> None:
+        # ignore if type wrong
+        if gtl.parameters.type == GATTC_OPERATION.GATTC_NOTIFY:
+            evt = BleEventGattcNotification()
+            evt.conn_idx = self._task_to_connidx(gtl.src_id)
+            evt.handle = gtl.parameters.handle
+            evt.value = bytes(gtl.parameters.value)
+            self._mgr_event_queue_send(evt)
+
+    def event_req_ind_evt_handler(self, gtl: GattcEventReqInd) -> None:
+        # ignore if type wrong
+        if gtl.parameters.type == GATTC_OPERATION.GATTC_INDICATE:
+
+            # Confirm indication received
+            cfm = GattcEventCfm(conidx=self._task_to_connidx(gtl.src_id))
+            cfm.parameters.handle = gtl.parameters.handle
+            self._adapter_command_queue_send(cfm)
+
+            evt = BleEventGattcIndication()
+            evt.conn_idx = self._task_to_connidx(gtl.src_id)
+            evt.handle = gtl.parameters.handle
+            evt.value = bytes(gtl.parameters.value)
+            self._mgr_event_queue_send(evt)
 
     def read_ind_evt_handler(self, gtl: GattcReadInd):  # TODO need to test
         evt = BleEventGattcReadCompleted()

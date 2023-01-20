@@ -569,7 +569,6 @@ class BleManagerGap(BleManagerBase):
         # else
         # ble_mgr_gap_connect_cmd_exec(param); # TODO This function implemented below. Separate func?
         # endif
-
         response = BleMgrGapConnectRsp(BLE_ERROR.BLE_ERROR_FAILED)
 
         dev = self._stored_device_list.find_device_by_connenting()

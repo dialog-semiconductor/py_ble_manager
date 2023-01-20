@@ -43,7 +43,7 @@ class BleCentral(BleDeviceBase):
                 print(f"data{list(evt.data)}")
                 print(f"data_ptr = {data_ptr}, len{evt.length}, struct = {adv_data_structs}")
                 print()
-                
+
                 struct = BleAdvData(len=evt.data[data_ptr], type=evt.data[data_ptr + 1])
 
                 if struct.len == 0 or struct.type == GAP_DATA_TYPE.GAP_DATA_TYPE_NONE:

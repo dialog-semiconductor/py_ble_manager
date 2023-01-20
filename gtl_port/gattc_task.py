@@ -347,40 +347,30 @@ struct gattc_op_cmd
 class gattc_cmp_evt(LittleEndianStructure):
 
     def __init__(self,
-                 operation: GATTC_OPERATION = GATTC_OPERATION.GATTC_NOTIFY,
+                 operation: GATTC_OPERATION = GATTC_OPERATION.GATTC_NO_OP,
                  status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR,
                  seq_num: c_uint16 = 0):
 
         self.operation = operation
         self.status = status
         self.seq_num = seq_num
-        super().__init__(_operation=self._operation,
+        super().__init__(operation=self.operation,
                          status=self.status,
                          seq_num=self.seq_num)
 
                 # GATT request type
-    _fields_ = [("_operation", c_uint8),
+    _fields_ = [("operation", c_uint8),
                 # Status of the request
                 ("status", c_uint8),
                 # operation sequence number - provided when operation is started
                 ("seq_num", c_uint16)]
-
-    def get_operation(self):
-        return self._operation
-
-    def set_operation(self, new_operation: GATTC_OPERATION = None):
-        if (new_operation != GATTC_OPERATION.GATTC_NOTIFY and new_operation != GATTC_OPERATION.GATTC_INDICATE):
-            raise TypeError("Operation must be GATTC_OPERATION.GATTC_NOTIFY or GATTC_OPERATION.GATTC_INDICATE")
-        self._operation = new_operation
-
-    operation = property(get_operation, set_operation)
 
 
 # Service Discovery Command LittleEndianStructure
 class gattc_exc_mtu_cmd(LittleEndianStructure):
 
     def __init__(self,
-                 operation: GATTC_OPERATION = GATTC_OPERATION.GATTC_NOTIFY,
+                 operation: GATTC_OPERATION = GATTC_OPERATION.GATTC_NO_OP,
                  seq_num: c_uint16 = 0):
 
         self.operation = operation
@@ -872,11 +862,10 @@ struct gattc_execute_write_cmd
 class gattc_event_ind(LittleEndianStructure):
 
     def __init__(self,
-                 type: GATTC_OPERATION = GATTC_OPERATION.GATTC_NOTIFY,
                  handle: c_uint16 = 0,
                  value: Array[c_uint8] = None):
 
-        self.type = type  # TODO raise type error is type is not NOTIFY or INDICATE. Use property to handle setting after construction
+        self.type = GATTC_OPERATION.GATTC_NOTIFY
         self.handle = handle
         self.value = value
         super().__init__(type=self.type,
@@ -910,11 +899,10 @@ class gattc_event_ind(LittleEndianStructure):
 class gattc_event_req_ind(LittleEndianStructure):
 
     def __init__(self,
-                 type: GATTC_OPERATION = GATTC_OPERATION.GATTC_NOTIFY,
                  handle: c_uint16 = 0,
                  value: Array[c_uint8] = None):
 
-        self.type = type  # TODO raise type error is type is not NOTIFY or INDICATE. Use property to handle setting after construction
+        self.type = GATTC_OPERATION.GATTC_INDICATE
         self.handle = handle
         self.value = value
         super().__init__(type=self.type,

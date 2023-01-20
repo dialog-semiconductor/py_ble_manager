@@ -2,10 +2,10 @@ from ctypes import c_uint8
 
 from gtl_messages.gtl_message_base import GTL_INITIATOR
 from gtl_messages.gtl_message_gattc import GattcReadReqInd, GattcWriteReqInd, GattcCmpEvt, GattcDiscSvcInd, GattcDiscCharInd, \
-    GattcSdpSvcInd
+    GattcSdpSvcInd, GattcReadInd
 from gtl_port.gattc_task import GATTC_MSG_ID, gattc_read_req_ind, gattc_write_req_ind, gattc_cmp_evt, gattc_disc_svc_ind, \
     gattc_disc_char_ind, gattc_sdp_svc_ind, gattc_sdp_att_info, GATTC_SDP_ATT_TYPE, gattc_sdp_att_char,\
-    gattc_sdp_include_svc, gattc_sdp_att
+    gattc_sdp_include_svc, gattc_sdp_att, gattc_read_ind
 
 
 class GattcMessageFactory():
@@ -62,6 +62,15 @@ class GattcMessageFactory():
                 parameters.info = (gattc_sdp_att_info * (len(params_buf[22:]) // 22)).from_buffer_copy(params_buf[22:])
 
                 return GattcSdpSvcInd(parameters=parameters)
+
+            elif msg_id == GATTC_MSG_ID.GATTC_READ_IND:
+                parameters = gattc_read_ind()
+                parameters.handle = int.from_bytes(params_buf[0:2], "little", signed=False)
+                parameters.offset = int.from_bytes(params_buf[2:4], "little", signed=False)
+                # params_buf[4:6] as length assigned automatically
+                parameters.value = (c_uint8 * len(params_buf[6:])).from_buffer_copy(params_buf[6:])
+
+                return GattcReadInd(parameters=parameters)
 
             else:
                 raise AssertionError(f"GattcMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")

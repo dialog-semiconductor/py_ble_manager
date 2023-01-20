@@ -133,6 +133,30 @@ class BleEventGattcDiscoverSvc(BleEventBase):
         self.end_h = end_h
 
 
+class BleEventGattcNotification(BleEventBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 handle: int = 0,
+                 value: bytes = None,
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GATTC.BLE_EVT_GATTC_NOTIFICATION)
+        self.conn_idx = conn_idx
+        self.handle = handle
+        self.value = value if value else bytes()
+
+
+class BleEventGattcIndication(BleEventBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 handle: int = 0,
+                 value: bytes = None,
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GATTC.BLE_EVT_GATTC_INDICATION)
+        self.conn_idx = conn_idx
+        self.handle = handle
+        self.value = value if value else bytes()
+
+
 class BleEventGattcReadCompleted(BleEventBase):
     def __init__(self,
                  conn_idx: int = 0,
