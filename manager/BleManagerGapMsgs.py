@@ -1,7 +1,7 @@
 from enum import IntEnum, auto
 
-from ble_api.BleCommon import BLE_ERROR, BdAddress
-from ble_api.BleGap import BLE_GAP_CONN_MODE, BLE_GAP_ROLE, gap_conn_params, GAP_SCAN_TYPE, GAP_SCAN_MODE
+from ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR
+from ble_api.BleGap import BLE_GAP_CONN_MODE, BLE_GAP_ROLE, GapConnParams, GAP_SCAN_TYPE, GAP_SCAN_MODE
 from manager.BleManagerCommonMsgs import BLE_MGR_CMD_CAT, BleMgrMsgBase, BleMgrMsgRsp, BLE_CMD_GAP_OPCODE
 
 
@@ -61,13 +61,13 @@ class BleMgrGapConnectCancelCmd(BleMgrMsgBase):
 class BleMgrGapConnectCmd(BleMgrMsgBase):
     def __init__(self,
                  peer_addr: BdAddress = None,
-                 conn_params: gap_conn_params = None,
+                 conn_params: GapConnParams = None,
                  ce_len_min: int = 0,
                  ce_len_max: int = 0
                  ) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CMD)
         self.peer_addr = peer_addr if peer_addr else BdAddress()
-        self.conn_params = conn_params if conn_params else gap_conn_params()
+        self.conn_params = conn_params if conn_params else GapConnParams()
         self.ce_len_min = ce_len_min
         self.ce_len_max = ce_len_max
 
@@ -75,6 +75,22 @@ class BleMgrGapConnectCmd(BleMgrMsgBase):
 class BleMgrGapConnectRsp(BleMgrMsgRsp):
     def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CMD,
+                         status=status)
+
+
+class BleMgrGapDisconnectCmd(BleMgrMsgBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 reason: BLE_HCI_ERROR = BLE_HCI_ERROR.BLE_HCI_ERROR_NO_ERROR,
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DISCONNECT_CMD)
+        self.conn_idx = conn_idx
+        self.reason = reason
+
+
+class BleMgrGapDisconnectRsp(BleMgrMsgRsp):
+    def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DISCONNECT_CMD,
                          status=status)
 
 
@@ -106,11 +122,6 @@ class BleMgrGapDataLengthSetCmd(BleMgrMsgBase):
 class BleMgrGapDeviceNameSetCmd(BleMgrMsgBase):
     def __init__(self, name, perm) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DEVICE_NAME_SET_CMD)
-
-
-class BleMgrGapDisconnectCmd(BleMgrMsgBase):
-    def __init__(self, conn_idx, reason) -> None:
-        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DISCONNECT_CMD)
 
 
 class BleMgrGapLocalTxPowerGetCmd(BleMgrMsgBase):

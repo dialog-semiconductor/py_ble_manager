@@ -235,7 +235,7 @@ class gap_chnl_map():
 
 
 # GAP connection parameters
-class gap_conn_params():
+class GapConnParams():
     # TODO is ctypes array appriopriate at this layer?
     def __init__(self, interval_min_ms: int = 0, interval_max_ms: int = 0, slave_latency: int = 0, sup_timeout_ms: int = 0) -> None:
         self.interval_min = interval_min_ms * 100 // 125  # Minimum connection interval
@@ -283,13 +283,13 @@ class BleEventGapConnected(BleEventBase):
                  conn_idx: int = 0,
                  own_addr: BdAddress = None,
                  peer_address: BdAddress = None,
-                 conn_params: gap_conn_params = None
+                 conn_params: GapConnParams = None
                  ) -> None:
         super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED)
         self.conn_idx = conn_idx
         self.own_addr = own_addr if own_addr else BdAddress()
         self.peer_address = peer_address if peer_address else BdAddress()
-        self.conn_params = conn_params if conn_params else gap_conn_params()
+        self.conn_params = conn_params if conn_params else GapConnParams()
 
 
 class BleEventGapConnectionCompleted(BleEventBase):

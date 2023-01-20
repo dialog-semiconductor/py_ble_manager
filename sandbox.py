@@ -16,7 +16,12 @@ from services.BleService import *
 import asyncio
 import aioconsole
 
+command = "GAPBROWSE 0"
+conn_idx = command.split()[1]
+print(command.split())
+print(conn_idx)
 
+'''
 async def user_main():
     elapsed = 0
     delay = 1
@@ -43,3 +48,4 @@ async def main():
 
 
 asyncio.run(main())
+'''

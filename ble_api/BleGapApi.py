@@ -1,11 +1,11 @@
 from adapter.BleAdapter import BleAdapter
 from ble_api.BleApiBase import BleApiBase
-from ble_api.BleCommon import BLE_ERROR, BdAddress
-from ble_api.BleGap import BLE_GAP_ROLE, gap_conn_params, BLE_GAP_CONN_MODE, GAP_SCAN_TYPE, GAP_SCAN_MODE
+from ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR
+from ble_api.BleGap import BLE_GAP_ROLE, GapConnParams, BLE_GAP_CONN_MODE, GAP_SCAN_TYPE, GAP_SCAN_MODE
 from manager.BleManager import BleManager
 from manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, BleMgrGapConnectCmd, \
     BleMgrGapConnectRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp, BleMgrGapScanStartCmd, \
-    BleMgrGapScanStartRsp
+    BleMgrGapScanStartRsp, BleMgrGapDisconnectCmd, BleMgrGapDisconnectRsp
 
 from services.BleService import BleServiceBase
 
@@ -15,10 +15,16 @@ class BleGapApi(BleApiBase):
     def __init__(self, ble_manager: BleManager, ble_adapter: BleAdapter):
         super().__init__(ble_manager, ble_adapter)
 
-    async def connect(self, peer_addr: BdAddress, conn_params: gap_conn_params) -> BLE_ERROR:
+    async def connect(self, peer_addr: BdAddress, conn_params: GapConnParams) -> BLE_ERROR:
 
         command = BleMgrGapConnectCmd(peer_addr, conn_params)
         resposne: BleMgrGapConnectRsp = await self.ble_manager.cmd_execute(command)
+
+        return resposne.status
+
+    async def disconnect(self, conn_idx: int, reason: BLE_HCI_ERROR) -> BLE_ERROR:
+        command = BleMgrGapDisconnectCmd(conn_idx, reason)
+        resposne: BleMgrGapDisconnectRsp = await self.ble_manager.cmd_execute(command)
 
         return resposne.status
 

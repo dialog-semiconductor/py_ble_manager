@@ -2,7 +2,7 @@ from ctypes import c_uint8
 
 from ble_api.BleCommon import BLE_OWN_ADDR_TYPE, BdAddress, OwnAddress, Irk, BLE_STATUS
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_GAP_APPEARANCE, gap_chnl_map, GAP_DISC_MODE, ADV_FILT_POL, \
-    gap_scan_params, gap_conn_params, GAP_IO_CAPABILITIES, GAP_DATA_TYPE
+    gap_scan_params, GapConnParams, GAP_IO_CAPABILITIES, GAP_DATA_TYPE
 from gtl_port.co_bt import ADV_DATA_LEN, SCAN_RSP_DATA_LEN, ADV_CHANNEL_MAP
 from gtl_port.gapm_task import gapm_att_cfg_flag
 
@@ -52,7 +52,7 @@ class BleDevParams():
         # Scan parameters used for connection procedures
         self.scan_params = gap_scan_params()  # Scan parameters # TODO does this struct exist in gtl_port files?  # TODO use ble api
         # Peripheral preferred connection parameters
-        self.gap_ppcp = gap_conn_params()  # Connection parameters structure  # TODO use ble api
+        self.gap_ppcp = GapConnParams()  # Connection parameters structure  # TODO use ble api
         # IO Capabilities configuration
         self.io_capabilities = GAP_IO_CAPABILITIES.GAP_IO_CAP_NO_INPUT_OUTPUT  # GAP IO capabilities  # TODO use ble api
 # if (dg_configBLE_PRIVACY_1_2 == 1) # TODO add privacy

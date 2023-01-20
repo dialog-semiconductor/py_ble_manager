@@ -151,6 +151,72 @@ class BLE_EVT_GATTS(IntEnum):
     BLE_EVT_GATTS_EVENT_SENT = auto()
 
 
+# BLE HCI error code
+class BLE_HCI_ERROR(IntEnum):
+    BLE_HCI_ERROR_NO_ERROR = 0x00  # Success
+    BLE_HCI_ERROR_UNKNOWN_HCI_COMMAND = 0x01  # Unknown HCI command
+    BLE_HCI_ERROR_UNKNOWN_CONNECTION_ID = 0x02  # Unknown connection identifier
+    BLE_HCI_ERROR_HARDWARE_FAILURE = 0x03  # Hardware failure
+    BLE_HCI_ERROR_PAGE_TIMEOUT = 0x04  # Page timeout
+    BLE_HCI_ERROR_AUTH_FAILURE = 0x05  # Authentication failure
+    BLE_HCI_ERROR_PIN_MISSING = 0x06  # PIN or key missing
+    BLE_HCI_ERROR_MEMORY_CAPA_EXCEED = 0x07  # Memory capacity exceeded
+    BLE_HCI_ERROR_CON_TIMEOUT = 0x08  # Connection timeout
+    BLE_HCI_ERROR_CON_LIMIT_EXCEED = 0x09  # Connection limit exceeded
+    BLE_HCI_ERROR_SYNC_CON_LIMIT_DEV_EXCEED = 0x0A  # Synchronous connection limit to a device exceeded
+    BLE_HCI_ERROR_ACL_CON_EXISTS = 0x0B  # ACL connection already exists
+    BLE_HCI_ERROR_COMMAND_DISALLOWED = 0x0C  # Command disallowed
+    BLE_HCI_ERROR_CONN_REJ_LIMITED_RESOURCES = 0x0D  # Connection rejected due to limited resources
+    BLE_HCI_ERROR_CONN_REJ_SECURITY_REASONS = 0x0E  # Connection rejected due to security reasons
+    BLE_HCI_ERROR_CONN_REJ_UNACCEPTABLE_BDADDR = 0x0F  # Connection rejected due to unacceptable BD_ADDR
+    BLE_HCI_ERROR_CONN_ACCEPT_TIMEOUT_EXCEED = 0x10  # Connection accept timeout exceeded
+    BLE_HCI_ERROR_UNSUPPORTED = 0x11  # Unsupported feature or parameter value
+    BLE_HCI_ERROR_INVALID_HCI_PARAM = 0x12  # Invalid HCI command parameters
+    BLE_HCI_ERROR_REMOTE_USER_TERM_CON = 0x13  # Remote User terminated connection
+    BLE_HCI_ERROR_REMOTE_DEV_TERM_LOW_RESOURCES = 0x14  # Remote device terminated connection due to low resources
+    BLE_HCI_ERROR_REMOTE_DEV_POWER_OFF = 0x15  # Remote device terminated connection due to power off
+    BLE_HCI_ERROR_CON_TERM_BY_LOCAL_HOST = 0x16  # Connection terminated by local host
+    BLE_HCI_ERROR_REPEATED_ATTEMPTS = 0x17  # Repeated attempts
+    BLE_HCI_ERROR_PAIRING_NOT_ALLOWED = 0x18  # Pairing not allowed
+    BLE_HCI_ERROR_UNKNOWN_LMP_PDU = 0x19  # Unknown LMP PDU
+    BLE_HCI_ERROR_UNSUPPORTED_REMOTE_FEATURE = 0x1A  # Unsupported remote feature / Unsupported LMP feature
+    BLE_HCI_ERROR_SCO_OFFSET_REJECTED = 0x1B  # SCO offset rejected
+    BLE_HCI_ERROR_SCO_INTERVAL_REJECTED = 0x1C  # SCO interval rejected
+    BLE_HCI_ERROR_SCO_AIR_MODE_REJECTED = 0x1D  # SCO air mode rejected
+    BLE_HCI_ERROR_INVALID_LMP_PARAM = 0x1E  # Invalid LMP parameters / Invalid LL parameters
+    BLE_HCI_ERROR_UNSPECIFIED_ERROR = 0x1F  # Unspecified error
+    BLE_HCI_ERROR_UNSUPPORTED_LMP_PARAM_VALUE = 0x20  # Unsupported LMP parameter value / Unsupported LL parameter value
+    BLE_HCI_ERROR_ROLE_CHANGE_NOT_ALLOWED = 0x21  # Role change not allowed
+    BLE_HCI_ERROR_LMP_RSP_TIMEOUT = 0x22  # LMP response timeout / LL response timeout
+    BLE_HCI_ERROR_LMP_COLLISION = 0x23  # LMP error transaction collision
+    BLE_HCI_ERROR_LMP_PDU_NOT_ALLOWED = 0x24  # LMP PDU not allowed
+    BLE_HCI_ERROR_ENC_MODE_NOT_ACCEPT = 0x25  # Encryption mode not acceptable
+    BLE_HCI_ERROR_LINK_KEY_CANT_CHANGE = 0x26  # Link key cannot be changed
+    BLE_HCI_ERROR_QOS_NOT_SUPPORTED = 0x27  # Requested QoS not supported
+    BLE_HCI_ERROR_INSTANT_PASSED = 0x28  # Instant passed
+    BLE_HCI_ERROR_PAIRING_WITH_UNIT_KEY_NOT_SUP = 0x29  # Pairing with unit key not supported
+    BLE_HCI_ERROR_DIFF_TRANSACTION_COLLISION = 0x2A  # Different transaction collision
+    BLE_HCI_ERROR_QOS_UNACCEPTABLE_PARAM = 0x2C  # QoS unacceptable parameter
+    BLE_HCI_ERROR_QOS_REJECTED = 0x2D  # QoS rejected
+    BLE_HCI_ERROR_CHANNEL_CLASS_NOT_SUP = 0x2E  # Channel classification not supported
+    BLE_HCI_ERROR_INSUFFICIENT_SECURITY = 0x2F  # Insufficient security
+    BLE_HCI_ERROR_PARAM_OUT_OF_MAND_RANGE = 0x30  # Parameter out of mandatory range
+    BLE_HCI_ERROR_ROLE_SWITCH_PEND = 0x32  # Role switch pending
+    BLE_HCI_ERROR_RESERVED_SLOT_VIOLATION = 0x34  # Reserved slot violation
+    BLE_HCI_ERROR_ROLE_SWITCH_FAIL = 0x35  # Role switch failed
+    BLE_HCI_ERROR_EIR_TOO_LARGE = 0x36  # Extended inquiry response too large
+    BLE_HCI_ERROR_SP_NOT_SUPPORTED_HOST = 0x37  # Secure simple pairing not supported by host
+    BLE_HCI_ERROR_HOST_BUSY_PAIRING = 0x38  # Host busy - pairing
+    BLE_HCI_ERROR_CONN_REJ_NO_SUITABLE_CHANNEL = 0x39  # Connection rejected due to no suitable channel found
+    BLE_HCI_ERROR_CONTROLLER_BUSY = 0x3A  # Controller busy
+    BLE_HCI_ERROR_UNACCEPTABLE_CONN_INT = 0x3B  # Unacceptable connection parameters
+    BLE_HCI_ERROR_DIRECT_ADV_TO = 0x3C  # Directed advertising timeout=
+    BLE_HCI_ERROR_TERMINATED_MIC_FAILURE = 0x3D  # Connection terminated due to MIC failure
+    BLE_HCI_ERROR_CONN_FAILED_TO_BE_EST = 0x3E  # Connection failed to be established
+    BLE_HCI_ERROR_MAC_CONNECTION_FAILED = 0x3F  # MAC connection failed
+    BLE_HCI_ERROR_COARSE_CLK_ADJUST_REJECTED = 0x40  # Coarse clock adjustment rejected but will try to adjust using clock dragging
+
+
 # Own Device Address type
 class BLE_OWN_ADDR_TYPE(IntEnum):
     PUBLIC_STATIC_ADDRESS = auto()  # Public Static Address

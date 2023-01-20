@@ -1,7 +1,7 @@
 from ble_api.BleAtt import AttUuid
 from ble_api.BleDeviceBase import BleDeviceBase
-from ble_api.BleCommon import BLE_ERROR, BdAddress
-from ble_api.BleGap import BLE_GAP_ROLE, gap_conn_params, GAP_SCAN_TYPE, GAP_SCAN_MODE, BleEventGapAdvReport, BleAdvData, GAP_DATA_TYPE
+from ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR
+from ble_api.BleGap import BLE_GAP_ROLE, GapConnParams, GAP_SCAN_TYPE, GAP_SCAN_MODE, BleEventGapAdvReport, BleAdvData, GAP_DATA_TYPE
 
 
 class BleCentral(BleDeviceBase):
@@ -11,9 +11,11 @@ class BleCentral(BleDeviceBase):
     async def browse(self, conn_idx: int, uuid: AttUuid) -> BLE_ERROR:
         return await self.ble_gattc.browse(conn_idx, uuid)
 
-
-    async def connect(self, peer_addr: BdAddress, conn_params: gap_conn_params) -> None:
+    async def connect(self, peer_addr: BdAddress, conn_params: GapConnParams) -> None:
         return await self.ble_gap.connect(peer_addr, conn_params)
+
+    async def disconect(self, conn_idx: int, reason: BLE_HCI_ERROR) -> BLE_ERROR:
+        return await self.ble_gap.disconnect(conn_idx, reason)
 
     async def discover_descriptors(self,
                                    conn_idx: int,
@@ -73,3 +75,5 @@ class BleCentral(BleDeviceBase):
 
     async def write(self, conn_idx: int, handle: int, offset: int, value: bytes) -> BLE_ERROR:
         return await self.ble_gattc.write(conn_idx, handle, offset, value)
+
+     

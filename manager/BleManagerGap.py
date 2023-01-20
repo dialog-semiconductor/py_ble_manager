@@ -1,13 +1,13 @@
 import asyncio
 from ctypes import c_uint8
 
-from ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_OWN_ADDR_TYPE, BLE_ADDR_TYPE
+from ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_OWN_ADDR_TYPE, BLE_ADDR_TYPE,  BLE_HCI_ERROR
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BleEventGapConnected, BleEventGapDisconnected,  \
     BleEventGapAdvCompleted, BLE_CONN_IDX_INVALID, GAP_SEC_LEVEL, GAP_SCAN_TYPE, BleEventGapAdvReport, \
     BleEventGapScanCompleted, BleEventGapConnectionCompleted
 from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd, GapcGetDevInfoReqInd, GapcGetDevInfoCfm, \
-    GapcDisconnectInd, GapcCmpEvt
+    GapcDisconnectInd, GapcCmpEvt, GapcDisconnectCmd
 from gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd, \
     GapmStartScanCmd, GapmAdvReportInd
 from gtl_port.co_error import CO_ERROR
@@ -19,7 +19,8 @@ from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from manager.BleDevParams import BleDevParamsDefault
 from manager.BleManagerCommon import BleManagerBase
 from manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp, \
-    BleMgrGapRoleSetCmd, BleMgrGapConnectCmd, BleMgrGapScanStartCmd, BleMgrGapScanStartRsp, BleMgrGapConnectRsp
+    BleMgrGapRoleSetCmd, BleMgrGapConnectCmd, BleMgrGapScanStartCmd, BleMgrGapScanStartRsp, BleMgrGapConnectRsp, \
+    BleMgrGapDisconnectCmd, BleMgrGapDisconnectRsp
 from manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from manager.GtlWaitQueue import GtlWaitQueue
 
@@ -58,7 +59,7 @@ class BleManagerGap(BleManagerBase):
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SCAN_STOP_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CMD: self.connect_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CANCEL_CMD: None,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DISCONNECT_CMD: None,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DISCONNECT_CMD: self.disconnect_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PEER_VERSION_GET_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PEER_FEATURES_GET_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_RSSI_GET_CMD: None,
@@ -330,6 +331,11 @@ class BleManagerGap(BleManagerBase):
                 evt.status = gtl.parameters.status
 
         self._mgr_event_queue_send(evt)
+
+    def _send_disconncet_cmd(self, conn_idx: int, reason: BLE_HCI_ERROR) -> None:
+        gtl = GapcDisconnectCmd(conidx=conn_idx)
+        gtl.parameters.reason = reason
+        self._adapter_command_queue_send(gtl)
 
     # TODO sdk passes rsp in as param. you have passed in command.params
     def _set_role_rsp(self, gtl: GapmCmpEvt, new_role: BLE_GAP_ROLE = BLE_GAP_ROLE.GAP_NO_ROLE):
@@ -665,6 +671,20 @@ class BleManagerGap(BleManagerBase):
 
         # TODO something with service changed characteristic value from storage
         self._adapter_command_queue_send(cfm)
+
+    def diconnect_cmd_handler(self, command: BleMgrGapDisconnectCmd) -> None:
+        response = BleMgrGapDisconnectRsp(BLE_ERROR.BLE_ERROR_FAILED)
+
+        dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
+
+        if not dev:
+            response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
+        else:
+            self._send_disconncet_cmd(command.conn_idx, command.reason)
+            response.status = BLE_ERROR.BLE_STATUS_OK
+
+        self._mgr_response_queue_send(response)
+
 
     def disconnected_evt_handler(self, gtl: GapcDisconnectInd) -> None:
 
