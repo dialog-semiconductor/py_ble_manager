@@ -4,6 +4,7 @@ import asyncio
 from ble_api.BlePeripheral import BlePeripheral
 from ble_api.BleAtt import ATT_ERROR
 from ble_api.BleCommon import BleEventBase
+from ble_api.BleGap import BleEventGapDisconnected
 from services.CustomBleService import CustomBleService, CustomBleServiceCallbacks
 
 
@@ -48,7 +49,7 @@ async def main():
 
 async def ble_task(sample_q: asyncio.Queue):
 
-    periph = BlePeripheral("COM15")
+    periph = BlePeripheral("COM15", gtl_debug=True)
     await periph.init()
     await periph.start()
 
@@ -91,6 +92,8 @@ async def ble_task(sample_q: asyncio.Queue):
                 if evt is not None:
                     handled = await periph.service_handle_event(evt)
                     if not handled:
+                        if isinstance(evt, BleEventGapDisconnected):
+                            await periph.start_advertising()
                         # Application opportunity to handle event
                         # or apply default behaior
                         pass

@@ -1,5 +1,5 @@
 from enum import IntEnum, auto
-from ble_api.BleCommon import BleEventBase, BdAddress, BLE_ERROR, BLE_EVT_GAP
+from ble_api.BleCommon import BleEventBase, BdAddress, BLE_ERROR, BLE_EVT_GAP, BLE_HCI_ERROR
 
 
 BLE_CONN_IDX_INVALID = 0xFFFF
@@ -304,12 +304,22 @@ class BleEventGapDisconnected(BleEventBase):
     def __init__(self,
                  conn_idx: int = 0,
                  address: BdAddress = None,
-                 reason: int = 0,  # TODO BLE Api Enum for this?
+                 reason: BLE_HCI_ERROR = BLE_HCI_ERROR.BLE_HCI_ERROR_NO_ERROR,
                  ) -> None:
         super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED)
         self.conn_idx = conn_idx
         self.address = address if address else BdAddress()
         self.reason = reason
+
+
+class BleEventGapDisconnectFailed(BleEventBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED)
+        self.conn_idx = conn_idx
+        self.status = status
 
 
 class BleEventGapScanCompleted(BleEventBase):

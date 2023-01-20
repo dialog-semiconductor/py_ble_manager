@@ -4,7 +4,7 @@ from ctypes import c_uint8
 from ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_OWN_ADDR_TYPE, BLE_ADDR_TYPE,  BLE_HCI_ERROR
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BleEventGapConnected, BleEventGapDisconnected,  \
     BleEventGapAdvCompleted, BLE_CONN_IDX_INVALID, GAP_SEC_LEVEL, GAP_SCAN_TYPE, BleEventGapAdvReport, \
-    BleEventGapScanCompleted, BleEventGapConnectionCompleted
+    BleEventGapScanCompleted, BleEventGapConnectionCompleted, BleEventGapDisconnectFailed
 from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd, GapcGetDevInfoReqInd, GapcGetDevInfoCfm, \
     GapcDisconnectInd, GapcCmpEvt, GapcDisconnectCmd
@@ -177,7 +177,24 @@ class BleManagerGap(BleManagerBase):
         return False
 
     def _cmp_disconnect_evt_handler(self, gtl: GapcCmpEvt):
-        return False
+        # ignore if no error
+        if gtl.parameters.status != HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
+            evt = BleEventGapDisconnectFailed()
+            evt.conn_idx = self._task_to_connidx(gtl.src_id)
+            match gtl.parameters.status:
+                case (HOST_STACK_ERROR_CODE.GAP_ERR_INVALID_PARAM
+                        | HOST_STACK_ERROR_CODE.LL_ERR_INVALID_HCI_PARAM):
+
+                    evt.status = BLE_ERROR.BLE_ERROR_INVALID_PARAM
+
+                case HOST_STACK_ERROR_CODE.LL_ERR_COMMAND_DISALLOWED:
+                    evt.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
+                case _:
+                    # evt.status = gtl.parameters.status  # TODO this throws a ValueError if not a valid BLE_ERROR
+                    # need to be able to set a BLE_ERROR that is not defined. Could make a LittleEndianStructure
+                    evt.status = BLE_ERROR.BLE_ERROR_FAILED
+
+            self._mgr_event_queue_send(evt)
 
     def _cmp_security_req_evt_handler(self, gtl: GapcCmpEvt):
         return False
@@ -191,7 +208,7 @@ class BleManagerGap(BleManagerBase):
             dev.pending_events_clear_handles()
             evt = BleEventGapDisconnected()
             evt.conn_idx = conn_idx
-            evt.reason = reason
+            evt.reason = reason  # TODO BLE_HCI_ERROR and CO_ERROR not one to one. Will throw value error if not valid BLE_HCI_ERROR?
 
             # TODO
             # Need to notify L2CAP handler so it can 'deallocate' all channels for the given conn_idx */
@@ -334,7 +351,7 @@ class BleManagerGap(BleManagerBase):
 
     def _send_disconncet_cmd(self, conn_idx: int, reason: BLE_HCI_ERROR) -> None:
         gtl = GapcDisconnectCmd(conidx=conn_idx)
-        gtl.parameters.reason = reason
+        gtl.parameters.reason = CO_ERROR(reason)
         self._adapter_command_queue_send(gtl)
 
     # TODO sdk passes rsp in as param. you have passed in command.params
@@ -458,8 +475,7 @@ class BleManagerGap(BleManagerBase):
 
         match gtl.parameters.operation:
             case GAPC_OPERATION.GAPC_DISCONNECT:
-                # TODO should not return value
-                return self._cmp_disconnect_evt_handler(gtl)
+                self._cmp_disconnect_evt_handler(gtl)
             case GAPC_OPERATION.GAPC_UPDATE_PARAMS:
                 # TODO should not return value
                 return self._cmp_update_params_evt_handler(gtl)

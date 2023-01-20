@@ -100,7 +100,6 @@ class BleServiceBase():
     #    self._gatt_service = svc
 
     # gatt_service = property(_get_gatt_service)
-
     def _uuid_from_str(self, uuid_str: str) -> bytes:
         uuid_str = uuid_str.replace("-", "")
         uuid_list = [int(uuid_str[idx:idx + 2], 16) for idx in range(0, len(uuid_str), 2)]

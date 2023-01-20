@@ -1322,10 +1322,12 @@ class gattc_sdp_att(LittleEndianStructure):
 
     def __init__(self,
                  att_type: GATTC_SDP_ATT_TYPE = GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_VAL,
+                 uuid_len: c_uint8 = 0,
                  uuid: c_uint8 * ATT_UUID_128_LEN = (c_uint8 * ATT_UUID_128_LEN)(),
                  ) -> None:
 
         self.att_type = att_type
+        self.uuid_len = uuid_len
         self.uuid = uuid
 
         super().__init__(_att_type=self.att_type,
@@ -1360,7 +1362,6 @@ class gattc_sdp_att(LittleEndianStructure):
         if len(uuid) == 2 or len(uuid) == 4 or len(uuid) == 16:
             self._uuid = (c_uint8 * ATT_UUID_128_LEN)()
             self._uuid[:len(uuid)] = uuid
-            self.uuid_len = len(uuid)
         else:
             raise TypeError("uuid length must be 2, 4, or 16")
 
@@ -1406,12 +1407,14 @@ class gattc_sdp_att_info(Union):
 class gattc_sdp_svc_ind(LittleEndianStructure):
 
     def __init__(self,
+                 uuid_len: c_uint8 = 0,
                  uuid: c_uint8 * ATT_UUID_128_LEN = (c_uint8 * ATT_UUID_128_LEN)(),
                  start_hdl: c_uint16 = 0,
                  end_hdl: c_uint16 = 0,
                  info: Array[gattc_sdp_att_info] = None
                  ) -> None:
 
+        self.uuid_len = uuid_len
         self.uuid = uuid
         self.start_hdl = start_hdl
         self.end_hdl = end_hdl
@@ -1451,7 +1454,6 @@ class gattc_sdp_svc_ind(LittleEndianStructure):
         if len(uuid) == 2 or len(uuid) == 4 or len(uuid) == 16:
             self._uuid = (c_uint8 * ATT_UUID_128_LEN)()
             self._uuid[:len(uuid)] = uuid
-            self.uuid_len = len(uuid)
         else:
             raise TypeError("uuid length must be 2, 4, or 16")
 

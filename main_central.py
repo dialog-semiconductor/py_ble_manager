@@ -2,12 +2,14 @@ import asyncio
 import aioconsole
 
 # TODO simplify imports for user
+from ble_api.BleAtt import AttUuid, ATT_UUID_TYPE
 from ble_api.BleCentral import BleCentral
-from ble_api.BleCommon import BleEventBase, BdAddress, BLE_ADDR_TYPE
-from ble_api.BleGap import BleEventGapAdvReport, BleEventGapScanCompleted, GapConnParams, BleEventGapConnected
+from ble_api.BleCommon import BleEventBase, BdAddress, BLE_ADDR_TYPE, BLE_HCI_ERROR
+from ble_api.BleGap import BleEventGapAdvReport, BleEventGapScanCompleted, GapConnParams, BleEventGapConnected, \
+    BleEventGapDisconnected
 from ble_api.BleGattc import BleEventGattcDiscoverSvc, BleEventGattcDiscoverCompleted, GATTC_DISCOVERY_TYPE, \
-    BleEventGattcDiscoverChar, BleEventGattcDiscoverDesc, BleEventGattcBrowseCompleted, BleEventGattcBrowseSvc
-
+    BleEventGattcDiscoverChar, BleEventGattcDiscoverDesc, BleEventGattcBrowseCompleted, BleEventGattcBrowseSvc, \
+    GATTC_ITEM_TYPE
 from manager.BleManagerStorage import SearchableQueue
 from services.BleService import BleServiceBase
 
@@ -76,11 +78,23 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
                     await central.connect(periph_bd, periph_conn_params)
 
                 elif command.find("GAPBROWSE") != -1:
-
                     conn_idx = int(command.split()[1])
-                    print(f"processing cmd={command}, conn_idx={conn_idx}")
                     await central.browse(conn_idx, None)
 
+                elif command.find("GAPDISCONNECT") != -1:
+                    args = command.split()
+                    conn_idx = int(args[1])
+                    if len(args) == 3:
+                        reason = BLE_HCI_ERROR(int(args[2]))
+                        if reason == BLE_HCI_ERROR.BLE_HCI_ERROR_NO_ERROR:
+                            reason = BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON
+                    else:
+                        reason = BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON
+                    await central.disconect(conn_idx, reason)
+
+                else:
+                    response = "Invalid command"
+                    response_q.put_nowait(response)
 
                 console_command_task = asyncio.create_task(command_q.get(), name='GetConsoleCommand')
                 pending.add(console_command_task)
@@ -109,6 +123,11 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
 
                     if isinstance(evt, BleEventGapConnected):
                         handle_evt_gap_connected(central, evt)
+                        response = "Success" # TODO need to refine responses
+                        response_q.put_nowait(response)
+
+                    if isinstance(evt, BleEventGapDisconnected):
+                        handle_evt_gap_disconnected(central, evt)
                         response = "Success" # TODO need to refine responses
                         response_q.put_nowait(response)
 
@@ -173,18 +192,49 @@ def handle_evt_gattc_discover_desc(central: BleCentral, evt: BleEventGattcDiscov
 
 
 def handle_evt_gap_connected(central: BleCentral, evt: BleEventGapConnected):
-    # response = await central.discover_services(evt.conn_idx, None)
-    print(f"Conneected to: addr={[hex(x) for x in evt.peer_address.addr]}")
+    print(f"Conneected to: addr={[hex(x) for x in evt.peer_address.addr]}. conn_idx={evt.conn_idx}")
+
+
+def handle_evt_gap_disconnected(central: BleCentral, evt: BleEventGapDisconnected):
+    # TODO addr to hex str
+    print(f"Disconnected from to: addr={[hex(x) for x in evt.address.addr]}")
 
 
 def handle_evt_gattc_browse_svc(central: BleCentral, evt: BleEventGattcBrowseSvc):
-    print(f"Attribute discovered: uuid={[hex(x) for x in evt.uuid.uuid]}. handle={evt.start_h}")
+
+    print(f"Service discovered: uuid={uuid_to_str(evt.uuid)}. handle={evt.start_h}")
+    for item in evt.items:
+        if item.type == GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_DESCRIPTOR:
+            print(f"\tIncluded service discovered: handle={item.handle}, uuid={uuid_to_str(item.uuid)}")
+        elif item.type == GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_CHARACTERISTIC:
+            # TODO format properties function
+            print(f"\tCharacteristic discovered: handle={item.handle}, uuid={uuid_to_str(item.uuid)}, prop={item.char_data.properties}")
+        elif item.type == GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_CHARACTERISTIC:
+            # TODO format properties function
+            print(f"\t\tDescriptor discovered: handle={item.handle}, uuid={uuid_to_str(item.uuid)}")
 
 
 def handle_evt_gattc_browse_completed(central: BleCentral, evt: BleEventGattcBrowseCompleted):
     print(f"Browsing complete. evt={evt}")
 
 
+def uuid_to_str(uuid: AttUuid) -> str:
+    data = uuid.uuid
+    return_string = ""
+    if uuid.type == ATT_UUID_TYPE.ATT_UUID_128:
+        for byte in data:
+            byte_string = str(hex(byte))[2:]
+            if len(byte_string) == 1:
+                byte_string = "0" + byte_string
+            return_string = byte_string + return_string
+    else:
+        for i in range(1, -1, -1):
+            byte_string = str(hex(data[i]))[2:]
+            if len(byte_string) == 1:
+                byte_string = "0" + byte_string
+            return_string += byte_string
+
+    return return_string
 
 
 asyncio.run(main())

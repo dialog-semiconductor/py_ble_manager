@@ -53,7 +53,7 @@ class GattcMessageFactory():
 
             elif msg_id == GATTC_MSG_ID.GATTC_SDP_SVC_IND:
                 parameters = gattc_sdp_svc_ind()
-                # params_buf[0:1] skipped to account for uuid length
+                parameters.uuid_len = int.from_bytes(params_buf[0:1], "little", signed=False)
                 parameters.uuid = (c_uint8 * len(params_buf[1:17])).from_buffer_copy(params_buf[1:17])
                 # params_buf[17:18] skipped to account for padding
                 parameters.start_hdl = int.from_bytes(params_buf[18:20], "little", signed=False)

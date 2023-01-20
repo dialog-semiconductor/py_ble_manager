@@ -16,10 +16,6 @@ from services.BleService import *
 import asyncio
 import aioconsole
 
-command = "GAPBROWSE 0"
-conn_idx = command.split()[1]
-print(command.split())
-print(conn_idx)
 
 '''
 async def user_main():
@@ -49,3 +45,33 @@ async def main():
 
 asyncio.run(main())
 '''
+
+
+uuid = "8e716a7e-12a2-11ed-861d-0242ac120002"
+
+def uuid_from_str(uuid_str: str) -> bytes:
+    uuid_str = uuid_str.replace("-", "")
+    uuid_list = [int(uuid_str[idx:idx + 2], 16) for idx in range(0, len(uuid_str), 2)]
+    uuid_list.reverse()  # mcu is little endian
+    return bytes(uuid_list)
+
+def uuid_to_str(uuid: AttUuid) -> str:
+    data = uuid.uuid
+    return_string = ""
+    for byte in data:
+        byte_string = str(hex(byte))[2:]
+        if len(byte_string) == 1:
+            byte_string = "0"+ byte_string
+        return_string = byte_string + return_string
+    
+    return return_string
+
+
+att_uuid = AttUuid(uuid_from_str(uuid))
+
+return_string = uuid_to_str(att_uuid)
+print(return_string)
+
+
+for i in range(1,-1,-1):
+    print(i)

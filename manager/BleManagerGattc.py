@@ -1,7 +1,7 @@
 import asyncio
 from ctypes import c_uint8
 
-from ble_api.BleAtt import ATT_ERROR
+from ble_api.BleAtt import ATT_ERROR, AttUuid
 from ble_api.BleCommon import BleEventBase, BLE_ERROR
 from ble_api.BleGattc import BleEventGattcDiscoverSvc, BleEventGattcDiscoverCompleted, GATTC_DISCOVERY_TYPE, \
     BleEventGattcDiscoverChar, BleEventGattcDiscoverDesc, BleEventGattcBrowseSvc, BleEventGattcBrowseCompleted, \
@@ -310,7 +310,7 @@ class BleManagerGattc(BleManagerBase):
         evt.conn_idx = self._task_to_connidx(gtl.src_id)
         evt.start_h = gtl.parameters.start_hdl
         evt.end_h = gtl.parameters.end_hdl
-        evt.uuid.uuid = bytes(gtl.parameters.uuid)
+        evt.uuid.uuid = bytes(gtl.parameters.uuid[:gtl.parameters.uuid_len])
 
         ignore = False
         for i in range(0, num_handles):
@@ -328,7 +328,7 @@ class BleManagerGattc(BleManagerBase):
                         item.service_data = GattcServiceData()
                         item.service_data.start_h = info.inc_svc.start_hdl
                         item.service_data.end_h = info.inc_svc.end_hdl
-                        item.uuid = bytes(info.inc_svc.uuid)
+                        item.uuid = AttUuid(bytes(info.inc_svc.uuid))
                     case GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_CHAR:
                         item.type = GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_CHARACTERISTIC
                         item.char_data = GattcCharacteristicData()
@@ -344,11 +344,11 @@ class BleManagerGattc(BleManagerBase):
                             ignore = True
                             break
 
-                        item.uuid = bytes(info.att.uuid)
+                        item.uuid = AttUuid(bytes(info.att.uuid[:info.att.uuid_len]))
 
                     case GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_DESC:
                         item.type = GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_DESCRIPTOR
-                        item.uuid = bytes(info.att.uuid)
+                        item.uuid = AttUuid(bytes(info.att.uuid[:info.att.uuid_len]))
 
                 evt.items.append(item)
                 evt.num_items += 1
