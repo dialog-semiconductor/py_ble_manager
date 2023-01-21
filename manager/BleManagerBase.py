@@ -32,9 +32,6 @@ class BleManagerBase():
     def _find_devive_by_addr():
         pass
 
-    async def _mgr_event_queue_get(self) -> BleMgrMsgBase:
-        return await self._mgr_event_q.get()
-
     def _mgr_event_queue_send(self, evt: BleEventBase):
         self._mgr_event_q.put_nowait(evt)
 
@@ -53,3 +50,6 @@ class BleManagerBase():
 
     def _task_to_connidx(self, task_id: int) -> int:  # TODO this is repeated from GtlWaitQueue. Do not have in two places
         return task_id >> 8
+
+    async def mgr_event_queue_get(self) -> BleMgrMsgBase:
+        return await self._mgr_event_q.get()

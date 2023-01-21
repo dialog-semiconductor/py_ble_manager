@@ -4,7 +4,7 @@ from gtl_port.gattc_task import GATTC_MSG_ID, gattc_write_req_ind, gattc_write_c
     gattc_cmp_evt, gattc_event_ind, gattc_event_req_ind, gattc_event_cfm, gattc_disc_cmd, gattc_disc_char_desc_ind, gattc_disc_svc_ind, \
     gattc_disc_svc_incl_ind, gattc_disc_char_ind, gattc_sdp_svc_disc_cmd, gattc_read_cmd, GATTC_OPERATION, gattc_read_ind, gattc_write_cmd, \
     gattc_exc_mtu_cmd, gattc_mtu_changed_ind, gattc_att_info_req_ind, gattc_att_info_cfm, gattc_sdp_svc_ind, gattc_sdp_att_info, \
-    GATTC_SDP_ATT_TYPE
+    GATTC_SDP_ATT_TYPE, gattc_execute_write_cmd
 from gtl_port.rwip_config import KE_API_ID
 
 # TODO next message GATTC_ATT_INFO_REQ_IND, GATTC_ATT_INFO_CFM
@@ -488,9 +488,14 @@ class GattcWriteCmd(GtlMessageBase):
         return message
 
 
-    
-# TODO GATTC_WRITE_EXECUTE_CMD
-# TODO setup Git Action for unit tests
-# TODO setup Flake8 for linting
-# TODO explicit imports instead of wildcard (*) imports
-# TODO organize gtl_port files into same directory structure
+class GattcWriteExecuteCmd(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gattc_execute_write_cmd = None):
+
+        self.parameters = parameters if parameters else gattc_execute_write_cmd()
+
+        super().__init__(msg_id=GATTC_MSG_ID.GATTC_EXECUTE_WRITE_CMD,
+                         dst_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
+                         src_id=KE_API_ID.TASK_ID_GTL,
+                         par_len=4,
+                         parameters=self.parameters)

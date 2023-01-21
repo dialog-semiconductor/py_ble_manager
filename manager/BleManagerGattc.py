@@ -9,14 +9,15 @@ from ble_api.BleGattc import BleEventGattcDiscoverSvc, BleEventGattcDiscoverComp
     BleEventGattcWriteCompleted, BleEventGattcNotification, BleEventGattcIndication
 from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gattc import GattcDiscCmd, GattcDiscSvcInd, GattcCmpEvt, GattcDiscCharInd, GattcSdpSvcDiscCmd, \
-    GattcSdpSvcInd, GattcReadCmd, GattcReadInd, GattcWriteCmd, GattcEventInd, GattcEventReqInd, GattcEventCfm
+    GattcSdpSvcInd, GattcReadCmd, GattcReadInd, GattcWriteCmd, GattcEventInd, GattcEventReqInd, GattcEventCfm, \
+    GattcWriteExecuteCmd
 from gtl_port.gattc_task import GATTC_OPERATION, GATTC_MSG_ID, gattc_sdp_att_info, GATTC_SDP_ATT_TYPE, gattc_read_simple
 from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from manager.BleManagerBase import BleManagerBase
 from manager.BleManagerGattcMsgs import BLE_CMD_GATTC_OPCODE, BleMgrGattcDiscoverSvcCmd, \
     BleMgrGattcDiscoverSvcRsp, BleMgrGattcDiscoverCharCmd, BleMgrGattcDiscoverCharRsp, BleMgrGattcDiscoverDescCmd, \
     BleMgrGattcDiscoverDescRsp, BleMgrGattcBrowseCmd, BleMgrGattcBrowseRsp, BleMgrGattcReadCmd, BleMgrGattcReadRsp, \
-    BleMgrGattcWriteGenericCmd, BleMgrGattcWriteGenericRsp
+    BleMgrGattcWriteGenericCmd, BleMgrGattcWriteGenericRsp, BleMgrGattcWriteExecuteCmd, BleMgrGattcWriteExecuteRsp
 from manager.BleManagerStorage import StoredDeviceQueue
 from manager.GtlWaitQueue import GtlWaitQueue
 
@@ -41,7 +42,7 @@ class BleManagerGattc(BleManagerBase):
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_DESC_CMD: self.discover_desc_cmd_handler,
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_READ_CMD: self.read_cmd_handler,
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_WRITE_GENERIC_CMD: self.write_generic_cmd_handler,
-            BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_WRITE_EXECUTE_CMD: None,
+            BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_WRITE_EXECUTE_CMD: self.write_execute_cmd_handler,
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_EXCHANGE_MTU_CMD: None,
 
         }
@@ -379,6 +380,20 @@ class BleManagerGattc(BleManagerBase):
 
         if not ignore:
             self._mgr_event_queue_send(evt)
+
+    def write_execute_cmd_handler(self, command: BleMgrGattcWriteExecuteCmd):
+        response = BleMgrGattcWriteExecuteRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
+        if not dev:
+            response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
+        else:
+            gtl = GattcWriteExecuteCmd(conidx=command.conn_idx)
+            gtl.parameters.execute = command.commit
+            gtl.parameters.seq_num = 0  # make this '0' so we can handle in the same handler as other writes
+                                        # attribute handle '0' means 'execute write' there
+            self._adapter_command_queue_send(gtl)
+
+        self._mgr_response_queue_send(response)
 
     def write_generic_cmd_handler(self, command: BleMgrGattcWriteGenericCmd):
         response = BleMgrGattcWriteGenericRsp(BLE_ERROR.BLE_ERROR_FAILED)

@@ -8,7 +8,7 @@ from manager.BleManager import BleManager
 from manager.BleManagerGattcMsgs import BleMgrGattcDiscoverSvcCmd, BleMgrGattcDiscoverSvcRsp, \
     BleMgrGattcDiscoverCharCmd, BleMgrGattcDiscoverCharRsp, BleMgrGattcDiscoverDescCmd, BleMgrGattcDiscoverDescRsp, \
     BleMgrGattcBrowseCmd, BleMgrGattcBrowseRsp, BleMgrGattcReadCmd, BleMgrGattcReadRsp, BleMgrGattcWriteGenericCmd, \
-    BleMgrGattcWriteGenericRsp
+    BleMgrGattcWriteGenericRsp, BleMgrGattcWriteExecuteCmd, BleMgrGattcWriteExecuteRsp
 
 
 class BleGattcApi(BleApiBase):
@@ -60,5 +60,31 @@ class BleGattcApi(BleApiBase):
     async def write(self, conn_idx: int, handle: int, offset: int, value: bytes) -> BLE_ERROR:
         command = BleMgrGattcWriteGenericCmd(conn_idx=conn_idx, handle=handle, offset=offset, value=value)
         response: BleMgrGattcWriteGenericRsp = await self.ble_manager.cmd_execute(command)
+
+        return response.status
+
+    async def write_no_resp(self, conn_idx: int, handle: int, signed_write: bool, value: bytes) -> BLE_ERROR:
+        command = BleMgrGattcWriteGenericCmd(conn_idx=conn_idx,
+                                             handle=handle,
+                                             no_response=True,
+                                             signed_write=signed_write,
+                                             value=value)
+        response: BleMgrGattcWriteGenericRsp = await self.ble_manager.cmd_execute(command)
+
+        return response.status
+
+    async def write_prepare(self, conn_idx: int, handle: int, offset: int, value: bytes) -> BLE_ERROR:
+        command = BleMgrGattcWriteGenericCmd(conn_idx=conn_idx,
+                                             handle=handle,
+                                             prepare=True,
+                                             offset=offset,
+                                             value=value)
+        response: BleMgrGattcWriteGenericRsp = await self.ble_manager.cmd_execute(command)
+
+        return response.status
+
+    async def write_execute(self, conn_idx: int, commit: bool) -> BLE_ERROR:
+        command = BleMgrGattcWriteExecuteCmd(conn_idx, commit)
+        response: BleMgrGattcWriteExecuteRsp = await self.ble_manager.cmd_execute(command)
 
         return response.status

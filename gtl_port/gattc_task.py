@@ -843,19 +843,25 @@ class gattc_write_cmd(LittleEndianStructure):
     value = property(get_value, set_value)
 
 
-'''
 # Write peer attribute value command
-struct gattc_execute_write_cmd
-{
-    # Request type
-    uint8_t operation;
+class gattc_execute_write_cmd(LittleEndianStructure):
+    def __init__(self,
+                 execute: c_bool = False,
+                 seq_num: c_uint16 = 0):
 
-    # [True = perform/False cancel] pending write operations
-    bool execute;
-    # operation sequence number
-    uint16_t seq_num;
-};
-'''
+        self.operation = GATTC_OPERATION.GATTC_EXEC_WRITE
+        self.execute = execute
+        self.seq_num = seq_num
+        super().__init__(operation=self.operation,
+                         execute=self.execute,
+                         seq_num=self.seq_num)
+
+                # Request type
+    _fields_ = [("operation", c_uint8),
+                # [True = perform/False cancel] pending write operations
+                ("execute", c_bool),
+                # operation sequence number
+                ("seq_num", c_uint16)]
 
 
 # peer device triggers an event (notification)

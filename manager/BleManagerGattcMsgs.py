@@ -83,6 +83,22 @@ class BleMgrGattcReadRsp(BleMgrMsgRsp):
                          status=status)
 
 
+class BleMgrGattcWriteExecuteCmd(BleMgrMsgBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 commit: bool = False
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_EXCHANGE_MTU_CMD)
+        self.conn_idx = conn_idx
+        self.commit = commit
+
+
+class BleMgrGattcWriteExecuteRsp(BleMgrMsgRsp):
+    def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
+        super().__init__(opcode=BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_WRITE_EXECUTE_CMD,
+                         status=status)
+
+
 class BleMgrGattcWriteGenericCmd(BleMgrMsgBase):
     def __init__(self,
                  conn_idx: int = 0,

@@ -965,6 +965,28 @@ class TestGattcWriteCmd_GATTC_WRITE_SIGNED(unittest.TestCase):
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+# Table 169
+class TestGattcWriteExecuteCmd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "050B0C0C00100004000F012000"
+
+    def test_parameters_updated_after_construction(self):
+        
+        test_message = GattcWriteExecuteCmd()
+        test_message.parameters.execute = True
+        test_message.parameters.seq_num = 0x20
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
+    def test_parameters_non_zero_conidx(self):
+        
+        test_message = GattcWriteExecuteCmd(conidx=1)
+        test_message.parameters.execute = True
+        test_message.parameters.seq_num = 0x20
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
 if __name__ == '__main__':
     unittest.main()
     

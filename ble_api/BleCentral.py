@@ -75,3 +75,12 @@ class BleCentral(BleDeviceBase):
 
     async def write(self, conn_idx: int, handle: int, offset: int, value: bytes) -> BLE_ERROR:
         return await self.ble_gattc.write(conn_idx, handle, offset, value)
+
+    async def write_no_resp(self, conn_idx: int, handle: int, signed_write: bool, value: bytes) -> BLE_ERROR:
+        return await self.ble_gattc.write_no_resp(conn_idx, handle, signed_write, value)
+
+    async def write_prepare(self, conn_idx: int, handle: int, offset: int, value: bytes) -> BLE_ERROR:
+        return await self.ble_gattc.write_prepare(conn_idx, handle, offset, value)
+
+    async def write_execute(self, conn_idx: int, commit: bool) -> BLE_ERROR:
+        return await self.ble_gattc.write_execute(conn_idx, commit)
