@@ -347,6 +347,8 @@ class BleManagerGap(BleManagerBase):
             case _:
                 evt.status = gtl.parameters.status
 
+        print(f"SCAN COMPLETE. gtl={gtl.parameters.status}. status={evt.status}")
+
         self._mgr_event_queue_send(evt)
 
     def _send_disconncet_cmd(self, conn_idx: int, reason: BLE_HCI_ERROR) -> None:

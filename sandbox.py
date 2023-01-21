@@ -15,69 +15,73 @@ from services.BleService import *
 
 import asyncio
 import aioconsole
+import prompt_toolkit
+
+from prompt_toolkit import PromptSession
+from prompt_toolkit.completion import WordCompleter
+from prompt_toolkit.lexers import PygmentsLexer
+from pygments.lexers.sql import SqlLexer
+
+from prompt_toolkit import prompt
+from prompt_toolkit.completion import NestedCompleter
+
+from prompt_toolkit import PromptSession
+from prompt_toolkit.patch_stdout import patch_stdout
 
 
-'''
 async def user_main():
     elapsed = 0
     delay = 1
     while True:
         await asyncio.sleep(delay)
         elapsed += delay
-        # print(f"User Main. elapsed={elapsed}")
+        print(f"User Main. elapsed={elapsed}")
 
-async def console():
-    line = await aioconsole.ainput(">>> ")
-    print(line)
 
 async def main():
-    user_task = asyncio.create_task(user_main(), name='user_main')
-    console_task = asyncio.create_task(console(), name='console')
-    pending = [user_task, console_task]
-    while True:
-        done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
-   
-        for task in done:
-            if task is console_task:
-                 console_task = asyncio.create_task(console(), name='console')
-                 pending.add(console_task)
+    await asyncio.gather(user_main(), my_coroutine())
 
+
+async def my_coroutine():
+    word_completer = WordCompleter([
+    'GAPCONNECT', 'GAPBROWSE', 'GAPDISCONNECT', 'GATTWRITE', 'GATTREAD'], ignore_case=True)
+
+    completer = NestedCompleter.from_nested_dict({
+    
+    'GAPCONNECT': None,
+    'GAPBROWSE': {
+        '<conn_idx>': None,
+    },
+    'GAPDISCONNECT': {
+        '<conn_idx>': None,
+    },
+    'GATTREAD': {
+        '<conn_idx>': {
+            '<handle>': None
+        }
+    },
+    'GATTWRITE': {
+        '<conn_idx>': {
+            '<handle>': {'<value>'}
+        }
+    }
+})
+
+    my_completer = NestedCompleter.from_nested_dict({
+        'show': {
+            'version': None,
+            'clock': None,
+            'ip': {
+                'interface': {'brief'}
+            }
+        },
+        'exit': None,
+    })
+
+    session = PromptSession(completer=completer)
+    while True:
+        with patch_stdout():
+            result = await session.prompt_async('Say something: ')
+        print('You said: %s' % result)
 
 asyncio.run(main())
-'''
-
-
-uuid = "8e716a7e-12a2-11ed-861d-0242ac120002"
-
-def uuid_from_str(uuid_str: str) -> bytes:
-    uuid_str = uuid_str.replace("-", "")
-    uuid_list = [int(uuid_str[idx:idx + 2], 16) for idx in range(0, len(uuid_str), 2)]
-    uuid_list.reverse()  # mcu is little endian
-    return bytes(uuid_list)
-
-def uuid_to_str(uuid: AttUuid) -> str:
-    data = uuid.uuid
-    return_string = ""
-    for byte in data:
-        byte_string = str(hex(byte))[2:]
-        if len(byte_string) == 1:
-            byte_string = "0"+ byte_string
-        return_string = byte_string + return_string
-    
-    return return_string
-
-
-att_uuid = AttUuid(uuid_from_str(uuid))
-
-return_string = uuid_to_str(att_uuid)
-print(return_string)
-
-st = "1234"
-
-print(bytes.fromhex(st))
-
-print(hex(int("1")))
-
-st = "1"
-
-print(bytes.fromhex(st))

@@ -3,7 +3,7 @@ from typing import Callable
 
 from ble_api.BleCommon import BLE_ERROR, BleEventBase
 from gtl_messages.gtl_message_base import GtlMessageBase
-from manager.BleManagerCommonMsgs import BleMgrMsgBase, BleMgrCommonResetCmd
+from manager.BleManagerCommonMsgs import BleMgrMsgBase, BleMgrCommonResetRsp
 from manager.BleManagerStorage import StoredDeviceQueue
 from manager.GtlWaitQueue import GtlWaitQueue, GtlWaitQueueElement
 
@@ -38,10 +38,10 @@ class BleManagerBase():
     def _mgr_event_queue_send(self, evt: BleEventBase):
         self._mgr_event_q.put_nowait(evt)
 
-    async def _mgr_response_queue_get(self) -> BleMgrCommonResetCmd:
+    async def _mgr_response_queue_get(self) -> BleMgrCommonResetRsp:
         return await self._mgr_response_q.get()
 
-    def _mgr_response_queue_send(self, response: BleMgrCommonResetCmd):
+    def _mgr_response_queue_send(self, response: BleMgrCommonResetRsp):
         self._mgr_response_q.put_nowait(response)
 
     def _wait_queue_add(self, conn_idx: int, msg_id: int, ext_id: int, cb: Callable, param: object) -> None:
