@@ -24,29 +24,29 @@ class BleDeviceBase():
         adapter_command_q = asyncio.Queue()
         adapter_event_q = asyncio.Queue()
 
-        self.ble_manager = BleManager(app_command_q, app_resposne_q, app_event_q, adapter_command_q, adapter_event_q)
-        self.ble_adapter = BleAdapter(com_port, adapter_command_q, adapter_event_q, gtl_debug)
-        self.ble_gap = BleGapApi(self.ble_manager, self.ble_adapter)
-        self.ble_gattc = BleGattcApi(self.ble_manager, self.ble_adapter)
-        self.ble_gatts = BleGattsApi(self.ble_manager, self.ble_adapter)
-        self.ble_storage = BleStorageApi(self.ble_manager, self.ble_adapter)
+        self._ble_manager = BleManager(app_command_q, app_resposne_q, app_event_q, adapter_command_q, adapter_event_q)
+        self._ble_adapter = BleAdapter(com_port, adapter_command_q, adapter_event_q, gtl_debug)
+        self._ble_gap = BleGapApi(self._ble_manager, self._ble_adapter)
+        self._ble_gattc = BleGattcApi(self._ble_manager, self._ble_adapter)
+        self._ble_gatts = BleGattsApi(self._ble_manager, self._ble_adapter)
+        self._ble_storage = BleStorageApi(self._ble_manager, self._ble_adapter)
 
         self._services: list[BleServiceBase] = []
 
     async def _ble_reset(self) -> BLE_ERROR:
         response = BLE_ERROR.BLE_ERROR_FAILED
         command = BleMgrCommonResetCmd()
-        response: BleMgrCommonResetRsp = await self.ble_manager.cmd_execute(command)
+        response: BleMgrCommonResetRsp = await self._ble_manager.cmd_execute(command)
         return response.status
 
     async def init(self) -> None:
         try:
             # Open the serial port the the 531
-            await self.ble_adapter.open_serial_port()
+            await self._ble_adapter.open_serial_port()
 
             # Start always running BLE tasks
-            self.ble_manager.init()
-            self.ble_adapter.init()
+            self._ble_manager.init()
+            self._ble_adapter.init()
         except asyncio.TimeoutError as e:
             raise e
 
@@ -54,7 +54,7 @@ class BleDeviceBase():
         evt = None
         try:
             timeout = timeout_seconds if timeout_seconds > 0 else None
-            evt = await asyncio.wait_for(self.ble_manager.mgr_event_queue_get(), timeout)
+            evt = await asyncio.wait_for(self._ble_manager.mgr_event_queue_get(), timeout)
         except asyncio.TimeoutError:
             pass
 
@@ -64,12 +64,12 @@ class BleDeviceBase():
 
         error = await self._ble_reset()
         if error == BLE_ERROR.BLE_STATUS_OK:
-            error = await self.ble_gap.role_set(role)
+            error = await self._ble_gap.role_set(role)
 
         return error
 
     def storage_get_int(self, conn_idx: int, key: int) -> tuple[BLE_ERROR, int]:
-        return self.ble_storage.get_int(conn_idx, key)
+        return self._ble_storage.get_int(conn_idx, key)
 
     def storage_put_int(self, conn_idx: int, key: int, value: int, persistent: bool) -> BLE_ERROR:
-        return self.ble_storage.put_int(conn_idx, key, value, persistent)
+        return self._ble_storage.put_int(conn_idx, key, value, persistent)

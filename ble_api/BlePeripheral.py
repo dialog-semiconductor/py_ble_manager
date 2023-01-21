@@ -60,30 +60,30 @@ class BlePeripheral(BleDeviceBase):
         error = BLE_ERROR.BLE_ERROR_FAILED
         service = self._find_service_by_handle(handle)
         if service:
-            error = await self.ble_gatts.get_value(handle, max_len)
+            error = await self._ble_gatts.get_value(handle, max_len)
         return error
 
     async def init(self) -> None:
         try:
             # Open the serial port the the 531
-            await self.ble_adapter.open_serial_port()
+            await self._ble_adapter.open_serial_port()
 
             # Start always running BLE tasks
-            self.ble_manager.init()
-            self.ble_adapter.init()
+            self._ble_manager.init()
+            self._ble_adapter.init()
 
         except asyncio.TimeoutError as e:
             raise e
 
     async def register_service(self, svc: BleServiceBase) -> BLE_ERROR:
 
-        error = await self.ble_gatts.add_service(svc.service_defs.uuid,
-                                                 svc.service_defs.type,
-                                                 svc.service_defs.num_attrs)
+        error = await self._ble_gatts.add_service(svc.service_defs.uuid,
+                                                  svc.service_defs.type,
+                                                  svc.service_defs.num_attrs)
         # TODO not sure if included svc handled correctly                    
         if error == BLE_ERROR.BLE_STATUS_OK:
             for i in range(0, len(svc.incl_svc_defs)):
-                error, _ = await self.ble_gatts.add_include(svc.incl_svc_defs[i].start_h)
+                error, _ = await self._ble_gatts.add_include(svc.incl_svc_defs[i].start_h)
                 if error != BLE_ERROR.BLE_STATUS_OK:
                     break
 
@@ -91,18 +91,18 @@ class BlePeripheral(BleDeviceBase):
                 gatt_char_def = svc.gatt_char_defs[i]
                 char_def = gatt_char_def.char_def
                 # TODO is there a case where you need the char declartion handle offset (h_offset)?
-                error, _, char_def.handle.value = await self.ble_gatts.add_characteristic(char_def.uuid,
-                                                                                          char_def.prop,
-                                                                                          char_def.perm,
-                                                                                          char_def.max_len,
-                                                                                          char_def.flags)
+                error, _, char_def.handle.value = await self._ble_gatts.add_characteristic(char_def.uuid,
+                                                                                           char_def.prop,
+                                                                                           char_def.perm,
+                                                                                           char_def.max_len,
+                                                                                           char_def.flags)
                 if error == BLE_ERROR.BLE_STATUS_OK:
                     for j in range(0, len(gatt_char_def.desc_defs)):
                         desc = gatt_char_def.desc_defs[j]
-                        error, desc.handle.value = await self.ble_gatts.add_descriptor(desc.uuid,
-                                                                                       desc.perm,
-                                                                                       desc.max_len,
-                                                                                       desc.flags)
+                        error, desc.handle.value = await self._ble_gatts.add_descriptor(desc.uuid,
+                                                                                        desc.perm,
+                                                                                        desc.max_len,
+                                                                                        desc.flags)
                         if error != BLE_ERROR.BLE_STATUS_OK:
                             break
                     # Break out of both loops
@@ -113,7 +113,7 @@ class BlePeripheral(BleDeviceBase):
 
             if error == BLE_ERROR.BLE_STATUS_OK:
 
-                error = await self.ble_gatts.register_service(svc)
+                error = await self._ble_gatts.register_service(svc)
                 if error == BLE_ERROR.BLE_STATUS_OK:
                     self._services.append(svc)
                     # Set this BlePeripheral with the service so service can make calls to set, notify, read_cfm, etc 
@@ -130,7 +130,7 @@ class BlePeripheral(BleDeviceBase):
         error = BLE_ERROR.BLE_ERROR_FAILED
         service = self._find_service_by_handle(handle)
         if service:
-            error = await self.ble_gatts.send_event(conn_idx, handle, type, value)
+            error = await self._ble_gatts.send_event(conn_idx, handle, type, value)
         return error
 
     async def send_read_cfm(self,
@@ -140,7 +140,7 @@ class BlePeripheral(BleDeviceBase):
                             data: bytes = None
                             ) -> BLE_ERROR:
 
-        return await self.ble_gatts.send_read_cfm(conn_idx, handle, status, data)
+        return await self._ble_gatts.send_read_cfm(conn_idx, handle, status, data)
 
     async def send_write_cfm(self,
                              conn_idx: int = 0,
@@ -148,7 +148,7 @@ class BlePeripheral(BleDeviceBase):
                              status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
                              ) -> BLE_ERROR:
 
-        return await self.ble_gatts.send_write_cfm(conn_idx, handle, status)
+        return await self._ble_gatts.send_write_cfm(conn_idx, handle, status)
 
     async def service_handle_event(self, evt: BleEventBase) -> bool:
         handled = False
@@ -179,15 +179,16 @@ class BlePeripheral(BleDeviceBase):
         return handled
 
     def set_advertising_interval(self, adv_intv_min_ms, adv_intv_max_ms) -> None:
-        self.ble_manager.gap_mgr.dev_params.adv_intv_min = self._ms_to_adv_slots(adv_intv_min_ms)
-        self.ble_manager.gap_mgr.dev_params.adv_intv_max = self._ms_to_adv_slots(adv_intv_max_ms)
+        # TODO ble manager needs an api for this
+        self._ble_manager.gap_mgr.dev_params.adv_intv_min = self._ms_to_adv_slots(adv_intv_min_ms)
+        self._ble_manager.gap_mgr.dev_params.adv_intv_max = self._ms_to_adv_slots(adv_intv_max_ms)
         # TODO save current setting in local?
 
     async def set_value(self, handle: int, value: bytes) -> BLE_ERROR:
         error = BLE_ERROR.BLE_ERROR_FAILED
         service = self._find_service_by_handle(handle)
         if service:
-            error = await self.ble_gatts.set_value(handle, value)
+            error = await self._ble_gatts.set_value(handle, value)
         return error
 
     async def start(self) -> BLE_ERROR:
@@ -197,10 +198,10 @@ class BlePeripheral(BleDeviceBase):
                                 adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
                                 ) -> BLE_ERROR:
 
-        return await self.ble_gap.start_advertising(adv_type)
+        return await self._ble_gap.start_advertising(adv_type)
 
     def storage_get_int(self, conn_idx: int, key: int) -> tuple[BLE_ERROR, int]:
-        return self.ble_storage.get_int(conn_idx, key)
+        return self._ble_storage.get_int(conn_idx, key)
 
     def storage_put_int(self, conn_idx: int, key: int, value: int, persistent: bool) -> BLE_ERROR:
-        return self.ble_storage.put_int(conn_idx, key, value, persistent)
+        return self._ble_storage.put_int(conn_idx, key, value, persistent)

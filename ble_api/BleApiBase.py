@@ -4,5 +4,5 @@ from manager.BleManager import BleManager
 
 class BleApiBase():
     def __init__(self, ble_manager: BleManager, ble_adapter: BleAdapter):
-        self.ble_manager = ble_manager
-        self.ble_adapter = ble_adapter
+        self._ble_manager = ble_manager
+        self._ble_adapter = ble_adapter

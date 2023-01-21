@@ -18,20 +18,20 @@ class BleGapApi(BleApiBase):
     async def connect(self, peer_addr: BdAddress, conn_params: GapConnParams) -> BLE_ERROR:
 
         command = BleMgrGapConnectCmd(peer_addr, conn_params)
-        resposne: BleMgrGapConnectRsp = await self.ble_manager.cmd_execute(command)
+        resposne: BleMgrGapConnectRsp = await self._ble_manager.cmd_execute(command)
 
         return resposne.status
 
     async def disconnect(self, conn_idx: int, reason: BLE_HCI_ERROR) -> BLE_ERROR:
         command = BleMgrGapDisconnectCmd(conn_idx, reason)
-        resposne: BleMgrGapDisconnectRsp = await self.ble_manager.cmd_execute(command)
+        resposne: BleMgrGapDisconnectRsp = await self._ble_manager.cmd_execute(command)
 
         return resposne.status
 
     async def role_set(self, role: BLE_GAP_ROLE) -> BLE_ERROR:
 
         command = BleMgrGapRoleSetCmd(role)
-        response: BleMgrGapRoleSetRsp = await self.ble_manager.cmd_execute(command)
+        response: BleMgrGapRoleSetRsp = await self._ble_manager.cmd_execute(command)
 
         return response.status
 
@@ -45,7 +45,7 @@ class BleGapApi(BleApiBase):
                          ) -> BLE_ERROR:
 
         command = BleMgrGapScanStartCmd(type, mode, interval, window, filt_wlist, filt_dupl)
-        response: BleMgrGapScanStartRsp = await self.ble_manager.cmd_execute(command)
+        response: BleMgrGapScanStartRsp = await self._ble_manager.cmd_execute(command)
 
         return response.status
 
@@ -54,6 +54,6 @@ class BleGapApi(BleApiBase):
                                 ) -> BLE_ERROR:
 
         command = BleMgrGapAdvStartCmd(adv_type)
-        response: BleMgrGapAdvStartRsp = await self.ble_manager.cmd_execute(command)
+        response: BleMgrGapAdvStartRsp = await self._ble_manager.cmd_execute(command)
         
         return response.status
