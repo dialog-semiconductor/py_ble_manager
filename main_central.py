@@ -10,7 +10,7 @@ from ble_api.BleAtt import AttUuid, ATT_UUID_TYPE
 from ble_api.BleCentral import BleCentral
 from ble_api.BleCommon import BleEventBase, BdAddress, BLE_ADDR_TYPE, BLE_HCI_ERROR, BLE_ERROR
 from ble_api.BleGap import BleEventGapAdvReport, BleEventGapScanCompleted, GapConnParams, BleEventGapConnected, \
-    BleEventGapDisconnected, GAP_SCAN_TYPE, GAP_SCAN_MODE
+    BleEventGapDisconnected, GAP_SCAN_TYPE, GAP_SCAN_MODE, BleEventGapConnectionCompleted
 from ble_api.BleGattc import BleEventGattcDiscoverSvc, BleEventGattcDiscoverCompleted, GATTC_DISCOVERY_TYPE, \
     BleEventGattcDiscoverChar, BleEventGattcDiscoverDesc, BleEventGattcBrowseCompleted, BleEventGattcBrowseSvc, \
     GATTC_ITEM_TYPE, BleEventGattcNotification, BleEventGattcReadCompleted, BleEventGattcWriteCompleted
@@ -74,7 +74,7 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
             # Handle and BLE events that hace occurred
             if task is console_command_task:
                 command: str = task.result()
-                print(f"ble_taks received command: {command}")
+                #print(f"ble_taks received command: {command}")
 
                 error = BLE_ERROR.BLE_ERROR_FAILED
                 args = command.split()
@@ -91,11 +91,14 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
                                                              True)
 
                         case "GAPCONNECT":
-                            #if len(args) == 2:  # TODO pass in addr 48:23:35:0:1b:53
-
-                            periph_bd = BdAddress(BLE_ADDR_TYPE.PUBLIC_ADDRESS, bytes.fromhex("531B00352348"))  # addr is backwards
-                            periph_conn_params = GapConnParams(50, 70, 0, 420)
-                            error = await central.connect(periph_bd, periph_conn_params)
+                            if len(args) == 2:  # TODO pass in addr 48:23:35:00:1b:53
+                                #bd_info = args[1].strip(',')
+                                #bd_type =  if bd_info[1] == 'P' else BLE_ADDR_TYPE.PRIVATE_ADDRESS
+                                periph_bd = str_to_bd_addr(BLE_ADDR_TYPE.PUBLIC_ADDRESS, args[1])
+                                print(f"periph: {periph_bd}")
+                                periph_bd = BdAddress(BLE_ADDR_TYPE.PUBLIC_ADDRESS, bytes.fromhex("531B00352348"))  # addr is backwards
+                                periph_conn_params = GapConnParams(50, 70, 0, 420)
+                                error = await central.connect(periph_bd, periph_conn_params)
 
                         case "GAPBROWSE":
                             if len(args) == 2:
@@ -158,6 +161,9 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
                     elif isinstance(evt, BleEventGapConnected):
                         handle_evt_gap_connected(central, evt)
 
+                    elif isinstance(evt, BleEventGapConnectionCompleted):
+                        handle_evt_gap_connection_compelted(central, evt)
+
                     elif isinstance(evt, BleEventGapDisconnected):
                         handle_evt_gap_disconnected(central, evt)
 
@@ -200,8 +206,13 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
                 pending.add(ble_event_task)
 
 
+def handle_evt_gap_connection_compelted(central, evt: BleEventGapConnectionCompleted):
+    print(f"Connection completed: status={evt.status}")
+
+
 def handle_evt_scan_completed(central: BleCentral, evt: BleEventGapScanCompleted):
     print(f"Scan completed: status={evt.status}")
+
 
 def handle_evt_gap_adv_report(central: BleCentral, evt: BleEventGapAdvReport):
     print(f"Advertisment: address={bd_addr_to_str(evt.address)} addr_type={evt.address.addr_type} "
@@ -279,10 +290,19 @@ def handle_evt_gattc_browse_completed(central: BleCentral, evt: BleEventGattcBro
     print(f"Browsing complete: conn_idx={evt.conn_idx}, evt={evt.status}")
 
 
+def str_to_bd_addr(type: BLE_ADDR_TYPE, bd_addr_str: str) -> BdAddress:
+    bd_addr_str = bd_addr_str.replace(":", "")
+    bd_addr_list = [int(bd_addr_str[idx:idx + 2], 16) for idx in range(0, len(bd_addr_str), 2)]
+    bd_addr_list.reverse()  # mcu is little endian
+    return BdAddress(type, bd_addr_list)
+
 def bd_addr_to_str(bd: BdAddress) -> str:
     return_string = ""
     for byte in bd.addr:
-        return_string = str(hex(byte))[2:] + ":" + return_string
+        byte_string = str(hex(byte))[2:]
+        if len(byte_string) == 1:  # Add a leading 0
+            byte_string = "0" + byte_string
+        return_string = byte_string + ":" + return_string
     return return_string[:-1]
 
 def uuid_to_str(uuid: AttUuid) -> str:
@@ -291,7 +311,7 @@ def uuid_to_str(uuid: AttUuid) -> str:
     if uuid.type == ATT_UUID_TYPE.ATT_UUID_128:
         for byte in data:
             byte_string = str(hex(byte))[2:]
-            if len(byte_string) == 1:
+            if len(byte_string) == 1:  # Add a leading 0
                 byte_string = "0" + byte_string
             return_string = byte_string + return_string
     else:
