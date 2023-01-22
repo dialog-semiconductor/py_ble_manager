@@ -61,7 +61,7 @@ class CustomBleService(BleServiceBase):
 
         char = GattCharacteristicDef()
         char.char_def.uuid.uuid = self._uuid_from_str("3af078b6-12ae-11ed-861d-0242ac120002")
-        char.char_def.prop = GATT_PROP.GATT_PROP_READ | GATT_PROP.GATT_PROP_WRITE
+        char.char_def.prop = GATT_PROP.GATT_PROP_READ | GATT_PROP.GATT_PROP_WRITE 
         char.char_def.perm = ATT_PERM.ATT_PERM_RW
         char.char_def.max_len = 2
         char.char_def.flags = GATTS_FLAGS.GATTS_FLAG_CHAR_NO_READ_REQ
@@ -115,10 +115,10 @@ class CustomBleService(BleServiceBase):
             error, value = self.periph.storage_get_int(evt.conn_idx, self.char_3_ccc_h.value)
             if error != BLE_ERROR.BLE_STATUS_OK:
                 value = 0
-            await self.periph.send_read_cfm(evt.conn_idx, evt.handle, status, value)
+            await self.periph.read_cfm(evt.conn_idx, evt.handle, status, value)
 
         else:
-            await self.periph.send_read_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_READ_NOT_PERMITTED, 0)
+            await self.periph.read_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_READ_NOT_PERMITTED, 0)
 
     async def write_req(self, evt: BleEventGattsWriteReq):
         print("CustomBleService write_req")
@@ -142,13 +142,16 @@ class CustomBleService(BleServiceBase):
                 self.callbacks.char3_notif_changed(self, evt.conn_idx, ccc)
             # TODO notification status change callback
             print(f"CustomerService write_req. Setting ccc={evt.value}")
-            await self.periph.send_write_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_OK)
+            await self.periph.write_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_OK)
 
         else:
-            await self.periph.send_write_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_WRITE_NOT_PERMITTED)
+            await self.periph.write_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_WRITE_NOT_PERMITTED)
 
-    def prepare_write_req(self, evt: BleEventGattsPrepareWriteReq):
-        print("CustomBleService prepare_write_req")
+    async def prepare_write_req(self, evt: BleEventGattsPrepareWriteReq):
+        if evt.handle == self.char_2_value_h.value:
+            await self.periph.prepare_write_cfm(evt.conn_idx, evt.handle, 2, ATT_ERROR.ATT_ERROR_OK)
+        else:
+            await self.periph.prepare_write_cfm(evt.conn_idx, evt.handle, 0, ATT_ERROR.ATT_ERROR_REQUEST_NOT_SUPPORTED)
 
     def event_sent(self, evt: BleEventGattsEventSent):
         print("CustomBleService event_sent")
@@ -162,24 +165,24 @@ class CustomBleService(BleServiceBase):
                                   value: bytes = None
                                   ) -> BLE_ERROR:
 
-        return await self.periph.send_read_cfm(conn_idx,
-                                               self.char_1_value_h.value,
-                                               status,
-                                               value)
+        return await self.periph.read_cfm(conn_idx,
+                                          self.char_1_value_h.value,
+                                          status,
+                                          value)
 
     async def send_char1_write_cfm(self,
                                    conn_idx: int = 0,
                                    status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
                                    ) -> BLE_ERROR:
 
-        return await self.periph.send_write_cfm(conn_idx, self.char_1_value_h.value, status)
+        return await self.periph.write_cfm(conn_idx, self.char_1_value_h.value, status)
 
     async def send_char2_write_cfm(self,
                                    conn_idx: int = 0,
                                    status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
                                    ) -> BLE_ERROR:
 
-        return await self.periph.send_write_cfm(conn_idx, self.char_2_value_h.value, status)
+        return await self.periph.write_cfm(conn_idx, self.char_2_value_h.value, status)
 
     async def set_char2_value(self,
                               value: bytes

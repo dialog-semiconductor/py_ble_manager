@@ -6,7 +6,7 @@ from ble_api.BleAtt import ATT_ERROR
 from ble_api.BleCommon import BleEventBase, BLE_ERROR
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_EVT_GAP, BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatt import GATT_EVENT
-from ble_api.BleGatts import BLE_EVT_GATTS, BleEventGattsReadReq, BleEventGattsWriteReq
+from ble_api.BleGatts import BLE_EVT_GATTS, BleEventGattsReadReq, BleEventGattsWriteReq, BleEventGattsPrepareWriteReq
 from ble_api.BleGattsApi import BleGattsApi
 from ble_api.BleStorageApi import BleStorageApi
 from manager.BleManager import BleManager
@@ -34,6 +34,15 @@ class BlePeripheral(BleDeviceBase):
         for service in self._services:
             if service and service.disconnected_evt:
                 service.disconnected_evt(evt)
+
+    async def _handle_prepare_write_req_evt(self, evt: BleEventGattsPrepareWriteReq) -> bool:
+        service = self._find_service_by_handle(evt.handle)
+        if service:
+            if service.prepare_write_req:
+                await service.prepare_write_req(evt)
+            return True
+
+        return False
 
     async def _handle_read_req_evt(self, evt: BleEventGattsReadReq) -> bool:
         service = self._find_service_by_handle(evt.handle)
@@ -74,6 +83,24 @@ class BlePeripheral(BleDeviceBase):
 
         except asyncio.TimeoutError as e:
             raise e
+
+    async def prepare_write_cfm(self,
+                                conn_idx: int,
+                                handle: int,
+                                length: int,
+                                status: ATT_ERROR
+                                ) -> BLE_ERROR:
+
+        return await self._ble_gatts.prepare_write_cfm(conn_idx, handle, length, status)
+
+    async def read_cfm(self,
+                       conn_idx: int = 0,
+                       handle: int = 0,
+                       status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK,
+                       data: bytes = None
+                       ) -> BLE_ERROR:
+
+        return await self._ble_gatts.read_cfm(conn_idx, handle, status, data)
 
     async def register_service(self, svc: BleServiceBase) -> BLE_ERROR:
 
@@ -133,23 +160,6 @@ class BlePeripheral(BleDeviceBase):
             error = await self._ble_gatts.send_event(conn_idx, handle, type, value)
         return error
 
-    async def send_read_cfm(self,
-                            conn_idx: int = 0,
-                            handle: int = 0,
-                            status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK,
-                            data: bytes = None
-                            ) -> BLE_ERROR:
-
-        return await self._ble_gatts.send_read_cfm(conn_idx, handle, status, data)
-
-    async def send_write_cfm(self,
-                             conn_idx: int = 0,
-                             handle: int = 0,
-                             status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
-                             ) -> BLE_ERROR:
-
-        return await self._ble_gatts.send_write_cfm(conn_idx, handle, status)
-
     async def service_handle_event(self, evt: BleEventBase) -> bool:
         handled = False
 
@@ -157,22 +167,18 @@ class BlePeripheral(BleDeviceBase):
             case BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED:
                 self._handle_connected_evt(evt)
                 # Connected event always marked as unhandled so app can handle
-
             case BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED:
                 self._handle_disconnected_evt(evt)
                 # Disconnected event always marked as unhandled so app can handle
-
             case BLE_EVT_GATTS.BLE_EVT_GATTS_READ_REQ:
                 handled = await self._handle_read_req_evt(evt)
-
             case BLE_EVT_GATTS.BLE_EVT_GATTS_WRITE_REQ:
                 handled = await self._handle_write_req_evt(evt)
+            case BLE_EVT_GATTS.BLE_EVT_GATTS_PREPARE_WRITE_REQ:
+                handled = await self._handle_prepare_write_req_evt(evt)
 
         '''
-        case return.BLE_EVT_GATTS_WRITE_REQ:
-                return write_req((const ble_evt_gatts_write_req_t *) evt);
-        case return.BLE_EVT_GATTS_PREPARE_WRITE_REQ:
-                return prepare_write_req((const ble_evt_gatts_prepare_write_req_t *) evt);
+       
         case return.BLE_EVT_GATTS_EVENT_SENT:
                 return event_sent((const ble_evt_gatts_event_sent_t *) evt);
         '''
@@ -205,3 +211,11 @@ class BlePeripheral(BleDeviceBase):
 
     def storage_put_int(self, conn_idx: int, key: int, value: int, persistent: bool) -> BLE_ERROR:
         return self._ble_storage.put_int(conn_idx, key, value, persistent)
+
+    async def write_cfm(self,
+                        conn_idx: int = 0,
+                        handle: int = 0,
+                        status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
+                        ) -> BLE_ERROR:
+
+        return await self._ble_gatts.write_cfm(conn_idx, handle, status)

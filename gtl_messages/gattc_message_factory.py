@@ -2,10 +2,11 @@ from ctypes import c_uint8
 
 from gtl_messages.gtl_message_base import GTL_INITIATOR
 from gtl_messages.gtl_message_gattc import GattcReadReqInd, GattcWriteReqInd, GattcCmpEvt, GattcDiscSvcInd, GattcDiscCharInd, \
-    GattcSdpSvcInd, GattcReadInd, GattcEventInd, GattcEventReqInd
+    GattcSdpSvcInd, GattcReadInd, GattcEventInd, GattcEventReqInd, GattcAttInfoReqInd
 from gtl_port.gattc_task import GATTC_MSG_ID, gattc_read_req_ind, gattc_write_req_ind, gattc_cmp_evt, gattc_disc_svc_ind, \
     gattc_disc_char_ind, gattc_sdp_svc_ind, gattc_sdp_att_info, GATTC_SDP_ATT_TYPE, gattc_sdp_att_char,\
-    gattc_sdp_include_svc, gattc_sdp_att, gattc_read_ind, gattc_event_ind, gattc_event_req_ind
+    gattc_sdp_include_svc, gattc_sdp_att, gattc_read_ind, gattc_event_ind, gattc_event_req_ind, \
+    gattc_att_info_req_ind
 
 
 class GattcMessageFactory():
@@ -107,6 +108,9 @@ class GattcMessageFactory():
 
                 parameters.value = (c_uint8 * len(params_buf[6:])).from_buffer_copy(params_buf[6:])
                 return GattcEventReqInd(parameters=parameters)
+
+            elif msg_id == GATTC_MSG_ID.GATTC_ATT_INFO_REQ_IND:
+                return GattcAttInfoReqInd(parameters=gattc_att_info_req_ind.from_buffer_copy(params_buf))
 
             else:
                 raise AssertionError(f"GattcMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")

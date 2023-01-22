@@ -88,7 +88,7 @@ class BleMgrGattcWriteExecuteCmd(BleMgrMsgBase):
                  conn_idx: int = 0,
                  commit: bool = False
                  ) -> None:
-        super().__init__(opcode=BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_EXCHANGE_MTU_CMD)
+        super().__init__(opcode=BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_WRITE_EXECUTE_CMD)
         self.conn_idx = conn_idx
         self.commit = commit
 

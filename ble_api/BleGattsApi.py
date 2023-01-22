@@ -124,23 +124,23 @@ class BleGattsApi(BleApiBase):
 
         return response.status
 
-    async def send_read_cfm(self,
-                            conn_idx: int = 0,
-                            handle: int = 0,
-                            status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK,
-                            value: bytes = None
-                            ) -> BLE_ERROR:
+    async def read_cfm(self,
+                       conn_idx: int = 0,
+                       handle: int = 0,
+                       status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK,
+                       value: bytes = None
+                       ) -> BLE_ERROR:
 
         command = BleMgrGattsReadCfmCmd(conn_idx, handle, status, value)
         response: BleMgrGattsReadCfmRsp = await self._ble_manager.cmd_execute(command)
 
         return response.status
 
-    async def send_write_cfm(self,
-                             conn_idx: int = 0,
-                             handle: int = 0,
-                             status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
-                             ) -> BLE_ERROR:
+    async def write_cfm(self,
+                        conn_idx: int = 0,
+                        handle: int = 0,
+                        status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
+                        ) -> BLE_ERROR:
 
         command = BleMgrGattsWriteCfmCmd(conn_idx, handle, status)
         response: BleMgrGattsWriteCfmRsp = await self._ble_manager.cmd_execute(command)

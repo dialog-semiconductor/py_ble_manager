@@ -1,5 +1,4 @@
 import asyncio
-import aioconsole
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.patch_stdout import patch_stdout
@@ -29,7 +28,15 @@ async def user_main():
 
 async def console(ble_command_q: asyncio.Queue, ble_response_q: asyncio.Queue):
     word_completer = WordCompleter([
-        'GAPSCAN', 'GAPCONNECT', 'GAPBROWSE', 'GAPDISCONNECT', 'GATTWRITE', 'GATTREAD', 'GATTWRITENORESP'], ignore_case=True)
+        'GAPSCAN', 
+        'GAPCONNECT', 
+        'GAPBROWSE', 
+        'GAPDISCONNECT', 
+        'GATTWRITE', 
+        'GATTREAD', 
+        'GATTWRITENORESP',
+        'GATTWRITEPREPARE',
+        'GATTWRITEEXECUTE'], ignore_case=True)
 
     session = PromptSession(completer=word_completer)
     while True:
@@ -50,7 +57,7 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
 
     services = SearchableQueue()
 
-    central = BleCentral("COM17", gtl_debug=False)
+    central = BleCentral("COM17", gtl_debug=True)
     await central.init()
     await central.start()
 
@@ -130,6 +137,19 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
                                 signed = bool(int(args[3]))
                                 value = bytes.fromhex(args[4])  # TODO requires leading 0 for 0x0-0xF
                                 error = await central.write_no_resp(conn_idx, handle, signed, value)
+
+                        case "GATTWRITEPREPARE":
+                            if len(args) == 4:
+                                conn_idx = int(args[1])
+                                handle = int(args[2])
+                                value = bytes.fromhex(args[3])  
+                                error = await central.write_prepare(conn_idx, handle, 0, value)
+
+                        case "GATTWRITEEXECUTE":
+                            if len(args) == 3:
+                                conn_idx = int(args[1])
+                                execute = bool(int(args[2]))
+                                error = await central.write_execute(conn_idx, execute)
 
                         case "GATTREAD":  # TODO char handle displayed by browse is acutally the declaration. The value is +1
                             if len(args) == 3:
