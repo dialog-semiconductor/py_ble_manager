@@ -59,9 +59,9 @@ DONE        Table 169: GATTC_WRITE_EXECUTE_CMD Symbolic Message Structure
 DONE        Table 185: GAPM_START_SCAN_CMD Symbolic Message Structure
 DONE        Table 187: GAPM_ADV_REPORT_IND Symbolic Message Structure
             Table 190: GATTC_SVC_CHANGED_CFG_IND Symbolic Message Structure
-            Table 192: GAPC_DISCONNECT_CMD Symbolic Message Structure
-            Table 194: GAPC_DISCONNECT_IND Symbolic Message Structure
-            Table 196: GAPM_CANCEL_CMD Symbolic Message Structure
+DONE        Table 192: GAPC_DISCONNECT_CMD Symbolic Message Structure
+DONE        Table 194: GAPC_DISCONNECT_IND Symbolic Message Structure
+DONE        Table 196: GAPM_CANCEL_CMD Symbolic Message Structure
             Table 200: GAPC_GET_DEV_INFO_REQ_IND Symbolic Message Structure
 FIRST PASS  Table 202: GAPC_GET_DEV_INFO_CFM Symbolic Message Structure
             Table 204: GAPM_RESET_CMD Symbolic Message Structure
