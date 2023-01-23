@@ -631,14 +631,21 @@ class gapm_dev_bdaddr_ind:
 class gapm_dev_adv_tx_power_ind:
     # Advertising channel Tx power level
     power_lvl: c_int8
+'''
+
 
 # Cancel ongoing operation
-@dataclass
-class gapm_cancel_cmd:
-    # GAPM requested operation
-    # - GAPM_CANCEL: Cancel running operation
-    operation: c_uint8
+class gapm_cancel_cmd(LittleEndianStructure):
+    def __init__(self) -> None:  # TODO RWBLE_SW_VERSION_MAJOR >= 9 supports additional cancel commands
+        self.operation = GAPM_OPERATION.GAPM_CANCEL
+        super().__init__(operation=self.operation)
 
+                # GAPM requested operation
+                # - GAPM_CANCEL: Cancel running operation
+    _fields_ = [("operation", c_uint8)]
+
+
+'''
 # White List Management Command
 @dataclass
 class gapm_white_list_mgt_cmd:

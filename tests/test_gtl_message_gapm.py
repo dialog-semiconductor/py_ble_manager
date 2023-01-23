@@ -248,5 +248,17 @@ class TestGapmAdvReportInd(unittest.TestCase):
 
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+# Table 197
+class TestGapmCancelCmd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05030D0D001000010002"
+        
+    def test_parameters_passed_on_construction(self):
+        test_message = GapmCancelCmd()
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+
 if __name__ == '__main__':
     unittest.main()

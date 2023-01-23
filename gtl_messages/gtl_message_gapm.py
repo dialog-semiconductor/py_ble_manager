@@ -1,6 +1,6 @@
 from .gtl_message_base import GtlMessageBase
 from gtl_port.gapm_task import GAPM_MSG_ID, gapm_reset_cmd, gapm_cmp_evt, gapm_set_dev_config_cmd, gapm_start_advertise_cmd, \
-    gapm_start_connection_cmd, gapm_start_scan_cmd, gapm_adv_report_ind
+    gapm_start_connection_cmd, gapm_start_scan_cmd, gapm_adv_report_ind, gapm_cancel_cmd
 from gtl_port.rwip_config import KE_API_ID
 
 
@@ -115,4 +115,17 @@ class GapmAdvReportInd(GtlMessageBase):
                          parameters=self.parameters)
 
 
+class GapmCancelCmd(GtlMessageBase):
+
+    def __init__(self, parameters: gapm_cancel_cmd = None):
+
+        self.parameters = parameters if parameters else gapm_cancel_cmd()
+
+        super().__init__(msg_id=GAPM_MSG_ID.GAPM_CANCEL_CMD,
+                         dst_id=KE_API_ID.TASK_ID_GAPM,
+                         src_id=KE_API_ID.TASK_ID_GTL,
+                         par_len=1,
+                         parameters=self.parameters)
+
+                         
 # TODO next message GAPM_RESOLV_ADDR_CMD, GAPM_ADDR_SOLVED_IND
