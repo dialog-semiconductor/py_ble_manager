@@ -58,6 +58,12 @@ class BleMgrGapConnectCancelCmd(BleMgrMsgBase):
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CANCEL_CMD)
 
 
+class BleMgrGapConnectCancelRsp(BleMgrMsgRsp):
+    def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CANCEL_CMD,
+                         status=status)
+
+
 class BleMgrGapConnectCmd(BleMgrMsgBase):
     def __init__(self,
                  peer_addr: BdAddress = None,

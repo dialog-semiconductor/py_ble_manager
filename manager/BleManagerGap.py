@@ -9,7 +9,7 @@ from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd, GapcGetDevInfoReqInd, GapcGetDevInfoCfm, \
     GapcDisconnectInd, GapcCmpEvt, GapcDisconnectCmd
 from gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd, \
-    GapmStartScanCmd, GapmAdvReportInd
+    GapmStartScanCmd, GapmAdvReportInd, GapmCancelCmd
 from gtl_port.co_error import CO_ERROR
 from gtl_port.gap import GAP_ROLE, GAP_AUTH_MASK, gap_bdaddr
 from gtl_port.gapc import GAPC_FIELDS_MASK
@@ -20,7 +20,7 @@ from manager.BleDevParams import BleDevParamsDefault
 from manager.BleManagerCommon import BleManagerBase
 from manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp, \
     BleMgrGapRoleSetCmd, BleMgrGapConnectCmd, BleMgrGapScanStartCmd, BleMgrGapScanStartRsp, BleMgrGapConnectRsp, \
-    BleMgrGapDisconnectCmd, BleMgrGapDisconnectRsp
+    BleMgrGapDisconnectCmd, BleMgrGapDisconnectRsp, BleMgrGapConnectCancelCmd, BleMgrGapConnectCancelRsp
 from manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from manager.GtlWaitQueue import GtlWaitQueue
 
@@ -58,7 +58,7 @@ class BleManagerGap(BleManagerBase):
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SCAN_START_CMD: self.scan_start_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SCAN_STOP_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CMD: self.connect_cmd_handler,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CANCEL_CMD: None,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CANCEL_CMD: self.connect_cancel_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DISCONNECT_CMD: self.disconnect_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PEER_VERSION_GET_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PEER_FEATURES_GET_CMD: None,
@@ -349,6 +349,11 @@ class BleManagerGap(BleManagerBase):
 
         self._mgr_event_queue_send(evt)
 
+    def _send_gapm_cancel_cmd(self, operation: GAPM_OPERATION = GAPM_OPERATION.GAPM_CANCEL) -> None:
+
+        gtl = GapmCancelCmd()  # TODO  RWBLE >= 9.0 has additiononal cancel commands
+        self._adapter_command_queue_send(gtl)
+
     def _send_disconncet_cmd(self, conn_idx: int, reason: BLE_HCI_ERROR) -> None:
         gtl = GapcDisconnectCmd(conidx=conn_idx)
         gtl.parameters.reason = CO_ERROR(reason)
@@ -561,6 +566,19 @@ class BleManagerGap(BleManagerBase):
             case _:
                 return False
         return True
+
+    # TODO need to test
+    def connect_cancel_cmd_handler(self, command: BleMgrGapConnectCancelCmd):
+        response = BleMgrGapConnectCancelRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        if not self.dev_params.connecting:
+            response.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
+        else:
+            # TODO support for additional cancel commands for RWBLE >= 9
+            # send_gapm_cancel_cmd(GAPM_CANCEL_CONNECTION)
+            self._send_gapm_cancel_cmd()
+            response.status = BLE_ERROR.BLE_STATUS_OK
+
+        self._mgr_response_queue_send(response)
 
     def connect_cmd_handler(self, command: BleMgrGapConnectCmd):
         # TODO handle privacy

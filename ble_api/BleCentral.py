@@ -14,6 +14,9 @@ class BleCentral(BleDeviceBase):
     async def connect(self, peer_addr: BdAddress, conn_params: GapConnParams) -> None:
         return await self._ble_gap.connect(peer_addr, conn_params)
 
+    async def connect_cancel(self) -> None:
+        return await self._ble_gap.connect_cancel()
+
     async def disconect(self, conn_idx: int, reason: BLE_HCI_ERROR) -> BLE_ERROR:
         return await self._ble_gap.disconnect(conn_idx, reason)
 

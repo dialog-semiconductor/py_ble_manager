@@ -5,7 +5,8 @@ from ble_api.BleGap import BLE_GAP_ROLE, GapConnParams, BLE_GAP_CONN_MODE, GAP_S
 from manager.BleManager import BleManager
 from manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, BleMgrGapConnectCmd, \
     BleMgrGapConnectRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp, BleMgrGapScanStartCmd, \
-    BleMgrGapScanStartRsp, BleMgrGapDisconnectCmd, BleMgrGapDisconnectRsp
+    BleMgrGapScanStartRsp, BleMgrGapDisconnectCmd, BleMgrGapDisconnectRsp, BleMgrGapConnectCancelCmd, \
+    BleMgrGapConnectCancelRsp
 
 from services.BleService import BleServiceBase
 
@@ -22,7 +23,15 @@ class BleGapApi(BleApiBase):
 
         return resposne.status
 
+    async def connect_cancel(self) -> BLE_ERROR:
+
+        command = BleMgrGapConnectCancelCmd()
+        resposne: BleMgrGapConnectCancelRsp = await self._ble_manager.cmd_execute(command)
+
+        return resposne.status
+
     async def disconnect(self, conn_idx: int, reason: BLE_HCI_ERROR) -> BLE_ERROR:
+
         command = BleMgrGapDisconnectCmd(conn_idx, reason)
         resposne: BleMgrGapDisconnectRsp = await self._ble_manager.cmd_execute(command)
 
@@ -55,5 +64,5 @@ class BleGapApi(BleApiBase):
 
         command = BleMgrGapAdvStartCmd(adv_type)
         response: BleMgrGapAdvStartRsp = await self._ble_manager.cmd_execute(command)
-        
+
         return response.status

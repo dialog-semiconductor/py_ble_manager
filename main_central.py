@@ -139,10 +139,11 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
                                 error = await central.write_no_resp(conn_idx, handle, signed, value)
 
                         case "GATTWRITEPREPARE":
+                            # TODO not receiving GATTC_CMP_EVT after sending GattcWriteCmd
                             if len(args) == 4:
                                 conn_idx = int(args[1])
                                 handle = int(args[2])
-                                value = bytes.fromhex(args[3])  
+                                value = bytes.fromhex(args[3])
                                 error = await central.write_prepare(conn_idx, handle, 0, value)
 
                         case "GATTWRITEEXECUTE":
