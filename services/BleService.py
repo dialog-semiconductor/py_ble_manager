@@ -3,7 +3,7 @@ from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
 from ble_api.BleGatts import GATTS_FLAGS, BleEventGattsReadReq, BleEventGattsEventSent, BleEventGattsPrepareWriteReq
 from ble_api.BleCommon import BleEventBase
-from devices.BleCentralPeripheral import BlePeripheral
+from ble_devices.BleCentralPeripheral import BlePeripheral
 
 # TODO Bleperipheral and BleService tightly coupled. Consider using a mediator
 

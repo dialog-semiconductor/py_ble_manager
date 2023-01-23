@@ -1,29 +1,26 @@
 import asyncio
 
-# TODO simplify imports for user
-from devices.BlePeripheral import BlePeripheral
-from ble_api.BleAtt import ATT_ERROR
-from ble_api.BleCommon import BleEventBase, BLE_EVT_GAP, BLE_EVT_GATTS
-from ble_api.BleGap import BleEventGapDisconnected
+import ble_devices as ble
 from services.CustomBleService import CustomBleService, CustomBleServiceCallbacks
+
 
 
 async def app_char1_read_callback(svc: CustomBleService, conn_idx: int):
     print("app_char1_read_callback")
     data = 0x05
     await svc.send_char1_read_cfm(conn_idx,
-                                  ATT_ERROR.ATT_ERROR_OK,
+                                  ble.ATT_ERROR.ATT_ERROR_OK,
                                   data.to_bytes(1, byteorder='little'))
 
 
 async def app_char1_write_callback(svc: CustomBleService, conn_idx: int, value: int):
     print(f"app_char1_write_callback. conn_idx={conn_idx}, value={value}")
-    await svc.send_char1_write_cfm(conn_idx, ATT_ERROR.ATT_ERROR_OK)
+    await svc.send_char1_write_cfm(conn_idx, ble.ATT_ERROR.ATT_ERROR_OK)
 
 
 async def app_char2_write_callback(svc: CustomBleService, conn_idx: int, value: int):
     print(f"app_char2_write_callback. conn_idx={conn_idx}, value={value}")
-    await svc.send_char2_write_cfm(conn_idx, ATT_ERROR.ATT_ERROR_OK)
+    await svc.send_char2_write_cfm(conn_idx, ble.TT_ERROR.ATT_ERROR_OK)
     await svc.set_char2_value(value.to_bytes(2, byteorder='little'))
 
 
@@ -49,7 +46,7 @@ async def main():
 
 async def ble_task(sample_q: asyncio.Queue):
 
-    periph = BlePeripheral("COM15", gtl_debug=True)
+    periph = ble.BlePeripheral("COM15", gtl_debug=True)
     await periph.init()
     await periph.start()
 
@@ -88,12 +85,12 @@ async def ble_task(sample_q: asyncio.Queue):
 
             # Handle and BLE events that hace occurred
             elif task is ble_event_task:
-                evt: BleEventBase = task.result()  # TODO how does timeout error affect result
+                evt: ble.BleEventBase = task.result()  # TODO how does timeout error affect result
                 if evt is not None:
                     handled = await periph.service_handle_event(evt)
                     if not handled:
                         match evt.evt_code:
-                            case BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED:
+                            case ble.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED:
                                 await periph.start_advertising()
                             case _:
                                 await periph.handle_event_default(evt)

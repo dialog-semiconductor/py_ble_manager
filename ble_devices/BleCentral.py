@@ -1,5 +1,5 @@
 from ble_api.BleAtt import AttUuid
-from devices.BleDeviceBase import BleDeviceBase
+from ble_devices.BleDeviceBase import BleDeviceBase
 from ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR
 from ble_api.BleGap import BLE_GAP_ROLE, GapConnParams, GAP_SCAN_TYPE, GAP_SCAN_MODE, BleEventGapAdvReport, BleAdvData, GAP_DATA_TYPE
 
