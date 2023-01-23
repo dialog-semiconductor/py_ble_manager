@@ -392,6 +392,7 @@ class BleManagerGattc(BleManagerBase):
             gtl.parameters.seq_num = 0  # make this '0' so we can handle in the same handler as other writes
                                         # attribute handle '0' means 'execute write' there
             self._adapter_command_queue_send(gtl)
+            response.status = BLE_ERROR.BLE_STATUS_OK
 
         self._mgr_response_queue_send(response)
 
