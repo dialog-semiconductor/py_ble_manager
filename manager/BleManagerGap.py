@@ -8,7 +8,8 @@ from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BleEventGapConnected
     BleEventGapConnParamUpdateCompleted, BleEventGapConnParamUpdated, BleEventGapConnParamUpdateReq
 from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd, GapcGetDevInfoReqInd, GapcGetDevInfoCfm, \
-    GapcDisconnectInd, GapcCmpEvt, GapcDisconnectCmd, GapcParamUpdateCmd, GapcParamUpdatedInd, GapcParamUpdateReqInd
+    GapcDisconnectInd, GapcCmpEvt, GapcDisconnectCmd, GapcParamUpdateCmd, GapcParamUpdatedInd, GapcParamUpdateReqInd, \
+    GapcParamUpdateCfm
 from gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd, \
     GapmStartScanCmd, GapmAdvReportInd, GapmCancelCmd
 from gtl_port.co_error import CO_ERROR
@@ -22,7 +23,7 @@ from manager.BleManagerCommon import BleManagerBase
 from manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp, \
     BleMgrGapRoleSetCmd, BleMgrGapConnectCmd, BleMgrGapScanStartCmd, BleMgrGapScanStartRsp, BleMgrGapConnectRsp, \
     BleMgrGapDisconnectCmd, BleMgrGapDisconnectRsp, BleMgrGapConnectCancelCmd, BleMgrGapConnectCancelRsp, \
-    BleMgrGapConnParamUpdateCmd, BleMgrGapConnParamUpdateRsp
+    BleMgrGapConnParamUpdateCmd, BleMgrGapConnParamUpdateRsp, BleMgrGapConnParamUpdateReplyCmd, BleMgrGapConnParamUpdateReplyRsp
 from manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from manager.GtlWaitQueue import GtlWaitQueue
 
@@ -69,7 +70,7 @@ class BleManagerGap(BleManagerBase):
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_MTU_SIZE_SET_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CHANNEL_MAP_SET_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_PARAM_UPDATE_CMD: self.conn_param_update,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_PARAM_UPDATE_REPLY_CMD: None,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_PARAM_UPDATE_REPLY_CMD: self.conn_param_update_reply_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PAIR_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PASSKEY_REPLY_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_UNPAIR_CMD: None,
@@ -539,6 +540,24 @@ class BleManagerGap(BleManagerBase):
                 gtl.parameters.ce_len_max = dev.ce_len_max
 
             dev.updating = True
+            self._adapter_command_queue_send(gtl)
+            response.status = BLE_ERROR.BLE_STATUS_OK
+
+        self._mgr_response_queue_send(response)
+
+    def conn_param_update_reply_cmd_handler(self, command: BleMgrGapConnParamUpdateReplyCmd):
+        response = BleMgrGapConnParamUpdateReplyRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
+
+        if not dev:
+            response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
+        else:
+            gtl = GapcParamUpdateCfm(conidx=command.conn_idx)
+            gtl.parameters.accept = command.accept
+            if command.accept and dev.master:
+                gtl.parameters.ce_len_min = dev.ce_len_min
+                gtl.parameters.ce_len_max = dev.ce_len_max
+            dev.updating = False
             self._adapter_command_queue_send(gtl)
             response.status = BLE_ERROR.BLE_STATUS_OK
 

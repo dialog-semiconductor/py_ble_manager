@@ -3,7 +3,7 @@ import asyncio
 # TODO simplify imports for user
 from ble_api.BlePeripheral import BlePeripheral
 from ble_api.BleAtt import ATT_ERROR
-from ble_api.BleCommon import BleEventBase
+from ble_api.BleCommon import BleEventBase, BLE_EVT_GAP, BLE_EVT_GATTS
 from ble_api.BleGap import BleEventGapDisconnected
 from services.CustomBleService import CustomBleService, CustomBleServiceCallbacks
 
@@ -92,11 +92,11 @@ async def ble_task(sample_q: asyncio.Queue):
                 if evt is not None:
                     handled = await periph.service_handle_event(evt)
                     if not handled:
-                        if isinstance(evt, BleEventGapDisconnected):
-                            await periph.start_advertising()
-                        # Application opportunity to handle event
-                        # or apply default behaior
-                        pass
+                        match evt.evt_code:
+                            case BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED:
+                                await periph.start_advertising()
+                            case _:
+                                await periph.handle_event_default(evt)
 
                 print(f"Main rx'd event: {evt}. hanlded={handled} \n")
 

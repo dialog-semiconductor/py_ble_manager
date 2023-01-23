@@ -7,9 +7,11 @@ from prompt_toolkit.patch_stdout import patch_stdout
 # TODO simplify imports for user
 from ble_api.BleAtt import AttUuid, ATT_UUID_TYPE
 from ble_api.BleCentral import BleCentral
-from ble_api.BleCommon import BleEventBase, BdAddress, BLE_ADDR_TYPE, BLE_HCI_ERROR, BLE_ERROR
+from ble_api.BleCommon import BleEventBase, BdAddress, BLE_ADDR_TYPE, BLE_HCI_ERROR, BLE_ERROR, BLE_EVT_GAP, \
+    BLE_EVT_GATTS
 from ble_api.BleGap import BleEventGapAdvReport, BleEventGapScanCompleted, GapConnParams, BleEventGapConnected, \
-    BleEventGapDisconnected, GAP_SCAN_TYPE, GAP_SCAN_MODE, BleEventGapConnectionCompleted
+    BleEventGapDisconnected, GAP_SCAN_TYPE, GAP_SCAN_MODE, BleEventGapConnectionCompleted, BleEventGapConnParamUpdated, \
+    BleEventGapConnParamUpdateCompleted
 from ble_api.BleGattc import BleEventGattcDiscoverSvc, BleEventGattcDiscoverCompleted, GATTC_DISCOVERY_TYPE, \
     BleEventGattcDiscoverChar, BleEventGattcDiscoverDesc, BleEventGattcBrowseCompleted, BleEventGattcBrowseSvc, \
     GATTC_ITEM_TYPE, BleEventGattcNotification, BleEventGattcReadCompleted, BleEventGattcWriteCompleted
@@ -28,15 +30,16 @@ async def user_main():
 
 async def console(ble_command_q: asyncio.Queue, ble_response_q: asyncio.Queue):
     word_completer = WordCompleter([
-        'GAPSCAN', 
-        'GAPCONNECT', 
-        'GAPBROWSE', 
-        'GAPDISCONNECT', 
-        'GATTWRITE', 
-        'GATTREAD', 
+        'GAPSCAN',
+        'GAPCONNECT',
+        'GAPBROWSE',
+        'GAPDISCONNECT',
+        'GATTWRITE',
+        'GATTREAD',
         'GATTWRITENORESP',
         'GATTWRITEPREPARE',
-        'GATTWRITEEXECUTE'], ignore_case=True)
+        'GATTWRITEEXECUTE',
+        'GAPSETCONNPARAM'], ignore_case=True)
 
     session = PromptSession(completer=word_completer)
     while True:
@@ -81,7 +84,7 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
             # Handle and BLE events that hace occurred
             if task is console_command_task:
                 command: str = task.result()
-                #print(f"ble_taks received command: {command}")
+                # print(f"ble_taks received command: {command}")
 
                 error = BLE_ERROR.BLE_ERROR_FAILED
                 args = command.split()
@@ -99,8 +102,8 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
 
                         case "GAPCONNECT":
                             if len(args) == 2:  # TODO pass in addr 48:23:35:00:1b:53
-                                #bd_info = args[1].strip(',')
-                                #bd_type =  if bd_info[1] == 'P' else BLE_ADDR_TYPE.PRIVATE_ADDRESS
+                                # bd_info = args[1].strip(',')
+                                # bd_type =  if bd_info[1] == 'P' else BLE_ADDR_TYPE.PRIVATE_ADDRESS
                                 periph_bd = str_to_bd_addr(BLE_ADDR_TYPE.PUBLIC_ADDRESS, args[1])
                                 print(f"periph: {periph_bd}")
                                 periph_bd = BdAddress(BLE_ADDR_TYPE.PUBLIC_ADDRESS, bytes.fromhex("531B00352348"))  # addr is backwards
@@ -158,6 +161,15 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
                                 handle = int(args[2])
                                 error = await central.read(conn_idx, handle, 0)
 
+                        case 'GAPSETCONNPARAM':
+                            if len(args) == 6:
+                                conn_idx = int(args[1])
+                                conn_params = GapConnParams()
+                                conn_params.interval_min = int(args[2])
+                                conn_params.interval_max = int(args[3])
+                                conn_params.slave_latency = int(args[4])
+                                conn_params.sup_timeout = int(args[5])
+                                error = await central.conn_param_update(conn_idx, conn_params)
                         case _:
                             pass
 
@@ -228,11 +240,25 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
                     elif isinstance(evt, BleEventGattcWriteCompleted):
                         handle_evt_gattc_write_completed(central, evt)
 
+                    elif isinstance(evt, BleEventGapConnParamUpdated):
+                        handle_evt_gap_conn_param_updated(central, evt)
+
+                    elif isinstance(evt, BleEventGapConnParamUpdateCompleted):
+                        handle_evt_gap_conn_param_update_compelted(central, evt)
+
                     else:
                         print(f"Ble Task unhandled event: {evt}")
 
                 ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
                 pending.add(ble_event_task)
+
+
+def handle_evt_gap_conn_param_updated(central, evt: BleEventGapConnParamUpdated):
+    print(f"Connection Parameters updated: evt={evt}")
+
+
+def handle_evt_gap_conn_param_update_compelted(central, evt: BleEventGapConnParamUpdateCompleted):
+    print(f"Connection Parameters update completed: evt={evt}")
 
 
 def handle_evt_gap_connection_compelted(central, evt: BleEventGapConnectionCompleted):

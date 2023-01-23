@@ -3,8 +3,8 @@ import asyncio
 from adapter.BleAdapter import BleAdapter
 from ble_api.BleDeviceBase import BleDeviceBase
 from ble_api.BleAtt import ATT_ERROR
-from ble_api.BleCommon import BleEventBase, BLE_ERROR
-from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_EVT_GAP, BleEventGapConnected, BleEventGapDisconnected
+from ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_EVT_GAP, BLE_EVT_GATTS
+from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_EVT_GAP, BleEventGapConnected, BleEventGapDisconnected, BleEventGapConnParamUpdateReq
 from ble_api.BleGatt import GATT_EVENT
 from ble_api.BleGatts import BLE_EVT_GATTS, BleEventGattsReadReq, BleEventGattsWriteReq, BleEventGattsPrepareWriteReq
 from ble_api.BleGattsApi import BleGattsApi
@@ -65,12 +65,33 @@ class BlePeripheral(BleDeviceBase):
     def _ms_to_adv_slots(self, time_ms) -> int:
         return int((time_ms) * 1000 // 625)
 
+    async def conn_param_update_reply(self, conn_idx: int, accept: bool) -> BLE_ERROR:
+        return await self._ble_gap.conn_param_update_reply(conn_idx, accept)
+
     async def get_value(self, handle: int, max_len: int) -> BLE_ERROR:
         error = BLE_ERROR.BLE_ERROR_FAILED
         service = self._find_service_by_handle(handle)
         if service:
             error = await self._ble_gatts.get_value(handle, max_len)
         return error
+
+    async def handle_event_default(self, evt: BleEventBase):
+        match evt.evt_code:
+            case BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATE_REQ:
+                evt: BleEventGapConnParamUpdateReq = evt
+                await self._ble_gap.conn_param_update_reply(evt.conn_idx, True)
+            case BLE_EVT_GAP.BLE_EVT_GAP_PAIR_REQ:
+                # TODO PAIR REPLY
+                pass
+            case BLE_EVT_GATTS.BLE_EVT_GATTS_READ_REQ:
+                evt: BleEventGattsReadReq = evt
+                self.read_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_READ_NOT_PERMITTED, None)
+            case BLE_EVT_GATTS.BLE_EVT_GATTS_PREPARE_WRITE_REQ:
+                evt: BleEventGattsWriteReq = evt
+                self.write_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_WRITE_NOT_PERMITTED)
+            case BLE_EVT_GATTS.BLE_EVT_GATTS_PREPARE_WRITE_REQ:
+                evt: BleEventGattsPrepareWriteReq = evt
+                self.prepare_write_cfm(evt.conn_idx, evt.handle, 0, ATT_ERROR.ATT_ERROR_WRITE_NOT_PERMITTED)
 
     async def init(self) -> None:
         try:
@@ -178,7 +199,7 @@ class BlePeripheral(BleDeviceBase):
                 handled = await self._handle_prepare_write_req_evt(evt)
 
         '''
-       
+        TODO
         case return.BLE_EVT_GATTS_EVENT_SENT:
                 return event_sent((const ble_evt_gatts_event_sent_t *) evt);
         '''
