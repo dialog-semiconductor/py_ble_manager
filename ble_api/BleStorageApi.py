@@ -15,7 +15,7 @@ class BleStorageApi(BleApiBase):
     def put_int(self, conn_idx: int, key: int, value: int, persistent: bool) -> BLE_ERROR:
 
         error = BLE_ERROR.BLE_ERROR_FAILED
-        dev = self.ble_manager.find_stored_device_by_conn_idx(conn_idx)
+        dev = self._ble_manager.find_stored_device_by_conn_idx(conn_idx)
         if not dev:
             error = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
         else:
@@ -29,7 +29,7 @@ class BleStorageApi(BleApiBase):
         error = BLE_ERROR.BLE_ERROR_FAILED
         value_int = None
 
-        dev = self.ble_manager.find_stored_device_by_conn_idx(conn_idx)
+        dev = self._ble_manager.find_stored_device_by_conn_idx(conn_idx)
         if not dev:
             error = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
         else:
