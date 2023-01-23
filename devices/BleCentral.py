@@ -39,6 +39,9 @@ class BleCentral(BleDeviceBase):
     async def discover_services(self, conn_idx: int, uuid: AttUuid):
         return await self._ble_gattc.discover_services(conn_idx, uuid)
 
+    async def pair(self, conn_idx: int, bond: bool) -> BLE_ERROR:
+        return await self._ble_gap.pair(conn_idx, bond)
+
     def parse_adv_data(self, evt: BleEventGapAdvReport) -> list[BleAdvData]:
         data_ptr = 0
         adv_data_structs: BleAdvData = []

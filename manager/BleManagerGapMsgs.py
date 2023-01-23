@@ -47,23 +47,6 @@ class BleMgrGapConnectRsp(BleMgrMsgRsp):
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CMD,
                          status=status)
 
-
-class BleMgrGapDisconnectCmd(BleMgrMsgBase):
-    def __init__(self,
-                 conn_idx: int = 0,
-                 reason: BLE_HCI_ERROR = BLE_HCI_ERROR.BLE_HCI_ERROR_NO_ERROR,
-                 ) -> None:
-        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DISCONNECT_CMD)
-        self.conn_idx = conn_idx
-        self.reason = reason
-
-
-class BleMgrGapDisconnectRsp(BleMgrMsgRsp):
-    def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
-        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DISCONNECT_CMD,
-                         status=status)
-
-
 class BleMgrGapConnParamUpdateCmd(BleMgrMsgBase):
     def __init__(self,
                  conn_idx: int,
@@ -93,6 +76,37 @@ class BleMgrGapConnParamUpdateReplyCmd(BleMgrMsgBase):
 class BleMgrGapConnParamUpdateReplyRsp(BleMgrMsgRsp):
     def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_PARAM_UPDATE_REPLY_CMD,
+                         status=status)
+
+
+class BleMgrGapDisconnectCmd(BleMgrMsgBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 reason: BLE_HCI_ERROR = BLE_HCI_ERROR.BLE_HCI_ERROR_NO_ERROR,
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DISCONNECT_CMD)
+        self.conn_idx = conn_idx
+        self.reason = reason
+
+
+class BleMgrGapDisconnectRsp(BleMgrMsgRsp):
+    def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DISCONNECT_CMD,
+                         status=status)
+
+
+class BleMgrGapPairCmd(BleMgrMsgBase):
+    def __init__(self, conn_idx: int, bond: bool) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PAIR_CMD)
+        self.conn_idx = conn_idx
+        self.bond = bond
+
+
+class BleMgrGapPairRsp(BleMgrMsgRsp):
+    def __init__(self,
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PAIR_CMD,
                          status=status)
 
 

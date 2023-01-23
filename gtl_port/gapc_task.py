@@ -1002,17 +1002,22 @@ class gapc_irk(LittleEndianStructure):
                 ("addr", gap_bdaddr)]
 
 
-'''
 # Start Bonding command procedure
-struct gapc_bond_cmd
-{
-    # GAP request type:
-    # - GAPC_BOND:  Start bonding procedure.
-    uint8_t operation;
-    # Pairing information
-    struct gapc_pairing pairing;
-};
-'''
+class gapc_bond_cmd(LittleEndianStructure):
+    
+    def __init__(self,
+                 pairing: gapc_pairing = gapc_pairing()):
+
+        self.operation = GAPC_OPERATION.GAPC_BOND
+        self.pairing = pairing
+        super().__init__(operation=self.operation,
+                         pairing=self.pairing)
+
+                # GAP request type:
+                # - GAPC_BOND:  Start bonding procedure.
+    _fields_ = [("operation", c_uint8),
+                # Pairing information
+                ("pairing", gapc_pairing)]
 
 
 # Bond procedure requested information data
@@ -1252,11 +1257,10 @@ class gapc_encrypt_ind(LittleEndianStructure):
 # Start Security Request command procedure
 class gapc_security_cmd(LittleEndianStructure):
     def __init__(self,
-                 operation: GAPC_OPERATION = GAPC_OPERATION.GAPC_NO_OP,
                  auth: c_uint16 = GAP_AUTH.GAP_AUTH_REQ_SECURE_CONNECTION,
                  ):
 
-        self.operation = operation
+        self.operation = GAPC_OPERATION.GAPC_SECURITY_REQ
         self.auth = auth
         super().__init__(operation=self.operation,
                          auth=self.auth)

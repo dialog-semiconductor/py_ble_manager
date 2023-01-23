@@ -7,7 +7,7 @@ from manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, 
     BleMgrGapConnectRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp, BleMgrGapScanStartCmd, \
     BleMgrGapScanStartRsp, BleMgrGapDisconnectCmd, BleMgrGapDisconnectRsp, BleMgrGapConnectCancelCmd, \
     BleMgrGapConnectCancelRsp, BleMgrGapConnParamUpdateCmd, BleMgrGapConnParamUpdateRsp, \
-    BleMgrGapConnParamUpdateReplyCmd, BleMgrGapConnParamUpdateReplyRsp
+    BleMgrGapConnParamUpdateReplyCmd, BleMgrGapConnParamUpdateReplyRsp, BleMgrGapPairCmd, BleMgrGapPairRsp
 
 from services.BleService import BleServiceBase
 
@@ -50,6 +50,13 @@ class BleGapApi(BleApiBase):
         resposne: BleMgrGapDisconnectRsp = await self._ble_manager.cmd_execute(command)
 
         return resposne.status
+
+    async def pair(self, conn_idx: int, bond: bool) -> BLE_ERROR:
+
+        command = BleMgrGapPairCmd(conn_idx, bond)
+        response: BleMgrGapPairRsp = await self._ble_manager.cmd_execute(command)
+
+        return response.status
 
     async def role_set(self, role: BLE_GAP_ROLE) -> BLE_ERROR:
 

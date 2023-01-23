@@ -2,28 +2,37 @@ import asyncio
 from ctypes import c_uint8
 
 from ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_OWN_ADDR_TYPE, BLE_ADDR_TYPE,  BLE_HCI_ERROR
+from ble_api.BleConfig import dg_configBLE_PAIR_INIT_KEY_DIST, dg_configBLE_PAIR_RESP_KEY_DIST, \
+    dg_configBLE_SECURE_CONNECTIONS
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BleEventGapConnected, BleEventGapDisconnected,  \
     BleEventGapAdvCompleted, BLE_CONN_IDX_INVALID, GAP_SEC_LEVEL, GAP_SCAN_TYPE, BleEventGapAdvReport, \
     BleEventGapScanCompleted, BleEventGapConnectionCompleted, BleEventGapDisconnectFailed, GapConnParams, \
-    BleEventGapConnParamUpdateCompleted, BleEventGapConnParamUpdated, BleEventGapConnParamUpdateReq
+    BleEventGapConnParamUpdateCompleted, BleEventGapConnParamUpdated, BleEventGapConnParamUpdateReq, \
+    BLE_GAP_MAX_BONDED, GAP_IO_CAPABILITIES, BLE_ENC_KEY_SIZE_MAX, GAP_SEC_LEVEL
+
 from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd, GapcGetDevInfoReqInd, GapcGetDevInfoCfm, \
     GapcDisconnectInd, GapcCmpEvt, GapcDisconnectCmd, GapcParamUpdateCmd, GapcParamUpdatedInd, GapcParamUpdateReqInd, \
-    GapcParamUpdateCfm
+    GapcParamUpdateCfm, GapcBondCfm, GapcBondCmd, GapcSecurityCmd
+
 from gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd, \
     GapmStartScanCmd, GapmAdvReportInd, GapmCancelCmd
+
 from gtl_port.co_error import CO_ERROR
-from gtl_port.gap import GAP_ROLE, GAP_AUTH_MASK, gap_bdaddr
+from gtl_port.gap import GAP_ROLE, GAP_AUTH_MASK, gap_bdaddr, GAP_IO_CAP, GAP_OOB, GAP_AUTH_MASK, GAP_SEC_REQ
 from gtl_port.gapc import GAPC_FIELDS_MASK
 from gtl_port.gapc_task import GAPC_MSG_ID, GAPC_DEV_INFO, GAPC_OPERATION
 from gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, GAPM_ADDR_TYPE, GAPM_OWN_ADDR, SCAN_FILTER_POLICY, SCAN_DUP_FILTER_POLICY
 from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from manager.BleDevParams import BleDevParamsDefault
 from manager.BleManagerCommon import BleManagerBase
+
 from manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp, \
     BleMgrGapRoleSetCmd, BleMgrGapConnectCmd, BleMgrGapScanStartCmd, BleMgrGapScanStartRsp, BleMgrGapConnectRsp, \
     BleMgrGapDisconnectCmd, BleMgrGapDisconnectRsp, BleMgrGapConnectCancelCmd, BleMgrGapConnectCancelRsp, \
-    BleMgrGapConnParamUpdateCmd, BleMgrGapConnParamUpdateRsp, BleMgrGapConnParamUpdateReplyCmd, BleMgrGapConnParamUpdateReplyRsp
+    BleMgrGapConnParamUpdateCmd, BleMgrGapConnParamUpdateRsp, BleMgrGapConnParamUpdateReplyCmd, \
+    BleMgrGapConnParamUpdateReplyRsp, BleMgrGapPairCmd, BleMgrGapPairRsp
+
 from manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from manager.GtlWaitQueue import GtlWaitQueue
 
@@ -71,7 +80,7 @@ class BleManagerGap(BleManagerBase):
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CHANNEL_MAP_SET_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_PARAM_UPDATE_CMD: self.conn_param_update,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_PARAM_UPDATE_REPLY_CMD: self.conn_param_update_reply_cmd_handler,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PAIR_CMD: None,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PAIR_CMD: self.pair_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PASSKEY_REPLY_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_UNPAIR_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SET_SEC_LEVEL_CMD: None,
@@ -346,6 +355,27 @@ class BleManagerGap(BleManagerBase):
 
         return gtl
 
+    def _io_cap_to_gtl(io_cap: GAP_IO_CAPABILITIES):
+        
+        match io_cap:
+            case GAP_IO_CAPABILITIES.GAP_IO_CAP_DISP_ONLY:
+                gtl_io_cap = GAP_IO_CAP.GAP_IO_CAP_DISPLAY_ONLY
+            case GAP_IO_CAPABILITIES.GAP_IO_CAP_DISP_YES_NO:
+                gtl_io_cap = GAP_IO_CAP.GAP_IO_CAP_DISPLAY_YES_NO
+            case GAP_IO_CAPABILITIES.GAP_IO_CAP_KEYBOARD_ONLY:
+                gtl_io_cap = GAP_IO_CAP.GAP_IO_CAP_KB_ONLY
+            case GAP_IO_CAPABILITIES.GAP_IO_CAP_NO_INPUT_OUTPUT:
+                gtl_io_cap = GAP_IO_CAP.GAP_IO_CAP_NO_INPUT_NO_OUTPUT
+            case GAP_IO_CAPABILITIES.GAP_IO_CAP_KEYBOARD_DISP:
+                gtl_io_cap = GAP_IO_CAP.GAP_IO_CAP_KB_DISPLAY
+            case _:
+                gtl_io_cap = GAP_IO_CAP.GAP_IO_CAP_NO_INPUT_NO_OUTPUT
+        return gtl_io_cap
+
+
+    def _max_bonded_reached(self):
+        return self._stored_device_list.count_bonded() >= BLE_GAP_MAX_BONDED
+
     def _resolve_address_from_connected_evt(self, evt: GapcConnectionReqInd, param: None):
         # Check if peer's address is random
         if evt.parameters.peer_addr_type != BLE_ADDR_TYPE.PRIVATE_ADDRESS:
@@ -358,6 +388,52 @@ class BleManagerGap(BleManagerBase):
         # TODO gtl message
         # gtl = GapmResolvAddrCmd
         return False
+
+    def _send_bond_cmd(self,
+                       conn_idx: int,
+                       io_cap: GAP_IO_CAPABILITIES,
+                       bond: bool,
+                       mitm: bool,
+                       secure: bool):
+
+        gtl = GapcBondCmd(conidx=conn_idx)
+        gtl.parameters.pairing.iocap = self._io_cap_to_gtl(io_cap)
+        gtl.parameters.pairing.oob = GAP_OOB.GAP_OOB_AUTH_DATA_NOT_PRESENT
+        gtl.parameters.pairing.auth = GAP_AUTH_MASK.GAP_AUTH_BOND if bond else GAP_AUTH_MASK.GAP_AUTH_NONE
+        gtl.parameters.pairing.auth |= GAP_AUTH_MASK.GAP_AUTH_MITM if mitm else GAP_AUTH_MASK.GAP_AUTH_NONE
+        gtl.parameters.pairing.auth |= GAP_AUTH_MASK.GAP_AUTH_SEC if secure else GAP_AUTH_MASK.GAP_AUTH_NONE
+        gtl.parameters.pairing.key_size = BLE_ENC_KEY_SIZE_MAX
+        gtl.parameters.pairing.ikey_dist = dg_configBLE_PAIR_INIT_KEY_DIST
+        gtl.parameters.pairing.rkey_dist = dg_configBLE_PAIR_RESP_KEY_DIST
+
+        dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+        if not dev:
+             gtl.parameters.pairing.sec_req = GAP_SEC_REQ.GAP_NO_SEC
+        else:
+            match dev.sec_level_req:
+                case GAP_SEC_LEVEL.GAP_SEC_LEVEL_4:
+                    gtl.parameters.pairing.sec_req = GAP_SEC_REQ.GAP_SEC1_SEC_PAIR_ENC
+                case GAP_SEC_LEVEL.GAP_SEC_LEVEL_3:
+                    gtl.parameters.pairing.sec_req = GAP_SEC_REQ.GAP_SEC1_AUTH_PAIR_ENC
+                case GAP_SEC_LEVEL.GAP_SEC_LEVEL_2:
+                    gtl.parameters.pairing.sec_req = GAP_SEC_REQ.GAP_SEC1_NOAUTH_PAIR_ENC
+                case GAP_SEC_LEVEL.GAP_SEC_LEVEL_1:
+                    gtl.parameters.pairing.sec_req = GAP_SEC_REQ.GAP_NO_SEC
+
+        self._adapter_command_queue_send(gtl)
+
+    def _send_security_req(self,
+                       conn_idx: int,
+                       bond: bool,
+                       mitm: bool,
+                       secure: bool):
+
+        gtl = GapcSecurityCmd(conidx=conn_idx)
+        gtl.parameters.auth = GAP_AUTH_MASK.GAP_AUTH_BOND if bond else GAP_AUTH_MASK.GAP_AUTH_NONE
+        gtl.parameters.auth |= GAP_AUTH_MASK.GAP_AUTH_MITM if mitm else GAP_AUTH_MASK.GAP_AUTH_NONE
+        gtl.parameters.auth |= GAP_AUTH_MASK.GAP_AUTH_SEC if secure else GAP_AUTH_MASK.GAP_AUTH_NONE
+
+        self._adapter_command_queue_send(gtl)       
 
     def _scan_cmp_evt_handler(self, gtl: GapmCmpEvt) -> None:
 
@@ -861,6 +937,45 @@ class BleManagerGap(BleManagerBase):
                 pass
 
         self._adapter_command_queue_send(cfm)
+
+    def pair_cmd_handler(self, command: BleMgrGapPairCmd):
+        response = BleMgrGapPairRsp(BLE_ERROR.BLE_ERROR_FAILED)
+
+        secure = True if (dg_configBLE_SECURE_CONNECTIONS == 1) else False
+        dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
+        if not dev:
+            response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
+        else:
+            if (not command.bond and (dev.paired or dev.bonded)):
+                response.status = BLE_ERROR.BLE_ERROR_ALREADY_DONE
+            else:
+                # Don't exceed the max bonded devices threshold
+                if (command.bond and not dev.bonded and self._max_bonded_reached()):
+                    response.status = BLE_ERROR.BLE_ERROR_INS_RESOURCES
+
+                mitm = False if self.dev_params.io_capabilities == GAP_IO_CAPABILITIES.GAP_IO_CAP_NO_INPUT_OUTPUT else True
+                if dev.master:
+                    # if (dg_configBLE_CENTRAL == 1) # TODO would this ever be true for periph?
+                    self._send_bond_cmd(command.conn_idx,
+                                        self.dev_params.io_capabilities,
+                                        command.bond,
+                                        mitm,
+                                        secure)
+                    response.status = BLE_ERROR.BLE_STATUS_OK
+                    # #endif /* (dg_configBLE_CENTRAL == 1) */
+                else:
+                    # if (dg_configBLE_PERIPHERAL == 1) # TODO would this ever be true for central?
+                    if dev.security_req_pending:
+                        response.status = BLE_ERROR.BLE_ERROR_IN_PROGRESS
+                    else:
+                        dev.security_req_pending = True
+                        self._send_security_req(command.conn_idx,
+                                                command.bond,
+                                                mitm,
+                                                secure)
+                        response.status = BLE_ERROR.BLE_STATUS_OK
+
+        self._mgr_response_queue_send(response)
 
     def role_set_cmd_handler(self, command: BleMgrGapRoleSetCmd):
         gtl = self._dev_params_to_gtl()

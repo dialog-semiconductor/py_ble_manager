@@ -189,6 +189,13 @@ class StoredDeviceQueue(SearchableQueue):
     def __init__(self) -> None:
         self.queue: list[StoredDevice] = []
 
+    def count_bonded(self):
+        count = 0
+        for dev in self.queue:
+            if dev.bonded:
+                count += 1
+        return count
+
     def find_device_by_connenting(self):
         found = None
         device: StoredDevice
