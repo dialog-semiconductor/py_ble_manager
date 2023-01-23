@@ -6,7 +6,7 @@ from prompt_toolkit.patch_stdout import patch_stdout
 
 # TODO simplify imports for user
 from ble_api.BleAtt import AttUuid, ATT_UUID_TYPE
-from ble_api.BleCentral import BleCentral
+from devices.BleCentral import BleCentral
 from ble_api.BleCommon import BleEventBase, BdAddress, BLE_ADDR_TYPE, BLE_HCI_ERROR, BLE_ERROR, BLE_EVT_GAP, \
     BLE_EVT_GATTS
 from ble_api.BleGap import BleEventGapAdvReport, BleEventGapScanCompleted, GapConnParams, BleEventGapConnected, \

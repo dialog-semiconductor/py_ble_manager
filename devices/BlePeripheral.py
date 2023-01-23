@@ -1,7 +1,7 @@
 import asyncio
 
 from adapter.BleAdapter import BleAdapter
-from ble_api.BleDeviceBase import BleDeviceBase
+from devices.BleDeviceBase import BleDeviceBase
 from ble_api.BleAtt import ATT_ERROR
 from ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_EVT_GAP, BLE_EVT_GATTS
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_EVT_GAP, BleEventGapConnected, BleEventGapDisconnected, BleEventGapConnParamUpdateReq

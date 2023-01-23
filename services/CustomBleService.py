@@ -6,7 +6,7 @@ from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP, GATT_EVENT
 from ble_api.BleGatts import GATTS_FLAGS, BleEventGattsWriteReq, BleEventGattsPrepareWriteReq, BleEventGattsEventSent, BleEventGattsReadReq
 from services.BleService import BleServiceBase, GattServiceDef, GattCharacteristicDef, DescriptorDef, AttributeHandle
-from ble_api.BlePeripheral import BlePeripheral
+from devices.BlePeripheral import BlePeripheral
 
 
 class CustomBleService(BleServiceBase):

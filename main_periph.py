@@ -1,7 +1,7 @@
 import asyncio
 
 # TODO simplify imports for user
-from ble_api.BlePeripheral import BlePeripheral
+from devices.BlePeripheral import BlePeripheral
 from ble_api.BleAtt import ATT_ERROR
 from ble_api.BleCommon import BleEventBase, BLE_EVT_GAP, BLE_EVT_GATTS
 from ble_api.BleGap import BleEventGapDisconnected
