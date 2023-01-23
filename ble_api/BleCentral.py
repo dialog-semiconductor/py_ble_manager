@@ -11,6 +11,9 @@ class BleCentral(BleDeviceBase):
     async def browse(self, conn_idx: int, uuid: AttUuid) -> BLE_ERROR:
         return await self._ble_gattc.browse(conn_idx, uuid)
 
+    async def conn_param_update(self, conn_idx: int, conn_params: GapConnParams):
+        return await self._ble_gap.conn_param_update(conn_idx, conn_params)
+
     async def connect(self, peer_addr: BdAddress, conn_params: GapConnParams) -> None:
         return await self._ble_gap.connect(peer_addr, conn_params)
 

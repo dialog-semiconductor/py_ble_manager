@@ -4,10 +4,11 @@ from ctypes import c_uint8
 from ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_OWN_ADDR_TYPE, BLE_ADDR_TYPE,  BLE_HCI_ERROR
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BleEventGapConnected, BleEventGapDisconnected,  \
     BleEventGapAdvCompleted, BLE_CONN_IDX_INVALID, GAP_SEC_LEVEL, GAP_SCAN_TYPE, BleEventGapAdvReport, \
-    BleEventGapScanCompleted, BleEventGapConnectionCompleted, BleEventGapDisconnectFailed
+    BleEventGapScanCompleted, BleEventGapConnectionCompleted, BleEventGapDisconnectFailed, GapConnParams, \
+    BleEventGapConnParamUpdateCompleted, BleEventGapConnParamUpdated, BleEventGapConnParamUpdateReq
 from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd, GapcGetDevInfoReqInd, GapcGetDevInfoCfm, \
-    GapcDisconnectInd, GapcCmpEvt, GapcDisconnectCmd
+    GapcDisconnectInd, GapcCmpEvt, GapcDisconnectCmd, GapcParamUpdateCmd, GapcParamUpdatedInd, GapcParamUpdateReqInd
 from gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd, \
     GapmStartScanCmd, GapmAdvReportInd, GapmCancelCmd
 from gtl_port.co_error import CO_ERROR
@@ -20,7 +21,8 @@ from manager.BleDevParams import BleDevParamsDefault
 from manager.BleManagerCommon import BleManagerBase
 from manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp, \
     BleMgrGapRoleSetCmd, BleMgrGapConnectCmd, BleMgrGapScanStartCmd, BleMgrGapScanStartRsp, BleMgrGapConnectRsp, \
-    BleMgrGapDisconnectCmd, BleMgrGapDisconnectRsp, BleMgrGapConnectCancelCmd, BleMgrGapConnectCancelRsp
+    BleMgrGapDisconnectCmd, BleMgrGapDisconnectRsp, BleMgrGapConnectCancelCmd, BleMgrGapConnectCancelRsp, \
+    BleMgrGapConnParamUpdateCmd, BleMgrGapConnParamUpdateRsp
 from manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from manager.GtlWaitQueue import GtlWaitQueue
 
@@ -66,7 +68,7 @@ class BleManagerGap(BleManagerBase):
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ROLE_SET_CMD: self.role_set_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_MTU_SIZE_SET_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CHANNEL_MAP_SET_CMD: None,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_PARAM_UPDATE_CMD: None,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_PARAM_UPDATE_CMD: self.conn_param_update,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_PARAM_UPDATE_REPLY_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PAIR_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PASSKEY_REPLY_CMD: None,
@@ -90,8 +92,8 @@ class BleManagerGap(BleManagerBase):
             GAPC_MSG_ID.GAPC_PEER_VERSION_IND: None,
             GAPC_MSG_ID.GAPC_PEER_FEATURES_IND: None,
             GAPC_MSG_ID.GAPC_CON_RSSI_IND: None,
-            GAPC_MSG_ID.GAPC_PARAM_UPDATE_REQ_IND: None,
-            GAPC_MSG_ID.GAPC_PARAM_UPDATED_IND: None,
+            GAPC_MSG_ID.GAPC_PARAM_UPDATE_REQ_IND: self.conn_param_update_req_evt_handler,
+            GAPC_MSG_ID.GAPC_PARAM_UPDATED_IND: self.conn_param_updated_evt_handler,
             GAPC_MSG_ID.GAPC_BOND_REQ_IND: None,
             GAPC_MSG_ID.GAPC_BOND_IND: None,
             GAPC_MSG_ID.GAPC_SECURITY_IND: None,
@@ -199,8 +201,47 @@ class BleManagerGap(BleManagerBase):
     def _cmp_security_req_evt_handler(self, gtl: GapcCmpEvt):
         return False
 
+    # TODO need to test
     def _cmp_update_params_evt_handler(self, gtl: GapcCmpEvt):
-        return False
+        conn_idx = self._task_to_connidx(gtl.src_id)
+        dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+        if dev:
+            dev.updating = False
+
+        evt = BleEventGapConnParamUpdateCompleted()
+        evt.conn_idx = conn_idx
+        match gtl.parameters.status:
+            case HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
+                evt.status = BLE_ERROR.BLE_STATUS_OK
+            case (HOST_STACK_ERROR_CODE.GAP_ERR_INVALID_PARAM
+                    | HOST_STACK_ERROR_CODE.LL_ERR_INVALID_HCI_PARAM):
+
+                evt.status = BLE_ERROR.BLE_ERROR_INVALID_PARAM
+
+            case HOST_STACK_ERROR_CODE.GAP_ERR_TIMEOUT:
+                evt.status = BLE_ERROR.BLE_ERROR_TIMEOUT
+            case HOST_STACK_ERROR_CODE.GAP_ERR_REJECTED:
+                evt.status = BLE_ERROR.BLE_ERROR_NOT_ACCEPTED
+            case HOST_STACK_ERROR_CODE.LL_ERR_COMMAND_DISALLOWED:
+                evt.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
+            case (HOST_STACK_ERROR_CODE.LL_ERR_UNKNOWN_HCI_COMMAND 
+                    | HOST_STACK_ERROR_CODE.LL_ERR_UNSUPPORTED
+                    | HOST_STACK_ERROR_CODE.LL_ERR_UNKNOWN_LMP_PDU
+                    | HOST_STACK_ERROR_CODE.LL_ERR_UNSUPPORTED_LMP_PARAM_VALUE):
+
+                evt.status = BLE_ERROR.BLE_ERROR_NOT_SUPPORTED
+
+            case HOST_STACK_ERROR_CODE.LL_ERR_UNSUPPORTED_REMOTE_FEATURE:
+                evt.status = BLE_ERROR.BLE_ERROR_NOT_SUPPORTED_BY_PEER
+            case HOST_STACK_ERROR_CODE.LL_ERR_LMP_COLLISION:
+                evt.status = BLE_ERROR.BLE_ERROR_LMP_COLLISION
+            case HOST_STACK_ERROR_CODE.LL_ERR_DIFF_TRANSACTION_COLLISION:
+                evt.status = BLE_ERROR.BLE_ERROR_DIFF_TRANS_COLLISION
+            case _:
+                # evt->status = gevt->status;  # TODO error if gtl.parameters.status not a valid BLE_ERROR
+                evt.status = BLE_ERROR.BLE_ERROR_FAILED
+
+        self._mgr_event_queue_send(evt)
 
     def _conn_cleanup(self, conn_idx: int = 0, reason: CO_ERROR = CO_ERROR.CO_ERROR_NO_ERROR) -> None:
         dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
@@ -476,96 +517,60 @@ class BleManagerGap(BleManagerBase):
         response = BleMgrGapAdvStartRsp(BLE_ERROR.BLE_STATUS_OK)
         self._mgr_response_queue_send(response)
 
-    def gapc_cmp_evt_handler(self, gtl: GapcCmpEvt) -> bool:
+    # TODO need to test
+    def conn_param_update(self, command: BleMgrGapConnParamUpdateCmd):
+        response = BleMgrGapConnParamUpdateRsp(BLE_ERROR.BLE_ERROR_FAILED)
 
-        match gtl.parameters.operation:
-            case GAPC_OPERATION.GAPC_DISCONNECT:
-                self._cmp_disconnect_evt_handler(gtl)
-            case GAPC_OPERATION.GAPC_UPDATE_PARAMS:
-                # TODO should not return value
-                return self._cmp_update_params_evt_handler(gtl)
-            case GAPC_OPERATION.GAPC_SET_LE_PKT_SIZE:
-                # TODO should not return value
-                return self._cmp_data_length_set_evt_handler(gtl)
-            case (GAPC_OPERATION.GAPC_GET_PEER_VERSION
-                    | GAPC_OPERATION.GAPC_GET_PEER_FEATURES
-                    | GAPC_OPERATION.GAPC_GET_CON_RSSI
-                    # | GAPC_OPERATION.GAPC_SET_TX_PWR
-                    # | GAPC_OPERATION.GAPC_LE_RD_TX_PWR_LVL_ENH
-                    # | GAPC_OPERATION.GAPC_LE_RD_REM_TX_PWR_LVL
-                    # | GAPC_OPERATION.GAPC_LE_SET_PATH_LOSS_REPORT_PARAMS
-                    # | GAPC_OPERATION.GAPC_LE_SET_PATH_LOSS_REPORT_EN
-                    #  GAPC_OPERATION.GAPC_LE_SET_TX_PWR_REPORT_EN)
-                  ):
+        dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
+        if not dev:
+            response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
+        elif dev.updating:
+            response.status = BLE_ERROR.BLE_ERROR_IN_PROGRESS
+        else:
+            gtl = GapcParamUpdateCmd(conidx=command.conn_idx)
+            gtl.parameters.operation = GAPC_OPERATION.GAPC_UPDATE_PARAMS
+            gtl.parameters.intv_min = command.conn_params.interval_min
+            gtl.parameters.intv_max = command.conn_params.interval_max
+            gtl.parameters.latency = command.conn_params.slave_latency
+            gtl.parameters.time_out = command.conn_params.sup_timeout
 
-                pass
+            if dev.master:
+                gtl.parameters.ce_len_min = dev.ce_len_min
+                gtl.parameters.ce_len_max = dev.ce_len_max
 
-            case GAPC_OPERATION.GAPC_BOND:
-                # TODO should not return value
-                return self._cmp_bond_evt_handler(gtl)
-            case GAPC_OPERATION.GAPC_ENCRYPT:
-                pass
-            case GAPC_OPERATION.GAPC_SECURITY_REQ:
-                # TODO should not return value
-                return self._cmp_security_req_evt_handler(gtl)
+            dev.updating = True
+            self._adapter_command_queue_send(gtl)
+            response.status = BLE_ERROR.BLE_STATUS_OK
 
-            # case GAPC_OPERATION.GAPC_LE_CB_CONNECTION:  # TODO separate L2CAP Manager
-            #   ble_mgr_gapc_cmp__le_cb_connection_evt_handler(gtl);
+        self._mgr_response_queue_send(response)
 
-            case _:
-                return False
-        return True
+    # TODO need to test
+    def conn_param_updated_evt_handler(self, gtl: GapcParamUpdatedInd):
+        evt = BleEventGapConnParamUpdated()
+        evt.conn_idx = self._task_to_connidx(gtl.src_id)
+        evt.conn_params.interval_min = gtl.parameters.con_interval
+        evt.conn_params.interval_max = gtl.parameters.con_interval
+        evt.conn_params.slave_latency = gtl.parameters.con_latency
+        evt.conn_params.sup_timeout = gtl.parameters.sup_to
+        self._mgr_event_queue_send(evt)
 
-    def gapm_cmp_evt_handler(self, gtl: GapmCmpEvt) -> bool:
+    # TODO need to test
+    def conn_param_update_req_evt_handler(self, gtl: GapcParamUpdateReqInd):
+        evt = BleEventGapConnParamUpdateReq()
+        conn_idx = self._task_to_connidx(gtl.src_id)
 
-        # TODO replace this with another dictionary??
-        match gtl.parameters.operation:
-            case GAPM_OPERATION.GAPM_ADV_NON_CONN \
-                    | GAPM_OPERATION.GAPM_ADV_UNDIRECT \
-                    | GAPM_OPERATION.GAPM_ADV_DIRECT \
-                    | GAPM_OPERATION.GAPM_ADV_DIRECT_LDC:
+        dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+        if dev:
+            # Set the updating flag until application replies to the update request
+            dev.updating = True
 
-                self._adv_cmp_evt_handler(gtl)
+        evt.conn_idx = conn_idx
+        evt.conn_params.interval_min = gtl.parameters.intv_min
+        evt.conn_params.interval_max = gtl.parameters.intv_max
+        evt.conn_params.slave_latency = gtl.parameters.latency
+        evt.conn_params.sup_timeout = gtl.parameters.time_out
 
-            case GAPM_OPERATION.GAPM_UPDATE_ADVERTISE_DATA:
-                pass
-            # case GAPM_OPERATION.GAPM_CANCEL_ADVERTISE: RWBLE >= 9
-            #    pass
-
-            case GAPM_OPERATION.GAPM_SCAN_ACTIVE \
-                    | GAPM_OPERATION.GAPM_SCAN_PASSIVE:
-
-                self._scan_cmp_evt_handler(gtl)
-
-            case GAPM_OPERATION.GAPM_CONNECTION_DIRECT:
-                self._connect_cmp_evt_handler(gtl)
-
-            # case GAPM_OPERATION.GAPM_CANCEL_CONNECTION: RWBLE >= 9
-            #    pass
-
-            case GAPM_OPERATION.GAPM_SET_CHANNEL_MAP:
-                pass
-            case GAPM_OPERATION.GAPM_SET_SUGGESTED_DFLT_LE_DATA_LEN:
-                # TODO should not return value
-                return self._cmp_data_length_set_evt_handler(gtl)
-            case GAPM_OPERATION.GAPM_RESOLV_ADDR:
-                # TODO should not return value
-                return self._cmp_address_resolve_evt_handler(gtl)
-            case (GAPM_OPERATION.GAPM_RESET
-                    | GAPM_OPERATION.GAPM_CANCEL
-                    | GAPM_OPERATION.GAPM_SET_DEV_CONFIG
-                    | GAPM_OPERATION.GAPM_SET_DEV_CONFIG
-                    | GAPM_OPERATION.GAPM_GET_DEV_BDADDR
-                    # | GAPM_OPERATION.GAPM_SET_TX_PW
-                    # | GAPM_OPERATION.GAPM_LE_WR_RF_PATH_COMPENS
-                    # | GAPM_OPERATION.GAPM_SET_ADV_PERMUTATION
-                  ):
-
-                pass
-
-            case _:
-                return False
-        return True
+        self._mgr_event_queue_send(evt)
 
     # TODO need to test
     def connect_cancel_cmd_handler(self, command: BleMgrGapConnectCancelCmd):
@@ -728,6 +733,96 @@ class BleManagerGap(BleManagerBase):
                 dev.discon_reason = gtl.parameters.reason
             else:
                 self._conn_cleanup(conn_idx, gtl.parameters.reason)
+
+    def gapc_cmp_evt_handler(self, gtl: GapcCmpEvt) -> bool:
+
+        match gtl.parameters.operation:
+            case GAPC_OPERATION.GAPC_DISCONNECT:
+                self._cmp_disconnect_evt_handler(gtl)
+            case GAPC_OPERATION.GAPC_UPDATE_PARAMS:
+                self._cmp_update_params_evt_handler(gtl)
+            case GAPC_OPERATION.GAPC_SET_LE_PKT_SIZE:
+                # TODO should not return value
+                return self._cmp_data_length_set_evt_handler(gtl)
+            case (GAPC_OPERATION.GAPC_GET_PEER_VERSION
+                    | GAPC_OPERATION.GAPC_GET_PEER_FEATURES
+                    | GAPC_OPERATION.GAPC_GET_CON_RSSI
+                    # | GAPC_OPERATION.GAPC_SET_TX_PWR
+                    # | GAPC_OPERATION.GAPC_LE_RD_TX_PWR_LVL_ENH
+                    # | GAPC_OPERATION.GAPC_LE_RD_REM_TX_PWR_LVL
+                    # | GAPC_OPERATION.GAPC_LE_SET_PATH_LOSS_REPORT_PARAMS
+                    # | GAPC_OPERATION.GAPC_LE_SET_PATH_LOSS_REPORT_EN
+                    #  GAPC_OPERATION.GAPC_LE_SET_TX_PWR_REPORT_EN)
+                  ):
+
+                pass
+
+            case GAPC_OPERATION.GAPC_BOND:
+                # TODO should not return value
+                return self._cmp_bond_evt_handler(gtl)
+            case GAPC_OPERATION.GAPC_ENCRYPT:
+                pass
+            case GAPC_OPERATION.GAPC_SECURITY_REQ:
+                # TODO should not return value
+                return self._cmp_security_req_evt_handler(gtl)
+
+            # case GAPC_OPERATION.GAPC_LE_CB_CONNECTION:  # TODO separate L2CAP Manager
+            #   ble_mgr_gapc_cmp__le_cb_connection_evt_handler(gtl);
+
+            case _:
+                return False
+        return True
+
+    def gapm_cmp_evt_handler(self, gtl: GapmCmpEvt) -> bool:
+
+        # TODO replace this with another dictionary??
+        match gtl.parameters.operation:
+            case GAPM_OPERATION.GAPM_ADV_NON_CONN \
+                    | GAPM_OPERATION.GAPM_ADV_UNDIRECT \
+                    | GAPM_OPERATION.GAPM_ADV_DIRECT \
+                    | GAPM_OPERATION.GAPM_ADV_DIRECT_LDC:
+
+                self._adv_cmp_evt_handler(gtl)
+
+            case GAPM_OPERATION.GAPM_UPDATE_ADVERTISE_DATA:
+                pass
+            # case GAPM_OPERATION.GAPM_CANCEL_ADVERTISE: RWBLE >= 9
+            #    pass
+
+            case GAPM_OPERATION.GAPM_SCAN_ACTIVE \
+                    | GAPM_OPERATION.GAPM_SCAN_PASSIVE:
+
+                self._scan_cmp_evt_handler(gtl)
+
+            case GAPM_OPERATION.GAPM_CONNECTION_DIRECT:
+                self._connect_cmp_evt_handler(gtl)
+
+            # case GAPM_OPERATION.GAPM_CANCEL_CONNECTION: RWBLE >= 9
+            #    pass
+
+            case GAPM_OPERATION.GAPM_SET_CHANNEL_MAP:
+                pass
+            case GAPM_OPERATION.GAPM_SET_SUGGESTED_DFLT_LE_DATA_LEN:
+                # TODO should not return value
+                return self._cmp_data_length_set_evt_handler(gtl)
+            case GAPM_OPERATION.GAPM_RESOLV_ADDR:
+                # TODO should not return value
+                return self._cmp_address_resolve_evt_handler(gtl)
+            case (GAPM_OPERATION.GAPM_RESET
+                    | GAPM_OPERATION.GAPM_CANCEL
+                    | GAPM_OPERATION.GAPM_SET_DEV_CONFIG
+                    | GAPM_OPERATION.GAPM_SET_DEV_CONFIG
+                    | GAPM_OPERATION.GAPM_GET_DEV_BDADDR
+                    # | GAPM_OPERATION.GAPM_SET_TX_PW
+                    # | GAPM_OPERATION.GAPM_LE_WR_RF_PATH_COMPENS
+                    # | GAPM_OPERATION.GAPM_SET_ADV_PERMUTATION
+                  ):
+
+                pass
+
+            case _:
+                return False
+        return True
 
     def get_device_info_req_evt_handler(self, gtl: GapcGetDevInfoReqInd):
 

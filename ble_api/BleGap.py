@@ -300,6 +300,36 @@ class BleEventGapConnectionCompleted(BleEventBase):
         self.status = status
 
 
+class BleEventGapConnParamUpdateCompleted(BleEventBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATE_COMPLETED)
+        self.conn_idx = conn_idx
+        self.status = status
+
+
+class BleEventGapConnParamUpdateReq(BleEventBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 conn_params: GapConnParams = None
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATE_REQ)
+        self.conn_idx = conn_idx
+        self.conn_params = conn_params if conn_params else GapConnParams()
+
+
+class BleEventGapConnParamUpdated(BleEventBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 conn_params: GapConnParams = None
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATED)
+        self.conn_idx = conn_idx
+        self.conn_params = conn_params if conn_params else GapConnParams()
+
+
 class BleEventGapDisconnected(BleEventBase):
     def __init__(self,
                  conn_idx: int = 0,

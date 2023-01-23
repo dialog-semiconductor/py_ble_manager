@@ -6,7 +6,7 @@ from manager.BleManager import BleManager
 from manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, BleMgrGapConnectCmd, \
     BleMgrGapConnectRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp, BleMgrGapScanStartCmd, \
     BleMgrGapScanStartRsp, BleMgrGapDisconnectCmd, BleMgrGapDisconnectRsp, BleMgrGapConnectCancelCmd, \
-    BleMgrGapConnectCancelRsp
+    BleMgrGapConnectCancelRsp, BleMgrGapConnParamUpdateCmd, BleMgrGapConnParamUpdateRsp
 
 from services.BleService import BleServiceBase
 
@@ -15,6 +15,13 @@ class BleGapApi(BleApiBase):
 
     def __init__(self, ble_manager: BleManager, ble_adapter: BleAdapter):
         super().__init__(ble_manager, ble_adapter)
+
+    async def conn_param_update(self, conn_idx: int, conn_params: GapConnParams):
+
+        command = BleMgrGapConnParamUpdateCmd(conn_idx, conn_params)
+        resposne: BleMgrGapConnParamUpdateRsp = await self._ble_manager.cmd_execute(command)
+
+        return resposne.status
 
     async def connect(self, peer_addr: BdAddress, conn_params: GapConnParams) -> BLE_ERROR:
 
