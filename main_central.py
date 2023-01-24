@@ -199,7 +199,7 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
                     elif isinstance(evt, ble.BleEventGattcDiscoverSvc):
                         handle_evt_gattc_discover_svc(central, evt, services)
 
-                    elif isinstance(evt, BleEventGattcDiscoverCompleted):
+                    elif isinstance(evt, ble.BleEventGattcDiscoverCompleted):
                         # putting this check here to avoid calling function and not awaiting as not fully implemented
                         if evt.type == ble.GATTC_DISCOVERY_TYPE.GATTC_DISCOVERY_TYPE_SVC:
                             await handle_evt_gattc_discover_completed(central, evt, services)
