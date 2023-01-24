@@ -9,7 +9,7 @@ from ble_api.BleGap import ADV_FILT_POL, BLE_GAP_APPEARANCE, BLE_GAP_CONN_MODE, 
     GapConnParams, GapScanParams, BleEventGapAdvCompleted, BleEventGapAdvReport, BleEventGapConnected, \
     BleEventGapConnectionCompleted, BleEventGapConnParamUpdateCompleted, BleEventGapConnParamUpdateReq, \
     BleEventGapConnParamUpdated, BleEventGapDisconnected, BleEventGapDisconnectFailed, BleEventGapScanCompleted, \
-    BleAdvData, BleEventGapPairReq, BleEventGapPairCompleted
+    BleAdvData, BleEventGapPairReq, BleEventGapPairCompleted, BleEventGapSecLevelChanged
 
 from ble_api.BleGatt import GATT_EVENT, GATT_PROP, GATT_SERVICE
 

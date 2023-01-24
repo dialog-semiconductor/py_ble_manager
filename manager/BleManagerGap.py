@@ -665,7 +665,7 @@ class BleManagerGap(BleManagerBase):
                     if (dg_configBLE_SECURE_CONNECTIONS == 1):
                         dev.secure = True if (gtl.parameters.data.auth & GAP_AUTH_MASK.GAP_AUTH_SEC) else False
 
-                    sec_level = self._auth_to_sec_level(gtl.data.auth, dev.remote_ltk.key_size)
+                    sec_level = self._auth_to_sec_level(gtl.parameters.data.auth, dev.remote_ltk.key_size)
                     if dev.sec_level != sec_level:
                         dev.sec_level = sec_level
                         self._send_sec_level_changed_evt(evt.conn_idx, sec_level)

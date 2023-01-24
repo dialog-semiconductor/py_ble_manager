@@ -21,7 +21,7 @@ async def app_char1_write_callback(svc: CustomBleService, conn_idx: int, value: 
 
 async def app_char2_write_callback(svc: CustomBleService, conn_idx: int, value: int):
     print(f"app_char2_write_callback. conn_idx={conn_idx}, value={value}")
-    await svc.send_char2_write_cfm(conn_idx, ble.TT_ERROR.ATT_ERROR_OK)
+    await svc.send_char2_write_cfm(conn_idx, ble.ATT_ERROR.ATT_ERROR_OK)
     await svc.set_char2_value(value.to_bytes(2, byteorder='little'))
 
 
@@ -93,6 +93,9 @@ async def ble_task(sample_q: asyncio.Queue):
                         match evt.evt_code:
                             case ble.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED:
                                 await periph.start_advertising()
+                            case ble.BLE_EVT_GAP.BLE_EVT_GAP_PAIR_REQ:
+                                evt: ble.BleEventGapPairReq
+                                await periph.pair_reply(evt.conn_idx, True, False)
                             case _:
                                 await periph.handle_event_default(evt)
 

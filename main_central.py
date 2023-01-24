@@ -247,11 +247,18 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
                     elif isinstance(evt, ble.BleEventGapPairCompleted):
                         handle_evt_gap_pair_completed(central, evt)
 
+                    elif isinstance(evt, ble.BleEventGapSecLevelChanged):
+                        handle_evt_gap_sec_level_changed(central, evt)
+
                     else:
                         print(f"Ble Task unhandled event: {evt}")
 
                 ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
                 pending.add(ble_event_task)
+
+
+def handle_evt_gap_sec_level_changed(central, evt: ble.BleEventGapSecLevelChanged):
+    print(f"Security level changed: evt={evt}")
 
 
 def handle_evt_gap_pair_req(central, evt: ble.BleEventGapPairReq):
