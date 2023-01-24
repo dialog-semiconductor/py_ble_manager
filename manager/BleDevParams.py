@@ -67,7 +67,8 @@ class BleDevParams():
         self.conn_rssi = 0  # The RSSI reading reported by GAPC_CON_RSSI_IND
 
 
-# TODO any reason not to set these in BleDevParams??
+# TODO any reason not to set these in BleDevParams?? 
+# defined in ble_mgr.c
 class BleDevParamsDefault(BleDevParams):
     def __init__(self) -> None:
         super().__init__()
@@ -115,7 +116,7 @@ class BleDevParamsDefault(BleDevParams):
         self.gap_ppcp.slave_latency = 0
         self.gap_ppcp.sup_timeout = 6000 // 10
         # IO Capabilities configuration
-        self.io_capabilities = GAP_IO_CAPABILITIES.GAP_IO_CAP_NO_INPUT_OUTPUT  # TODO use BLE Enum instead of gtl
+        self.io_capabilities = GAP_IO_CAPABILITIES.GAP_IO_CAP_NO_INPUT_OUTPUT
 # if (dg_configBLE_PRIVACY_1_2 == 1) # TODO add privacy
         # ble_mgr_ral_op_t  prev_privacy_operation;  # TODO add privacy enum
 # endif /* (dg_configBLE_PRIVACY_1_2 == 1)

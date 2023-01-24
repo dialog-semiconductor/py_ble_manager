@@ -417,16 +417,6 @@ class BleEventGapPairCompleted(BleEventBase):
         self.mitm = mitm
 
 
-class BleEventGapPasskeyNotify(BleEventBase):
-    def __init__(self,
-                 conn_idx: int = 0,
-                 passkey: int = 0,
-                 ) -> None:
-        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_PASSKEY_NOTIFY)
-        self.conn_idx = conn_idx
-        self.passkey = passkey
-
-
 class BleEventGapPairReq(BleEventBase):
     def __init__(self,
                  conn_idx: int = 0,
@@ -435,6 +425,16 @@ class BleEventGapPairReq(BleEventBase):
         super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_PAIR_REQ)
         self.conn_idx = conn_idx
         self.bond = bond
+
+
+class BleEventGapPasskeyNotify(BleEventBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 passkey: int = 0,
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_PASSKEY_NOTIFY)
+        self.conn_idx = conn_idx
+        self.passkey = passkey
 
 
 class BleEventGapScanCompleted(BleEventBase):

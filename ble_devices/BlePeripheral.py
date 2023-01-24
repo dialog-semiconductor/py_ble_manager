@@ -4,14 +4,17 @@ from adapter.BleAdapter import BleAdapter
 from ble_devices.BleDeviceBase import BleDeviceBase
 from ble_api.BleAtt import ATT_ERROR
 from ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_EVT_GAP, BLE_EVT_GATTS
-from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_EVT_GAP, BleEventGapConnected, BleEventGapDisconnected, BleEventGapConnParamUpdateReq
+from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_EVT_GAP, BleEventGapConnected, \
+    BleEventGapDisconnected, BleEventGapConnParamUpdateReq, BleEventGapPairReq
 from ble_api.BleGatt import GATT_EVENT
-from ble_api.BleGatts import BLE_EVT_GATTS, BleEventGattsReadReq, BleEventGattsWriteReq, BleEventGattsPrepareWriteReq
+from ble_api.BleGatts import BLE_EVT_GATTS, BleEventGattsReadReq, BleEventGattsWriteReq, \
+    BleEventGattsPrepareWriteReq
 from ble_api.BleGattsApi import BleGattsApi
 from ble_api.BleStorageApi import BleStorageApi
 from manager.BleManager import BleManager
 from manager.BleManagerCommonMsgs import BleMgrCommonResetCmd, BleMgrCommonResetRsp
-from manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp
+from manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, BleMgrGapAdvStartCmd, \
+    BleMgrGapAdvStartRsp
 from services.BleService import BleServiceBase
 
 
@@ -79,19 +82,19 @@ class BlePeripheral(BleDeviceBase):
         match evt.evt_code:
             case BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATE_REQ:
                 evt: BleEventGapConnParamUpdateReq = evt
-                await self._ble_gap.conn_param_update_reply(evt.conn_idx, True)
+                await self.conn_param_update_reply(evt.conn_idx, True)
             case BLE_EVT_GAP.BLE_EVT_GAP_PAIR_REQ:
-                # TODO PAIR REPLY
-                pass
+                evt: BleEventGapPairReq = evt
+                await self.pair_reply(evt.conn_idx, False, False)
             case BLE_EVT_GATTS.BLE_EVT_GATTS_READ_REQ:
                 evt: BleEventGattsReadReq = evt
-                self.read_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_READ_NOT_PERMITTED, None)
+                await self.read_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_READ_NOT_PERMITTED, None)
             case BLE_EVT_GATTS.BLE_EVT_GATTS_PREPARE_WRITE_REQ:
                 evt: BleEventGattsWriteReq = evt
-                self.write_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_WRITE_NOT_PERMITTED)
+                await self.write_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_WRITE_NOT_PERMITTED)
             case BLE_EVT_GATTS.BLE_EVT_GATTS_PREPARE_WRITE_REQ:
                 evt: BleEventGattsPrepareWriteReq = evt
-                self.prepare_write_cfm(evt.conn_idx, evt.handle, 0, ATT_ERROR.ATT_ERROR_WRITE_NOT_PERMITTED)
+                await self.prepare_write_cfm(evt.conn_idx, evt.handle, 0, ATT_ERROR.ATT_ERROR_WRITE_NOT_PERMITTED)
 
     async def init(self) -> None:
         try:
@@ -104,6 +107,9 @@ class BlePeripheral(BleDeviceBase):
 
         except asyncio.TimeoutError as e:
             raise e
+
+    async def pair_reply(self, conn_idx: int, accept: bool, bond: bool) -> BLE_ERROR:
+        return await self._ble_gap.pair_reply(conn_idx, accept, bond)
 
     async def prepare_write_cfm(self,
                                 conn_idx: int,

@@ -5,7 +5,8 @@ import secrets
 from ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_OWN_ADDR_TYPE, BLE_ADDR_TYPE, BLE_HCI_ERROR, \
     BdAddress
 from ble_api.BleConfig import dg_configBLE_PAIR_INIT_KEY_DIST, dg_configBLE_PAIR_RESP_KEY_DIST, \
-    dg_configBLE_SECURE_CONNECTIONS, dg_configBLE_DATA_LENGTH_TX_MAX, dg_configBLE_PRIVACY_1_2
+    dg_configBLE_SECURE_CONNECTIONS, dg_configBLE_DATA_LENGTH_TX_MAX, dg_configBLE_PRIVACY_1_2, \
+    dg_configBLE_CENTRAL, dg_configBLE_PERIPHERAL
 
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BleEventGapConnected, BleEventGapDisconnected,  \
     BleEventGapAdvCompleted, BLE_CONN_IDX_INVALID, GAP_SEC_LEVEL, GAP_SCAN_TYPE, BleEventGapAdvReport, \
@@ -87,7 +88,8 @@ class BleManagerGap(BleManagerBase):
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_PARAM_UPDATE_CMD: self.conn_param_update,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_PARAM_UPDATE_REPLY_CMD: self.conn_param_update_reply_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PAIR_CMD: self.pair_cmd_handler,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PASSKEY_REPLY_CMD: self.pair_reply_cmd_handler,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PAIR_REPLY_CMD: self.pair_reply_cmd_handler,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PASSKEY_REPLY_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_UNPAIR_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SET_SEC_LEVEL_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SKIP_LATENCY_CMD: None,
@@ -205,8 +207,18 @@ class BleManagerGap(BleManagerBase):
     def _cmp_address_resolve_evt_handler(self, gtl: GapmCmpEvt):
         return False
 
-    def _cmp_bond_evt_handler(gtl: GapcCmpEvt):
-        return False
+    def _cmp_bond_evt_handler(self, gtl: GapcCmpEvt):
+
+        if gtl.parameters.status == HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
+            # Nothing to do, we replied in GAPC_BOND_IND handler
+            pass
+        else:
+            evt = BleEventGapPairCompleted()
+            evt.conn_idx = self._task_to_connidx(gtl.src_id)
+            evt.status = gtl.parameters.status
+            evt.bond = False
+            evt.mitm = False
+            self._mgr_event_queue_send(evt)
 
     def _cmp_data_length_set_evt_handler(self, gtl):  # TODO called from GAPM and GAPC
         return False
@@ -232,9 +244,11 @@ class BleManagerGap(BleManagerBase):
             self._mgr_event_queue_send(evt)
 
     def _cmp_security_req_evt_handler(self, gtl: GapcCmpEvt):
-        return False
+        conn_idx = self._task_to_connidx(gtl.src_id)
+        dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+        if dev:
+            dev.security_req_pending = False
 
-    # TODO need to test
     def _cmp_update_params_evt_handler(self, gtl: GapcCmpEvt):
         conn_idx = self._task_to_connidx(gtl.src_id)
         dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
@@ -732,10 +746,11 @@ class BleManagerGap(BleManagerBase):
                     addr.addr_type = gtl.parameters.data.irk.addr.addr_type
                     addr.addr = bytes(gtl.parameters.data.irk.addr.addr.addr[:])
 
-                    while (old_dev := self._stored_device_list.find_device_by_address(addr, False)
-                                and old_dev != dev):
+                    old_dev = self._stored_device_list.find_device_by_address(addr, False)
+                    while (old_dev and old_dev != dev):
 
-                            self._stored_device_list.remove(old_dev)
+                        self._stored_device_list.remove(old_dev)
+                        old_dev = self._stored_device_list.find_device_by_address(addr, False)
 
                     evt = BleEventGapAddressResolved()
                     dev.irk.key = bytes(gtl.parameters.data.irk.irk.key[:])
@@ -892,7 +907,6 @@ class BleManagerGap(BleManagerBase):
 
         self._mgr_response_queue_send(response)
 
-    # TODO need to test
     def conn_param_updated_evt_handler(self, gtl: GapcParamUpdatedInd):
         evt = BleEventGapConnParamUpdated()
         evt.conn_idx = self._task_to_connidx(gtl.src_id)
@@ -902,7 +916,6 @@ class BleManagerGap(BleManagerBase):
         evt.conn_params.sup_timeout = gtl.parameters.sup_to
         self._mgr_event_queue_send(evt)
 
-    # TODO need to test
     def conn_param_update_req_evt_handler(self, gtl: GapcParamUpdateReqInd):
         evt = BleEventGapConnParamUpdateReq()
         conn_idx = self._task_to_connidx(gtl.src_id)
@@ -981,7 +994,7 @@ class BleManagerGap(BleManagerBase):
                     gtl.parameters.peers[0].addr_type = command.peer_addr.addr_type
                     gtl.parameters.peers[0].addr.addr[:] = command.peer_addr.addr
 
-                    self.dev_params.connecting = True
+                    dev.connecting = True
                     dev.ce_len_min = gtl.parameters.ce_len_min
                     dev.ce_len_max = gtl.parameters.ce_len_max
 
@@ -1023,6 +1036,9 @@ class BleManagerGap(BleManagerBase):
             dev.connecting = False
         else:
             dev.master = False
+
+        print(f"connected_evt_handler. dev.master={dev.master}")
+        
 
         # if (dg_configBLE_CENTRAL == 1)  # TODO how to handle these config params
         # if dev.master:
@@ -1106,13 +1122,11 @@ class BleManagerGap(BleManagerBase):
                 pass
 
             case GAPC_OPERATION.GAPC_BOND:
-                # TODO should not return value
-                return self._cmp_bond_evt_handler(gtl)
+                self._cmp_bond_evt_handler(gtl)
             case GAPC_OPERATION.GAPC_ENCRYPT:
                 pass
             case GAPC_OPERATION.GAPC_SECURITY_REQ:
-                # TODO should not return value
-                return self._cmp_security_req_evt_handler(gtl)
+                self._cmp_security_req_evt_handler(gtl)
 
             # case GAPC_OPERATION.GAPC_LE_CB_CONNECTION:  # TODO separate L2CAP Manager
             #   ble_mgr_gapc_cmp__le_cb_connection_evt_handler(gtl);
@@ -1208,25 +1222,25 @@ class BleManagerGap(BleManagerBase):
 
                 mitm = False if self.dev_params.io_capabilities == GAP_IO_CAPABILITIES.GAP_IO_CAP_NO_INPUT_OUTPUT else True
                 if dev.master:
-                    # if (dg_configBLE_CENTRAL == 1) # TODO would this ever be true for periph?
-                    self._send_bond_cmd(command.conn_idx,
-                                        self.dev_params.io_capabilities,
-                                        command.bond,
-                                        mitm,
-                                        secure)
-                    response.status = BLE_ERROR.BLE_STATUS_OK
-                    # #endif /* (dg_configBLE_CENTRAL == 1) */
-                else:
-                    # if (dg_configBLE_PERIPHERAL == 1) # TODO would this ever be true for central?
-                    if dev.security_req_pending:
-                        response.status = BLE_ERROR.BLE_ERROR_IN_PROGRESS
-                    else:
-                        dev.security_req_pending = True
-                        self._send_security_req(command.conn_idx,
-                                                command.bond,
-                                                mitm,
-                                                secure)
+                    if (dg_configBLE_CENTRAL == 1):
+                        self._send_bond_cmd(command.conn_idx,
+                                            self.dev_params.io_capabilities,
+                                            command.bond,
+                                            mitm,
+                                            secure)
                         response.status = BLE_ERROR.BLE_STATUS_OK
+
+                else:
+                    if (dg_configBLE_PERIPHERAL == 1):
+                        if dev.security_req_pending:
+                            response.status = BLE_ERROR.BLE_ERROR_IN_PROGRESS
+                        else:
+                            dev.security_req_pending = True
+                            self._send_security_req(command.conn_idx,
+                                                    command.bond,
+                                                    mitm,
+                                                    secure)
+                            response.status = BLE_ERROR.BLE_STATUS_OK
 
         self._mgr_response_queue_send(response)
 

@@ -5,7 +5,8 @@ from prompt_toolkit.patch_stdout import patch_stdout
 
 import ble_devices as ble
 
-
+ble.dg_configBLE_CENTRAL = 1
+ble.dg_configBLE_PERIPHERAL = 0
 
 async def user_main():
     elapsed = 0
@@ -25,8 +26,7 @@ async def console(ble_command_q: asyncio.Queue, ble_response_q: asyncio.Queue):
         'GATTWRITE',
         'GATTREAD',
         'GATTWRITENORESP',
-        'GATTWRITEPREPARE',
-        'GATTWRITEEXECUTE',
+        'GAPPAIR',
         'GAPSETCONNPARAM'], ignore_case=True)
 
     session = PromptSession(completer=word_completer)
@@ -48,7 +48,7 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
 
     services = ble.SearchableQueue()
 
-    central = ble.BleCentral("COM17", gtl_debug=False)
+    central = ble.BleCentral("COM17", gtl_debug=True)
     await central.init()
     await central.start()
 
@@ -158,6 +158,13 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
                                 conn_params.slave_latency = int(args[4])
                                 conn_params.sup_timeout = int(args[5])
                                 error = await central.conn_param_update(conn_idx, conn_params)
+
+                        case 'GAPPAIR':
+                            if len(args) == 3:
+                                conn_idx = int(args[1])
+                                bond = bool(int(args[2]))
+                                error = await central.pair(conn_idx, bond)
+
                         case _:
                             pass
 
@@ -234,11 +241,25 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
                     elif isinstance(evt, ble.BleEventGapConnParamUpdateCompleted):
                         handle_evt_gap_conn_param_update_compelted(central, evt)
 
+                    elif isinstance(evt, ble.BleEventGapPairReq):
+                        handle_evt_gap_pair_req(central, evt)
+
+                    elif isinstance(evt, ble.BleEventGapPairCompleted):
+                        handle_evt_gap_pair_completed(central, evt)
+
                     else:
                         print(f"Ble Task unhandled event: {evt}")
 
                 ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
                 pending.add(ble_event_task)
+
+
+def handle_evt_gap_pair_req(central, evt: ble.BleEventGapPairReq):
+    print(f"Pair Request: evt={evt}")
+
+
+def handle_evt_gap_pair_completed(central, evt: ble.BleEventGapPairCompleted):
+    print(f"Pairing compelte: conn_idx={evt.conn_idx}, bond={evt.bond}, mitm={evt.mitm}, status={evt.status}")
 
 
 def handle_evt_gap_conn_param_updated(central, evt: ble.BleEventGapConnParamUpdated):
