@@ -29,9 +29,6 @@ class BleManagerBase():
     def _adapter_command_queue_send(self, command: GtlMessageBase):
         self._adapter_command_q.put_nowait(command)
 
-    def _find_devive_by_addr():
-        pass
-
     def _mgr_event_queue_send(self, evt: BleEventBase):
         self._mgr_event_q.put_nowait(evt)
 

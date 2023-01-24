@@ -321,6 +321,18 @@ class BleEventGapConnected(BleEventBase):
         self.conn_params = conn_params if conn_params else GapConnParams()
 
 
+class BleEventGapAddressResolved(BleEventBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 resolved_address: BdAddress = None,
+                 address: BdAddress = None,
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_ADDRESS_RESOLVED)
+        self.conn_idx = conn_idx
+        self.resolved_address = resolved_address if resolved_address else BdAddress()
+        self.address = address if address else BdAddress()
+
+
 class BleEventGapConnectionCompleted(BleEventBase):
     def __init__(self,
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED
@@ -376,7 +388,7 @@ class BleEventGapDisconnectFailed(BleEventBase):
                  conn_idx: int = 0,
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
                  ) -> None:
-        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED)
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECT_FAILED)
         self.conn_idx = conn_idx
         self.status = status
 
@@ -386,9 +398,23 @@ class BleEventGapNumericRequest(BleEventBase):
                  conn_idx: int = 0,
                  num_key: int = 0,
                  ) -> None:
-        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_SCAN_COMPLETED)
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_NUMERIC_REQUEST)
         self.conn_idx = conn_idx
         self.num_key = num_key
+
+
+class BleEventGapPairCompleted(BleEventBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
+                 bond: bool = False,
+                 mitm: bool = False
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_PAIR_COMPLETED)
+        self.conn_idx = conn_idx
+        self.status = status
+        self.bond = bond
+        self.mitm = mitm
 
 
 class BleEventGapPasskeyNotify(BleEventBase):
@@ -396,7 +422,7 @@ class BleEventGapPasskeyNotify(BleEventBase):
                  conn_idx: int = 0,
                  passkey: int = 0,
                  ) -> None:
-        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_SCAN_COMPLETED)
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_PASSKEY_NOTIFY)
         self.conn_idx = conn_idx
         self.passkey = passkey
 
@@ -406,7 +432,7 @@ class BleEventGapPairReq(BleEventBase):
                  conn_idx: int = 0,
                  bond: bool = False,
                  ) -> None:
-        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_SCAN_COMPLETED)
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_PAIR_REQ)
         self.conn_idx = conn_idx
         self.bond = bond
 
@@ -419,3 +445,13 @@ class BleEventGapScanCompleted(BleEventBase):
         super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_SCAN_COMPLETED)
         self.scan_type = scan_type
         self.status = status
+
+
+class BleEventGapSecLevelChanged(BleEventBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 level: GAP_SEC_LEVEL = GAP_SEC_LEVEL.GAP_SEC_LEVEL_1,
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_SEC_LEVEL_CHANGED)
+        self.conn_idx = conn_idx
+        self.level = level

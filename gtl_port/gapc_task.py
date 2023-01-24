@@ -1138,7 +1138,7 @@ class gapc_bond_data(Union):
 
     def __init__(self,
                  auth: GAP_AUTH = GAP_AUTH.GAP_AUTH_REQ_NO_MITM_NO_BOND,
-                 reason: c_uint8 = 0,  # TODO what is enum for this
+                 reason: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR,
                  ltk: gapc_ltk = gapc_ltk(),
                  irk: gapc_irk = gapc_irk(),
                  csrk: gap_sec_key = gap_sec_key()):

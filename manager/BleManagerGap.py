@@ -2,16 +2,18 @@ import asyncio
 from ctypes import c_uint8
 import secrets
 
-from ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_OWN_ADDR_TYPE, BLE_ADDR_TYPE,  BLE_HCI_ERROR
+from ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_OWN_ADDR_TYPE, BLE_ADDR_TYPE, BLE_HCI_ERROR, \
+    BdAddress
 from ble_api.BleConfig import dg_configBLE_PAIR_INIT_KEY_DIST, dg_configBLE_PAIR_RESP_KEY_DIST, \
-    dg_configBLE_SECURE_CONNECTIONS, dg_configBLE_DATA_LENGTH_TX_MAX
+    dg_configBLE_SECURE_CONNECTIONS, dg_configBLE_DATA_LENGTH_TX_MAX, dg_configBLE_PRIVACY_1_2
 
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BleEventGapConnected, BleEventGapDisconnected,  \
     BleEventGapAdvCompleted, BLE_CONN_IDX_INVALID, GAP_SEC_LEVEL, GAP_SCAN_TYPE, BleEventGapAdvReport, \
     BleEventGapScanCompleted, BleEventGapConnectionCompleted, BleEventGapDisconnectFailed, GapConnParams, \
     BleEventGapConnParamUpdateCompleted, BleEventGapConnParamUpdated, BleEventGapConnParamUpdateReq, \
     BLE_GAP_MAX_BONDED, GAP_IO_CAPABILITIES, BLE_ENC_KEY_SIZE_MAX, GAP_SEC_LEVEL, BleEventGapPairReq, \
-    BleEventGapPasskeyNotify, BleEventGapNumericRequest
+    BleEventGapPasskeyNotify, BleEventGapNumericRequest, BleEventGapPairCompleted, BleEventGapSecLevelChanged, \
+    BleEventGapAddressResolved
 
 from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd, GapcGetDevInfoReqInd, GapcGetDevInfoCfm, \
@@ -161,6 +163,23 @@ class BleManagerGap(BleManagerBase):
                 evt.status = gtl.parameters.status
 
         self._mgr_event_queue_send(evt)
+
+    def _auth_to_sec_level(self, auth: GAP_AUTH_MASK, key_size: int):
+
+        if auth & GAP_AUTH_MASK.GAP_AUTH_MITM:
+            if (auth & GAP_AUTH_MASK.GAP_AUTH_SEC
+                    and key_size == BLE_ENC_KEY_SIZE_MAX):
+
+                sec_level = GAP_SEC_LEVEL.GAP_SEC_LEVEL_4
+
+            else:
+                sec_level = GAP_SEC_LEVEL.GAP_SEC_LEVEL_3
+
+        else:
+            sec_level = GAP_SEC_LEVEL.GAP_SEC_LEVEL_2
+
+        return sec_level
+
 
     def _ble_role_to_gtl_role(self, role: BLE_GAP_ROLE):
 
@@ -393,7 +412,7 @@ class BleManagerGap(BleManagerBase):
         return False
 
     def _sec_req_to_gtl(self, sec_level: GAP_SEC_LEVEL):
-        gtl_sec_req =  GAP_SEC_REQ.GAP_NO_SEC
+        gtl_sec_req = GAP_SEC_REQ.GAP_NO_SEC
         match sec_level:
             case GAP_SEC_LEVEL.GAP_SEC_LEVEL_4:
                 gtl_sec_req = GAP_SEC_REQ.GAP_SEC1_SEC_PAIR_ENC
@@ -476,15 +495,26 @@ class BleManagerGap(BleManagerBase):
 
         self._mgr_event_queue_send(evt)
 
+    def _send_disconncet_cmd(self, conn_idx: int, reason: BLE_HCI_ERROR) -> None:
+        gtl = GapcDisconnectCmd(conidx=conn_idx)
+        gtl.parameters.reason = CO_ERROR(reason)
+        self._adapter_command_queue_send(gtl)
+
     def _send_gapm_cancel_cmd(self, operation: GAPM_OPERATION = GAPM_OPERATION.GAPM_CANCEL) -> None:
 
         gtl = GapmCancelCmd()  # TODO  RWBLE >= 9.0 has additiononal cancel commands
         self._adapter_command_queue_send(gtl)
 
-    def _send_disconncet_cmd(self, conn_idx: int, reason: BLE_HCI_ERROR) -> None:
-        gtl = GapcDisconnectCmd(conidx=conn_idx)
-        gtl.parameters.reason = CO_ERROR(reason)
-        self._adapter_command_queue_send(gtl)
+    def _send_sec_level_changed_evt(self, conn_idx: int, sec_level: GAP_AUTH_MASK):
+        evt = BleEventGapSecLevelChanged()
+        evt.conn_idx = conn_idx
+        evt.level = sec_level
+        self._mgr_event_queue_send(evt)
+
+        # if BLE_SSP_DEBUG  # TODO not sure what this is
+        # /* Also send the LTK */
+        # @ send_ltk_evt(conn_idx);
+        # endif
 
     # TODO sdk passes rsp in as param. you have passed in command.params
     def _set_role_rsp(self, gtl: GapmCmpEvt, new_role: BLE_GAP_ROLE = BLE_GAP_ROLE.GAP_NO_ROLE):
@@ -604,7 +634,118 @@ class BleManagerGap(BleManagerBase):
         self._mgr_response_queue_send(response)
 
     def bond_ind_evt_handler(self, gtl: GapcBondInd):
-        pass
+        match gtl.parameters.info:
+            case GAPC_BOND.GAPC_PAIRING_SUCCEED:
+                evt = BleEventGapPairCompleted()
+                evt.conn_idx = self._task_to_connidx(gtl.src_id)
+                evt.status = BLE_ERROR.BLE_STATUS_OK
+                evt.bond = gtl.parameters.data.auth & GAP_AUTH_MASK.GAP_AUTH_BOND
+                evt.mitm = gtl.parameters.data.auth & GAP_AUTH_MASK.GAP_AUTH_MITM
+
+                dev = self._stored_device_list.find_device_by_conn_idx(evt.conn_idx)
+                if dev:
+                    dev.paired = True
+                    dev.bonded = evt.bond
+                    dev.encrypted = True
+                    dev.mitm = evt.mitm
+                    if (dg_configBLE_SECURE_CONNECTIONS == 1):
+                        dev.secure = True if (gtl.parameters.data.auth & GAP_AUTH_MASK.GAP_AUTH_SEC) else False
+
+                    sec_level = self._auth_to_sec_level(gtl.data.auth, dev.remote_ltk.key_size)
+                    if dev.sec_level != sec_level:
+                        dev.sec_level = sec_level
+                        self._send_sec_level_changed_evt(evt.conn_idx, sec_level)
+
+                    if dev.bonded:
+                        self._stored_device_list.move_to_front(dev)  # TODO just to access quicker??
+
+                # TODO Privacy
+                # if (dg_configBLE_PRIVACY_1_2 == 1):
+                #    if self.dev_params.own_addr.addr_type == BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
+                #        self.dev_params.prev_privacy_operation = BLE_MGR_RAL_OP_NONE
+
+                # storage_mark_dirty(true); # TODO storage handling
+
+                self._mgr_event_queue_send(evt)
+
+            case GAPC_BOND.GAPC_PAIRING_FAILED:
+
+                evt = BleEventGapPairCompleted()
+
+                conn_idx = self._task_to_connidx(gtl.src_id)
+                if (dg_configBLE_SECURE_CONNECTIONS == 1):
+
+                    dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+                    if dev:
+                        dev.secure = False
+                    # storage_mark_dirty(true); # TODO
+
+                evt.conn_idx = conn_idx
+
+                match gtl.parameters.data.reason:
+                    case HOST_STACK_ERROR_CODE.SMP_ERROR_REM_PAIRING_NOT_SUPP:
+                        evt.status = BLE_ERROR.BLE_ERROR_NOT_SUPPORTED_BY_PEER
+                    case (HOST_STACK_ERROR_CODE.SMP_ERROR_REM_UNSPECIFIED_REASON
+                            | HOST_STACK_ERROR_CODE.SMP_ERROR_LOC_UNSPECIFIED_REASON):
+
+                        evt.status = BLE_ERROR.BLE_ERROR_FAILED
+                    # case HOST_STACK_ERROR_CODE.SMP_ERROR_TIMEOUT:  # TODO additional SMP ERROR code sefined in smp_common.h
+                    #    evt.status = BLE_ERROR.BLE_ERROR_TIMEOUT
+                    case _:
+                    # evt.status = gtl.parameters.data.reason # TODO will throw error if not a defined BLE_ERROR?
+                        evt.status = BLE_ERROR.BLE_ERROR_FAILED
+
+                evt.bond = False
+                evt.mitm = False
+
+                self._mgr_event_queue_send(evt)
+
+            case GAPC_BOND.GAPC_LTK_EXCH:
+                conn_idx = self._task_to_connidx(gtl.src_id)
+                dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+                if dev:
+                    
+                    dev.remote_ltk.key_size = gtl.parameters.data.ltk
+                    for i in range(0, RAND_NB_LEN):
+                        dev.remote_ltk.rand |= gtl.parameters.data.ltk.randnb.nb[i] << i
+                    dev.remote_ltk.ediv = gtl.parameters.data.ltk.ediv
+                    dev.remote_ltk.key = bytes(gtl.parameters.data.ltk.ltk.key[:])
+
+                    # storage_mark_dirty(false); # TODO 
+
+            case GAPC_BOND.GAPC_CSRK_EXCH:
+                conn_idx = self._task_to_connidx(gtl.src_id)
+                dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+                if dev:
+                    
+                    dev.remote_csrk.key = bytes(gtl.parameters.data.csrk.key[:])
+                    dev.remote_csrk.sign_cnt = 0
+
+                    # storage_mark_dirty(false); # TODO 
+                
+            case GAPC_BOND.GAPC_IRK_EXCH:
+                
+                conn_idx = self._task_to_connidx(gtl.src_id)
+                dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+                if dev:
+                    addr = BdAddress()
+                    addr.addr_type = gtl.parameters.data.irk.addr.addr_type
+                    addr.addr = bytes(gtl.parameters.data.irk.addr.addr.addr[:])
+
+                    while (old_dev := self._stored_device_list.find_device_by_address(addr, False)
+                                and old_dev != dev):
+
+                            self._stored_device_list.remove(old_dev)
+
+                    evt = BleEventGapAddressResolved()
+                    dev.irk.key = bytes(gtl.parameters.data.irk.irk.key[:])
+                    dev.addr.addr_type = gtl.parameters.data.irk.addr.addr_type
+                    dev.addr = addr
+                    evt.resolved_address = dev.addr
+                    evt.conn_idx = conn_idx
+                    self._mgr_event_queue_send(evt)
+
+                    # storage_mark_dirty(false); # TODO
 
     def bond_req_evt_handler(self, gtl: GapcBondReqInd):
         match gtl.parameters.request:

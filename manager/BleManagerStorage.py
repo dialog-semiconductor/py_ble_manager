@@ -201,6 +201,8 @@ class StoredDeviceQueue(SearchableQueue):
         device: StoredDevice
         for device in self.queue:
             found = device if device.connecting else None
+            if found:
+                break
 
         return found
 
@@ -211,6 +213,8 @@ class StoredDeviceQueue(SearchableQueue):
             device: StoredDevice
             for device in self.queue:
                 found = device if device.addr.addr == addr.addr else None
+                if found:
+                    break
 
             if found is None and create:
                 new_device = StoredDevice()
@@ -226,13 +230,26 @@ class StoredDeviceQueue(SearchableQueue):
         device: StoredDevice
         for device in self.queue:
             found = device if (device.connected and device.conn_idx == conn_idx) else None
+            if found:
+                break
 
         return found
+
+    def move_to_front(self, elem: StoredDevice):
+        device: StoredDevice
+        for device in self.queue:
+            # if device == elem: # TODO method for comparing devices
+            if device.conn_idx == elem.conn_idx:
+                self.queue.remove(device)
+                self.push_front(device)
 
     def push(self, elem: StoredDevice) -> None:
         if not isinstance(elem, StoredDevice):
             raise TypeError(f"Element must be of type StoredDevice, was {type(elem)}")
         self.queue.append(elem)
+
+    def push_front(self, elem: StoredDevice) -> None:
+        self.queue = [elem, self.queue]
 
     def remove_device(self, device: StoredDevice):
         self.queue.remove(device)
