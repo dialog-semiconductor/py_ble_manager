@@ -48,7 +48,7 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
 
     services = ble.SearchableQueue()
 
-    central = ble.BleCentral("COM17", gtl_debug=True)
+    central = ble.BleCentral("COM17", gtl_debug=False)
     await central.init()
     await central.start()
 

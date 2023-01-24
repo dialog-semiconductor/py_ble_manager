@@ -1,8 +1,8 @@
 from ctypes import c_uint8
 
 from ble_api.BleCommon import BLE_OWN_ADDR_TYPE, BdAddress, OwnAddress, Irk, BLE_STATUS
-from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_GAP_APPEARANCE, gap_chnl_map, GAP_DISC_MODE, ADV_FILT_POL, \
-    gap_scan_params, GapConnParams, GAP_IO_CAPABILITIES, GAP_DATA_TYPE
+from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_GAP_APPEARANCE, GapChnlMap, GAP_DISC_MODE, ADV_FILT_POL, \
+    GapScanParams, GapConnParams, GAP_IO_CAPABILITIES, GAP_DATA_TYPE
 from gtl_port.co_bt import ADV_DATA_LEN, SCAN_RSP_DATA_LEN, ADV_CHANNEL_MAP
 from gtl_port.gapm_task import gapm_att_cfg_flag
 
@@ -36,7 +36,7 @@ class BleDevParams():
         self.att_db_cfg = gapm_att_cfg_flag()  # Attribute DB Configuration bitmask
         self.mtu_size = 0  # MTU size
         # Channel map (central only)
-        self.channel_map = gap_chnl_map()  # Channel map # TODO use ble apis
+        self.channel_map = GapChnlMap()  # Channel map # TODO use ble apis
         # TODO one of GAPM_ADV_NON_CONN, GAPM_ADV_UNDIRECT, GAPM_ADV_DIRECT, GAPM_ADV_DIRECT_LDC
         self.adv_type = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED  # Advertising type
         self.adv_mode = GAP_DISC_MODE.GAP_DISC_MODE_GEN_DISCOVERABLE  # Discoverability mode for adv. # TODO use ble api
@@ -50,7 +50,7 @@ class BleDevParams():
         self.scan_rsp_data_length = 0  # Length of scan response
         self.scan_rsp_data = (c_uint8 * SCAN_RSP_DATA_LEN)()  # Scan response data  # TODO use ble api
         # Scan parameters used for connection procedures
-        self.scan_params = gap_scan_params()  # Scan parameters # TODO does this struct exist in gtl_port files?  # TODO use ble api
+        self.scan_params = GapScanParams()  # Scan parameters # TODO does this struct exist in gtl_port files?  # TODO use ble api
         # Peripheral preferred connection parameters
         self.gap_ppcp = GapConnParams()  # Connection parameters structure  # TODO use ble api
         # IO Capabilities configuration

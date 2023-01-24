@@ -229,7 +229,7 @@ class GAP_SEC_LEVEL(IntEnum):
 
 
 # Link Layer channel map
-class gap_chnl_map():
+class GapChnlMap():
     def __init__(self, map: bytes = None) -> None:  # TODO is ctypes array appriopriate at this layer?
         # TODO raise error on bytes len
         self.map = map if map else bytes()
@@ -250,10 +250,34 @@ class GapConnParams():
 
 
 # GAP scan parameters
-class gap_scan_params():
+class GapScanParams():
     def __init__(self, interval: int = 0, window: int = 0) -> None:  # TODO is ctypes array appriopriate at this layer?
         self.interval = interval  # Scan interval
         self.window = window  # Scan window
+
+
+class BleAdvData():
+    def __init__(self,
+                 len: int = 0,
+                 type: GAP_DATA_TYPE = GAP_DATA_TYPE.GAP_DATA_TYPE_FLAGS,
+                 data: bytes = None,
+                 ) -> None:
+        self.type = type
+        self.len = len
+        self.data = data
+
+    def __repr__(self):
+        try:
+            adv_type = eval(f"GAP_DATA_TYPE({self.type})")
+        except ValueError:
+            adv_type = self.type
+
+        adv_type = str(adv_type)
+        return_string = f"{type(self).__name__}(type={adv_type}, "
+        return_string += f"len={self.len}, "
+        return_string += f"data={list(self.data)})"
+
+        return return_string
 
 
 # TODO Perhaps events belong in their own file
@@ -365,27 +389,3 @@ class BleEventGapScanCompleted(BleEventBase):
         super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_SCAN_COMPLETED)
         self.scan_type = scan_type
         self.status = status
-
-
-class BleAdvData():
-    def __init__(self,
-                 len: int = 0,
-                 type: GAP_DATA_TYPE = GAP_DATA_TYPE.GAP_DATA_TYPE_FLAGS,
-                 data: bytes = None,
-                 ) -> None:
-        self.type = type
-        self.len = len
-        self.data = data
-
-    def __repr__(self):
-        try:
-            adv_type = eval(f"GAP_DATA_TYPE({self.type})")
-        except ValueError:
-            adv_type = self.type
-
-        adv_type = str(adv_type)
-        return_string = f"{type(self).__name__}(type={adv_type}, "
-        return_string += f"len={self.len}, "
-        return_string += f"data={list(self.data)})"
-
-        return return_string
