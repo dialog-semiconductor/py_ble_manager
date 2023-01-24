@@ -1,27 +1,32 @@
 import asyncio
 from ctypes import c_uint8
+import secrets
 
 from ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_OWN_ADDR_TYPE, BLE_ADDR_TYPE,  BLE_HCI_ERROR
 from ble_api.BleConfig import dg_configBLE_PAIR_INIT_KEY_DIST, dg_configBLE_PAIR_RESP_KEY_DIST, \
-    dg_configBLE_SECURE_CONNECTIONS
+    dg_configBLE_SECURE_CONNECTIONS, dg_configBLE_DATA_LENGTH_TX_MAX
+
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BleEventGapConnected, BleEventGapDisconnected,  \
     BleEventGapAdvCompleted, BLE_CONN_IDX_INVALID, GAP_SEC_LEVEL, GAP_SCAN_TYPE, BleEventGapAdvReport, \
     BleEventGapScanCompleted, BleEventGapConnectionCompleted, BleEventGapDisconnectFailed, GapConnParams, \
     BleEventGapConnParamUpdateCompleted, BleEventGapConnParamUpdated, BleEventGapConnParamUpdateReq, \
-    BLE_GAP_MAX_BONDED, GAP_IO_CAPABILITIES, BLE_ENC_KEY_SIZE_MAX, GAP_SEC_LEVEL
+    BLE_GAP_MAX_BONDED, GAP_IO_CAPABILITIES, BLE_ENC_KEY_SIZE_MAX, GAP_SEC_LEVEL, BleEventGapPairReq, \
+    BleEventGapPasskeyNotify, BleEventGapNumericRequest
 
 from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd, GapcGetDevInfoReqInd, GapcGetDevInfoCfm, \
     GapcDisconnectInd, GapcCmpEvt, GapcDisconnectCmd, GapcParamUpdateCmd, GapcParamUpdatedInd, GapcParamUpdateReqInd, \
-    GapcParamUpdateCfm, GapcBondCfm, GapcBondCmd, GapcSecurityCmd
+    GapcParamUpdateCfm, GapcBondCfm, GapcBondCmd, GapcSecurityCmd, GapcBondReqInd, GapcBondInd
 
 from gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd, \
     GapmStartScanCmd, GapmAdvReportInd, GapmCancelCmd
 
+from gtl_port.co_bt import RAND_NB_LEN, KEY_LEN
 from gtl_port.co_error import CO_ERROR
-from gtl_port.gap import GAP_ROLE, GAP_AUTH_MASK, gap_bdaddr, GAP_IO_CAP, GAP_OOB, GAP_AUTH_MASK, GAP_SEC_REQ
+from gtl_port.gap import GAP_ROLE, GAP_AUTH_MASK, gap_bdaddr, GAP_IO_CAP, GAP_OOB, GAP_AUTH_MASK, GAP_SEC_REQ, \
+    GAP_TK_TYPE 
 from gtl_port.gapc import GAPC_FIELDS_MASK
-from gtl_port.gapc_task import GAPC_MSG_ID, GAPC_DEV_INFO, GAPC_OPERATION
+from gtl_port.gapc_task import GAPC_MSG_ID, GAPC_DEV_INFO, GAPC_OPERATION, GAPC_BOND
 from gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, GAPM_ADDR_TYPE, GAPM_OWN_ADDR, SCAN_FILTER_POLICY, SCAN_DUP_FILTER_POLICY
 from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from manager.BleDevParams import BleDevParamsDefault
@@ -31,14 +36,13 @@ from manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp, B
     BleMgrGapRoleSetCmd, BleMgrGapConnectCmd, BleMgrGapScanStartCmd, BleMgrGapScanStartRsp, BleMgrGapConnectRsp, \
     BleMgrGapDisconnectCmd, BleMgrGapDisconnectRsp, BleMgrGapConnectCancelCmd, BleMgrGapConnectCancelRsp, \
     BleMgrGapConnParamUpdateCmd, BleMgrGapConnParamUpdateRsp, BleMgrGapConnParamUpdateReplyCmd, \
-    BleMgrGapConnParamUpdateReplyRsp, BleMgrGapPairCmd, BleMgrGapPairRsp
+    BleMgrGapConnParamUpdateReplyRsp, BleMgrGapPairCmd, BleMgrGapPairRsp, BleMgrGapPairReplyCmd, BleMgrGapPairReplyRsp
 
 from manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from manager.GtlWaitQueue import GtlWaitQueue
 
 
-# TODO this is from ble_config.h
-dg_configBLE_DATA_LENGTH_TX_MAX = (251)
+
 
 # TODO this is from stack
 ATT_DEFAULT_MTU = (23)
@@ -81,7 +85,7 @@ class BleManagerGap(BleManagerBase):
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_PARAM_UPDATE_CMD: self.conn_param_update,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_PARAM_UPDATE_REPLY_CMD: self.conn_param_update_reply_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PAIR_CMD: self.pair_cmd_handler,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PASSKEY_REPLY_CMD: None,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PASSKEY_REPLY_CMD: self.pair_reply_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_UNPAIR_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SET_SEC_LEVEL_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SKIP_LATENCY_CMD: None,
@@ -104,8 +108,8 @@ class BleManagerGap(BleManagerBase):
             GAPC_MSG_ID.GAPC_CON_RSSI_IND: None,
             GAPC_MSG_ID.GAPC_PARAM_UPDATE_REQ_IND: self.conn_param_update_req_evt_handler,
             GAPC_MSG_ID.GAPC_PARAM_UPDATED_IND: self.conn_param_updated_evt_handler,
-            GAPC_MSG_ID.GAPC_BOND_REQ_IND: None,
-            GAPC_MSG_ID.GAPC_BOND_IND: None,
+            GAPC_MSG_ID.GAPC_BOND_REQ_IND: self.bond_req_evt_handler,
+            GAPC_MSG_ID.GAPC_BOND_IND: self.bond_ind_evt_handler,
             GAPC_MSG_ID.GAPC_SECURITY_IND: None,
             GAPC_MSG_ID.GAPC_SIGN_COUNTER_IND: None,
             GAPC_MSG_ID.GAPC_ENCRYPT_REQ_IND: None,
@@ -355,7 +359,7 @@ class BleManagerGap(BleManagerBase):
 
         return gtl
 
-    def _io_cap_to_gtl(io_cap: GAP_IO_CAPABILITIES):
+    def _io_cap_to_gtl(self, io_cap: GAP_IO_CAPABILITIES):
         
         match io_cap:
             case GAP_IO_CAPABILITIES.GAP_IO_CAP_DISP_ONLY:
@@ -372,7 +376,6 @@ class BleManagerGap(BleManagerBase):
                 gtl_io_cap = GAP_IO_CAP.GAP_IO_CAP_NO_INPUT_NO_OUTPUT
         return gtl_io_cap
 
-
     def _max_bonded_reached(self):
         return self._stored_device_list.count_bonded() >= BLE_GAP_MAX_BONDED
 
@@ -388,6 +391,20 @@ class BleManagerGap(BleManagerBase):
         # TODO gtl message
         # gtl = GapmResolvAddrCmd
         return False
+
+    def _sec_req_to_gtl(self, sec_level: GAP_SEC_LEVEL):
+        gtl_sec_req =  GAP_SEC_REQ.GAP_NO_SEC
+        match sec_level:
+            case GAP_SEC_LEVEL.GAP_SEC_LEVEL_4:
+                gtl_sec_req = GAP_SEC_REQ.GAP_SEC1_SEC_PAIR_ENC
+            case GAP_SEC_LEVEL.GAP_SEC_LEVEL_3:
+                gtl_sec_req = GAP_SEC_REQ.GAP_SEC1_AUTH_PAIR_ENC
+            case GAP_SEC_LEVEL.GAP_SEC_LEVEL_2:
+                gtl_sec_req = GAP_SEC_REQ.GAP_SEC1_NOAUTH_PAIR_ENC
+            case GAP_SEC_LEVEL.GAP_SEC_LEVEL_1:
+                gtl_sec_req = GAP_SEC_REQ.GAP_NO_SEC
+
+        return gtl_sec_req
 
     def _send_bond_cmd(self,
                        conn_idx: int,
@@ -408,25 +425,17 @@ class BleManagerGap(BleManagerBase):
 
         dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
         if not dev:
-             gtl.parameters.pairing.sec_req = GAP_SEC_REQ.GAP_NO_SEC
+            gtl.parameters.pairing.sec_req = GAP_SEC_REQ.GAP_NO_SEC
         else:
-            match dev.sec_level_req:
-                case GAP_SEC_LEVEL.GAP_SEC_LEVEL_4:
-                    gtl.parameters.pairing.sec_req = GAP_SEC_REQ.GAP_SEC1_SEC_PAIR_ENC
-                case GAP_SEC_LEVEL.GAP_SEC_LEVEL_3:
-                    gtl.parameters.pairing.sec_req = GAP_SEC_REQ.GAP_SEC1_AUTH_PAIR_ENC
-                case GAP_SEC_LEVEL.GAP_SEC_LEVEL_2:
-                    gtl.parameters.pairing.sec_req = GAP_SEC_REQ.GAP_SEC1_NOAUTH_PAIR_ENC
-                case GAP_SEC_LEVEL.GAP_SEC_LEVEL_1:
-                    gtl.parameters.pairing.sec_req = GAP_SEC_REQ.GAP_NO_SEC
+            gtl.parameters.pairing.sec_req = self._sec_req_to_gtl(dev.sec_level_req)
 
         self._adapter_command_queue_send(gtl)
 
     def _send_security_req(self,
-                       conn_idx: int,
-                       bond: bool,
-                       mitm: bool,
-                       secure: bool):
+                           conn_idx: int,
+                           bond: bool,
+                           mitm: bool,
+                           secure: bool):
 
         gtl = GapcSecurityCmd(conidx=conn_idx)
         gtl.parameters.auth = GAP_AUTH_MASK.GAP_AUTH_BOND if bond else GAP_AUTH_MASK.GAP_AUTH_NONE
@@ -593,6 +602,109 @@ class BleManagerGap(BleManagerBase):
 
         response = BleMgrGapAdvStartRsp(BLE_ERROR.BLE_STATUS_OK)
         self._mgr_response_queue_send(response)
+
+    def bond_ind_evt_handler(self, gtl: GapcBondInd):
+        pass
+
+    def bond_req_evt_handler(self, gtl: GapcBondReqInd):
+        match gtl.parameters.request:
+            case GAPC_BOND.GAPC_PAIRING_REQ:
+                evt = BleEventGapPairReq()
+                evt.conn_idx = self._task_to_connidx(gtl.src_id)
+                evt.bond = gtl.parameters.data.auth_req & GAP_AUTH_MASK.GAP_AUTH_BOND
+
+                if (dg_configBLE_SECURE_CONNECTIONS == 1):
+                    if gtl.parameters.data.auth_req & GAP_AUTH_MASK.GAP_AUTH_SEC:
+                        dev = self._stored_device_list.find_device_by_conn_idx(evt.conn_idx)
+                        if dev:
+                            dev.secure = True
+
+                self._mgr_event_queue_send(evt)
+
+            case GAPC_BOND.GAPC_LTK_EXCH:
+                cfm = GapcBondCfm()
+                cfm.parameters.accept = 0x01
+                cfm.parameters.request = GAPC_BOND.GAPC_LTK_EXCH
+                cfm.parameters.data.ltk.ediv = secrets.randbits(16)
+                cfm.parameters.data.ltk.key_size = gtl.parameters.data.key_size
+
+                for i in range(0, RAND_NB_LEN):
+                    cfm.parameters.data.ltk.randnb.nb[i] = secrets.randbits(8)
+
+                for i in range(0, gtl.parameters.data.key_size):
+                    cfm.parameters.data.ltk.ltk.key[i] = secrets.randbits(8)
+
+                conn_idx = self._task_to_connidx(gtl.src_id)
+                dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+
+                if dev:
+                    # dev.ltk = cfm.parameters.data.ltk
+                    dev.ltk.key_size = cfm.parameters.data.ltk.key_size
+
+                    dev.ltk.rand = 0
+                    for i in range(0, RAND_NB_LEN):
+                        dev.ltk.rand |= cfm.parameters.data.ltk.randnb.nb[i] << i
+
+                    dev.ltk.ediv = cfm.parameters.data.ltk.ediv
+                    dev.ltk.key = bytes(cfm.parameters.data.ltk.ltk.key[:])
+                    # TODO storage_mark_dirty(false)
+
+                self._adapter_command_queue_send(cfm)
+
+            case GAPC_BOND.GAPC_CSRK_EXCH:
+                cfm = GapcBondCfm()
+                cfm.parameters.accept = 0x01
+                cfm.parameters.request = GAPC_BOND.GAPC_CSRK_EXCH
+
+                for i in range(0, KEY_LEN):
+                    cfm.parameters.data.csrk.key[i] = secrets.randbits(8)
+
+                conn_idx = self._task_to_connidx(gtl.src_id)
+                dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+                if dev:
+                    dev.csrk.key = bytes(cfm.parameters.data.csrk.key)
+                    dev.csrk.sign_cnt = 0
+                    #  TODO storage_mark_dirty(false)
+
+                self._adapter_command_queue_send(cfm)
+
+            case GAPC_BOND.GAPC_TK_EXCH:
+                if gtl.parameters.data.tk_type == GAP_TK_TYPE.GAP_TK_DISPLAY:
+                    cfm = GapcBondCfm()
+                    cfm.parameters.accept = 0x01
+                    cfm.parameters.request = GAPC_BOND.GAPC_TK_EXCH
+                    passkey = secrets.randbits(32) % 1000000
+
+                    cfm.parameters.data.tk.key[0] = passkey & 0xFF
+                    cfm.parameters.data.tk.key[1] = (passkey >> 8) & 0xFF
+                    cfm.parameters.data.tk.key[2] = (passkey >> 16) & 0xFF
+                    cfm.parameters.data.tk.key[3] = (passkey >> 24) & 0xFF
+
+                    self._adapter_command_queue_send(cfm)
+
+                    evt = BleEventGapPasskeyNotify()
+                    evt.conn_idx = self._task_to_connidx(gtl.src_id)
+                    evt.passkey = passkey
+
+                    self._mgr_event_queue_send(evt)
+
+                elif gtl.parameters.data.tk_type == GAP_TK_TYPE.GAP_TK_KEY_ENTRY:
+                    evt = BleEventGapPasskeyNotify()
+                    evt.conn_idx = self._task_to_connidx(gtl.src_id)
+                    self._mgr_event_queue_send(evt)
+
+                elif (gtl.parameters.data.tk_type == GAP_TK_TYPE.GAP_TK_KEY_CONFIRM
+                        and dg_configBLE_SECURE_CONNECTIONS == 1):
+
+                    evt = BleEventGapNumericRequest()
+                    evt.conn_idx = self._task_to_connidx(gtl.src_id)
+                    evt.num_key = gtl.parameters.tk.key[0]
+                    evt.num_key += gtl.parameters.tk.key[1] << 8
+                    evt.num_key += gtl.parameters.tk.key[2] << 16
+                    evt.num_key += gtl.parameters.tk.key[3] << 24
+                    evt.num_key %= 1000000
+
+                    self._mgr_event_queue_send(evt)
 
     # TODO need to test
     def conn_param_update(self, command: BleMgrGapConnParamUpdateCmd):
@@ -974,6 +1086,36 @@ class BleManagerGap(BleManagerBase):
                                                 mitm,
                                                 secure)
                         response.status = BLE_ERROR.BLE_STATUS_OK
+
+        self._mgr_response_queue_send(response)
+
+    def pair_reply_cmd_handler(self, command: BleMgrGapPairReplyCmd):
+        response = BleMgrGapPairReplyRsp(BLE_ERROR.BLE_ERROR_FAILED)
+
+        dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
+        if not dev:
+            response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
+        else:
+            if (command.bond
+                    and command.accept
+                    and not dev.bonded
+                    and self._max_bonded_reached()):
+
+                response.status = BLE_ERROR.BLE_ERROR_INS_RESOURCES
+            else:
+                gtl = GapcBondCfm(conidx=command.conn_idx)
+                gtl.parameters.request = GAPC_BOND.GAPC_PAIRING_RSP
+                gtl.parameters.accept = command.accept
+
+                if not command.accept:
+                    gtl.parameters.data.pairing_feat.oob = GAP_OOB.GAP_OOB_AUTH_DATA_NOT_PRESENT
+                    gtl.parameters.data.pairing_feat.key_size = BLE_ENC_KEY_SIZE_MAX
+                    gtl.parameters.data.pairing_feat.iocap = self._io_cap_to_gtl(self.dev_params.io_capabilities)
+                    gtl.parameters.data.pairing_feat.ikey_dist = dg_configBLE_PAIR_INIT_KEY_DIST
+                    gtl.parameters.data.pairing_feat.rkey_dist = dg_configBLE_PAIR_RESP_KEY_DIST
+                    gtl.parameters.data.pairing_feat.sec_req = self._sec_req_to_gtl(dev.sec_level_req)
+
+                self._adapter_command_queue_send(gtl)
 
         self._mgr_response_queue_send(response)
 

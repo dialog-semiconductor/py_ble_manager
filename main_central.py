@@ -333,6 +333,7 @@ def handle_evt_gattc_browse_completed(central: ble.BleCentral, evt: ble.BleEvent
     print(f"Browsing complete: conn_idx={evt.conn_idx}, evt={evt.status}")
 
 
+# TODO move these to a ultility package
 def str_to_bd_addr(type: ble.BLE_ADDR_TYPE, bd_addr_str: str) -> ble.BdAddress:
     bd_addr_str = bd_addr_str.replace(":", "")
     bd_addr_list = [int(bd_addr_str[idx:idx + 2], 16) for idx in range(0, len(bd_addr_str), 2)]

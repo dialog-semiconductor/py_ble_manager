@@ -1115,7 +1115,7 @@ class gapc_bond_cfm(LittleEndianStructure):
 
     def __init__(self,
                  request: GAPC_BOND = GAPC_BOND.GAPC_PAIRING_RSP,
-                 accept: c_uint8 = 0,
+                 accept: c_uint8 = 0,  # TODO should this be bool
                  data: gapc_bond_cfm_data = gapc_bond_cfm_data()):
 
         self.request = request
