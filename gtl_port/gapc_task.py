@@ -637,18 +637,32 @@ struct gapc_peer_att_info_ind
     # device information data
     union gapc_dev_info_val info;
 };
+'''
+
 
 # Indication of peer version info
-struct gapc_peer_version_ind
-{
-    # Manufacturer name
-    uint16_t compid;
-    # LMP subversion
-    uint16_t lmp_subvers;
-    # LMP version
-    uint8_t  lmp_vers;
-};
-'''
+class gapc_peer_version_ind(LittleEndianStructure):
+
+    def __init__(self,
+                 compid: c_uint16 = 0,
+                 lmp_subvers: c_uint16 = 0,
+                 lmp_vers: c_uint8 = 0):
+
+        self.compid = compid
+        self.lmp_subvers = lmp_subvers
+        self.lmp_vers = lmp_vers
+        super().__init__(compid=self.compid,
+                         lmp_subvers=self.lmp_subvers,
+                         lmp_vers=self.lmp_vers,
+                         padding=0)
+
+                # Manufacturer name
+    _fields_ = [("compid", c_uint16),
+                # LMP subversion
+                ("lmp_subvers", c_uint16),
+                # LMP version
+                ("lmp_vers", c_uint8),
+                ("padding", c_uint8)]
 
 
 # Indication of peer features info

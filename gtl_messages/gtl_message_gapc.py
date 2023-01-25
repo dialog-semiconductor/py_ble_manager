@@ -3,7 +3,9 @@ from .gtl_message_base import GtlMessageBase
 from gtl_port.gapc_task import GAPC_MSG_ID, gapc_connection_req_ind, gapc_connection_cfm, gapc_security_cmd, gapc_cmp_evt, gapc_get_info_cmd, \
     gapc_peer_features_ind, gapc_bond_req_ind, gapc_bond_cfm, gapc_sign_counter_ind, gapc_bond_ind, gapc_encrypt_req_ind, gapc_encrypt_cfm, \
     gapc_encrypt_ind, gapc_param_update_req_ind, gapc_param_update_cfm, gapc_param_update_cmd, gapc_get_dev_info_req_ind, \
-    gapc_get_dev_info_cfm, GAPC_DEV_INFO, gapc_disconnect_ind, gapc_param_updated_ind, gapc_disconnect_cmd, gapc_bond_cmd
+    gapc_get_dev_info_cfm, GAPC_DEV_INFO, gapc_disconnect_ind, gapc_param_updated_ind, gapc_disconnect_cmd, gapc_bond_cmd, \
+    gapc_peer_version_ind
+
 from gtl_port.rwip_config import KE_API_ID
 
 
@@ -241,6 +243,19 @@ class GapcDisconnectCmd(GtlMessageBase):
                          parameters=self.parameters)
 
 
+class GapcDisconnectInd(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gapc_disconnect_ind = None):
+
+        self.parameters = parameters if parameters else gapc_disconnect_ind()
+
+        super().__init__(msg_id=GAPC_MSG_ID.GAPC_DISCONNECT_IND,
+                         dst_id=KE_API_ID.TASK_ID_GTL,
+                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GAPC),
+                         par_len=4,
+                         parameters=self.parameters)
+
+
 class GapcGetDevInfoReqInd(GtlMessageBase):
 
     def __init__(self, conidx: c_uint8 = 0, parameters: gapc_get_dev_info_req_ind = None):
@@ -312,19 +327,6 @@ class GapcGetDevInfoCfm(GtlMessageBase):
     # TODO issue with _struct_to_bytearray due to union with pointer
 
 
-class GapcDisconnectInd(GtlMessageBase):
-
-    def __init__(self, conidx: c_uint8 = 0, parameters: gapc_disconnect_ind = None):
-
-        self.parameters = parameters if parameters else gapc_disconnect_ind()
-
-        super().__init__(msg_id=GAPC_MSG_ID.GAPC_DISCONNECT_IND,
-                         dst_id=KE_API_ID.TASK_ID_GTL,
-                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GAPC),
-                         par_len=4,
-                         parameters=self.parameters)
-
-
 # TODO this message not documented in GTL user manual, needs unit test
 class GapcBondCmd(GtlMessageBase):
 
@@ -336,6 +338,19 @@ class GapcBondCmd(GtlMessageBase):
                          dst_id=((conidx << 8) | KE_API_ID.TASK_ID_GAPC),
                          src_id=KE_API_ID.TASK_ID_GTL,
                          par_len=8,
+                         parameters=self.parameters)
+
+
+class GapcPeerVersionInd(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gapc_peer_version_ind = None):
+
+        self.parameters = parameters if parameters else gapc_peer_version_ind()
+
+        super().__init__(msg_id=GAPC_MSG_ID.GAPC_PEER_VERSION_IND,
+                         dst_id=KE_API_ID.TASK_ID_GTL,
+                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GAPC),
+                         par_len=6,
                          parameters=self.parameters)
 
 

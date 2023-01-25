@@ -2,7 +2,8 @@ import asyncio
 from adapter.BleAdapter import BleAdapter
 from ble_api.BleAtt import ATT_ERROR
 from ble_api.BleCommon import BleEventBase, BLE_ERROR
-from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_EVT_GAP, BleEventGapConnected, BleEventGapDisconnected
+from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_EVT_GAP, BleEventGapConnected, \
+    BleEventGapDisconnected, GAP_IO_CAPABILITIES
 from ble_api.BleGapApi import BleGapApi
 from ble_api.BleGatt import GATT_EVENT
 from ble_api.BleGattcApi import BleGattcApi
@@ -59,6 +60,9 @@ class BleDeviceBase():
             pass
 
         return evt
+
+    def set_io_cap(self, io_cap: GAP_IO_CAPABILITIES) -> BLE_ERROR:
+        return self._ble_manager.set_io_cap(io_cap)
 
     async def start(self, role: BLE_GAP_ROLE) -> BLE_ERROR:
 

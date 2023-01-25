@@ -6,7 +6,8 @@ from ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_OWN_ADDR_TYPE, BLE_AD
     BdAddress
 from ble_api.BleConfig import dg_configBLE_PAIR_INIT_KEY_DIST, dg_configBLE_PAIR_RESP_KEY_DIST, \
     dg_configBLE_SECURE_CONNECTIONS, dg_configBLE_DATA_LENGTH_TX_MAX, dg_configBLE_PRIVACY_1_2, \
-    dg_configBLE_CENTRAL, dg_configBLE_PERIPHERAL
+    dg_configBLE_CENTRAL, dg_configBLE_PERIPHERAL, dg_configBLE_DATA_LENGTH_TX_MAX, \
+    dg_configBLE_DATA_LENGTH_RX_MAX, ble_data_length_to_time
 
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BleEventGapConnected, BleEventGapDisconnected,  \
     BleEventGapAdvCompleted, BLE_CONN_IDX_INVALID, GAP_SEC_LEVEL, GAP_SCAN_TYPE, BleEventGapAdvReport, \
@@ -14,23 +15,25 @@ from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BleEventGapConnected
     BleEventGapConnParamUpdateCompleted, BleEventGapConnParamUpdated, BleEventGapConnParamUpdateReq, \
     BLE_GAP_MAX_BONDED, GAP_IO_CAPABILITIES, BLE_ENC_KEY_SIZE_MAX, GAP_SEC_LEVEL, BleEventGapPairReq, \
     BleEventGapPasskeyNotify, BleEventGapNumericRequest, BleEventGapPairCompleted, BleEventGapSecLevelChanged, \
-    BleEventGapAddressResolved
+    BleEventGapAddressResolved, BleEventGapPeerVersion, BleEventGapPeerFeatures
 
 from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd, GapcGetDevInfoReqInd, GapcGetDevInfoCfm, \
     GapcDisconnectInd, GapcCmpEvt, GapcDisconnectCmd, GapcParamUpdateCmd, GapcParamUpdatedInd, GapcParamUpdateReqInd, \
-    GapcParamUpdateCfm, GapcBondCfm, GapcBondCmd, GapcSecurityCmd, GapcBondReqInd, GapcBondInd
+    GapcParamUpdateCfm, GapcBondCfm, GapcBondCmd, GapcSecurityCmd, GapcBondReqInd, GapcBondInd, GapcGetInfoCmd, \
+    GapcPeerVersionInd, GapcPeerFeaturesInd
 
 from gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd, \
     GapmStartScanCmd, GapmAdvReportInd, GapmCancelCmd
 
-from gtl_port.co_bt import RAND_NB_LEN, KEY_LEN
+from gtl_port.co_bt import RAND_NB_LEN, KEY_LEN, BLE_LE_LENGTH_FEATURE
 from gtl_port.co_error import CO_ERROR
 from gtl_port.gap import GAP_ROLE, GAP_AUTH_MASK, gap_bdaddr, GAP_IO_CAP, GAP_OOB, GAP_AUTH_MASK, GAP_SEC_REQ, \
-    GAP_TK_TYPE 
+    GAP_TK_TYPE
 from gtl_port.gapc import GAPC_FIELDS_MASK
 from gtl_port.gapc_task import GAPC_MSG_ID, GAPC_DEV_INFO, GAPC_OPERATION, GAPC_BOND
-from gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, GAPM_ADDR_TYPE, GAPM_OWN_ADDR, SCAN_FILTER_POLICY, SCAN_DUP_FILTER_POLICY
+from gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, GAPM_ADDR_TYPE, GAPM_OWN_ADDR, SCAN_FILTER_POLICY, \
+    SCAN_DUP_FILTER_POLICY, GAPM_LE_LENGTH_EXT_OCTETS_MIN
 from gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from manager.BleDevParams import BleDevParamsDefault
 from manager.BleManagerCommon import BleManagerBase
@@ -107,8 +110,8 @@ class BleManagerGap(BleManagerBase):
             GAPC_MSG_ID.GAPC_GET_DEV_INFO_REQ_IND: self.get_device_info_req_evt_handler,
             GAPC_MSG_ID.GAPC_SET_DEV_INFO_REQ_IND: None,
             GAPC_MSG_ID.GAPC_DISCONNECT_IND: self.disconnected_evt_handler,
-            GAPC_MSG_ID.GAPC_PEER_VERSION_IND: None,
-            GAPC_MSG_ID.GAPC_PEER_FEATURES_IND: None,
+            GAPC_MSG_ID.GAPC_PEER_VERSION_IND: self.peer_version_ind_evt_handler,
+            GAPC_MSG_ID.GAPC_PEER_FEATURES_IND: self.peer_features_ind_evt_handler,
             GAPC_MSG_ID.GAPC_CON_RSSI_IND: None,
             GAPC_MSG_ID.GAPC_PARAM_UPDATE_REQ_IND: self.conn_param_update_req_evt_handler,
             GAPC_MSG_ID.GAPC_PARAM_UPDATED_IND: self.conn_param_updated_evt_handler,
@@ -203,6 +206,10 @@ class BleManagerGap(BleManagerBase):
             gtl_role |= GAP_ROLE.GAP_ROLE_OBSERVER
 # endif /* (dg_configBLE_OBSERVER == 1) */
         return gtl_role
+
+    def _change_conn_data_length(self, conn_idx: int, tx_length: int, tx_time: int):
+        # TODO 
+        pass
 
     def _cmp_address_resolve_evt_handler(self, gtl: GapmCmpEvt):
         return False
@@ -313,7 +320,7 @@ class BleManagerGap(BleManagerBase):
                 dev.updating = False
                 dev.sec_level = GAP_SEC_LEVEL.GAP_SEC_LEVEL_1
                 dev.discon_reason = 0
-                dev.app_value_remove_not_persistent()  # TODO rename to something more meaningful
+                dev.app_value_remove_not_persistent()
             else:
                 self._stored_device_list.remove(dev)
 
@@ -392,8 +399,19 @@ class BleManagerGap(BleManagerBase):
 
         return gtl
 
+    def _get_peer_features(self, conn_idx: int):
+        print("REQUESTING FEATURES")
+        gtl = GapcGetInfoCmd(conidx=conn_idx)
+        gtl.parameters.operation = GAPC_OPERATION.GAPC_GET_PEER_FEATURES
+        self._adapter_command_queue_send(gtl)
+
+    def _get_peer_version(self, conn_idx: int):
+        gtl = GapcGetInfoCmd(conidx=conn_idx)
+        gtl.parameters.operation = GAPC_OPERATION.GAPC_GET_PEER_VERSION
+        self._adapter_command_queue_send(gtl)
+
     def _io_cap_to_gtl(self, io_cap: GAP_IO_CAPABILITIES):
-        
+
         match io_cap:
             case GAP_IO_CAPABILITIES.GAP_IO_CAP_DISP_ONLY:
                 gtl_io_cap = GAP_IO_CAP.GAP_IO_CAP_DISPLAY_ONLY
@@ -413,6 +431,7 @@ class BleManagerGap(BleManagerBase):
         return self._stored_device_list.count_bonded() >= BLE_GAP_MAX_BONDED
 
     def _resolve_address_from_connected_evt(self, evt: GapcConnectionReqInd, param: None):
+        # TODO 
         # Check if peer's address is random
         if evt.parameters.peer_addr_type != BLE_ADDR_TYPE.PRIVATE_ADDRESS:
             return False
@@ -862,7 +881,6 @@ class BleManagerGap(BleManagerBase):
 
                     self._mgr_event_queue_send(evt)
 
-    # TODO need to test
     def conn_param_update(self, command: BleMgrGapConnParamUpdateCmd):
         response = BleMgrGapConnParamUpdateRsp(BLE_ERROR.BLE_ERROR_FAILED)
 
@@ -1037,21 +1055,19 @@ class BleManagerGap(BleManagerBase):
         else:
             dev.master = False
 
-        print(f"connected_evt_handler. dev.master={dev.master}")
-        
-
-        # if (dg_configBLE_CENTRAL == 1)  # TODO how to handle these config params
-        # if dev.master:
-            # TODO initiate a version exchange
-        #    pass
-        # endif /* (dg_configBLE_CENTRAL == 1) */
+        if (dg_configBLE_CENTRAL == 1):  # TODO what is best way to handle these config params
+            if dev.master:
+                # Initiate a Version Exchange
+                self._get_peer_version(evt.conn_idx)
 
         # if (dg_configBLE_PRIVACY_1_2 == 1)
         if self.dev_params.own_addr.addr_type != BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
             # endif /* (dg_configBLE_PRIVACY_1_2 == 1) */
             pass  # TODO needs to be same as resolve addr here
 
-        if self._resolve_address_from_connected_evt(gtl, evt):  # Note passed in gtl instead of gtl.params
+        if self._resolve_address_from_connected_evt(gtl, evt):
+            # TODO
+            # dev.resolving = True  # Note passed in gtl instead of gtl.params
             pass
 
         self._mgr_event_queue_send(evt)
@@ -1274,6 +1290,39 @@ class BleManagerGap(BleManagerBase):
 
         self._mgr_response_queue_send(response)
 
+    def peer_features_ind_evt_handler(self, gtl: GapcPeerFeaturesInd):
+        evt = BleEventGapPeerFeatures()
+        evt.conn_idx = self._task_to_connidx(gtl.src_id)
+        evt.le_features = bytes(gtl.parameters.features[:])
+        self._mgr_event_queue_send(evt)
+
+        # TODO 
+        '''
+        if (dg_configBLE_DATA_LENGTH_RX_MAX > GAPM_LE_LENGTH_EXT_OCTETS_MIN
+                or dg_configBLE_DATA_LENGTH_TX_MAX > GAPM_LE_LENGTH_EXT_OCTETS_MIN): 
+
+                if gtl.parameters.features[0] & BLE_LE_LENGTH_FEATURE:
+                    dev = self._stored_device_list.find_device_by_conn_idx(evt.conn_idx)
+                    if dev and dev.master:
+                        self._change_conn_data_length(evt.conn_idx, 
+                                                      dg_configBLE_DATA_LENGTH_TX_MAX,
+                                                      ble_data_length_to_time(dg_configBLE_DATA_LENGTH_TX_MAX))
+        '''
+
+    def peer_version_ind_evt_handler(self, gtl: GapcPeerVersionInd):
+        evt = BleEventGapPeerVersion()
+        evt.conn_idx = self._task_to_connidx(gtl.src_id)
+        evt.lmp_version = gtl.parameters.lmp_vers
+        evt.company_id = gtl.parameters.compid
+        evt.lmp_subversion = gtl.parameters.lmp_subvers
+        self._mgr_event_queue_send(evt)
+
+        dev = self._stored_device_list.find_device_by_conn_idx(evt.conn_idx)
+        print(f"PEER_VESRION RECEIVED. dev={dev}, dev.master={dev.master}")
+        if dev and dev.master:
+
+            self._get_peer_features(evt.conn_idx)
+
     def role_set_cmd_handler(self, command: BleMgrGapRoleSetCmd):
         gtl = self._dev_params_to_gtl()
         gtl.parameters.role = self._ble_role_to_gtl_role(command.role)
@@ -1338,6 +1387,10 @@ class BleManagerGap(BleManagerBase):
             response.status = BLE_ERROR.BLE_STATUS_OK
 
         self._mgr_response_queue_send(response)
+
+    def set_io_cap(self, io_cap: GAP_IO_CAPABILITIES) -> BLE_ERROR:
+        self.dev_params.io_capabilities = io_cap
+        return BLE_ERROR.BLE_STATUS_OK
 
 
 '''

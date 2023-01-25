@@ -1,1 +1,2 @@
-print(bool(0))
+test = list()
+print(test)

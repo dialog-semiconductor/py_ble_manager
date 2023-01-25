@@ -371,6 +371,30 @@ class BleEventGapConnParamUpdated(BleEventBase):
         self.conn_params = conn_params if conn_params else GapConnParams()
 
 
+class BleEventGapPeerFeatures(BleEventBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 le_features: bytes = None
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_PEER_VERSION)
+        self.conn_idx = conn_idx
+        self.le_features = le_features if le_features else bytes()
+
+
+class BleEventGapPeerVersion(BleEventBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 lmp_version: int = 0,
+                 company_id: int = 0,
+                 lmp_subversion: int = 0,
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_PEER_VERSION)
+        self.conn_idx = conn_idx
+        self.lmp_version = lmp_version
+        self.company_id = company_id
+        self.lmp_subversion = lmp_subversion
+
+
 class BleEventGapDisconnected(BleEventBase):
     def __init__(self,
                  conn_idx: int = 0,

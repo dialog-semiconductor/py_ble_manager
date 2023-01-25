@@ -152,8 +152,9 @@ LE_FEATS_LEN = 0x08
 #define BLE_REJ_IND_EXT_FEATURE             0x04
 #define BLE_SLAVE_INIT_EXCHG_FEATURE        0x08
 #define BLE_PING_FEATURE                    0x10
-
-#define BLE_LE_LENGTH_FEATURE               0x20
+'''
+BLE_LE_LENGTH_FEATURE = 0x20
+'''
 #define BLE_LL_PRIVACY_FEATURE              0x40
 #define BLE_SCANNER_FILT_FEATURE            0x80
 

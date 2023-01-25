@@ -1,5 +1,6 @@
 import asyncio
 
+from ble_api.BleGap import GAP_IO_CAPABILITIES
 from ble_api.BleCommon import BLE_ERROR, BLE_STATUS, BleEventBase
 from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gattc import GattcCmpEvt
@@ -154,3 +155,6 @@ class BleManager(BleManagerBase):
 
     def find_stored_device_by_conn_idx(self, conn_idx: int) -> StoredDevice:
         return self._stored_device_list.find_device_by_conn_idx(conn_idx)
+
+    def set_io_cap(self, io_cap: GAP_IO_CAPABILITIES) -> BLE_ERROR:
+        return self.gap_mgr.set_io_cap(io_cap)

@@ -63,6 +63,7 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
     ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
     pending = [ble_event_task, console_command_task]
 
+    central.set_io_cap(ble.GAP_IO_CAPABILITIES.GAP_IO_CAP_NO_INPUT_OUTPUT)
     # adv_reports= []
     while True:
         done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
@@ -250,6 +251,12 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
                     elif isinstance(evt, ble.BleEventGapSecLevelChanged):
                         handle_evt_gap_sec_level_changed(central, evt)
 
+                    elif isinstance(evt, ble.BleEventGapPeerFeatures):
+                        handle_evt_gap_peer_features(central, evt)
+
+                    elif isinstance(evt, ble.BleEventGapPeerVersion):
+                        handle_evt_gap_peer_version(central, evt)
+       
                     else:
                         print(f"Ble Task unhandled event: {evt}")
 
@@ -257,8 +264,17 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
                 pending.add(ble_event_task)
 
 
+def handle_evt_gap_peer_features(central, evt: ble.BleEventGapPeerFeatures):
+    print(f"Peer features: conn_idx={evt.conn_idx}, features={list(evt.le_features.hex())}")
+
+
+def handle_evt_gap_peer_version(central, evt: ble.BleEventGapPeerVersion):
+    print(f"Peer version: conn_idx={evt.conn_idx}, lmp_version={evt.lmp_version} " +
+          f"company_id={evt.company_id}, lmp_subversion={evt.lmp_subversion}")
+
+
 def handle_evt_gap_sec_level_changed(central, evt: ble.BleEventGapSecLevelChanged):
-    print(f"Security level changed: evt={evt}")
+    print(f"Security level changed: sec_level={evt.level}")
 
 
 def handle_evt_gap_pair_req(central, evt: ble.BleEventGapPairReq):

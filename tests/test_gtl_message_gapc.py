@@ -425,7 +425,24 @@ class TestGapcDisconnectCmd(unittest.TestCase):
         
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+# Table 195
+class TestGapcDisconnectInd(unittest.TestCase):
 
+    def setUp(self):
+        self.expected = "05030E10000E00040000001600"
+
+    def test_parameters_updated_after_construction(self):
+        test_message = GapcDisconnectInd()
+        test_message.parameters.reason = CO_ERROR.CO_ERROR_CON_TERM_BY_LOCAL_HOST
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_non_zero_conidx(self):
+        test_message = GapcDisconnectInd(conidx=1)
+        test_message.parameters.reason = CO_ERROR.CO_ERROR_CON_TERM_BY_LOCAL_HOST
+        
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+    
 # Table 201
 class TestGapcGetDevInfoReqInd(unittest.TestCase):
 
@@ -466,26 +483,29 @@ class TestGapcGetDevInfoCfm(unittest.TestCase):
         test_message.parameters.info.name.value = (c_uint8 * len(name)).from_buffer_copy(name)
         
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
-        
 
-# Table 195
-class TestGapcDisconnectInd(unittest.TestCase):
+# Table 253
+class TestGapcPeerVersionInd(unittest.TestCase):
 
     def setUp(self):
-        self.expected = "05030E10000E00040000001600"
-
+        self.expected = "05070E10000E0006000F001A410900"
+        
     def test_parameters_updated_after_construction(self):
-        test_message = GapcDisconnectInd()
-        test_message.parameters.reason = CO_ERROR.CO_ERROR_CON_TERM_BY_LOCAL_HOST
+        test_message = GapcPeerVersionInd()
+        test_message.parameters.compid = 0x0F
+        test_message.parameters.lmp_subvers = 0x411A
+        test_message.parameters.lmp_vers = 0x09
 
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
     def test_parameters_non_zero_conidx(self):
-        test_message = GapcDisconnectInd(conidx=1)
-        test_message.parameters.reason = CO_ERROR.CO_ERROR_CON_TERM_BY_LOCAL_HOST
-        
+        test_message = GapcPeerVersionInd(conidx=1)
+        test_message.parameters.compid = 0x0F
+        test_message.parameters.lmp_subvers = 0x411A
+        test_message.parameters.lmp_vers = 0x09
+
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
-        
+                      
 
 if __name__ == '__main__':
     unittest.main()
