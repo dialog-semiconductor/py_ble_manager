@@ -400,7 +400,6 @@ class BleManagerGap(BleManagerBase):
         return gtl
 
     def _get_peer_features(self, conn_idx: int):
-        print("REQUESTING FEATURES")
         gtl = GapcGetInfoCmd(conidx=conn_idx)
         gtl.parameters.operation = GAPC_OPERATION.GAPC_GET_PEER_FEATURES
         self._adapter_command_queue_send(gtl)
@@ -1318,7 +1317,6 @@ class BleManagerGap(BleManagerBase):
         self._mgr_event_queue_send(evt)
 
         dev = self._stored_device_list.find_device_by_conn_idx(evt.conn_idx)
-        print(f"PEER_VESRION RECEIVED. dev={dev}, dev.master={dev.master}")
         if dev and dev.master:
 
             self._get_peer_features(evt.conn_idx)

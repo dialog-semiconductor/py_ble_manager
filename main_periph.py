@@ -61,6 +61,8 @@ async def ble_task(sample_q: asyncio.Queue):
     await my_service.set_char2_value((0x8692).to_bytes(2, 'little'))
     await my_service.set_char3_user_desc_value(b"Hello")
 
+    periph.set_io_cap(ble.GAP_IO_CAPABILITIES.GAP_IO_CAP_DISP_ONLY)
+
     periph.set_advertising_interval(20, 30)
     await periph.start_advertising()
 

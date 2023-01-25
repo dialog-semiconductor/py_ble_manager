@@ -18,16 +18,17 @@ async def user_main():
 
 
 async def console(ble_command_q: asyncio.Queue, ble_response_q: asyncio.Queue):
-    word_completer = WordCompleter([
-        'GAPSCAN',
-        'GAPCONNECT',
-        'GAPBROWSE',
-        'GAPDISCONNECT',
-        'GATTWRITE',
-        'GATTREAD',
-        'GATTWRITENORESP',
-        'GAPPAIR',
-        'GAPSETCONNPARAM'], ignore_case=True)
+    commands = ['GAPSCAN',
+                'GAPCONNECT',
+                'GAPBROWSE',
+                'GAPDISCONNECT',
+                'GATTWRITE',
+                'GATTREAD',
+                'GATTWRITENORESP',
+                'GAPPAIR',
+                'GAPSETCONNPARAM']
+    commands.sort()
+    word_completer = WordCompleter(commands, ignore_case=True)
 
     session = PromptSession(completer=word_completer)
     while True:
@@ -48,7 +49,7 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
 
     services = ble.SearchableQueue()
 
-    central = ble.BleCentral("COM17", gtl_debug=True)
+    central = ble.BleCentral("COM17", gtl_debug=False)
     await central.init()
     await central.start()
 
@@ -63,7 +64,7 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
     ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
     pending = [ble_event_task, console_command_task]
 
-    central.set_io_cap(ble.GAP_IO_CAPABILITIES.GAP_IO_CAP_NO_INPUT_OUTPUT)
+    central.set_io_cap(ble.GAP_IO_CAPABILITIES.GAP_IO_CAP_KEYBOARD_DISP)
     # adv_reports= []
     while True:
         done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
@@ -78,7 +79,7 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
                 error = ble.BLE_ERROR.BLE_ERROR_FAILED
                 args = command.split()
                 if len(args) > 0:
-                    ble_func = args[0]                    
+                    ble_func = args[0]
                     match ble_func:
                         case 'GAPSCAN':
 
