@@ -42,7 +42,8 @@ from manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp, B
     BleMgrGapRoleSetCmd, BleMgrGapConnectCmd, BleMgrGapScanStartCmd, BleMgrGapScanStartRsp, BleMgrGapConnectRsp, \
     BleMgrGapDisconnectCmd, BleMgrGapDisconnectRsp, BleMgrGapConnectCancelCmd, BleMgrGapConnectCancelRsp, \
     BleMgrGapConnParamUpdateCmd, BleMgrGapConnParamUpdateRsp, BleMgrGapConnParamUpdateReplyCmd, \
-    BleMgrGapConnParamUpdateReplyRsp, BleMgrGapPairCmd, BleMgrGapPairRsp, BleMgrGapPairReplyCmd, BleMgrGapPairReplyRsp
+    BleMgrGapConnParamUpdateReplyRsp, BleMgrGapPairCmd, BleMgrGapPairRsp, BleMgrGapPairReplyCmd, BleMgrGapPairReplyRsp, \
+    BleMgrGapPasskeyReplyCmd, BleMgrGapPasskeyReplyRsp
 
 from manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from manager.GtlWaitQueue import GtlWaitQueue
@@ -92,7 +93,7 @@ class BleManagerGap(BleManagerBase):
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_PARAM_UPDATE_REPLY_CMD: self.conn_param_update_reply_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PAIR_CMD: self.pair_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PAIR_REPLY_CMD: self.pair_reply_cmd_handler,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PASSKEY_REPLY_CMD: None,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PASSKEY_REPLY_CMD: self.passkey_reply_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_UNPAIR_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SET_SEC_LEVEL_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SKIP_LATENCY_CMD: None,
@@ -1287,6 +1288,23 @@ class BleManagerGap(BleManagerBase):
 
                 self._adapter_command_queue_send(gtl)
 
+        self._mgr_response_queue_send(response)
+
+    def passkey_reply_cmd_handler(self, command: BleMgrGapPasskeyReplyCmd):
+        response = BleMgrGapPasskeyReplyRsp(BLE_ERROR.BLE_ERROR_FAILED)
+
+        gtl = GapcBondCfm(conidx=command.conn_idx)
+        gtl.parameters.request = GAPC_BOND.GAPC_TK_EXCH
+        gtl.parameters.accept = command.accept
+
+        if command.accept:
+            gtl.parameters.data.tk.key[0] = command.passkey & 0xFF
+            gtl.parameters.data.tk.key[1] = (command.passkey >> 8) & 0xFF
+            gtl.parameters.data.tk.key[2] = (command.passkey >> 16) & 0xFF
+            gtl.parameters.data.tk.key[3] = (command.passkey >> 24) & 0xFF
+
+        self._adapter_command_queue_send(gtl)
+        response.status = BLE_ERROR.BLE_STATUS_OK
         self._mgr_response_queue_send(response)
 
     def peer_features_ind_evt_handler(self, gtl: GapcPeerFeaturesInd):

@@ -43,6 +43,9 @@ class BleCentral(BleDeviceBase):
     async def pair(self, conn_idx: int, bond: bool) -> BLE_ERROR:
         return await self._ble_gap.pair(conn_idx, bond)
 
+    async def passkey_reply(self, conn_idx: int, accept: bool, passkey: int):
+        return await self._ble_gap.passkey_reply(conn_idx, accept, passkey)
+
     def parse_adv_data(self, evt: BleEventGapAdvReport) -> list[BleAdvData]:
         data_ptr = 0
         adv_data_structs: BleAdvData = []

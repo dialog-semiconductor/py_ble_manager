@@ -26,7 +26,8 @@ async def console(ble_command_q: asyncio.Queue, ble_response_q: asyncio.Queue):
                 'GATTREAD',
                 'GATTWRITENORESP',
                 'GAPPAIR',
-                'GAPSETCONNPARAM']
+                'GAPSETCONNPARAM',
+                'PASSKEYENTRY']
     commands.sort()
     word_completer = WordCompleter(commands, ignore_case=True)
 
@@ -49,7 +50,7 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
 
     services = ble.SearchableQueue()
 
-    central = ble.BleCentral("COM17", gtl_debug=False)
+    central = ble.BleCentral("COM15", gtl_debug=True)
     await central.init()
     await central.start()
 
@@ -167,6 +168,13 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
                                 bond = bool(int(args[2]))
                                 error = await central.pair(conn_idx, bond)
 
+                        case 'PASSKEYENTRY':
+                            if len(args) == 4:
+                                conn_idx = int(args[1])
+                                accept = bool(int(args[2]))
+                                passkey = int(args[3])
+                                error = await central.passkey_reply(conn_idx, accept, passkey)
+
                         case _:
                             pass
 
@@ -257,12 +265,19 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
 
                     elif isinstance(evt, ble.BleEventGapPeerVersion):
                         handle_evt_gap_peer_version(central, evt)
+
+                    elif isinstance(evt, ble.BleEventGapPasskeyNotify):
+                        handle_evt_gap_passkey_notify(central, evt)
        
                     else:
                         print(f"Ble Task unhandled event: {evt}")
 
                 ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
                 pending.add(ble_event_task)
+
+
+def handle_evt_gap_passkey_notify(central, evt: ble.BleEventGapPasskeyNotify):
+    print(f"Passkey display: conn_idx={evt.conn_idx}, passkey={evt.passkey}")
 
 
 def handle_evt_gap_peer_features(central, evt: ble.BleEventGapPeerFeatures):

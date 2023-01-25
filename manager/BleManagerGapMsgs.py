@@ -126,6 +126,21 @@ class BleMgrGapPairReplyRsp(BleMgrMsgRsp):
                          status=status)
 
 
+class BleMgrGapPasskeyReplyCmd(BleMgrMsgBase):
+    def __init__(self, conn_idx: int, accept: bool, passkey: int) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PASSKEY_REPLY_CMD)
+        self.conn_idx = conn_idx
+        self.accept = accept
+        self.passkey = passkey
+
+
+class BleMgrGapPasskeyReplyRsp(BleMgrMsgRsp):
+    def __init__(self,
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PASSKEY_REPLY_CMD,
+                         status=status)
+
 
 class BleMgrGapRoleSetCmd(BleMgrMsgBase):
     def __init__(self, role: BLE_GAP_ROLE = BLE_GAP_ROLE.GAP_NO_ROLE) -> None:

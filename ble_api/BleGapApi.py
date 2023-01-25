@@ -9,7 +9,7 @@ from manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, 
     BleMgrGapScanStartRsp, BleMgrGapDisconnectCmd, BleMgrGapDisconnectRsp, BleMgrGapConnectCancelCmd, \
     BleMgrGapConnectCancelRsp, BleMgrGapConnParamUpdateCmd, BleMgrGapConnParamUpdateRsp, \
     BleMgrGapConnParamUpdateReplyCmd, BleMgrGapConnParamUpdateReplyRsp, BleMgrGapPairCmd, BleMgrGapPairRsp, \
-    BleMgrGapPairReplyCmd, BleMgrGapPairReplyRsp
+    BleMgrGapPairReplyCmd, BleMgrGapPairReplyRsp, BleMgrGapPasskeyReplyCmd, BleMgrGapPasskeyReplyRsp
 
 
 class BleGapApi(BleApiBase):
@@ -55,6 +55,13 @@ class BleGapApi(BleApiBase):
 
         command = BleMgrGapPairCmd(conn_idx, bond)
         response: BleMgrGapPairRsp = await self._ble_manager.cmd_execute(command)
+
+        return response.status
+
+    async def passkey_reply(self, conn_idx: int, accept: bool, passkey: int):
+
+        command = BleMgrGapPasskeyReplyCmd(conn_idx, accept, passkey)
+        response: BleMgrGapPasskeyReplyRsp = await self._ble_manager.cmd_execute(command)
 
         return response.status
 
