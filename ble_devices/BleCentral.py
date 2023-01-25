@@ -40,6 +40,9 @@ class BleCentral(BleDeviceBase):
     async def discover_services(self, conn_idx: int, uuid: AttUuid):
         return await self._ble_gattc.discover_services(conn_idx, uuid)
 
+    async def numeric_reply(self, conn_idx: int, accept: bool):
+        return await self._ble_gap.numeric_reply(conn_idx, accept)
+
     async def pair(self, conn_idx: int, bond: bool) -> BLE_ERROR:
         return await self._ble_gap.pair(conn_idx, bond)
 

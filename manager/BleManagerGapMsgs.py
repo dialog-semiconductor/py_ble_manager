@@ -95,6 +95,22 @@ class BleMgrGapDisconnectRsp(BleMgrMsgRsp):
                          status=status)
 
 
+class BleMgrGapNumericReplyCmd(BleMgrMsgBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 accept: bool = False,
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_NUMERIC_REPLY_CMD)
+        self.conn_idx = conn_idx
+        self.accept = accept
+
+
+class BleMgrGapNumericReplyRsp(BleMgrMsgRsp):
+    def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_NUMERIC_REPLY_CMD,
+                         status=status)
+
+
 class BleMgrGapPairCmd(BleMgrMsgBase):
     def __init__(self, conn_idx: int, bond: bool) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PAIR_CMD)

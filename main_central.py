@@ -277,11 +277,11 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
 
 
 def handle_evt_gap_passkey_notify(central, evt: ble.BleEventGapPasskeyNotify):
-    print(f"Passkey display: conn_idx={evt.conn_idx}, passkey={evt.passkey}")
+    print(f"Passkey notify: conn_idx={evt.conn_idx}, passkey={evt.passkey}")
 
 
 def handle_evt_gap_peer_features(central, evt: ble.BleEventGapPeerFeatures):
-    print(f"Peer features: conn_idx={evt.conn_idx}, features={list(evt.le_features.hex())}")
+    print(f"Peer features: conn_idx={evt.conn_idx}, features={evt.le_features.hex()}")
 
 
 def handle_evt_gap_peer_version(central, evt: ble.BleEventGapPeerVersion):
@@ -298,7 +298,7 @@ def handle_evt_gap_pair_req(central, evt: ble.BleEventGapPairReq):
 
 
 def handle_evt_gap_pair_completed(central, evt: ble.BleEventGapPairCompleted):
-    print(f"Pairing compelte: conn_idx={evt.conn_idx}, bond={evt.bond}, mitm={evt.mitm}, status={evt.status}")
+    print(f"Pairing compelte: conn_idx={evt.conn_idx}, bond={evt.bond}, mitm={evt.mitm}, status={ble.BLE_ERROR(evt.status)}")
 
 
 def handle_evt_gap_conn_param_updated(central, evt: ble.BleEventGapConnParamUpdated):

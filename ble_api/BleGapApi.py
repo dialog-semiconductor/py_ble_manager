@@ -9,7 +9,8 @@ from manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, 
     BleMgrGapScanStartRsp, BleMgrGapDisconnectCmd, BleMgrGapDisconnectRsp, BleMgrGapConnectCancelCmd, \
     BleMgrGapConnectCancelRsp, BleMgrGapConnParamUpdateCmd, BleMgrGapConnParamUpdateRsp, \
     BleMgrGapConnParamUpdateReplyCmd, BleMgrGapConnParamUpdateReplyRsp, BleMgrGapPairCmd, BleMgrGapPairRsp, \
-    BleMgrGapPairReplyCmd, BleMgrGapPairReplyRsp, BleMgrGapPasskeyReplyCmd, BleMgrGapPasskeyReplyRsp
+    BleMgrGapPairReplyCmd, BleMgrGapPairReplyRsp, BleMgrGapPasskeyReplyCmd, BleMgrGapPasskeyReplyRsp, \
+    BleMgrGapNumericReplyCmd, BleMgrGapNumericReplyRsp
 
 
 class BleGapApi(BleApiBase):
@@ -50,6 +51,14 @@ class BleGapApi(BleApiBase):
         resposne: BleMgrGapDisconnectRsp = await self._ble_manager.cmd_execute(command)
 
         return resposne.status
+
+    async def numeric_reply(self, conn_idx: int, accept: bool):
+
+        command = BleMgrGapNumericReplyCmd(conn_idx, accept)
+        resposne: BleMgrGapNumericReplyRsp = await self._ble_manager.cmd_execute(command)
+
+        return resposne.status
+
 
     async def pair(self, conn_idx: int, bond: bool) -> BLE_ERROR:
 
