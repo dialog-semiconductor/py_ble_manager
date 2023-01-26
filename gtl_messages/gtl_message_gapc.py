@@ -4,7 +4,7 @@ from gtl_port.gapc_task import GAPC_MSG_ID, gapc_connection_req_ind, gapc_connec
     gapc_peer_features_ind, gapc_bond_req_ind, gapc_bond_cfm, gapc_sign_counter_ind, gapc_bond_ind, gapc_encrypt_req_ind, gapc_encrypt_cfm, \
     gapc_encrypt_ind, gapc_param_update_req_ind, gapc_param_update_cfm, gapc_param_update_cmd, gapc_get_dev_info_req_ind, \
     gapc_get_dev_info_cfm, GAPC_DEV_INFO, gapc_disconnect_ind, gapc_param_updated_ind, gapc_disconnect_cmd, gapc_bond_cmd, \
-    gapc_peer_version_ind
+    gapc_peer_version_ind, GAPC_BOND, GAP_AUTH, HOST_STACK_ERROR_CODE
 
 from gtl_port.rwip_config import KE_API_ID
 
@@ -91,7 +91,7 @@ class GapcBondReqInd(GtlMessageBase):
 
     def __init__(self, conidx: c_uint8 = 0, parameters: gapc_bond_req_ind = None):
 
-        self.parameters = parameters if parameters else gapc_bond_req_ind()
+        self.parameters = parameters if parameters else gapc_bond_req_ind()  # TODO _struct_to_str for Union
 
         super().__init__(msg_id=GAPC_MSG_ID.GAPC_BOND_REQ_IND,
                          dst_id=KE_API_ID.TASK_ID_GTL,
@@ -124,6 +124,38 @@ class GapcBondInd(GtlMessageBase):
                          src_id=((conidx << 8) | KE_API_ID.TASK_ID_GAPC),
                          par_len=30,
                          parameters=self.parameters)
+
+    # TODO need to test this
+    def _struct_to_str(self, struct: gapc_bond_ind):
+        param_string = ''
+
+        param_string += f'(info={GAPC_BOND(struct.info)}, '
+        param_string += f'padding={0}, '
+        param_string += 'data=gapc_bond_data('
+
+        match struct.info:
+            case GAPC_BOND.GAPC_PAIRING_SUCCEED:
+                param_string += f'auth={GAP_AUTH(struct.data.auth)}'
+            case GAPC_BOND.GAPC_PAIRING_FAILED:
+                param_string += f'reason={(struct.data.reason)}'
+            case GAPC_BOND.GAPC_LTK_EXCH:
+                param_string += 'ltk=gapc_ltk('
+                param_string += f'ltk=gap_sec_key(key={struct.data.ltk.ltk.key}), '
+                param_string += f'ediv={struct.data.ltk.ediv} '
+                param_string += f'randnb=rand_nb(nb={struct.data.ltk.randnb.nb}), '
+                param_string += f'key_size={struct.data.ltk.key_size}'
+                param_string += ')'
+
+            case GAPC_BOND.GAPC_IRK_EXCH:
+                param_string += 'irk=gapc_irk('
+                param_string += f'irk=gap_sec_key(key={struct.data.irk.irk.key}, addr=gap_bdaddr=(addr_type={struct.data.irk.addr.addr_type}, addr={struct.data.irk.addr.addr}))'
+                param_string += ')'
+            case GAPC_BOND.GAPC_CSRK_EXCH:
+                param_string += f'csrk=gap_sec_key(key={struct.data.csrk.key})'
+
+        param_string += '), '
+
+        return param_string
 
 
 class GapcEncryptReqInd(GtlMessageBase):
