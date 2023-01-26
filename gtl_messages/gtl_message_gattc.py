@@ -4,7 +4,7 @@ from gtl_port.gattc_task import GATTC_MSG_ID, gattc_write_req_ind, gattc_write_c
     gattc_cmp_evt, gattc_event_ind, gattc_event_req_ind, gattc_event_cfm, gattc_disc_cmd, gattc_disc_char_desc_ind, gattc_disc_svc_ind, \
     gattc_disc_svc_incl_ind, gattc_disc_char_ind, gattc_sdp_svc_disc_cmd, gattc_read_cmd, GATTC_OPERATION, gattc_read_ind, gattc_write_cmd, \
     gattc_exc_mtu_cmd, gattc_mtu_changed_ind, gattc_att_info_req_ind, gattc_att_info_cfm, gattc_sdp_svc_ind, gattc_sdp_att_info, \
-    GATTC_SDP_ATT_TYPE, gattc_execute_write_cmd
+    GATTC_SDP_ATT_TYPE, gattc_execute_write_cmd, GATTC_OPERATION
 from gtl_port.rwip_config import KE_API_ID
 
 # TODO next message GATTC_ATT_INFO_REQ_IND, GATTC_ATT_INFO_CFM
@@ -415,6 +415,41 @@ class GattcReadCmd(GtlMessageBase):
         self._par_len = value
 
     par_len = property(get_par_len, set_par_len)
+
+    def _struct_to_str(self, struct: gattc_read_cmd):
+        param_string = ''
+        param_string += f'(req={str(GATTC_OPERATION(struct.operation))}, '
+        param_string += f'seq_num={struct.seq_num}, '
+        param_string += 'req=gattc_read_req('
+
+        match struct.operation:
+            case (GATTC_OPERATION.GATTC_READ
+                    | GATTC_OPERATION.GATTC_READ_LONG):
+
+                param_string += 'simple=gattc_read_simple('
+                param_string += f'handle={struct.req.simple.handle}, '
+                param_string += f'offset={struct.req.simple.offset}, '
+                param_string += f'length={struct.req.simple.length})'
+
+            case GATTC_OPERATION.GATTC_READ_BY_UUID:
+                param_string += 'by_uuid=gattc_read_by_uuid('
+                param_string += f'start_hdl={struct.req.by_uuid.start_hdl}, '
+                param_string += f'end_hdl={struct.req.by_uuid.end_hdl}, '
+                param_string += f'{self._array_to_str("uuid", struct.req.by_uuid.uuid)[:-2]})'
+
+            case GATTC_OPERATION.GATTC_READ_MULTIPLE:
+                param_string += f'multiple=('
+                multiple_array = struct.req.multiple
+                for item in multiple_array:
+                    param_string += f'gattc_read_multiple=('
+                    param_string += f'handle={item.handle}'
+                    param_string += f'len={item.len}'
+                    param_string += f')'
+                param_string += f')'
+                
+        param_string += ')'
+        param_string += '), '  # ,space This will be removed by __repr__ in GtlMessageBase
+        return param_string
 
     def _struct_to_bytearray(self, parameters: gattc_read_cmd):  # TODO Cannot find way to handle gattc_read_cmd elegantly. Should to str method be created for union as well?
         message = bytearray()
