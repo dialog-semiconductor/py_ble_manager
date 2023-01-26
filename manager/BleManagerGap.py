@@ -1289,7 +1289,7 @@ class BleManagerGap(BleManagerBase):
                 gtl.parameters.request = GAPC_BOND.GAPC_PAIRING_RSP
                 gtl.parameters.accept = command.accept
 
-                if not command.accept:
+                if command.accept:
                     gtl.parameters.data.pairing_feat.auth = GAP_AUTH_MASK.GAP_AUTH_BOND if command.bond else GAP_AUTH_MASK.GAP_AUTH_NONE
                     if self.dev_params.io_capabilities != GAP_IO_CAPABILITIES.GAP_IO_CAP_NO_INPUT_OUTPUT:
                         gtl.parameters.data.pairing_feat.auth |= GAP_AUTH_MASK.GAP_AUTH_MITM

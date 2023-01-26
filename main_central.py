@@ -50,7 +50,7 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
 
     services = ble.SearchableQueue()
 
-    central = ble.BleCentral("COM15", gtl_debug=True)
+    central = ble.BleCentral("COM17", gtl_debug=True)
     await central.init()
     await central.start()
 
@@ -92,12 +92,14 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
                                                              True)
 
                         case "GAPCONNECT":
+                            if len(args) == 1:  # TODO this case just to avoid having to enter bd addr
+                                periph_bd = ble.BdAddress(ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS, bytes.fromhex("531B00352348"))  # addr is backwards
+                                periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
+                                error = await central.connect(periph_bd, periph_conn_params)
                             if len(args) == 2:  # TODO pass in addr 48:23:35:00:1b:53
                                 # bd_info = args[1].strip(',')
                                 # bd_type =  if bd_info[1] == 'P' else BLE_ADDR_TYPE.PRIVATE_ADDRESS
                                 periph_bd = str_to_bd_addr(ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS, args[1])
-                                print(f"periph: {periph_bd}")
-                                periph_bd = ble.BdAddress(ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS, bytes.fromhex("531B00352348"))  # addr is backwards
                                 periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
                                 error = await central.connect(periph_bd, periph_conn_params)
 
@@ -174,6 +176,13 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
                                 accept = bool(int(args[2]))
                                 passkey = int(args[3])
                                 error = await central.passkey_reply(conn_idx, accept, passkey)
+
+                        case 'YESNOTENTRY':
+                            if len(args) == 4:
+                                conn_idx = int(args[1])
+                                accept = bool(int(args[2]))
+                                passkey = int(args[3])
+                                error = await central.numeric_reply(conn_idx, accept, passkey)
 
                         case _:
                             pass
@@ -268,7 +277,7 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
 
                     elif isinstance(evt, ble.BleEventGapPasskeyNotify):
                         handle_evt_gap_passkey_notify(central, evt)
-       
+
                     else:
                         print(f"Ble Task unhandled event: {evt}")
 
