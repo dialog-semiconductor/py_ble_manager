@@ -4,7 +4,8 @@ from gtl_port.gapc_task import GAPC_MSG_ID, gapc_connection_req_ind, gapc_connec
     gapc_peer_features_ind, gapc_bond_req_ind, gapc_bond_cfm, gapc_sign_counter_ind, gapc_bond_ind, gapc_encrypt_req_ind, gapc_encrypt_cfm, \
     gapc_encrypt_ind, gapc_param_update_req_ind, gapc_param_update_cfm, gapc_param_update_cmd, gapc_get_dev_info_req_ind, \
     gapc_get_dev_info_cfm, GAPC_DEV_INFO, gapc_disconnect_ind, gapc_param_updated_ind, gapc_disconnect_cmd, gapc_bond_cmd, \
-    gapc_peer_version_ind, GAPC_BOND, GAP_AUTH, GAPC_OPERATION, GAP_IO_CAP, GAP_OOB, GAP_SEC_REQ, GAP_KDIST
+    gapc_peer_version_ind, GAPC_BOND, GAP_AUTH, GAPC_OPERATION, GAP_IO_CAP, GAP_OOB, GAP_SEC_REQ, GAP_KDIST, GAP_TK_TYPE, \
+    GAPC_DEV_INFO
 
 from gtl_port.rwip_config import KE_API_ID
 
@@ -98,6 +99,25 @@ class GapcBondReqInd(GtlMessageBase):
                          src_id=((conidx << 8) | KE_API_ID.TASK_ID_GAPC),
                          par_len=18,
                          parameters=self.parameters)
+
+    def _struct_to_str(self, struct: gapc_bond_req_ind):
+        param_string = ''
+
+        param_string += f'(request={str(GAPC_BOND(struct.request))}, '
+        param_string += 'data=gapc_bond_req_data('
+
+        match struct.request:
+            case GAPC_BOND.GAPC_PAIRING_REQ:
+                param_string += f'auth_req={str(GAP_AUTH(struct.data.auth_req))}'
+            case GAPC_BOND.GAPC_LTK_EXCH:
+                param_string += f'key_size={struct.data.key_size}'
+            case GAPC_BOND.GAPC_TK_EXCH:
+                param_string += f'tk_type={str(GAP_TK_TYPE(struct.data.tk_type))}'
+
+        param_string += '), '
+        param_string += f'tk=gap_sec_key({self._array_to_str("key", struct.tk.key)[:-2]})'
+        param_string += '), '  # ,space This will be removed by __repr__ in GtlMessageBase
+        return param_string
 
 
 class GapcBondCfm(GtlMessageBase):
@@ -365,31 +385,54 @@ class GapcGetDevInfoCfm(GtlMessageBase):
 
     par_len = property(get_par_len, set_par_len)
 
+    def _struct_to_str(self, struct: gapc_get_dev_info_cfm):
+        param_string = ''
+
+        param_string += f'(req={str(GAPC_DEV_INFO(struct.req))}, '
+        param_string += 'info=gapc_dev_info_val('
+
+        match struct.req:
+            case GAPC_DEV_INFO.GAPC_DEV_NAME:
+                param_string += f'name=gap_dev_name({self._array_to_str("value", struct.info.name.value)[:-2]})'
+            case GAPC_DEV_INFO.GAPC_DEV_APPEARANCE:
+                param_string += f'appearance={struct.info.appearance}'
+            case GAPC_DEV_INFO.GAPC_DEV_SLV_PREF_PARAMS:
+                param_string += 'slv_params=gap_slv_pref('
+                param_string += f'con_intv_min={struct.info.slv_params.con_intv_min}, '
+                param_string += f'con_intv_max={struct.info.slv_params.con_intv_max}, '
+                param_string += f'slave_latency={struct.info.slv_params.slave_latency}, '
+                param_string += f'conn_timeout={struct.info.slv_params.conn_timeout})'
+            case GAPC_DEV_INFO.GAPC_DEV_CENTRAL_RPA:
+                param_string += f'central_rpa={struct.info.central_rpa}'
+            case GAPC_DEV_INFO.GAPC_DEV_RPA_ONLY:
+                param_string += f'rpa_only={struct.info.rpa_only}'
+        param_string += ')'
+        param_string += '), '  # ,space This will be removed by __repr__ in GtlMessageBase
+        return param_string
+
     # TODO issue converting Union to bytearray, revisit to see if generalizeable
-    def _struct_to_bytearray(self, struct):
+    def _struct_to_bytearray(self, struct: gapc_get_dev_info_cfm):
 
         return_array = bytearray()
-        return_array = bytearray(self.parameters.req.to_bytes(length=1, byteorder='little'))
+        return_array = bytearray(struct.req.to_bytes(length=1, byteorder='little'))
         padding = 0
         return_array += bytearray(padding.to_bytes(length=1, byteorder='little'))  # padding
-        return_array += bytearray(self.parameters.info.name.length.to_bytes(length=2, byteorder='little'))
+        return_array += bytearray(struct.info.name.length.to_bytes(length=2, byteorder='little'))
 
-        if self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_NAME:
-            return_array += bytearray(self.parameters.info.name.value)
-        elif self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_APPEARANCE:
-            return_array += bytearray(self.parameters.info.appearance.to_bytes(length=2, byteorder='little'))
-        elif self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_SLV_PREF_PARAMS:
-            return_array += bytearray(self.parameters.info.slv_params)
-        elif self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_CENTRAL_RPA:
-            return_array += bytearray(self.parameters.info.central_rpa.to_bytes(length=1, byteorder='little'))
-        elif self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_RPA_ONLY:
-            return_array += bytearray(self.parameters.info.rpa_only.to_bytes(length=1, byteorder='little'))
+        if struct.req == GAPC_DEV_INFO.GAPC_DEV_NAME:
+            return_array += bytearray(struct.info.name.value)
+        elif struct.req == GAPC_DEV_INFO.GAPC_DEV_APPEARANCE:
+            return_array += bytearray(struct.info.appearance.to_bytes(length=2, byteorder='little'))
+        elif struct.req == GAPC_DEV_INFO.GAPC_DEV_SLV_PREF_PARAMS:
+            return_array += bytearray(struct.info.slv_params)
+        elif struct.req == GAPC_DEV_INFO.GAPC_DEV_CENTRAL_RPA:
+            return_array += bytearray(struct.info.central_rpa.to_bytes(length=1, byteorder='little'))
+        elif struct.req == GAPC_DEV_INFO.GAPC_DEV_RPA_ONLY:
+            return_array += bytearray(struct.info.rpa_only.to_bytes(length=1, byteorder='little'))
 
         return_array += bytearray((c_uint8 * 6)())  # more padding
 
         return return_array
-
-    # TODO issue with _struct_to_bytearray due to union with pointer
 
 
 # TODO this message not documented in GTL user manual, needs unit test
