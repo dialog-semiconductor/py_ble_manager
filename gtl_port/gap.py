@@ -39,7 +39,7 @@
 '''
 
 from ctypes import Array, c_uint8, c_uint16, LittleEndianStructure, pointer, POINTER, cast
-from enum import auto, IntEnum
+from enum import auto, IntEnum, IntFlag
 from .co_bt import BD_ADDR_LEN, KEY_LEN, bd_addr
 
 
@@ -277,7 +277,7 @@ class GAP_OOB(IntEnum):
 
 
 # Authentication mask
-class GAP_AUTH_MASK(IntEnum):
+class GAP_AUTH_MASK(IntFlag):
     # No Flag set
     GAP_AUTH_NONE = 0
     # Bond authentication
@@ -293,7 +293,7 @@ class GAP_AUTH_MASK(IntEnum):
 # define GAP_AUTH_REQ_MASK   0x1F
 
 # Authentication Requirements
-class GAP_AUTH(IntEnum):
+class GAP_AUTH(IntFlag):
 
     # No MITM No Bonding
     GAP_AUTH_REQ_NO_MITM_NO_BOND = (GAP_AUTH_MASK.GAP_AUTH_NONE)
@@ -312,7 +312,7 @@ class GAP_AUTH(IntEnum):
 
 
 # Key Distribution Flags
-class GAP_KDIST(IntEnum):
+class GAP_KDIST(IntFlag):
 
     # No Keys to distribute
     GAP_KDIST_NONE = 0x00,
