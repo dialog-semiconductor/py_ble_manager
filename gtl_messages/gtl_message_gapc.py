@@ -1,11 +1,12 @@
 from ctypes import c_uint8
-from .gtl_message_base import GtlMessageBase
+
+from gtl_messages.gtl_message_base import GtlMessageBase
+from gtl_port.gap import GAP_AUTH_MASK, GAP_IO_CAP, GAP_OOB, GAP_SEC_REQ, GAP_KDIST, GAP_TK_TYPE
 from gtl_port.gapc_task import GAPC_MSG_ID, gapc_connection_req_ind, gapc_connection_cfm, gapc_security_cmd, gapc_cmp_evt, gapc_get_info_cmd, \
     gapc_peer_features_ind, gapc_bond_req_ind, gapc_bond_cfm, gapc_sign_counter_ind, gapc_bond_ind, gapc_encrypt_req_ind, gapc_encrypt_cfm, \
     gapc_encrypt_ind, gapc_param_update_req_ind, gapc_param_update_cfm, gapc_param_update_cmd, gapc_get_dev_info_req_ind, \
     gapc_get_dev_info_cfm, GAPC_DEV_INFO, gapc_disconnect_ind, gapc_param_updated_ind, gapc_disconnect_cmd, gapc_bond_cmd, \
-    gapc_peer_version_ind, GAPC_BOND, GAP_AUTH, GAPC_OPERATION, GAP_IO_CAP, GAP_OOB, GAP_SEC_REQ, GAP_KDIST, GAP_TK_TYPE, \
-    GAPC_DEV_INFO
+    gapc_peer_version_ind, GAPC_BOND, GAPC_OPERATION, GAPC_DEV_INFO
 
 from gtl_port.rwip_config import KE_API_ID
 
@@ -108,7 +109,7 @@ class GapcBondReqInd(GtlMessageBase):
 
         match struct.request:
             case GAPC_BOND.GAPC_PAIRING_REQ:
-                param_string += f'auth_req={str(GAP_AUTH(struct.data.auth_req))}'
+                param_string += f'auth_req={str(GAP_AUTH_MASK(struct.data.auth_req))}'
             case GAPC_BOND.GAPC_LTK_EXCH:
                 param_string += f'key_size={struct.data.key_size}'
             case GAPC_BOND.GAPC_TK_EXCH:
@@ -144,7 +145,7 @@ class GapcBondCfm(GtlMessageBase):
                 param_string += 'pairing_feat=gapc_pairing('
                 param_string += f'iocap={str(GAP_IO_CAP(struct.data.pairing_feat.iocap))}, '
                 param_string += f'oob={str(GAP_OOB(struct.data.pairing_feat.oob))}, '
-                param_string += f'auth={str(GAP_AUTH(struct.data.pairing_feat.auth))}, '
+                param_string += f'auth={str(GAP_AUTH_MASK(struct.data.pairing_feat.auth))}, '
                 param_string += f'key_size={struct.data.pairing_feat.key_size}, '
                 param_string += f'ikey_dist={str(GAP_KDIST(struct.data.pairing_feat.ikey_dist))}, '
                 param_string += f'rkey_dist={str(GAP_KDIST(struct.data.pairing_feat.rkey_dist))}, '
@@ -188,7 +189,7 @@ class GapcBondInd(GtlMessageBase):
 
         match struct.info:
             case GAPC_BOND.GAPC_PAIRING_SUCCEED:
-                param_string += f'auth={str(GAP_AUTH(struct.data.auth))}'
+                param_string += f'auth={str(GAP_AUTH_MASK(struct.data.auth))}'
             case GAPC_BOND.GAPC_PAIRING_FAILED:
                 param_string += f'reason={(struct.data.reason)}'
             case GAPC_BOND.GAPC_LTK_EXCH:
@@ -455,7 +456,7 @@ class GapcBondCmd(GtlMessageBase):
         param_string += 'pair=gapc_pairing('
         param_string += f'iocap={str(GAP_IO_CAP(struct.pairing.iocap))}, '
         param_string += f'oob={str(GAP_OOB(struct.pairing.oob))}, '
-        param_string += f'auth={str(GAP_AUTH(struct.pairing.auth))}, '
+        param_string += f'auth={str(GAP_AUTH_MASK(struct.pairing.auth))}, '
         param_string += f'key_size={struct.pairing.key_size}, '
         param_string += f'ikey_dist={str(GAP_KDIST(struct.pairing.ikey_dist))}, '
         param_string += f'rkey_dist={str(GAP_KDIST(struct.pairing.rkey_dist))}, '
