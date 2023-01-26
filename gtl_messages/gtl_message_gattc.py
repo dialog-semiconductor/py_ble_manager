@@ -369,6 +369,42 @@ class GattcSdpSvcInd(GtlMessageBase):
         self._par_len = value
 
     par_len = property(get_par_len, set_par_len)
+ # TODO this method not working properly
+    def _struct_to_str(self, struct: gattc_sdp_svc_ind):
+
+        param_string = ''
+        param_string += f'({self._array_to_str("uuid", struct.uuid)[:-2]}, '
+        param_string += f'start_hdl={struct.start_hdl}, '
+        param_string += f'end_hdl={struct.end_hdl}, '
+
+        param_string += 'info=('
+        item: gattc_sdp_att_info
+        for item in struct.info:
+            param_string += f'gattc_sdp_att_info=(att_type={str(GATTC_SDP_ATT_TYPE(item.att_type))}, '
+            match item.att_type:
+                case GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_CHAR:
+                    param_string += 'att_char=gattc_sdp_att_char=('
+                    param_string += f'prop={item.att_char.prop}, '
+                    param_string += f'handle={item.att_char.handle}'
+                    param_string += f')'
+                case GATTC_SDP_ATT_TYPE.GATTC_SDP_INC_SVC:
+                    param_string += 'inc_svc=gattc_sdp_include_svc=('
+                    param_string += f'{self._array_to_str("uuid", item.inc_svc.uuid)[:-2]}, '
+                    param_string += f'prop={item.inc_svc.start_hdl}, '
+                    param_string += f'handle={item.inc_svc.end_hdl}'
+                    param_string += f')'
+                case (GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_VAL
+                      | GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_DESC):
+
+                    param_string += 'att=gattc_sdp_att=('
+                    param_string += f'uuid_len={item.att.uuid_len}, '
+                    param_string += f'{self._array_to_str("uuid", item.att.uuid)[:-2]}'
+                    param_string += f')'
+            param_string += '), '
+        param_string = param_string[:-2]
+        param_string += ')'
+        param_string += '), '
+        return param_string
 
     def _struct_to_bytearray(self, parameters: gattc_sdp_svc_ind):  # TODO Cannot find way to handle gattc_sdp_svc_ind elegantly. Should to str method be created for union as well?
         message = bytearray()
@@ -438,15 +474,15 @@ class GattcReadCmd(GtlMessageBase):
                 param_string += f'{self._array_to_str("uuid", struct.req.by_uuid.uuid)[:-2]})'
 
             case GATTC_OPERATION.GATTC_READ_MULTIPLE:
-                param_string += f'multiple=('
+                param_string += 'multiple=('
                 multiple_array = struct.req.multiple
                 for item in multiple_array:
-                    param_string += f'gattc_read_multiple=('
+                    param_string += 'gattc_read_multiple=('
                     param_string += f'handle={item.handle}'
                     param_string += f'len={item.len}'
-                    param_string += f')'
-                param_string += f')'
-                
+                    param_string += ')'
+                param_string += ')'
+
         param_string += ')'
         param_string += '), '  # ,space This will be removed by __repr__ in GtlMessageBase
         return param_string
