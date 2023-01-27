@@ -24,7 +24,7 @@ from gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqIn
     GapcPeerVersionInd, GapcPeerFeaturesInd
 
 from gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd, \
-    GapmStartScanCmd, GapmAdvReportInd, GapmCancelCmd
+    GapmStartScanCmd, GapmAdvReportInd, GapmCancelCmd, GapmResolvAddrCmd, GapmAddrSolvedInd
 
 from gtl_port.co_bt import RAND_NB_LEN, KEY_LEN, BLE_LE_LENGTH_FEATURE
 from gtl_port.co_error import CO_ERROR
@@ -441,7 +441,7 @@ class BleManagerGap(BleManagerBase):
             return False
 
         # TODO gtl message
-        # gtl = GapmResolvAddrCmd
+        gtl = GapmResolvAddrCmd()
         return False
 
     def _sec_req_to_gtl(self, sec_level: GAP_SEC_LEVEL):

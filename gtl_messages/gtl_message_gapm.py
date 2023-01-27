@@ -1,6 +1,7 @@
 from .gtl_message_base import GtlMessageBase
 from gtl_port.gapm_task import GAPM_MSG_ID, gapm_reset_cmd, gapm_cmp_evt, gapm_set_dev_config_cmd, gapm_start_advertise_cmd, \
-    gapm_start_connection_cmd, gapm_start_scan_cmd, gapm_adv_report_ind, gapm_cancel_cmd
+    gapm_start_connection_cmd, gapm_start_scan_cmd, gapm_adv_report_ind, gapm_cancel_cmd, gapm_resolv_addr_cmd, \
+    gapm_addr_solved_ind
 from gtl_port.rwip_config import KE_API_ID
 
 
@@ -127,5 +128,28 @@ class GapmCancelCmd(GtlMessageBase):
                          par_len=1,
                          parameters=self.parameters)
 
-                         
-# TODO next message GAPM_RESOLV_ADDR_CMD, GAPM_ADDR_SOLVED_IND
+
+class GapmResolvAddrCmd(GtlMessageBase):
+
+    def __init__(self, parameters: gapm_resolv_addr_cmd = None):
+
+        self.parameters = parameters if parameters else gapm_resolv_addr_cmd()
+
+        super().__init__(msg_id=GAPM_MSG_ID.GAPM_RESOLV_ADDR_CMD,
+                         dst_id=KE_API_ID.TASK_ID_GAPM,
+                         src_id=KE_API_ID.TASK_ID_GTL,
+                         par_len=24,
+                         parameters=self.parameters)
+
+
+class GapmAddrSolvedInd(GtlMessageBase):
+
+    def __init__(self, parameters: gapm_addr_solved_ind = None):
+
+        self.parameters = parameters if parameters else gapm_addr_solved_ind()
+
+        super().__init__(msg_id=GAPM_MSG_ID.GAPM_ADDR_SOLVED_IND,
+                         dst_id=KE_API_ID.TASK_ID_GTL,
+                         src_id=KE_API_ID.TASK_ID_GAPM,
+                         par_len=22,
+                         parameters=self.parameters)

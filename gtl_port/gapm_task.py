@@ -723,30 +723,60 @@ class gapm_ral_addr_ind:
     addr: c_uint8 * BD_ADDR_LEN
 
 # Resolve Address command
-@dataclass
-class gapm_resolv_addr_cmd:
-    # GAPM requested operation:
-    #  - GAPM_RESOLV_ADDR: Resolve device address
-    operation: c_uint8
-    # Number of provided IRK (shall be > 0)
-    nb_key: c_uint8
-    # Random Resolvable Private Address to solve
-    addr: bd_addr
-    # Array of IRK used for address resolution (MSB -> LSB)
-
-    # TODO: this is done to malloc block of memory. How to port for Python in ctypes?
-    #struct gap_sec_key irk[__ARRAY_EMPTY];
-
-# Indicate that resolvable random address has been solved
-@dataclass
-class gapm_addr_solved_ind:
-    # Random Resolvable Private Address solved
-    addr: bd_addr
-    # IRK that correctly solved the Random Resolvable Private Address
-    irk: gap_sec_key
 '''
 
-# adv_data_array = c_uint8*ADV_DATA_LEN
+
+class gapm_resolv_addr_cmd(LittleEndianStructure):
+
+    def __init__(self,
+                 addr: bd_addr = bd_addr(),
+                 irk: Array[gap_sec_key] = None
+                 ) -> None:
+        self.operation = GAPM_OPERATION.GAPM_RESOLV_ADDR
+        self.addr = addr
+        self.irk = irk
+        super().__init__(operation=self.operation,
+                         nb_key=self.nb_key,
+                         addr=self.addr,
+                         _irk=self._irk)
+
+                # GAPM requested operation:
+                #  - GAPM_RESOLV_ADDR: Resolve device address
+    _fields_ = [("operation", c_uint8),
+                # Number of provided IRK (shall be > 0)
+                ("nb_key", c_uint8),
+                # Random Resolvable Private Address to solve
+                ("addr", bd_addr),
+                # Array of IRK used for address resolution (MSB -> LSB)
+                ("_irk", POINTER(gap_sec_key))]
+
+    def get_irk(self):
+        return cast(self._irk, POINTER(gap_sec_key * self.nb_key)).contents
+
+    def set_irk(self, new_keys: Array[gap_sec_key]):
+        self._irk = new_keys if new_keys else (gap_sec_key * 1)()
+        self.nb_key = len(new_keys) if new_keys else 1
+
+    irk = property(get_irk, set_irk)
+
+
+
+# Indicate that resolvable random address has been solved
+class gapm_addr_solved_ind(LittleEndianStructure):
+
+    def __init__(self,
+                 addr: bd_addr = bd_addr(),
+                 irk: gap_sec_key = gap_sec_key()
+                 ) -> None:
+        self.addr = addr
+        self.irk = irk
+        super().__init__(addr=self.addr,
+                         irk=self.irk)
+
+                # Random Resolvable Private Address solved
+    _fields_ = [("addr", bd_addr),
+                # IRK that correctly solved the Random Resolvable Private Address
+                ("irk", gap_sec_key)]
 
 
 # Advertising data that contains information set by host.

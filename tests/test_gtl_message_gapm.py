@@ -259,6 +259,46 @@ class TestGapmCancelCmd(unittest.TestCase):
 
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+# Table 42
+class TestGapmResolvAddrCmd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05140D0D00100018001701BD74EB757E59872FF3AC0D0428EB37B5B6CC9E5AE867"
+        
+    def test_parameters_passed_on_construction(self):
+        test_message = GapmResolvAddrCmd()
+
+        addr_string = bytearray.fromhex('597E75EB74BD')  # TODO manual has different addr in comments vs hex
+        addr_string.reverse()
+        test_message.parameters.addr.addr = (c_uint8 * BD_ADDR_LEN).from_buffer_copy(addr_string)
+
+        irk_string = bytearray.fromhex('67E85A9ECCB6B537EB28040DACF32F87')
+        irk_string.reverse()
+        test_message.parameters.irk = (gap_sec_key * 1)()
+        test_message.parameters.irk[0].key = (c_uint8 * KEY_LEN).from_buffer_copy(irk_string)
+        
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 43
+class TestGapmAddrSolvedInd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05150D10000D001600BD74EB757E59872FF3AC0D0428EB37B5B6CC9E5AE867"
+        
+    def test_parameters_passed_on_construction(self):
+        test_message = GapmAddrSolvedInd()
+
+        addr_string = bytearray.fromhex('597E75EB74BD')
+        addr_string.reverse()
+        test_message.parameters.addr.addr = (c_uint8 * BD_ADDR_LEN).from_buffer_copy(addr_string)
+
+        irk_string = bytearray.fromhex('67E85A9ECCB6B537EB28040DACF32F87')
+        irk_string.reverse()
+        test_message.parameters.irk.key = (c_uint8 * KEY_LEN).from_buffer_copy(irk_string)
+        
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
 if __name__ == '__main__':
     unittest.main()

@@ -139,7 +139,7 @@ class GtlMessageBase():
                     return bytearray(struct)
             '''
             if issubclass(type(struct), Union):
-                return bytearray(struct)  # TODO how will this effect gattc_read_req
+                return bytearray(struct)
 
             # for each field in the structure
             for field in struct._fields_:
