@@ -400,6 +400,45 @@ class BleManagerGap(BleManagerBase):
 
         return gtl
 
+    def _gapm_address_resolve_complete(self, gtl: GapcCmpEvt, evt: BleEventGapConnected):
+
+        print("_gapm_address_resolve_complete")
+        conn_idx = evt.conn_idx
+        dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+        if dev:
+            # Check if the device was resolved and change the address
+            if (gtl.parameters.status == HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR
+                    and dev.addr.addr_type != evt.peer_address.addr_type):
+
+                evt.peer_address = dev.addr
+
+            self._mgr_event_queue_send(evt)
+
+            dev.resolving = False
+            if dev.discon_reason:
+                # Device has disconnected while address resolution was ongoing,
+                # cleanup the connection
+                self._conn_cleanup(conn_idx, dev.discon_reason)
+            else:
+                # Send GAPC_CONNECTION_CFM to the BLE Host
+                cfm = GapcConnectionCfm(conn_idx=conn_idx)
+                cfm.parameters.auth = GAP_AUTH_MASK.GAP_AUTH_BOND if dev.bonded else GAP_AUTH_MASK.GAP_AUTH_NONE
+                cfm.parameters.auth |= GAP_AUTH_MASK.GAP_AUTH_MITM if dev.mitm else GAP_AUTH_MASK.GAP_AUTH_NONE
+                if dg_configBLE_SECURE_CONNECTIONS == 1:
+                    cfm.parameters.auth |= GAP_AUTH_MASK.GAP_AUTH_SEC if dev.secure else GAP_AUTH_MASK.GAP_AUTH_NONE
+                # TODO #if (RWBLE_SW_VERSION >= VERSION_8_1)
+                # cfm.parameters.auth |= GAPC_FIELDS_MASK.GAPC_LTK_MASK if dev.remote_ltk else GAP_AUTH_MASK.GAP_AUTH_NONE
+
+                if dev.csrk:
+                    cfm.parameters.lsign_counter = dev.csrk.sign_cnt
+                    cfm.parameters.lcsrk.key = (c_uint8 * KEY_LEN).from_buffer_copy(dev.csrk.key)
+
+                # TODO 
+                # Retrieve value for Service Changed Characteristic CCC
+                # ble_storage_get_u16(conn_idx, STORAGE_KEY_SVC_CHANGED_CCC, &svc_chg_ccc);
+                # gcmd->svc_changed_ind_enable = !!(svc_chg_ccc & GATT_CCC_INDICATIONS);
+                self._adapter_command_queue_send(cfm)
+
     def _get_peer_features(self, conn_idx: int):
         gtl = GapcGetInfoCmd(conidx=conn_idx)
         gtl.parameters.operation = GAPC_OPERATION.GAPC_GET_PEER_FEATURES
@@ -430,19 +469,36 @@ class BleManagerGap(BleManagerBase):
     def _max_bonded_reached(self):
         return self._stored_device_list.count_bonded() >= BLE_GAP_MAX_BONDED
 
-    def _resolve_address_from_connected_evt(self, evt: GapcConnectionReqInd, param: None):
-        # TODO 
+    def _resolve_address_from_connected_evt(self, gtl: GapcConnectionReqInd, evt: BleEventGapConnected):
+        print("_resolve_address_from_connected_evt")
         # Check if peer's address is random
-        if evt.parameters.peer_addr_type != BLE_ADDR_TYPE.PRIVATE_ADDRESS:
+        if gtl.parameters.peer_addr_type != BLE_ADDR_TYPE.PRIVATE_ADDRESS:
             return False
 
         # Check if peer's address is resolvable
-        if evt.parameters.peer_addr.addr[5] & 0xC0 != 0x40:
+        if gtl.parameters.peer_addr.addr[5] & 0xC0 != 0x40:
             return False
 
-        # TODO gtl message
-        gtl = GapmResolvAddrCmd()
-        return False
+        irk_count = self._stored_device_list.get_irk_count()
+        if irk_count == 0:
+            return False
+
+        cmd = GapmResolvAddrCmd()
+        cmd.parameters.addr = gtl.parameters.peer_addr
+        cmd.parameters.nb_key = irk_count
+
+        # Copy IRKs  # TODO not clear where these are getting copied to and used for 
+        # copy_data.array = gcmd->irk;
+        # copy_data.index = 0;
+        # device_foreach(irk_copy_cb, &copy_data);
+
+        self._wait_queue_add(BLE_CONN_IDX_INVALID,
+                             GAPM_MSG_ID.GAPM_CMP_EVT,
+                             GAPM_OPERATION.GAPM_RESOLV_ADDR,
+                             self._gapm_address_resolve_complete,
+                             evt)
+        
+        return True
 
     def _sec_req_to_gtl(self, sec_level: GAP_SEC_LEVEL):
         gtl_sec_req = GAP_SEC_REQ.GAP_NO_SEC
@@ -1032,6 +1088,7 @@ class BleManagerGap(BleManagerBase):
         self._mgr_response_queue_send(response)
 
     def connected_evt_handler(self, gtl: GapcConnectionReqInd):
+        print("connected_evt_handler")
         evt = BleEventGapConnected()
         evt.conn_idx = self._task_to_connidx(gtl.src_id)
         evt.own_addr.addr_type = self.dev_params.own_addr.addr_type
@@ -1076,29 +1133,30 @@ class BleManagerGap(BleManagerBase):
             pass  # TODO needs to be same as resolve addr here
 
         if self._resolve_address_from_connected_evt(gtl, evt):
-            # TODO
-            # dev.resolving = True  # Note passed in gtl instead of gtl.params
-            pass
+            dev.resolving = True
+        else:
+            print("connected_evt_handler. _resolve_address_from_connected_evt was false")
+            self._mgr_event_queue_send(evt)
 
-        self._mgr_event_queue_send(evt)
+            cfm = GapcConnectionCfm(conidx=evt.conn_idx)
+            # TODO should this be GAP_AUTH_MASK
+            cfm.parameters.auth = GAP_AUTH_MASK.GAP_AUTH_BOND if dev.bonded else GAP_AUTH_MASK.GAP_AUTH_NONE
+            cfm.parameters.auth |= GAP_AUTH_MASK.GAP_AUTH_MITM if dev.mitm else GAP_AUTH_MASK.GAP_AUTH_NONE
+            # if (dg_configBLE_SECURE_CONNECTIONS == 1)
+            cfm.parameters.auth |= GAP_AUTH_MASK.GAP_AUTH_SEC if dev.secure else GAP_AUTH_MASK.GAP_AUTH_NONE
+            # endif /* (dg_configBLE_SECURE_CONNECTIONS == 1) */
+            # if (RWBLE_SW_VERSION >= VERSION_8_1) # TODO 
+            cfm.parameters.auth |= GAPC_FIELDS_MASK.GAPC_LTK_MASK if dev.remote_ltk else GAP_AUTH_MASK.GAP_AUTH_NONE
+            # endif /* (RWBL
+            if dev.csrk.key != b'':  # TODO need to do equiv of null check
+                cfm.parameters.lsign_counter = dev.csrk.sign_cnt
+                cfm.parameters.lcsrk.key = (c_uint8 * KEY_LEN).from_buffer_copy(dev.csrk.key)
+            if dev.remote_csrk.key != b'':  # TODO need to do equiv of null check
+                cfm.parameters.rsign_counter = dev.remote_csrk.sign_cnt
+                cfm.parameters.rcsrk.key = (c_uint8 * KEY_LEN).from_buffer_copy(dev.remote_csrk.key)
 
-        cfm = GapcConnectionCfm(conidx=evt.conn_idx)
-        # TODO should this be GAP_AUTH_MASK
-        cfm.parameters.auth = GAP_AUTH_MASK.GAP_AUTH_BOND if dev.bonded else GAP_AUTH_MASK.GAP_AUTH_NONE
-        cfm.parameters.auth |= GAP_AUTH_MASK.GAP_AUTH_MITM if dev.mitm else GAP_AUTH_MASK.GAP_AUTH_NONE
-        # if (dg_configBLE_SECURE_CONNECTIONS == 1)
-        cfm.parameters.auth |= GAP_AUTH_MASK.GAP_AUTH_SEC if dev.secure else GAP_AUTH_MASK.GAP_AUTH_NONE
-        # endif /* (dg_configBLE_SECURE_CONNECTIONS == 1) */
-        # if (RWBLE_SW_VERSION >= VERSION_8_1)
-        cfm.parameters.auth |= GAPC_FIELDS_MASK.GAPC_LTK_MASK if dev.remote_ltk else GAP_AUTH_MASK.GAP_AUTH_NONE
-        # endif /* (RWBL
-        if dev.csrk.key == b'':  # TODO need to do equiv of null check
-            pass
-        if dev.remote_csrk.key == b'':  # TODO need to do equiv of null check
-            pass
-
-        # TODO something with service changed characteristic value from storage
-        self._adapter_command_queue_send(cfm)
+            # TODO something with service changed characteristic value from storage
+            self._adapter_command_queue_send(cfm)
 
     def disconnect_cmd_handler(self, command: BleMgrGapDisconnectCmd) -> None:
         response = BleMgrGapDisconnectRsp(BLE_ERROR.BLE_ERROR_FAILED)

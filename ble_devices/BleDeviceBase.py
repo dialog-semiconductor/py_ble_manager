@@ -61,6 +61,9 @@ class BleDeviceBase():
 
         return evt
 
+    async def numeric_reply(self, conn_idx: int, accept: bool):
+        return await self._ble_gap.numeric_reply(conn_idx, accept)
+
     def set_io_cap(self, io_cap: GAP_IO_CAPABILITIES) -> BLE_ERROR:
         return self._ble_manager.set_io_cap(io_cap)
 

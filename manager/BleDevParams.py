@@ -90,7 +90,9 @@ class BleDevParamsDefault(BleDevParams):
                               0xEF, 0xCD, 0xAB, 0x89, 0x67, 0x45, 0x23, 0x01])
         self.addr_resolv_req_pending = 0
         self.att_db_cfg.slv_perf_conn_params_present = True
-        self.mtu_size = 23  # TODO 65 for secure connections, 23 otherwise. need to handle
+
+        # TODO Need to handle dg_configBLE_SECURE_CONNECTIONS
+        self.mtu_size = 65  # 23  # TODO 65 for secure connections, 23 otherwise. need to handle
         self.channel_map.map = bytes([0xFF, 0xFF, 0xFF, 0xFF, 0x1F])
 
         self.adv_type = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED

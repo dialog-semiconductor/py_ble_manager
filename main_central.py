@@ -27,7 +27,8 @@ async def console(ble_command_q: asyncio.Queue, ble_response_q: asyncio.Queue):
                 'GATTWRITENORESP',
                 'GAPPAIR',
                 'GAPSETCONNPARAM',
-                'PASSKEYENTRY']
+                'PASSKEYENTRY',
+                'YESNOTENTRY']
     commands.sort()
     word_completer = WordCompleter(commands, ignore_case=True)
 
@@ -178,11 +179,10 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
                                 error = await central.passkey_reply(conn_idx, accept, passkey)
 
                         case 'YESNOTENTRY':
-                            if len(args) == 4:
+                            if len(args) == 3:
                                 conn_idx = int(args[1])
                                 accept = bool(int(args[2]))
-                                passkey = int(args[3])
-                                error = await central.numeric_reply(conn_idx, accept, passkey)
+                                error = await central.numeric_reply(conn_idx, accept)
 
                         case _:
                             pass

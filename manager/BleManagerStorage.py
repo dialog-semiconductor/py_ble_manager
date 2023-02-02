@@ -196,6 +196,13 @@ class StoredDeviceQueue(SearchableQueue):
                 count += 1
         return count
 
+    def get_irk_count(self) -> int:
+        count = 0
+        for dev in self.queue:
+            if dev.irk.key != bytes():
+                count += 1
+        return count
+
     def find_device_by_connenting(self):
         found = None
         device: StoredDevice
@@ -279,12 +286,12 @@ class key_csrk():
 
 class key_irk():
     def __init__(self, key: bytes = None) -> None:
-        self.key = key if key else bytes  # TODO raise error on list size?
+        self.key = key if key else bytes()  # TODO raise error on list size?
 
 
 class key_ltk(): # TODO rand is uint64_t
     def __init__(self, rand: int = 0, ediv: int = 0, key: bytes = None, key_size: int = 0) -> None:
         self.rand = rand
         self.ediv = ediv
-        self.key = key if key else bytes  # TODO raise error on list size?
+        self.key = key if key else bytes()  # TODO raise error on list size?
         self.key_size = key_size

@@ -99,6 +99,8 @@ async def ble_task(sample_q: asyncio.Queue):
                                 evt: ble.BleEventGapPairReq
                                 print(f"BleEventGapPairReq. evt={evt}")
                                 await periph.pair_reply(evt.conn_idx, True, evt.bond)
+                            case ble.BLE_EVT_GAP.BLE_EVT_GAP_NUMERIC_REQUEST:
+                                await periph.numeric_reply(evt.conn_idx, True)
                             case _:
                                 await periph.handle_event_default(evt)
 
