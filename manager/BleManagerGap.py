@@ -15,13 +15,13 @@ from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BleEventGapConnected
     BleEventGapConnParamUpdateCompleted, BleEventGapConnParamUpdated, BleEventGapConnParamUpdateReq, \
     BLE_GAP_MAX_BONDED, GAP_IO_CAPABILITIES, BLE_ENC_KEY_SIZE_MAX, GAP_SEC_LEVEL, BleEventGapPairReq, \
     BleEventGapPasskeyNotify, BleEventGapNumericRequest, BleEventGapPairCompleted, BleEventGapSecLevelChanged, \
-    BleEventGapAddressResolved, BleEventGapPeerVersion, BleEventGapPeerFeatures
+    BleEventGapAddressResolved, BleEventGapPeerVersion, BleEventGapPeerFeatures, BleEventGapLtkMissing
 
 from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd, GapcGetDevInfoReqInd, GapcGetDevInfoCfm, \
     GapcDisconnectInd, GapcCmpEvt, GapcDisconnectCmd, GapcParamUpdateCmd, GapcParamUpdatedInd, GapcParamUpdateReqInd, \
     GapcParamUpdateCfm, GapcBondCfm, GapcBondCmd, GapcSecurityCmd, GapcBondReqInd, GapcBondInd, GapcGetInfoCmd, \
-    GapcPeerVersionInd, GapcPeerFeaturesInd
+    GapcPeerVersionInd, GapcPeerFeaturesInd, GapcEncryptReqInd, GapcEncryptCfm, GapcEncryptInd
 
 from gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd, \
     GapmStartScanCmd, GapmAdvReportInd, GapmCancelCmd, GapmResolvAddrCmd, GapmAddrSolvedInd
@@ -120,8 +120,8 @@ class BleManagerGap(BleManagerBase):
             GAPC_MSG_ID.GAPC_BOND_IND: self.bond_ind_evt_handler,
             GAPC_MSG_ID.GAPC_SECURITY_IND: None,
             GAPC_MSG_ID.GAPC_SIGN_COUNTER_IND: None,
-            GAPC_MSG_ID.GAPC_ENCRYPT_REQ_IND: None,
-            GAPC_MSG_ID.GAPC_ENCRYPT_IND: None,
+            GAPC_MSG_ID.GAPC_ENCRYPT_REQ_IND: self.encrypt_req_ind_evt_handler,
+            GAPC_MSG_ID.GAPC_ENCRYPT_IND: None, 
             GAPM_MSG_ID.GAPM_ADDR_SOLVED_IND: None,
             GAPC_MSG_ID.GAPC_LE_PKT_SIZE_IND: None,
             GAPM_MSG_ID.GAPM_CMP_EVT: self.gapm_cmp_evt_handler,
@@ -497,8 +497,40 @@ class BleManagerGap(BleManagerBase):
                              GAPM_OPERATION.GAPM_RESOLV_ADDR,
                              self._gapm_address_resolve_complete,
                              evt)
-        
+
         return True
+    
+    def _scan_cmp_evt_handler(self, gtl: GapmCmpEvt) -> None:
+
+        evt = BleEventGapScanCompleted()
+        self.dev_params.scanning = False
+
+        match gtl.parameters.operation:
+            case GAPM_OPERATION.GAPM_SCAN_ACTIVE:
+                evt.scan_type = GAP_SCAN_TYPE.GAP_SCAN_ACTIVE
+            case GAPM_OPERATION.GAPM_SCAN_PASSIVE:
+                evt.scan_type = GAP_SCAN_TYPE.GAP_SCAN_PASSIVE
+
+        match gtl.parameters.status:
+            case HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
+                evt.status = BLE_ERROR.BLE_STATUS_OK
+            case HOST_STACK_ERROR_CODE.GAP_ERR_CANCELED:
+                evt.status = BLE_ERROR.BLE_ERROR_CANCELED
+            case HOST_STACK_ERROR_CODE.GAP_ERR_INVALID_PARAM:
+                evt.status = BLE_ERROR.BLE_ERROR_INVALID_PARAM
+            case HOST_STACK_ERROR_CODE.GAP_ERR_NOT_SUPPORTED \
+                    | HOST_STACK_ERROR_CODE.GAP_ERR_PRIVACY_CFG_PB:
+
+                evt.status = BLE_ERROR.BLE_ERROR_NOT_SUPPORTED
+
+            case HOST_STACK_ERROR_CODE.GAP_ERR_TIMEOUT:
+                evt.status = BLE_ERROR.BLE_ERROR_TIMEOUT
+            case HOST_STACK_ERROR_CODE.GAP_ERR_COMMAND_DISALLOWED:
+                evt.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
+            case _:
+                evt.status = gtl.parameters.status
+
+        self._mgr_event_queue_send(evt)
 
     def _sec_req_to_gtl(self, sec_level: GAP_SEC_LEVEL):
         gtl_sec_req = GAP_SEC_REQ.GAP_NO_SEC
@@ -541,6 +573,10 @@ class BleManagerGap(BleManagerBase):
         print(f"_send_bond_command. io_cap in={io_cap}. gtl.io_cap={gtl.parameters.pairing.iocap}, gtl.auth={gtl.parameters.pairing.auth}")
         self._adapter_command_queue_send(gtl)
 
+    def _send_bonding_info_miss_evt(self, conn_idx: int):
+        evt = BleEventGapLtkMissing(conn_idx=conn_idx)
+        self._mgr_event_queue_send(evt)
+
     def _send_security_req(self,
                            conn_idx: int,
                            bond: bool,
@@ -553,38 +589,6 @@ class BleManagerGap(BleManagerBase):
         gtl.parameters.auth |= GAP_AUTH_MASK.GAP_AUTH_SEC if secure else GAP_AUTH_MASK.GAP_AUTH_NONE
 
         self._adapter_command_queue_send(gtl)
-
-    def _scan_cmp_evt_handler(self, gtl: GapmCmpEvt) -> None:
-
-        evt = BleEventGapScanCompleted()
-        self.dev_params.scanning = False
-
-        match gtl.parameters.operation:
-            case GAPM_OPERATION.GAPM_SCAN_ACTIVE:
-                evt.scan_type = GAP_SCAN_TYPE.GAP_SCAN_ACTIVE
-            case GAPM_OPERATION.GAPM_SCAN_PASSIVE:
-                evt.scan_type = GAP_SCAN_TYPE.GAP_SCAN_PASSIVE
-
-        match gtl.parameters.status:
-            case HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
-                evt.status = BLE_ERROR.BLE_STATUS_OK
-            case HOST_STACK_ERROR_CODE.GAP_ERR_CANCELED:
-                evt.status = BLE_ERROR.BLE_ERROR_CANCELED
-            case HOST_STACK_ERROR_CODE.GAP_ERR_INVALID_PARAM:
-                evt.status = BLE_ERROR.BLE_ERROR_INVALID_PARAM
-            case HOST_STACK_ERROR_CODE.GAP_ERR_NOT_SUPPORTED \
-                    | HOST_STACK_ERROR_CODE.GAP_ERR_PRIVACY_CFG_PB:
-
-                evt.status = BLE_ERROR.BLE_ERROR_NOT_SUPPORTED
-
-            case HOST_STACK_ERROR_CODE.GAP_ERR_TIMEOUT:
-                evt.status = BLE_ERROR.BLE_ERROR_TIMEOUT
-            case HOST_STACK_ERROR_CODE.GAP_ERR_COMMAND_DISALLOWED:
-                evt.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
-            case _:
-                evt.status = gtl.parameters.status
-
-        self._mgr_event_queue_send(evt)
 
     def _send_disconncet_cmd(self, conn_idx: int, reason: BLE_HCI_ERROR) -> None:
         gtl = GapcDisconnectCmd(conidx=conn_idx)
@@ -1181,6 +1185,37 @@ class BleManagerGap(BleManagerBase):
                 dev.discon_reason = gtl.parameters.reason
             else:
                 self._conn_cleanup(conn_idx, gtl.parameters.reason)
+
+    def encrypt_req_ind_evt_handler(self, gtl: GapcEncryptReqInd):
+        conn_idx = self._task_to_connidx(gtl.src_id)
+        cfm = GapcEncryptCfm()
+        dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+        if dev:
+            if dg_configBLE_SECURE_CONNECTIONS == 1:
+                if (not dev.bonded) or (not gtl.parameters.ediv):
+                    if dev.remote_ltk.key != b'':
+                        cfm.parameters.ltk.key = (c_uint8 * len(dev.remote_ltk.key)).from_buffer_copy(dev.remote_ltk.key)
+                        cfm.parameters.found = 0x01
+                        cfm.parameters.key_size = dev.ltk.key_size
+            else:
+                if dev.ltk.key != b'' and dev.ltk.ediv == gtl.parameters.ediv:
+                    # Our Rand is stored in the same endianess as RW
+
+                    rand_int = 0
+                    for i in range(0, RAND_NB_LEN):
+                        rand_int |= gtl.parameters.rand_nb.nb[i] << i
+                    if dev.ltk.rand == rand_int:
+                        cfm.parameters.ltk.key = (c_uint8 * len(dev.ltk.key)).from_buffer_copy(dev.ltk.key)
+                        cfm.parameters.found = 0x01
+                        cfm.parameters.key_size = dev.ltk.key_size
+
+            if dev and cfm.parameters.found == 0:
+                self._send_bonding_info_miss_evt(dev.conn_idx)
+
+            self._adapter_command_queue_send(cfm)
+
+    def encrypt_ind_evt_handler(self, gtl: GapcEncryptInd):
+        return None
 
     def gapc_cmp_evt_handler(self, gtl: GapcCmpEvt) -> bool:
 

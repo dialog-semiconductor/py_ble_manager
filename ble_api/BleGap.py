@@ -280,7 +280,6 @@ class BleAdvData():
         return return_string
 
 
-# TODO Perhaps events belong in their own file
 class BleEventGapAdvCompleted(BleEventBase):
     def __init__(self,
                  adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED,
@@ -369,6 +368,14 @@ class BleEventGapConnParamUpdated(BleEventBase):
         super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATED)
         self.conn_idx = conn_idx
         self.conn_params = conn_params if conn_params else GapConnParams()
+
+
+class BleEventGapLtkMissing(BleEventBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_LTK_MISSING)
+        self.conn_idx = conn_idx
 
 
 class BleEventGapPeerFeatures(BleEventBase):
