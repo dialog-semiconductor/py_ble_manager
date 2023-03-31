@@ -383,7 +383,7 @@ class BleEventGapPeerFeatures(BleEventBase):
                  conn_idx: int = 0,
                  le_features: bytes = None
                  ) -> None:
-        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_PEER_VERSION)
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_PEER_FEATURES)
         self.conn_idx = conn_idx
         self.le_features = le_features if le_features else bytes()
 

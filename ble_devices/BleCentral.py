@@ -1,8 +1,8 @@
 from ble_api.BleAtt import AttUuid
 from ble_devices.BleDeviceBase import BleDeviceBase
-from ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR
+from ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR, BleEventBase, BLE_EVT_GAP    
 from ble_api.BleGap import BLE_GAP_ROLE, GapConnParams, GAP_SCAN_TYPE, GAP_SCAN_MODE, BleEventGapAdvReport, \
-    BleAdvData, GAP_DATA_TYPE, GAP_IO_CAPABILITIES
+    BleAdvData, GAP_DATA_TYPE, GAP_IO_CAPABILITIES, BleEventGapConnParamUpdateReq
 
 
 class BleCentral(BleDeviceBase):
@@ -39,6 +39,12 @@ class BleCentral(BleDeviceBase):
 
     async def discover_services(self, conn_idx: int, uuid: AttUuid):
         return await self._ble_gattc.discover_services(conn_idx, uuid)
+
+    async def handle_event_default(self, evt: BleEventBase):
+        match evt.evt_code:
+            case BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATE_REQ:
+                evt: BleEventGapConnParamUpdateReq = evt
+                await self.conn_param_update_reply(evt.conn_idx, True)
 
     async def pair(self, conn_idx: int, bond: bool) -> BLE_ERROR:
         return await self._ble_gap.pair(conn_idx, bond)

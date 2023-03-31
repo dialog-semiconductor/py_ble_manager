@@ -68,9 +68,6 @@ class BlePeripheral(BleDeviceBase):
     def _ms_to_adv_slots(self, time_ms) -> int:
         return int((time_ms) * 1000 // 625)
 
-    async def conn_param_update_reply(self, conn_idx: int, accept: bool) -> BLE_ERROR:
-        return await self._ble_gap.conn_param_update_reply(conn_idx, accept)
-
     async def get_value(self, handle: int, max_len: int) -> BLE_ERROR:
         error = BLE_ERROR.BLE_ERROR_FAILED
         service = self._find_service_by_handle(handle)
@@ -89,7 +86,7 @@ class BlePeripheral(BleDeviceBase):
             case BLE_EVT_GATTS.BLE_EVT_GATTS_READ_REQ:
                 evt: BleEventGattsReadReq = evt
                 await self.read_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_READ_NOT_PERMITTED, None)
-            case BLE_EVT_GATTS.BLE_EVT_GATTS_PREPARE_WRITE_REQ:
+            case BLE_EVT_GATTS.BLE_EVT_GATTS_WRITE_REQ:
                 evt: BleEventGattsWriteReq = evt
                 await self.write_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_WRITE_NOT_PERMITTED)
             case BLE_EVT_GATTS.BLE_EVT_GATTS_PREPARE_WRITE_REQ:

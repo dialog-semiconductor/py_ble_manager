@@ -76,116 +76,7 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
             # Handle and BLE events that hace occurred
             if task is console_command_task:
                 command: str = task.result()
-                # print(f"ble_taks received command: {command}")
-
-                error = ble.BLE_ERROR.BLE_ERROR_FAILED
-                args = command.split()
-                if len(args) > 0:
-                    ble_func = args[0]
-                    match ble_func:
-                        case 'GAPSCAN':
-
-                            error = await central.scan_start(ble.GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
-                                                             ble.GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
-                                                             160,
-                                                             80,
-                                                             False,
-                                                             True)
-
-                        case "GAPCONNECT":
-                            if len(args) == 1:  # TODO this case just to avoid having to enter bd addr
-                                periph_bd = ble.BdAddress(ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS, bytes.fromhex("531B00352348"))  # addr is backwards
-                                periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
-                                error = await central.connect(periph_bd, periph_conn_params)
-                            if len(args) == 2:  # TODO pass in addr 48:23:35:00:1b:53
-                                # bd_info = args[1].strip(',')
-                                # bd_type =  if bd_info[1] == 'P' else BLE_ADDR_TYPE.PRIVATE_ADDRESS
-                                periph_bd = str_to_bd_addr(ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS, args[1])
-                                periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
-                                error = await central.connect(periph_bd, periph_conn_params)
-
-                        case "GAPBROWSE":
-                            if len(args) == 2:
-                                conn_idx = int(args[1])
-                                error = await central.browse(conn_idx, None)
-
-                        case "GAPDISCONNECT":
-                            if len(args) >= 2:
-                                conn_idx = int(args[1])
-                                if len(args) == 3:
-                                    reason = ble.BLE_HCI_ERROR(int(args[2]))
-                                    if reason == ble.BLE_HCI_ERROR.BLE_HCI_ERROR_NO_ERROR:
-                                        reason = ble.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON
-                                else:
-                                    reason = ble.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON
-                                error = await central.disconect(conn_idx, reason)
-
-                        case "GATTWRITE":
-                            if len(args) == 4:
-                                conn_idx = int(args[1])
-                                handle = int(args[2])
-                                value = bytes.fromhex(args[3])  # TODO requires leading 0 for 0x0-0xF
-                                error = await central.write(conn_idx, handle, 0, value)
-
-                        case "GATTWRITENORESP":
-                            if len(args) == 5:
-                                conn_idx = int(args[1])
-                                handle = int(args[2])
-                                signed = bool(int(args[3]))
-                                value = bytes.fromhex(args[4])  # TODO requires leading 0 for 0x0-0xF
-                                error = await central.write_no_resp(conn_idx, handle, signed, value)
-
-                        case "GATTWRITEPREPARE":
-                            # TODO not receiving GATTC_CMP_EVT after sending GattcWriteCmd
-                            if len(args) == 4:
-                                conn_idx = int(args[1])
-                                handle = int(args[2])
-                                value = bytes.fromhex(args[3])
-                                error = await central.write_prepare(conn_idx, handle, 0, value)
-
-                        case "GATTWRITEEXECUTE":
-                            if len(args) == 3:
-                                conn_idx = int(args[1])
-                                execute = bool(int(args[2]))
-                                error = await central.write_execute(conn_idx, execute)
-
-                        case "GATTREAD":  # TODO char handle displayed by browse is acutally the declaration. The value is +1
-                            if len(args) == 3:
-                                conn_idx = int(args[1])
-                                handle = int(args[2])
-                                error = await central.read(conn_idx, handle, 0)
-
-                        case 'GAPSETCONNPARAM':
-                            if len(args) == 6:
-                                conn_idx = int(args[1])
-                                conn_params = ble.GapConnParams()
-                                conn_params.interval_min = int(args[2])
-                                conn_params.interval_max = int(args[3])
-                                conn_params.slave_latency = int(args[4])
-                                conn_params.sup_timeout = int(args[5])
-                                error = await central.conn_param_update(conn_idx, conn_params)
-
-                        case 'GAPPAIR':
-                            if len(args) == 3:
-                                conn_idx = int(args[1])
-                                bond = bool(int(args[2]))
-                                error = await central.pair(conn_idx, bond)
-
-                        case 'PASSKEYENTRY':
-                            if len(args) == 4:
-                                conn_idx = int(args[1])
-                                accept = bool(int(args[2]))
-                                passkey = int(args[3])
-                                error = await central.passkey_reply(conn_idx, accept, passkey)
-
-                        case 'YESNOTENTRY':
-                            if len(args) == 3:
-                                conn_idx = int(args[1])
-                                accept = bool(int(args[2]))
-                                error = await central.numeric_reply(conn_idx, accept)
-
-                        case _:
-                            pass
+                error = await handle_console_command(command)
 
                 if error == ble.BLE_ERROR.BLE_STATUS_OK:
                     response = "OK"
@@ -197,93 +88,180 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
                 pending.add(console_command_task)
 
 
-            # Handle and BLE events that hace occurred
+            # Handle and BLE events that has occurred
             if task is ble_event_task:
                 evt: ble.BleEventBase = task.result()  # TODO how does timeout error affect result
-                # print(f"Main rx'd event: {evt}.\n")
-                if evt is not None:
-                    # TODO switch on event type
-                    # if evt.evt_code == BLE_EVT_GAP.BLE_EVT_GAP_ADV_REPORT
-                    if isinstance(evt, ble.BleEventGapAdvReport):
-                        handle_evt_gap_adv_report(central, evt)
-                        # reports = central.parse_adv_data(evt)  # only parses the adv data
-                        # adv_reports.append(reports)
+                handle_ble_event(central, evt, services)  # TODO services belongs in central??
 
-                    elif isinstance(evt, ble.BleEventGapScanCompleted):
-                        handle_evt_scan_completed(central, evt)
-                        pass
-
-                    elif isinstance(evt, ble.BleEventGapConnected):
-                        handle_evt_gap_connected(central, evt)
-
-                    elif isinstance(evt, ble.BleEventGapConnectionCompleted):
-                        handle_evt_gap_connection_compelted(central, evt)
-
-                    elif isinstance(evt, ble.BleEventGapDisconnected):
-                        handle_evt_gap_disconnected(central, evt)
-
-                    elif isinstance(evt, ble.BleEventGattcDiscoverSvc):
-                        handle_evt_gattc_discover_svc(central, evt, services)
-
-                    elif isinstance(evt, ble.BleEventGattcDiscoverCompleted):
-                        # putting this check here to avoid calling function and not awaiting as not fully implemented
-                        if evt.type == ble.GATTC_DISCOVERY_TYPE.GATTC_DISCOVERY_TYPE_SVC:
-                            await handle_evt_gattc_discover_completed(central, evt, services)
-
-                    elif isinstance(evt, ble.BleEventGattcDiscoverChar):
-                        handle_evt_gattc_discover_char(central, evt)
-
-                    elif isinstance(evt, ble.BleEventGattcDiscoverChar):
-                        handle_evt_gattc_discover_char(central, evt)
-
-                    elif isinstance(evt, ble.BleEventGattcDiscoverDesc):
-                        handle_evt_gattc_discover_desc(central, evt)
-
-                    elif isinstance(evt, ble.BleEventGattcBrowseSvc):
-                        handle_evt_gattc_browse_svc(central, evt)
-
-                    elif isinstance(evt, ble.BleEventGattcBrowseCompleted):
-                        handle_evt_gattc_browse_completed(central, evt)
-
-                    elif isinstance(evt, ble.BleEventGattcNotification):
-                        handle_evt_gattc_notification(central, evt)
-
-                    elif isinstance(evt, ble.BleEventGattcReadCompleted):
-                        handle_evt_gattc_read_completed(central, evt)
-
-                    elif isinstance(evt, ble.BleEventGattcWriteCompleted):
-                        handle_evt_gattc_write_completed(central, evt)
-
-                    elif isinstance(evt, ble.BleEventGapConnParamUpdated):
-                        handle_evt_gap_conn_param_updated(central, evt)
-
-                    elif isinstance(evt, ble.BleEventGapConnParamUpdateCompleted):
-                        handle_evt_gap_conn_param_update_compelted(central, evt)
-
-                    elif isinstance(evt, ble.BleEventGapPairReq):
-                        handle_evt_gap_pair_req(central, evt)
-
-                    elif isinstance(evt, ble.BleEventGapPairCompleted):
-                        handle_evt_gap_pair_completed(central, evt)
-
-                    elif isinstance(evt, ble.BleEventGapSecLevelChanged):
-                        handle_evt_gap_sec_level_changed(central, evt)
-
-                    elif isinstance(evt, ble.BleEventGapPeerFeatures):
-                        handle_evt_gap_peer_features(central, evt)
-
-                    elif isinstance(evt, ble.BleEventGapPeerVersion):
-                        handle_evt_gap_peer_version(central, evt)
-
-                    elif isinstance(evt, ble.BleEventGapPasskeyNotify):
-                        handle_evt_gap_passkey_notify(central, evt)
-
-                    else:
-                        print(f"Ble Task unhandled event: {evt}")
-
+                # reschedule ble task
                 ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
                 pending.add(ble_event_task)
 
+
+async def handle_console_command(command: str, central: ble.BleCentral) -> ble.BLE_ERROR:
+    error = ble.BLE_ERROR.BLE_ERROR_FAILED
+    args = command.split()
+    if len(args) > 0:
+        ble_func = args[0]
+        match ble_func:
+            case 'GAPSCAN':
+                error = await central.scan_start(ble.GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
+                                                 ble.GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
+                                                 160,
+                                                 80,
+                                                 False,
+                                                 True)
+
+            case "GAPCONNECT":
+                if len(args) == 1:  # TODO this case just to avoid having to enter bd addr
+                    periph_bd = ble.BdAddress(ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS, bytes.fromhex("531B00352348"))  # addr is backwards
+                    periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
+                    error = await central.connect(periph_bd, periph_conn_params)
+                if len(args) == 2:  # TODO pass in addr 48:23:35:00:1b:53
+                    # bd_info = args[1].strip(',')
+                    # bd_type =  if bd_info[1] == 'P' else BLE_ADDR_TYPE.PRIVATE_ADDRESS
+                    periph_bd = str_to_bd_addr(ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS, args[1])
+                    periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
+                    error = await central.connect(periph_bd, periph_conn_params)
+
+            case "GAPBROWSE":
+                if len(args) == 2:
+                    conn_idx = int(args[1])
+                    error = await central.browse(conn_idx, None)
+
+            case "GAPDISCONNECT":
+                if len(args) >= 2:
+                    conn_idx = int(args[1])
+                    if len(args) == 3:
+                        reason = ble.BLE_HCI_ERROR(int(args[2]))
+                        if reason == ble.BLE_HCI_ERROR.BLE_HCI_ERROR_NO_ERROR:
+                            reason = ble.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON
+                    else:
+                        reason = ble.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON
+                    error = await central.disconect(conn_idx, reason)
+
+            case "GATTWRITE":
+                if len(args) == 4:
+                    conn_idx = int(args[1])
+                    handle = int(args[2])
+                    value = bytes.fromhex(args[3])  # TODO requires leading 0 for 0x0-0xF
+                    error = await central.write(conn_idx, handle, 0, value)
+
+            case "GATTWRITENORESP":
+                if len(args) == 5:
+                    conn_idx = int(args[1])
+                    handle = int(args[2])
+                    signed = bool(int(args[3]))
+                    value = bytes.fromhex(args[4])  # TODO requires leading 0 for 0x0-0xF
+                    error = await central.write_no_resp(conn_idx, handle, signed, value)
+
+            case "GATTWRITEPREPARE":
+                # TODO not receiving GATTC_CMP_EVT after sending GattcWriteCmd
+                if len(args) == 4:
+                    conn_idx = int(args[1])
+                    handle = int(args[2])
+                    value = bytes.fromhex(args[3])
+                    error = await central.write_prepare(conn_idx, handle, 0, value)
+
+            case "GATTWRITEEXECUTE":
+                if len(args) == 3:
+                    conn_idx = int(args[1])
+                    execute = bool(int(args[2]))
+                    error = await central.write_execute(conn_idx, execute)
+
+            case "GATTREAD":  # TODO char handle displayed by browse is acutally the declaration. The value is +1
+                if len(args) == 3:
+                    conn_idx = int(args[1])
+                    handle = int(args[2])
+                    error = await central.read(conn_idx, handle, 0)
+
+            case 'GAPSETCONNPARAM':
+                if len(args) == 6:
+                    conn_idx = int(args[1])
+                    conn_params = ble.GapConnParams()
+                    conn_params.interval_min = int(args[2])
+                    conn_params.interval_max = int(args[3])
+                    conn_params.slave_latency = int(args[4])
+                    conn_params.sup_timeout = int(args[5])
+                    error = await central.conn_param_update(conn_idx, conn_params)
+
+            case 'GAPPAIR':
+                if len(args) == 3:
+                    conn_idx = int(args[1])
+                    bond = bool(int(args[2]))
+                    error = await central.pair(conn_idx, bond)
+
+            case 'PASSKEYENTRY':
+                if len(args) == 4:
+                    conn_idx = int(args[1])
+                    accept = bool(int(args[2]))
+                    passkey = int(args[3])
+                    error = await central.passkey_reply(conn_idx, accept, passkey)
+
+            case 'YESNOTENTRY':
+                if len(args) == 3:
+                    conn_idx = int(args[1])
+                    accept = bool(int(args[2]))
+                    error = await central.numeric_reply(conn_idx, accept)
+
+            case _:
+                pass
+
+    return error
+
+
+async def handle_ble_event(central, evt: ble.BleEventBase, services):
+    match evt.evt_code:
+        case ble.BLE_EVT_GAP.BLE_EVT_GAP_ADV_REPORT:
+            handle_evt_gap_adv_report(central, evt)
+        case ble.BLE_EVT_GAP.BLE_EVT_GAP_SCAN_COMPLETED:
+            handle_evt_scan_completed(central, evt)
+        case ble.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED:
+            handle_evt_gap_connected(central, evt)
+        case ble.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED:
+            handle_evt_gap_connection_compelted(central, evt)
+        case ble.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED:
+            handle_evt_gap_disconnected(central, evt)
+        case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_SVC:
+            handle_evt_gattc_discover_svc(central, evt, services)
+        case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_COMPLETED:
+            if evt.type == ble.GATTC_DISCOVERY_TYPE.GATTC_DISCOVERY_TYPE_SVC:
+                await handle_evt_gattc_discover_completed(central, evt, services)
+        case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_CHAR:
+            handle_evt_gattc_discover_char(central, evt)
+        case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_CHAR:
+            handle_evt_gattc_discover_char(central, evt)
+        case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_DESC:
+            handle_evt_gattc_discover_desc(central, evt)
+        case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_SVC:
+            handle_evt_gattc_browse_svc(central, evt)
+        case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED:
+            handle_evt_gattc_browse_completed(central, evt)
+        case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_NOTIFICATION:
+            handle_evt_gattc_notification(central, evt)
+        case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_READ_COMPLETED:
+            handle_evt_gattc_read_completed(central, evt)
+        case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED:
+            handle_evt_gattc_write_completed(central, evt)
+        case ble.BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATED:
+            handle_evt_gap_conn_param_updated(central, evt)
+        case ble.BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATE_COMPLETED:
+            handle_evt_gap_conn_param_update_compelted(central, evt)
+        case ble.BLE_EVT_GAP.BLE_EVT_GAP_PAIR_REQ:
+            handle_evt_gap_pair_req(central, evt)
+        case ble.BLE_EVT_GAP.BLE_EVT_GAP_PAIR_COMPLETED:
+            handle_evt_gap_pair_completed(central, evt)
+        case ble.BLE_EVT_GAP.BLE_EVT_GAP_SEC_LEVEL_CHANGED:
+            handle_evt_gap_sec_level_changed(central, evt)
+        case ble.BLE_EVT_GAP.BLE_EVT_GAP_PEER_FEATURES:
+            handle_evt_gap_peer_features(central, evt)
+        case ble.BLE_EVT_GAP.BLE_EVT_GAP_PEER_VERSION:
+            handle_evt_gap_peer_version(central, evt)
+        case ble.BLE_EVT_GAP.BLE_EVT_GAP_PASSKEY_NOTIFY:
+            handle_evt_gap_passkey_notify(central, evt)
+        case _:
+            print(f"Ble Task unhandled event: {evt}")
+            await central.handle_event_default(evt)
 
 def handle_evt_gap_passkey_notify(central, evt: ble.BleEventGapPasskeyNotify):
     print(f"Passkey notify: conn_idx={evt.conn_idx}, passkey={evt.passkey}")

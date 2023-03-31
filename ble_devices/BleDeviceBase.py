@@ -4,7 +4,7 @@ from ble_api.BleAtt import ATT_ERROR
 from ble_api.BleCommon import BleEventBase, BLE_ERROR
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_EVT_GAP, BleEventGapConnected, \
     BleEventGapDisconnected, GAP_IO_CAPABILITIES
-from ble_api.BleGapApi import BleGapApi
+from ble_api.BleGapApi import BleGapApi, GapConnParams
 from ble_api.BleGatt import GATT_EVENT
 from ble_api.BleGattcApi import BleGattcApi
 from ble_api.BleGatts import BLE_EVT_GATTS, BleEventGattsReadReq, BleEventGattsWriteReq
@@ -39,6 +39,12 @@ class BleDeviceBase():
         command = BleMgrCommonResetCmd()
         response: BleMgrCommonResetRsp = await self._ble_manager.cmd_execute(command)
         return response.status
+
+    async def conn_param_update(self, conn_idx: int, conn_params: GapConnParams) -> BLE_ERROR:
+        return await self._ble_gap.conn_param_update(conn_idx, conn_params)
+
+    async def conn_param_update_reply(self, conn_idx: int, accept: bool) -> BLE_ERROR:
+        return await self._ble_gap.conn_param_update_reply(conn_idx, accept)
 
     async def init(self) -> None:
         try:

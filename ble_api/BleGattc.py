@@ -60,7 +60,7 @@ class BleEventGattcBrowseSvc(BleEventBase):
                  num_items: int = 0,
                  items: list[GattcItem] = None
                  ) -> None:
-        super().__init__(evt_code=BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED)
+        super().__init__(evt_code=BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_SVC)
         self.conn_idx = conn_idx
         self.uuid = uuid if uuid else AttUuid()
         self.start_h = start_h
@@ -165,7 +165,7 @@ class BleEventGattcReadCompleted(BleEventBase):
                  offset: int = 0,
                  value: bytes = None,
                  ) -> None:
-        super().__init__(evt_code=BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_SVC)
+        super().__init__(evt_code=BLE_EVT_GATTC.BLE_EVT_GATTC_READ_COMPLETED)
         self.conn_idx = conn_idx
         self.handle = handle
         self.status = status
