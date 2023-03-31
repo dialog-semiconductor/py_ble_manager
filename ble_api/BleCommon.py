@@ -275,6 +275,7 @@ class BleEventBase():
 
         return return_string
 
+
 class Irk():
     def __init__(self, key: bytes = None) -> None:
         # TODO raise error on key len

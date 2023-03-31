@@ -8,6 +8,7 @@ import ble_devices as ble
 ble.dg_configBLE_CENTRAL = 1
 ble.dg_configBLE_PERIPHERAL = 0
 
+
 async def user_main():
     elapsed = 0
     delay = 1
@@ -15,6 +16,12 @@ async def user_main():
         await asyncio.sleep(delay)
         elapsed += delay
         #print(f"User Main. elapsed={elapsed}")
+
+
+async def main():
+    ble_command_q = asyncio.Queue()
+    ble_response_q = asyncio.Queue()
+    await asyncio.gather(console(ble_command_q, ble_response_q), ble_task(ble_command_q, ble_response_q))
 
 
 async def console(ble_command_q: asyncio.Queue, ble_response_q: asyncio.Queue):
@@ -41,17 +48,11 @@ async def console(ble_command_q: asyncio.Queue, ble_response_q: asyncio.Queue):
             print(f"<<< {response}")
 
 
-async def main():
-    ble_command_q = asyncio.Queue()
-    ble_response_q = asyncio.Queue()
-    await asyncio.gather(console(ble_command_q, ble_response_q), ble_task(ble_command_q, ble_response_q))
-
-
 async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
 
     services = ble.SearchableQueue()
 
-    central = ble.BleCentral("COM15", gtl_debug=True)
+    central = ble.BleCentral("COM54", gtl_debug=False)
     await central.init()
     await central.start()
 
@@ -76,7 +77,7 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
             # Handle and BLE events that hace occurred
             if task is console_command_task:
                 command: str = task.result()
-                error = await handle_console_command(command)
+                error = await handle_console_command(command, central)
 
                 if error == ble.BLE_ERROR.BLE_STATUS_OK:
                     response = "OK"
@@ -91,7 +92,7 @@ async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
             # Handle and BLE events that has occurred
             if task is ble_event_task:
                 evt: ble.BleEventBase = task.result()  # TODO how does timeout error affect result
-                handle_ble_event(central, evt, services)  # TODO services belongs in central??
+                await handle_ble_event(central, evt, services)  # TODO services belongs in central??
 
                 # reschedule ble task
                 ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
