@@ -114,8 +114,8 @@ async def handle_console_command(command: str, central: ble.BleCentral) -> ble.B
                                                  True)
 
             case "GAPCONNECT":
-                if len(args) == 1:  # TODO this case just to avoid having to enter bd addr
-                    periph_bd = ble.BdAddress(ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS, bytes.fromhex("531B00352348"))  # addr is backwards
+                if len(args) == 1:  # TODO this case just to avoid having to enter bd addr  # 531B00352348
+                    periph_bd = ble.BdAddress(ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS, bytes.fromhex("964700352348"))  # addr is backwards
                     periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
                     error = await central.connect(periph_bd, periph_conn_params)
                 if len(args) == 2:  # TODO pass in addr 48:23:35:00:1b:53

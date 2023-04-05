@@ -1,7 +1,6 @@
 import asyncio
 
 from gtl_messages.gtl_message_factory import GtlMessageFactory
-from adapter.SerialStreamManager import SerialStreamManager
 from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gapm import GapmResetCmd
 from gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, gapm_reset_cmd
@@ -9,27 +8,23 @@ from gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, gapm_reset_cmd
 
 class BleAdapter():
     def __init__(self,
-                 com_port: str,
                  command_q: asyncio.Queue[GtlMessageBase],
                  event_q: asyncio.Queue[GtlMessageBase],
+                 serial_tx_q: asyncio.Queue[bytes],
+                 serial_rx_q: asyncio.Queue[bytes],
                  gtl_debug: bool = False) -> None:
 
-        self.gtl_debug = gtl_debug
-        self.event_observers = []
         self.command_q: asyncio.Queue[GtlMessageBase] = command_q
         self.event_q: asyncio.Queue[GtlMessageBase] = event_q
+        self.serial_tx_q: asyncio.Queue[bytes] = serial_tx_q
+        self.serial_rx_q: asyncio.Queue[bytes] = serial_rx_q
+        self.gtl_debug = gtl_debug
         self.ble_stack_initialized = False
-
-        self.com_port = com_port
-        self.serial_tx_queue: asyncio.Queue[bytes] = asyncio.Queue()
-        self.serial_rx_queue: asyncio.Queue[bytes] = asyncio.Queue()
-
-        self.serial_stream_manager = SerialStreamManager(self.serial_tx_queue, self.serial_rx_queue)
 
     async def _adapter_task(self):
 
         self._tx_task = asyncio.create_task(self._command_queue_get(), name='BleAdapterTx')
-        self._rx_task = asyncio.create_task(self._serial_rx_queue_get(), name='BleAdapterRx')
+        self._rx_task = asyncio.create_task(self._serial_rx_q_get(), name='BleAdapterRx')
 
         pending = [self._tx_task, self._rx_task]
 
@@ -45,8 +40,8 @@ class BleAdapter():
 
                 elif self._rx_task:
                     # This is from serial Rx queue
-                    self._process_serial_rx_queue(task.result())
-                    self._rx_task = asyncio.create_task(self._serial_rx_queue_get(), name='BleAdapterRx')
+                    self._process_serial_rx_q(task.result())
+                    self._rx_task = asyncio.create_task(self._serial_rx_q_get(), name='BleAdapterRx')
                     pending.add(self._rx_task)
 
     async def _command_queue_get(self) -> GtlMessageBase:
@@ -58,7 +53,7 @@ class BleAdapter():
     def _process_command_queue(self, command: GtlMessageBase):
         self._send_serial_message(command)
 
-    def _process_serial_rx_queue(self, byte_string: bytes):
+    def _process_serial_rx_q(self, byte_string: bytes):
         msg = GtlMessageFactory().create_message(byte_string)  # # TODO catch error
         if self.gtl_debug:
             print(f"<-- Rx: {msg}\n")
@@ -81,10 +76,10 @@ class BleAdapter():
     def _send_serial_message(self, message: GtlMessageBase):
         if self.gtl_debug:
             print(f"--> Tx: {message}\n")
-        self.serial_tx_queue.put_nowait(message.to_bytes())
+        self.serial_tx_q.put_nowait(message.to_bytes())
 
-    async def _serial_rx_queue_get(self) -> bytes:
-        return await self.serial_rx_queue.get()
+    async def _serial_rx_q_get(self) -> bytes:
+        return await self.serial_rx_q.get()
 
     def _task_done_handler(self, task: asyncio.Task):
         if task.exception():
@@ -93,15 +88,3 @@ class BleAdapter():
     def init(self):
         self._task = asyncio.create_task(self._adapter_task(), name='BleAdapterTask')
         self._task.add_done_callback(self._task_done_handler)
-
-        self.serial_tx_task = asyncio.create_task(self.serial_stream_manager.send(), name='SerialStreamTx')
-        self.serial_tx_task.add_done_callback(self._task_done_handler)
-        self.serial_rx_task = asyncio.create_task(self.serial_stream_manager.receive(), name='SerialStreamRx')
-        self.serial_rx_task.add_done_callback(self._task_done_handler)
-
-    async def open_serial_port(self):
-        try:
-            await asyncio.wait_for(self.serial_stream_manager.open_port(self.com_port), timeout=5)
-
-        except asyncio.TimeoutError:
-            print(f"{type(self)} failed to open {self.com_port}")

@@ -14,7 +14,7 @@ from manager.BleManager import BleManager
 from manager.BleManagerCommonMsgs import BleMgrCommonResetCmd, BleMgrCommonResetRsp
 from manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp
 from services.BleService import BleServiceBase
-
+from serial_manager.SerialStreamManager import SerialStreamManager
 
 class BleDeviceBase():
     def __init__(self, com_port: str, gtl_debug: bool = False):
@@ -24,9 +24,15 @@ class BleDeviceBase():
 
         adapter_command_q = asyncio.Queue()
         adapter_event_q = asyncio.Queue()
+        serial_tx_q = asyncio.Queue()
+        serial_rx_q = asyncio.Queue()
 
+        # Internal BLE framework layers
         self._ble_manager = BleManager(app_command_q, app_resposne_q, app_event_q, adapter_command_q, adapter_event_q)
-        self._ble_adapter = BleAdapter(com_port, adapter_command_q, adapter_event_q, gtl_debug)
+        self._ble_adapter = BleAdapter(adapter_command_q, adapter_event_q, serial_tx_q, serial_rx_q, gtl_debug)
+        self._serial_stream_manager = SerialStreamManager(com_port, serial_tx_q, serial_rx_q)
+
+        # Dialog API
         self._ble_gap = BleGapApi(self._ble_manager, self._ble_adapter)
         self._ble_gattc = BleGattcApi(self._ble_manager, self._ble_adapter)
         self._ble_gatts = BleGattsApi(self._ble_manager, self._ble_adapter)
@@ -49,11 +55,13 @@ class BleDeviceBase():
     async def init(self) -> None:
         try:
             # Open the serial port the the 531
-            await self._ble_adapter.open_serial_port()
+            await self._serial_stream_manager.open_serial_port()
 
             # Start always running BLE tasks
             self._ble_manager.init()
             self._ble_adapter.init()
+            self._serial_stream_manager.init()
+
         except asyncio.TimeoutError as e:
             raise e
 

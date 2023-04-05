@@ -6,15 +6,21 @@ from gtl_messages.gtl_message_base import GTL_INITIATOR
 
 class SerialStreamManager(asyncio.Protocol):
 
-    def __init__(self, tx_queue: asyncio.Queue[bytes], rx_queue: asyncio.Queue[bytes]) -> None:
-        # TODO error check queues are asyncio.Queue
-        # if(not tx_queue or not rx_queue):
-        #   throw error
+    def __init__(self, com_port: str, tx_queue: asyncio.Queue[bytes], rx_queue: asyncio.Queue[bytes]) -> None:
         self.tx_queue: asyncio.Queue[bytes] = tx_queue
         self.rx_queue: asyncio.Queue[bytes] = rx_queue
+        self.com_port: str = com_port
 
-    async def open_port(self, com_port: str):
-        self.reader, self.writer = await serial_asyncio.open_serial_connection(url=com_port, baudrate=115200)
+    def init(self):
+        self.serial_tx_task = asyncio.create_task(self.send(), name='SerialStreamTx')
+        self.serial_rx_task = asyncio.create_task(self.receive(), name='SerialStreamRx')
+
+    async def open_serial_port(self):
+        try:
+            self.reader, self.writer = await asyncio.wait_for(serial_asyncio.open_serial_connection(url=self.com_port, baudrate=115200), timeout=5)
+
+        except asyncio.TimeoutError:
+            print(f"{type(self)} failed to open {self.com_port}")
 
     async def receive(self):
         while True:

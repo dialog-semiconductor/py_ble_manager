@@ -470,7 +470,6 @@ class BleManagerGap(BleManagerBase):
         return self._stored_device_list.count_bonded() >= BLE_GAP_MAX_BONDED
 
     def _resolve_address_from_connected_evt(self, gtl: GapcConnectionReqInd, evt: BleEventGapConnected):
-        print("_resolve_address_from_connected_evt")
         # Check if peer's address is random
         if gtl.parameters.peer_addr_type != BLE_ADDR_TYPE.PRIVATE_ADDRESS:
             return False
@@ -1092,7 +1091,6 @@ class BleManagerGap(BleManagerBase):
         self._mgr_response_queue_send(response)
 
     def connected_evt_handler(self, gtl: GapcConnectionReqInd):
-        print("connected_evt_handler")
         evt = BleEventGapConnected()
         evt.conn_idx = self._task_to_connidx(gtl.src_id)
         evt.own_addr.addr_type = self.dev_params.own_addr.addr_type
@@ -1139,7 +1137,6 @@ class BleManagerGap(BleManagerBase):
         if self._resolve_address_from_connected_evt(gtl, evt):
             dev.resolving = True
         else:
-            print("connected_evt_handler. _resolve_address_from_connected_evt was false")
             self._mgr_event_queue_send(evt)
 
             cfm = GapcConnectionCfm(conidx=evt.conn_idx)
