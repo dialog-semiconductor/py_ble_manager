@@ -38,7 +38,7 @@ class BleAdapter():
                     self._tx_task = asyncio.create_task(self._command_queue_get(), name='BleAdapterTx')
                     pending.add(self._tx_task)
 
-                elif self._rx_task:
+                elif task is self._rx_task:
                     # This is from serial Rx queue
                     self._process_serial_rx_q(task.result())
                     self._rx_task = asyncio.create_task(self._serial_rx_q_get(), name='BleAdapterRx')

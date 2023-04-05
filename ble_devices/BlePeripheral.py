@@ -93,18 +93,6 @@ class BlePeripheral(BleDeviceBase):
                 evt: BleEventGattsPrepareWriteReq = evt
                 await self.prepare_write_cfm(evt.conn_idx, evt.handle, 0, ATT_ERROR.ATT_ERROR_WRITE_NOT_PERMITTED)
 
-    async def init(self) -> None:
-        try:
-            # Open the serial port the the 531
-            await self._ble_adapter.open_serial_port()
-
-            # Start always running BLE tasks
-            self._ble_manager.init()
-            self._ble_adapter.init()
-
-        except asyncio.TimeoutError as e:
-            raise e
-
     async def pair_reply(self, conn_idx: int, accept: bool, bond: bool) -> BLE_ERROR:
         return await self._ble_gap.pair_reply(conn_idx, accept, bond)
 

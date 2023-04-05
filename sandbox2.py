@@ -4,5 +4,5 @@ from gtl_port.co_bt import *
 
 test = bytes()
 
-print(test)
+print(test == True)
 print(test == bytes())
