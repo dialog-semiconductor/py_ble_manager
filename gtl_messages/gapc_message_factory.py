@@ -1,10 +1,11 @@
 from gtl_messages.gtl_message_base import GTL_INITIATOR
 from gtl_messages.gtl_message_gapc import GapcConnectionReqInd, GapcConnectionCfm, GapcSecurityCmd, GapcCmpEvt, GapcGetInfoCmd, \
     GapcPeerFeaturesInd, GapcBondReqInd, GapcBondCfm, GapcGetDevInfoReqInd, GapcDisconnectInd, GapcParamUpdateReqInd, \
-    GapcParamUpdatedInd, GapcBondInd, GapcPeerVersionInd, GapcEncryptReqInd
+    GapcParamUpdatedInd, GapcBondInd, GapcPeerVersionInd, GapcEncryptReqInd, GapcEncryptInd
 from gtl_port.gapc_task import GAPC_MSG_ID, gapc_connection_req_ind, gapc_connection_cfm, gapc_security_cmd, gapc_cmp_evt, gapc_get_info_cmd, \
     gapc_peer_features_ind, gapc_bond_req_ind, gapc_bond_cfm, gapc_get_dev_info_req_ind, gapc_disconnect_ind, \
-    gapc_param_update_req_ind, gapc_param_updated_ind, gapc_bond_ind, gapc_peer_version_ind, gapc_encrypt_req_ind
+    gapc_param_update_req_ind, gapc_param_updated_ind, gapc_bond_ind, gapc_peer_version_ind, gapc_encrypt_req_ind, \
+    gapc_encrypt_ind
 from gtl_port.rwip_config import KE_API_ID
 
 
@@ -71,6 +72,10 @@ class GapcMessageFactory():
 
             elif msg_id == GAPC_MSG_ID.GAPC_ENCRYPT_REQ_IND:
                 return GapcEncryptReqInd(conidx=conidx, parameters=gapc_encrypt_req_ind.from_buffer_copy(params_buf))
+
+            elif msg_id == GAPC_MSG_ID.GAPC_ENCRYPT_IND:
+                return GapcEncryptInd(conidx=conidx, parameters=gapc_encrypt_ind.from_buffer_copy(params_buf))
+
             else:
                 raise AssertionError(f"GapcMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")
         except AssertionError as e:

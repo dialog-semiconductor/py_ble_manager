@@ -121,7 +121,7 @@ class BleManagerGap(BleManagerBase):
             GAPC_MSG_ID.GAPC_SECURITY_IND: None,
             GAPC_MSG_ID.GAPC_SIGN_COUNTER_IND: None,
             GAPC_MSG_ID.GAPC_ENCRYPT_REQ_IND: self.encrypt_req_ind_evt_handler,
-            GAPC_MSG_ID.GAPC_ENCRYPT_IND: None, 
+            GAPC_MSG_ID.GAPC_ENCRYPT_IND: self.encrypt_ind_evt_handler, 
             GAPM_MSG_ID.GAPM_ADDR_SOLVED_IND: None,
             GAPC_MSG_ID.GAPC_LE_PKT_SIZE_IND: None,
             GAPM_MSG_ID.GAPM_CMP_EVT: self.gapm_cmp_evt_handler,
@@ -569,7 +569,7 @@ class BleManagerGap(BleManagerBase):
         else:
             gtl.parameters.pairing.sec_req = self._sec_req_to_gtl(dev.sec_level_req)
 
-        print(f"_send_bond_command. io_cap in={io_cap}. gtl.io_cap={gtl.parameters.pairing.iocap}, gtl.auth={gtl.parameters.pairing.auth}")
+        #print(f"_send_bond_command. io_cap in={io_cap}. gtl.io_cap={gtl.parameters.pairing.iocap}, gtl.auth={gtl.parameters.pairing.auth}")
         self._adapter_command_queue_send(gtl)
 
     def _send_bonding_info_miss_evt(self, conn_idx: int):
@@ -728,7 +728,6 @@ class BleManagerGap(BleManagerBase):
         self._mgr_response_queue_send(response)
 
     def bond_ind_evt_handler(self, gtl: GapcBondInd):
-        print("bond_ind_evt_handler")
         match gtl.parameters.info:
             case GAPC_BOND.GAPC_PAIRING_SUCCEED:
                 evt = BleEventGapPairCompleted()
@@ -847,9 +846,9 @@ class BleManagerGap(BleManagerBase):
 
         match gtl.parameters.request:
             case GAPC_BOND.GAPC_PAIRING_REQ:
-                print(f"bond_req_evt_handler GAPC_BOND.GAPC_PAIRING_REQ. auth_req={gtl.parameters.data.auth_req} " +
-                      f"bond={bool(gtl.parameters.data.auth_req & GAP_AUTH_MASK.GAP_AUTH_BOND) } " +
-                      f"sec={bool(gtl.parameters.data.auth_req & GAP_AUTH_MASK.GAP_AUTH_SEC)}")
+                #print(f"bond_req_evt_handler GAPC_BOND.GAPC_PAIRING_REQ. auth_req={gtl.parameters.data.auth_req} " +
+                #      f"bond={bool(gtl.parameters.data.auth_req & GAP_AUTH_MASK.GAP_AUTH_BOND) } " +
+                #      f"sec={bool(gtl.parameters.data.auth_req & GAP_AUTH_MASK.GAP_AUTH_SEC)}")
                 evt = BleEventGapPairReq()
                 evt.conn_idx = self._task_to_connidx(gtl.src_id)
                 evt.bond = bool(gtl.parameters.data.auth_req & GAP_AUTH_MASK.GAP_AUTH_BOND)
@@ -863,7 +862,7 @@ class BleManagerGap(BleManagerBase):
                 self._mgr_event_queue_send(evt)
 
             case GAPC_BOND.GAPC_LTK_EXCH:
-                print("bond_req_evt_handler GAPC_BOND.GAPC_LTK_EXCH")
+                #print("bond_req_evt_handler GAPC_BOND.GAPC_LTK_EXCH")
                 cfm = GapcBondCfm()
                 cfm.parameters.accept = 0x01
                 cfm.parameters.request = GAPC_BOND.GAPC_LTK_EXCH
@@ -894,7 +893,7 @@ class BleManagerGap(BleManagerBase):
                 self._adapter_command_queue_send(cfm)
 
             case GAPC_BOND.GAPC_CSRK_EXCH:
-                print("bond_req_evt_handler GAPC_BOND.GAPC_CSRK_EXCH")
+                #print("bond_req_evt_handler GAPC_BOND.GAPC_CSRK_EXCH")
                 cfm = GapcBondCfm()
                 cfm.parameters.accept = 0x01
                 cfm.parameters.request = GAPC_BOND.GAPC_CSRK_EXCH
@@ -912,7 +911,7 @@ class BleManagerGap(BleManagerBase):
                 self._adapter_command_queue_send(cfm)
 
             case GAPC_BOND.GAPC_TK_EXCH:
-                print(f"bond_req_evt_handler GAPC_BOND.GAPC_TK_EXCH. tk_type={gtl.parameters.data.tk_type}")
+                #print(f"bond_req_evt_handler GAPC_BOND.GAPC_TK_EXCH. tk_type={gtl.parameters.data.tk_type}")
                 if gtl.parameters.data.tk_type == GAP_TK_TYPE.GAP_TK_DISPLAY:
                     cfm = GapcBondCfm()
                     cfm.parameters.accept = 0x01
@@ -1183,6 +1182,19 @@ class BleManagerGap(BleManagerBase):
             else:
                 self._conn_cleanup(conn_idx, gtl.parameters.reason)
 
+    def encrypt_ind_evt_handler(self, gtl: GapcEncryptInd):
+        conn_idx = self._task_to_connidx(gtl.src_id)
+        dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+        if dev:
+            dev.encrypted = True
+            # Check if the security level has changed (if 0x00, wait for pairing completed) */
+            if (dev.paired
+                    and dev.sec_level != self._auth_to_sec_level(gtl.parameters.auth, dev.remote_ltk.key_size) 
+                    and dev.sec_level != 0x00):
+
+                dev.sec_level = self._auth_to_sec_level(gtl.parameters.auth, dev.remote_ltk.key_size)
+                self._send_sec_level_changed_evt(conn_idx, dev.sec_level)
+
     def encrypt_req_ind_evt_handler(self, gtl: GapcEncryptReqInd):
         conn_idx = self._task_to_connidx(gtl.src_id)
         cfm = GapcEncryptCfm()
@@ -1210,9 +1222,6 @@ class BleManagerGap(BleManagerBase):
                 self._send_bonding_info_miss_evt(dev.conn_idx)
 
             self._adapter_command_queue_send(cfm)
-
-    def encrypt_ind_evt_handler(self, gtl: GapcEncryptInd):
-        return None
 
     def gapc_cmp_evt_handler(self, gtl: GapcCmpEvt) -> bool:
 
@@ -1331,7 +1340,6 @@ class BleManagerGap(BleManagerBase):
         self._mgr_response_queue_send(response)
 
     def pair_cmd_handler(self, command: BleMgrGapPairCmd):
-        print("pair_cmd_handler")
         response = BleMgrGapPairRsp(BLE_ERROR.BLE_ERROR_FAILED)
 
         secure = True if (dg_configBLE_SECURE_CONNECTIONS == 1) else False

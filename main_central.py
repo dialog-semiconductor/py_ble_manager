@@ -106,8 +106,8 @@ async def handle_console_command(command: str, central: ble.BleCentral) -> ble.B
                                                  True)
 
             case "GAPCONNECT":
-                if len(args) == 1:  # TODO this case just to avoid having to enter bd addr  # 531B00352348
-                    periph_bd = ble.BdAddress(ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS, bytes.fromhex("964700352348"))  # addr is backwards
+                if len(args) == 1:  # TODO this case just to avoid having to enter bd addr  # 531B00352348 964700352348
+                    periph_bd = ble.BdAddress(ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS, bytes.fromhex("531B00352348"))  # addr is backwards
                     periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
                     error = await central.connect(periph_bd, periph_conn_params)
                 if len(args) == 2:  # TODO pass in addr 48:23:35:00:1b:53
@@ -203,7 +203,7 @@ async def handle_console_command(command: str, central: ble.BleCentral) -> ble.B
     return error
 
 
-async def handle_ble_event(central, evt: ble.BleEventBase, services):
+async def handle_ble_event(central: ble.BleCentral, evt: ble.BleEventBase, services):
     match evt.evt_code:
         case ble.BLE_EVT_GAP.BLE_EVT_GAP_ADV_REPORT:
             handle_evt_gap_adv_report(central, evt)
@@ -252,6 +252,10 @@ async def handle_ble_event(central, evt: ble.BleEventBase, services):
             handle_evt_gap_peer_version(central, evt)
         case ble.BLE_EVT_GAP.BLE_EVT_GAP_PASSKEY_NOTIFY:
             handle_evt_gap_passkey_notify(central, evt)
+        case ble.BLE_EVT_GAP.BLE_EVT_GAP_ADDRESS_RESOLVED:
+            handle_evt_gap_address_resolved(central, evt)
+        case ble.BLE_EVT_GAP.BLE_EVT_GAP_NUMERIC_REQUEST:
+            handle_evt_gap_numeric_request(central, evt)
         case _:
             print(f"Ble Task unhandled event: {evt}")
             await central.handle_event_default(evt)
@@ -271,7 +275,7 @@ def handle_evt_gap_peer_version(central, evt: ble.BleEventGapPeerVersion):
 
 
 def handle_evt_gap_sec_level_changed(central, evt: ble.BleEventGapSecLevelChanged):
-    print(f"Security level changed: sec_level={evt.level}")
+    print(f"Security level changed: sec_level={evt.level.name}")
 
 
 def handle_evt_gap_pair_req(central, evt: ble.BleEventGapPairReq):
@@ -279,7 +283,7 @@ def handle_evt_gap_pair_req(central, evt: ble.BleEventGapPairReq):
 
 
 def handle_evt_gap_pair_completed(central, evt: ble.BleEventGapPairCompleted):
-    print(f"Pairing compelte: conn_idx={evt.conn_idx}, bond={evt.bond}, mitm={evt.mitm}, status={ble.BLE_ERROR(evt.status)}")
+    print(f"Pairing compelte: conn_idx={evt.conn_idx}, bond={evt.bond}, mitm={evt.mitm}, status={evt.status.name}")
 
 
 def handle_evt_gap_conn_param_updated(central, evt: ble.BleEventGapConnParamUpdated):
@@ -291,11 +295,11 @@ def handle_evt_gap_conn_param_update_compelted(central, evt: ble.BleEventGapConn
 
 
 def handle_evt_gap_connection_compelted(central, evt: ble.BleEventGapConnectionCompleted):
-    print(f"Connection completed: status={evt.status}")
+    print(f"Connection completed: status={evt.status.name}")
 
 
 def handle_evt_scan_completed(central: ble.BleCentral, evt: ble.BleEventGapScanCompleted):
-    print(f"Scan completed: status={evt.status}")
+    print(f"Scan completed: status={evt.status.name}")
 
 
 def handle_evt_gap_adv_report(central: ble.BleCentral, evt: ble.BleEventGapAdvReport):
@@ -348,11 +352,11 @@ def handle_evt_gattc_notification(central, evt: ble.BleEventGattcNotification):
 
 
 def handle_evt_gattc_read_completed(central, evt: ble.BleEventGattcReadCompleted):
-    print(f"Read Complete: conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status}, value=0x{evt.value.hex()}")
+    print(f"Read Complete: conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status.name}, value=0x{evt.value.hex()}")
 
 
 def handle_evt_gattc_write_completed(central, evt: ble.BleEventGattcWriteCompleted):
-    print(f"Write Complete: conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status}")
+    print(f"Write Complete: conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status.name}")
 
 
 def handle_evt_gattc_browse_svc(central: ble.BleCentral, evt: ble.BleEventGattcBrowseSvc):
@@ -372,6 +376,17 @@ def handle_evt_gattc_browse_svc(central: ble.BleCentral, evt: ble.BleEventGattcB
 
 def handle_evt_gattc_browse_completed(central: ble.BleCentral, evt: ble.BleEventGattcBrowseCompleted):
     print(f"Browsing complete: conn_idx={evt.conn_idx}, evt={evt.status}")
+
+
+def handle_evt_gap_address_resolved(central: ble.BleCentral, evt: ble.BleEventGapAddressResolved):
+    print(f"Address resolved: conn_idx={evt.conn_idx}, evt={evt}")
+
+
+def handle_evt_gap_numeric_request(central: ble.BleCentral, evt: ble.BleEventGapNumericRequest):
+    print(f"Numeric Request: conn_idx={evt.conn_idx}, num_key={evt.num_key}")
+
+
+
 
 
 # TODO move these to a ultility package
