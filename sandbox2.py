@@ -1,8 +1,8 @@
-from gtl_messages.gtl_message_gapm import *
-from gtl_port.gapm_task import *
-from gtl_port.co_bt import *
+import aiofiles
+import asyncio
 
-test = bytes()
+async def main():
+    async with aiofiles.open('ditto_moves.txt', mode='w') as f:
+        await f.write('transform')
 
-print(test == True)
-print(test == bytes())
+asyncio.run(main())

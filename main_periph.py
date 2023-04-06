@@ -111,9 +111,8 @@ async def ble_task(com_port: str, sample_q: asyncio.Queue):
                 pending.add(ble_event_task)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-                        prog='main_central',
-                        description='BLE Central AT Command CLI')
+    parser = argparse.ArgumentParser(prog='main_peripheral',
+                                     description='BLE Perioheral')
 
     parser.add_argument("com_port")
 

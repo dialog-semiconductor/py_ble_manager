@@ -6,22 +6,17 @@ from prompt_toolkit.patch_stdout import patch_stdout
 
 import ble_devices as ble
 
+# TODO need to rethink how configuration
 ble.dg_configBLE_CENTRAL = 1
 ble.dg_configBLE_PERIPHERAL = 0
-
-
-async def user_main():
-    elapsed = 0
-    delay = 1
-    while True:
-        await asyncio.sleep(delay)
-        elapsed += delay
-        #print(f"User Main. elapsed={elapsed}")
 
 
 async def main(com_port: str):
     ble_command_q = asyncio.Queue()
     ble_response_q = asyncio.Queue()
+    # start 2 tasks:
+    #   one for handling command line input
+    #   one for handling BLE
     await asyncio.gather(console(ble_command_q, ble_response_q), ble_task(com_port, ble_command_q, ble_response_q))
 
 
@@ -53,22 +48,25 @@ async def ble_task(com_port: str, command_q: asyncio.Queue, response_q: asyncio.
 
     services = ble.SearchableQueue()
 
+    # initalize central device
     central = ble.BleCentral(com_port, gtl_debug=False)
     await central.init()
     await central.start()
 
+    # create tasks for:
+    #   hanlding commands from the console
+    #   responding to BLE events
     console_command_task = asyncio.create_task(command_q.get(), name='GetConsoleCommand')
     ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
     pending = [ble_event_task, console_command_task]
 
     central.set_io_cap(ble.GAP_IO_CAPABILITIES.GAP_IO_CAP_KEYBOARD_DISP)
-    # adv_reports= []
     while True:
+        # Wait for a console command or BLE event to occur
         done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
 
         for task in done:
-
-            # Handle and BLE events that hace occurred
+            # Handle command line input
             if task is console_command_task:
                 command: str = task.result()
                 error = await handle_console_command(command, central)
@@ -79,16 +77,16 @@ async def ble_task(com_port: str, command_q: asyncio.Queue, response_q: asyncio.
                     response = f"ERROR {error}"
                 response_q.put_nowait(str(response))
 
+                # restart console command task
                 console_command_task = asyncio.create_task(command_q.get(), name='GetConsoleCommand')
                 pending.add(console_command_task)
 
-
-            # Handle and BLE events that has occurred
+            # Handle and BLE events that have occurred
             if task is ble_event_task:
                 evt: ble.BleEventBase = task.result()  # TODO how does timeout error affect result
                 await handle_ble_event(central, evt, services)  # TODO services belongs in central??
 
-                # reschedule ble task
+                # restart ble event task
                 ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
                 pending.add(ble_event_task)
 
@@ -258,6 +256,7 @@ async def handle_ble_event(central, evt: ble.BleEventBase, services):
             print(f"Ble Task unhandled event: {evt}")
             await central.handle_event_default(evt)
 
+
 def handle_evt_gap_passkey_notify(central, evt: ble.BleEventGapPasskeyNotify):
     print(f"Passkey notify: conn_idx={evt.conn_idx}, passkey={evt.passkey}")
 
@@ -382,6 +381,7 @@ def str_to_bd_addr(type: ble.BLE_ADDR_TYPE, bd_addr_str: str) -> ble.BdAddress:
     bd_addr_list.reverse()  # mcu is little endian
     return ble.BdAddress(type, bd_addr_list)
 
+
 def bd_addr_to_str(bd: ble.BdAddress) -> str:
     return_string = ""
     for byte in bd.addr:
@@ -390,6 +390,7 @@ def bd_addr_to_str(bd: ble.BdAddress) -> str:
             byte_string = "0" + byte_string
         return_string = byte_string + ":" + return_string
     return return_string[:-1]
+
 
 def uuid_to_str(uuid: ble.AttUuid) -> str:
     data = uuid.uuid
@@ -412,16 +413,15 @@ def uuid_to_str(uuid: ble.AttUuid) -> str:
 
 def format_properties(prop: int) -> str:
     propr_str = "BRXWNISE"  # each letter corresponds to single property
-    for i in range(0,8):
+    for i in range(0, 8):
         if prop & (1 << i) == 0:
             propr_str = propr_str.replace(propr_str[i], '-')
     return propr_str
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-                        prog='main_central',
-                        description='BLE Central AT Command CLI')
+    parser = argparse.ArgumentParser(prog='main_central',
+                                     description='BLE Central AT Command CLI')
 
     parser.add_argument("com_port")
 
