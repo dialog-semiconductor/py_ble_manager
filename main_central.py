@@ -1,3 +1,4 @@
+import argparse
 import asyncio
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
@@ -18,10 +19,10 @@ async def user_main():
         #print(f"User Main. elapsed={elapsed}")
 
 
-async def main():
+async def main(com_port: str):
     ble_command_q = asyncio.Queue()
     ble_response_q = asyncio.Queue()
-    await asyncio.gather(console(ble_command_q, ble_response_q), ble_task(ble_command_q, ble_response_q))
+    await asyncio.gather(console(ble_command_q, ble_response_q), ble_task(com_port, ble_command_q, ble_response_q))
 
 
 async def console(ble_command_q: asyncio.Queue, ble_response_q: asyncio.Queue):
@@ -48,20 +49,13 @@ async def console(ble_command_q: asyncio.Queue, ble_response_q: asyncio.Queue):
             print(f"<<< {response}")
 
 
-async def ble_task(command_q: asyncio.Queue, response_q: asyncio.Queue):
+async def ble_task(com_port: str, command_q: asyncio.Queue, response_q: asyncio.Queue):
 
     services = ble.SearchableQueue()
 
-    central = ble.BleCentral("COM54", gtl_debug=False)
+    central = ble.BleCentral(com_port, gtl_debug=False)
     await central.init()
     await central.start()
-
-    # await central.scan_start(GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
-    #                         GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
-    #                         160,
-    #                         80,
-    #                         False,
-    #                         True)
 
     console_command_task = asyncio.create_task(command_q.get(), name='GetConsoleCommand')
     ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
@@ -424,4 +418,13 @@ def format_properties(prop: int) -> str:
     return propr_str
 
 
-asyncio.run(main())
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+                        prog='main_central',
+                        description='BLE Central AT Command CLI')
+
+    parser.add_argument("com_port")
+
+    args = parser.parse_args()
+
+    asyncio.run(main(args.com_port))

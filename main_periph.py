@@ -1,3 +1,4 @@
+import argparse
 import asyncio
 
 import ble_devices as ble
@@ -39,15 +40,15 @@ async def user_main(sample_q: asyncio.Queue):
         # print(f"User Main. elapsed={elapsed}")
 
 
-async def main():
+async def main(com_port: str):
 
     sample_q = asyncio.Queue()
-    await asyncio.gather(user_main(sample_q), ble_task(sample_q))
+    await asyncio.gather(user_main(sample_q), ble_task(com_port, sample_q))
 
 
-async def ble_task(sample_q: asyncio.Queue):
+async def ble_task(com_port: str, sample_q: asyncio.Queue):
 
-    periph = ble.BlePeripheral("COM11", gtl_debug=True)
+    periph = ble.BlePeripheral(com_port, gtl_debug=True)
     await periph.init()
     await periph.start()
 
@@ -109,5 +110,15 @@ async def ble_task(sample_q: asyncio.Queue):
                 ble_event_task = asyncio.create_task(periph.get_event(), name='GetBleEvent')
                 pending.add(ble_event_task)
 
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+                        prog='main_central',
+                        description='BLE Central AT Command CLI')
 
-asyncio.run(main())
+    parser.add_argument("com_port")
+
+    args = parser.parse_args()
+
+    asyncio.run(main(args.com_port))
+
+
