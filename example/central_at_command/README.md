@@ -116,6 +116,8 @@ For example, to write 0x1234 to hanlde 13 of the peripheral at connection index 
 
 `GATTWRITE 0 13 1234`
 
+When the procedure is complete, a message indicationg so will be printed to the terminal:
+
 ![gattwrite](assets/gattwrite.png)
 
 ### GATTWRITENORESP
