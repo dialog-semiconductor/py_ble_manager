@@ -41,25 +41,7 @@ To communicate with a DA145xx running GTL supported firmware from python, you mu
 
 Once you have programmed the development kit with GTL supported firmware, you are ready to communicate with it from python.
 
-The `main_central.py` is the most developed example. It provides a AT Command like interface to control a BLE central deivce. It supports scanning, connecting, reading, writing, etc. 
-
-You can run it with:
-
-`python main_central.py <COM_PORT>`
-
-where `<COM_PORT>` is the COM port associated with your development kit. Note, in the case of the Pro development kit there will be two COM ports associated with your development kit. You should use the lower of the two.
-
-Once running, you will be provided with a prompt:
-
-![main_central_terminal](assets/main_central_terminal.png)
-
-Here you can enter various commands. The prompt will provide auto-complete for various commands available:
-
-![main_central_terminal2](assets/main_central_terminal2.png)
-
-For example, to scan for peripheral devices the `GAPSCAN` command can be used:
-
-![main_central_terminal3](assets/main_central_terminal3.png)
+The [central_at_command](example/central_at_command/central_at_command_cli.py) is the most developed example. It provides a AT Command like interface to control a BLE central deivce. 
 
 ## High Level Directory Overview
 
