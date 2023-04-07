@@ -41,7 +41,7 @@ To communicate with a DA145xx running GTL supported firmware from python, you mu
 
 Once you have programmed the development kit with GTL supported firmware, you are ready to communicate with it from python.
 
-The [central_at_command](example/central_at_command/central_at_command_cli.py) is the most developed example. It provides a AT Command like interface to control a BLE central deivce. 
+The [central_at_command](example/central_at_command/central_at_command_cli.py) is the most developed example. It provides a AT Command like interface to control a BLE central deivce.
 
 ## High Level Directory Overview
 
@@ -57,14 +57,18 @@ TODO
 
 ### ble_api
 
-The [ble_api](ble_api) directory contains classes that implement the functionality of the `Dialog BLE API Library`. For example, `BleGap.py` implements functionality of the `ble_gap.c` API.
+The [ble_api](ble_api) directory contains classes that implement the functionality of the `Dialog BLE API Library`. For example, `BleGapApi.py` implements functionality of the `ble_gap.c` API.
 
 ### manager
 
-The [manager](manager) directory contains classes that implement the functionality of the `BLE Manager`.
+The [manager](manager) directory contains classes that implement the functionality of the `BLE Manager`. For example, `BleManagerGap.py` implements functionality of the `ble_manager_gap.c` API.
 
 ### adapter
-The [adapter](adapter) directory contains classes that implement the functionality of the `BLE Adapater`
+
+The [adapter](adapter) directory contains the `BleAdapter` class. Its is concerned with:
+
+- Converting GTL messages from the `BleManager` to byte streams for transmission over the serial port.
+- Converting byte streams received on the serial port into Gtl messages for consumption by the `BleManager`
 
 ### serial_manager
 
