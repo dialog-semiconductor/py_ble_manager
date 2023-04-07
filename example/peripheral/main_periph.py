@@ -1,6 +1,16 @@
 import argparse
 import asyncio
 
+# TODO rethink relative import
+# TODO rethink relative import
+import sys
+from pathlib import Path
+HERE = Path(__file__).parent
+sys.path.append(str(HERE / '../../'))
+
+import ble_devices as ble
+
+
 import ble_devices as ble
 from services.CustomBleService import CustomBleService, CustomBleServiceCallbacks
 

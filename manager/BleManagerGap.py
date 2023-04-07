@@ -656,7 +656,7 @@ class BleManagerGap(BleManagerBase):
 
     def adv_start_cmd_handler(self, command: BleMgrGapAdvStartCmd):
 
-        response = BLE_ERROR.BLE_ERROR_FAILED
+        response = BleMgrGapAdvStartRsp(BLE_ERROR.BLE_ERROR_FAILED)
 
         # TODO error checks
         # Check if an advertising operation is already in progress
@@ -1464,7 +1464,6 @@ class BleManagerGap(BleManagerBase):
 
         dev = self._stored_device_list.find_device_by_conn_idx(evt.conn_idx)
         if dev and dev.master:
-
             self._get_peer_features(evt.conn_idx)
 
     def role_set_cmd_handler(self, command: BleMgrGapRoleSetCmd):

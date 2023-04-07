@@ -41,7 +41,6 @@ class BleDeviceBase():
         self._services: list[BleServiceBase] = []
 
     async def _ble_reset(self) -> BLE_ERROR:
-        response = BLE_ERROR.BLE_ERROR_FAILED
         command = BleMgrCommonResetCmd()
         response: BleMgrCommonResetRsp = await self._ble_manager.cmd_execute(command)
         return response.status
