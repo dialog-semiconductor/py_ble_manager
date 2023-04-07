@@ -55,7 +55,7 @@ class GtlMessageBase():
 
 This message definition is consistent with the the GTL message format from the user manual:
 
-![GTL message format](assets/gtl_message_format.png)
+![GTL message format](../assets/gtl_message_format.png)
 
 Separate python files exist for messages related to different BLE Layers. For example, the [gtl_messages/gtl_message_gapm.py](gtl_messages/gtl_message_gapm.py) is a port of GAP Manager related GTL messages. 
 
@@ -158,7 +158,7 @@ Note a constructor has been added to the class definition, though this is not re
 
     It is difficult to know from the type of each Structure field alone what values are appropriate for the field, as the fields are often generic types such as uint8_t, uint16_t, etc. Using a constructor allows us to utilize type hinting to aid a developer in passing in appropriate arguments when creating these strucutres. For example when creating a `gapm_operation_cmd` the `operation` field, which is defined as a `c_uint8`, is hinted as a `GAPM_OPERATION` enum:
 
-    ![type_hint](assets/type_hint.png)
+    ![type_hint](../assets/type_hint.png)
 
 2. Using this constructor allows us to define default arguments for each Structure. This allows a developer to either create a Structure with the appropriate parameters on construction, or create the Structure and update the fields later.
 
