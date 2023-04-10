@@ -116,9 +116,6 @@ async def handle_console_command(command: str, central: ble.BleCentral) -> ble.B
                     periph_bd = ble.BdAddress(ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS, bytes.fromhex("531B00352348"))  # addr is backwards
                     periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
                     error = await central.connect(periph_bd, periph_conn_params)
-                    # TODO using hardcoded address, Peer Features and Version returned
-                    # Passin address, Peer Features and Version not returned
-
                 if len(args) == 2:  # TODO pass in addr 48:23:35:00:1b:53
                     # bd_info = args[1].strip(',')
                     # bd_type =  if bd_info[1] == 'P' else BLE_ADDR_TYPE.PRIVATE_ADDRESS
