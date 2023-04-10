@@ -308,7 +308,7 @@ def handle_evt_gap_connection_compelted(central, evt: ble.BleEventGapConnectionC
 
 
 def handle_evt_scan_completed(central: ble.BleCentral, evt: ble.BleEventGapScanCompleted):
-    # TODO status is always coming back BLE_ERROR_TIMEOUT
+    # TODO status is always coming back BLE_ERROR_TIMEOUT. Is that correct?
     print(f"Scan completed: status={evt.status.name}")
 
 
@@ -404,7 +404,7 @@ def str_to_bd_addr(type: ble.BLE_ADDR_TYPE, bd_addr_str: str) -> ble.BdAddress:
     bd_addr_str = bd_addr_str.replace(":", "")
     bd_addr_list = [int(bd_addr_str[idx:idx + 2], 16) for idx in range(0, len(bd_addr_str), 2)]
     bd_addr_list.reverse()  # mcu is little endian
-    return ble.BdAddress(type, bd_addr_list)
+    return ble.BdAddress(type, bytes(bd_addr_list))
 
 
 def bd_addr_to_str(bd: ble.BdAddress) -> str:
