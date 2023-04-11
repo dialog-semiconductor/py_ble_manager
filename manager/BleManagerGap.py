@@ -1043,12 +1043,12 @@ class BleManagerGap(BleManagerBase):
 
         dev = self._stored_device_list.find_device_by_connenting()
         if dev:
-            response = BLE_ERROR.BLE_ERROR_BUSY
+            response.status = BLE_ERROR.BLE_ERROR_BUSY
         else:
             dev = self._stored_device_list.find_device_by_address(command.peer_addr, True)
             if dev:
                 if dev.connected:
-                    response = BLE_ERROR.BLE_ERROR_ALREADY_DONE
+                    response.status = BLE_ERROR.BLE_ERROR_ALREADY_DONE
                 else:
                     gtl = GapmStartConnectionCmd()
                     gtl.parameters.op.code = GAPM_OPERATION.GAPM_CONNECTION_DIRECT
