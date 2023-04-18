@@ -52,29 +52,6 @@ class BleCentral(BleDeviceBase):
     async def passkey_reply(self, conn_idx: int, accept: bool, passkey: int):
         return await self._ble_gap.passkey_reply(conn_idx, accept, passkey)
 
-    def parse_adv_data(self, evt: BleEventGapAdvReport) -> list[BleAdvData]:
-        data_ptr = 0
-        adv_data_structs: BleAdvData = []
-        # print(f"Parsing evt.data={list(evt.data)}")
-        if evt.length > 0:
-            while data_ptr < 31 and data_ptr < evt.length:
-
-                print(f"data{list(evt.data)}")
-                print(f"data_ptr = {data_ptr}, len{evt.length}, struct = {adv_data_structs}")
-                print()
-
-                struct = BleAdvData(len=evt.data[data_ptr], type=evt.data[data_ptr + 1])
-
-                if struct.len == 0 or struct.type == GAP_DATA_TYPE.GAP_DATA_TYPE_NONE:
-                    break
-
-                data_ptr += 2
-                struct.data = evt.data[data_ptr:(data_ptr + struct.len - 1)]  # -1 as calc includes AD Type
-                data_ptr += struct.len - 1  # -1 as calc includes AD Type
-                adv_data_structs.append(struct)
-
-        return adv_data_structs
-
     async def read(self, conn_idx: int, handle: int, offset: int) -> BLE_ERROR:
         return await self._ble_gattc.read(conn_idx, handle, offset)
 

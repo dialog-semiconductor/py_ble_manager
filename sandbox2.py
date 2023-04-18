@@ -1,8 +1,12 @@
-import aiofiles
-import asyncio
+from enum import IntEnum, auto
 
-async def main():
-    async with aiofiles.open('ditto_moves.txt', mode='w') as f:
-        await f.write('transform')
+class DCI_SVC_COMMAND(IntEnum):
+    DCI_SERVICE_COMMAND_NONE = 0x0000
+    DCI_SERVICE_COMMAND_GET_ALL_DATA = 0x0001
+    DCI_SERVICE_COMMAND_GET_NUM_RESETS = 0x0002
 
-asyncio.run(main())
+
+print(DCI_SVC_COMMAND.DCI_SERVICE_COMMAND_GET_ALL_DATA)
+print(bytes(DCI_SVC_COMMAND.DCI_SERVICE_COMMAND_GET_ALL_DATA))
+print(bytes(DCI_SVC_COMMAND.DCI_SERVICE_COMMAND_GET_ALL_DATA.value))
+print(bytes(DCI_SVC_COMMAND.DCI_SERVICE_COMMAND_GET_ALL_DATA.to_bytes(2, 'little')))
