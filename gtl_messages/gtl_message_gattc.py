@@ -1,10 +1,10 @@
-from ctypes import c_uint8, Array
-from .gtl_message_base import GTL_INITIATOR, GtlMessageBase
+from ctypes import c_uint8
+from .gtl_message_base import GtlMessageBase
 from gtl_port.gattc_task import GATTC_MSG_ID, gattc_write_req_ind, gattc_write_cfm, gattc_read_req_ind, gattc_read_cfm, gattc_send_evt_cmd, \
     gattc_cmp_evt, gattc_event_ind, gattc_event_req_ind, gattc_event_cfm, gattc_disc_cmd, gattc_disc_char_desc_ind, gattc_disc_svc_ind, \
     gattc_disc_svc_incl_ind, gattc_disc_char_ind, gattc_sdp_svc_disc_cmd, gattc_read_cmd, GATTC_OPERATION, gattc_read_ind, gattc_write_cmd, \
     gattc_exc_mtu_cmd, gattc_mtu_changed_ind, gattc_att_info_req_ind, gattc_att_info_cfm, gattc_sdp_svc_ind, gattc_sdp_att_info, \
-    GATTC_SDP_ATT_TYPE, gattc_execute_write_cmd, GATTC_OPERATION
+    GATTC_SDP_ATT_TYPE, gattc_execute_write_cmd
 from gtl_port.rwip_config import KE_API_ID
 
 # TODO next message GATTC_ATT_INFO_REQ_IND, GATTC_ATT_INFO_CFM
@@ -369,7 +369,8 @@ class GattcSdpSvcInd(GtlMessageBase):
         self._par_len = value
 
     par_len = property(get_par_len, set_par_len)
- # TODO this method not working properly
+
+    # TODO this method not working properly
     def _struct_to_str(self, struct: gattc_sdp_svc_ind):
 
         param_string = ''
@@ -386,27 +387,28 @@ class GattcSdpSvcInd(GtlMessageBase):
                     param_string += 'att_char=gattc_sdp_att_char=('
                     param_string += f'prop={item.att_char.prop}, '
                     param_string += f'handle={item.att_char.handle}'
-                    param_string += f')'
+                    param_string += ')'
                 case GATTC_SDP_ATT_TYPE.GATTC_SDP_INC_SVC:
                     param_string += 'inc_svc=gattc_sdp_include_svc=('
                     param_string += f'{self._array_to_str("uuid", item.inc_svc.uuid)[:-2]}, '
                     param_string += f'prop={item.inc_svc.start_hdl}, '
                     param_string += f'handle={item.inc_svc.end_hdl}'
-                    param_string += f')'
+                    param_string += ')'
                 case (GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_VAL
                       | GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_DESC):
 
                     param_string += 'att=gattc_sdp_att=('
                     param_string += f'uuid_len={item.att.uuid_len}, '
                     param_string += f'{self._array_to_str("uuid", item.att.uuid)[:-2]}'
-                    param_string += f')'
+                    param_string += ')'
             param_string += '), '
         param_string = param_string[:-2]
         param_string += ')'
         param_string += '), '
         return param_string
 
-    def _struct_to_bytearray(self, parameters: gattc_sdp_svc_ind):  # TODO Cannot find way to handle gattc_sdp_svc_ind elegantly. Should to str method be created for union as well?
+    # TODO Cannot find way to handle gattc_sdp_svc_ind elegantly. Should to str method be created for union as well?
+    def _struct_to_bytearray(self, parameters: gattc_sdp_svc_ind):
         message = bytearray()
         message.extend(parameters.uuid_len.to_bytes(length=1, byteorder='little'))
         message.extend(bytearray(parameters.uuid))
@@ -487,7 +489,8 @@ class GattcReadCmd(GtlMessageBase):
         param_string += '), '  # ,space This will be removed by __repr__ in GtlMessageBase
         return param_string
 
-    def _struct_to_bytearray(self, parameters: gattc_read_cmd):  # TODO Cannot find way to handle gattc_read_cmd elegantly. Should to str method be created for union as well?
+    # TODO Cannot find way to handle gattc_read_cmd elegantly. Should to str method be created for union as well?
+    def _struct_to_bytearray(self, parameters: gattc_read_cmd):
         message = bytearray()
         message.extend(parameters.operation.to_bytes(length=1, byteorder='little'))
         message.extend(parameters.nb.to_bytes(length=1, byteorder='little'))

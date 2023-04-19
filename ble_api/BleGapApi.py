@@ -89,7 +89,7 @@ class BleGapApi(BleApiBase):
         return response.status
 
     async def scan_start(self,
-                         type: GAP_SCAN_TYPE = GAP_SCAN_TYPE.GAP_SCAN_ACTIVE, 
+                         type: GAP_SCAN_TYPE = GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
                          mode: GAP_SCAN_MODE = GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
                          interval: int = 0,
                          window: int = 0,

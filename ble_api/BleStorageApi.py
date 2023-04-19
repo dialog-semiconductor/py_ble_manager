@@ -1,9 +1,6 @@
 from adapter.BleAdapter import BleAdapter
 from ble_api.BleApiBase import BleApiBase
-from ble_api.BleAtt import AttUuid, ATT_PERM, ATT_ERROR
 from ble_api.BleCommon import BLE_ERROR
-from ble_api.BleGatt import GATT_SERVICE, GATT_PROP, GATT_EVENT
-from ble_api.BleGatts import GATTS_FLAGS
 from manager.BleManager import BleManager
 
 

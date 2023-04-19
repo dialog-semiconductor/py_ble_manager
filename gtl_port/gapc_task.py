@@ -1018,7 +1018,7 @@ class gapc_irk(LittleEndianStructure):
 
 # Start Bonding command procedure
 class gapc_bond_cmd(LittleEndianStructure):
-    
+
     def __init__(self,
                  pairing: gapc_pairing = gapc_pairing()):
 

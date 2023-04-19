@@ -1,9 +1,8 @@
 from gtl_messages.gtl_message_base import GTL_INITIATOR
-from gtl_messages.gtl_message_gapm import GapmDeviceReadyInd, GapmResetCmd, GapmCmpEvt, GapmSetDevConfigCmd, \
+from gtl_messages.gtl_message_gapm import GapmDeviceReadyInd, GapmCmpEvt, \
     GapmStartAdvertiseCmd, GapmAdvReportInd
-from gtl_port.gapm_task import GAPM_MSG_ID, gapm_reset_cmd, gapm_cmp_evt, gapm_set_dev_config_cmd, \
+from gtl_port.gapm_task import GAPM_MSG_ID, gapm_cmp_evt, \
     gapm_start_advertise_cmd, gapm_adv_report_ind
-    # gapm_start_connection_cmd
 
 
 class GapmMessageFactory():
@@ -30,8 +29,8 @@ class GapmMessageFactory():
             if msg_id == GAPM_MSG_ID.GAPM_DEVICE_READY_IND:
                 return GapmDeviceReadyInd()
 
-            # TODO remove? Right now these are handlng messages rx'd from 531, would we ever want to 
-            # convert messages destined for the 531? 
+            # TODO remove? Right now these are handlng messages rx'd from 531, would we ever want to
+            # convert messages destined for the 531?
             # elif msg_id == GAPM_MSG_ID.GAPM_RESET_CMD:
             #     return GapmResetCmd(gapm_reset_cmd.from_buffer_copy(params_buf))
 

@@ -1,5 +1,6 @@
 from enum import IntEnum, auto
 
+
 # Bluetooth Address type
 class BLE_ADDR_TYPE(IntEnum):
     PUBLIC_ADDRESS = 0x00  # Public Static Address
@@ -225,7 +226,7 @@ class BLE_OWN_ADDR_TYPE(IntEnum):
     PRIVATE_RANDOM_NONRESOLVABLE_ADDRESS = auto()  # Private Random Non-resolvable Address
 # if (dg_configBLE_PRIVACY_1_2 == 1)
     PRIVATE_CNTL = auto()  # Private Random Resolvable address using LE privacy v1.2
-# endif /* (dg_configBLE_PRIVACY_1_2 == 1) 
+# endif /* (dg_configBLE_PRIVACY_1_2 == 1)
 
 
 class BLE_STATUS(IntEnum):

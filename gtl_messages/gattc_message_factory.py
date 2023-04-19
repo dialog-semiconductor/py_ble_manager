@@ -4,8 +4,7 @@ from gtl_messages.gtl_message_base import GTL_INITIATOR
 from gtl_messages.gtl_message_gattc import GattcReadReqInd, GattcWriteReqInd, GattcCmpEvt, GattcDiscSvcInd, GattcDiscCharInd, \
     GattcSdpSvcInd, GattcReadInd, GattcEventInd, GattcEventReqInd, GattcAttInfoReqInd
 from gtl_port.gattc_task import GATTC_MSG_ID, gattc_read_req_ind, gattc_write_req_ind, gattc_cmp_evt, gattc_disc_svc_ind, \
-    gattc_disc_char_ind, gattc_sdp_svc_ind, gattc_sdp_att_info, GATTC_SDP_ATT_TYPE, gattc_sdp_att_char,\
-    gattc_sdp_include_svc, gattc_sdp_att, gattc_read_ind, gattc_event_ind, gattc_event_req_ind, \
+    gattc_disc_char_ind, gattc_sdp_svc_ind, gattc_sdp_att_info, gattc_read_ind, gattc_event_ind, gattc_event_req_ind, \
     gattc_att_info_req_ind
 
 

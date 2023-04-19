@@ -4,7 +4,8 @@ from ble_api.BleCommon import BleEventBase, BdAddress, BLE_ERROR, BLE_EVT_GAP, B
 
 BLE_CONN_IDX_INVALID = 0xFFFF
 BLE_GAP_MAX_BONDED = 8      # (defaultBLE_MAX_BONDED) TODO defaultBLE_MAX_BONDED defined in ble_config.h
-BLE_ENC_KEY_SIZE_MAX= 16
+BLE_ENC_KEY_SIZE_MAX = 16
+
 
 # TODO prefix with BLE_GAP?
 # Advertising filter policy
@@ -245,8 +246,9 @@ class GapConnParams():
         self.sup_timeout = sup_timeout_ms // 10  # Supervision timeout
 
     def __repr__(self) -> str:
-        return (f"{type(self).__name__}(interval_min={self.interval_min}, interval_max={self.interval_max}) " +
-                f" slave_latency={self.slave_latency}, sup_timeout={self.sup_timeout})")
+
+        return f"{type(self).__name__}(interval_min={self.interval_min}, interval_max={self.interval_max}) " + \
+            f" slave_latency={self.slave_latency}, sup_timeout={self.sup_timeout})"
 
 
 # GAP scan parameters

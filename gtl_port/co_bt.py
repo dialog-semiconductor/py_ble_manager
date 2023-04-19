@@ -1379,6 +1379,7 @@ enum
 };
 '''
 
+
 # BD address type
 class BD_ADDRESS_TYPE(IntEnum):
 
@@ -1816,7 +1817,8 @@ class adv_report(LittleEndianStructure):
 
     def __init__(self,
                  evt_type: ADV_HCI_TYPE = ADV_HCI_TYPE.ADV_CONN_UNDIR,
-                 adv_addr_type: BD_ADDRESS_TYPE = BD_ADDRESS_TYPE.ADDR_PUBLIC,  # TODO find other instances of Public vs private addr in stack and use BD_ADDRESS_TYPE
+                 # TODO find other instances of Public vs private addr in stack and use BD_ADDRESS_TYPE
+                 adv_addr_type: BD_ADDRESS_TYPE = BD_ADDRESS_TYPE.ADDR_PUBLIC,
                  adv_addr: bd_addr = bd_addr(),
                  data: c_uint8 * ADV_DATA_LEN = (c_uint8 * ADV_DATA_LEN)(),
                  rssi: c_uint8 = 0

@@ -6,7 +6,7 @@ from gtl_port.gapc_task import GAPC_MSG_ID, gapc_connection_req_ind, gapc_connec
     gapc_peer_features_ind, gapc_bond_req_ind, gapc_bond_cfm, gapc_sign_counter_ind, gapc_bond_ind, gapc_encrypt_req_ind, gapc_encrypt_cfm, \
     gapc_encrypt_ind, gapc_param_update_req_ind, gapc_param_update_cfm, gapc_param_update_cmd, gapc_get_dev_info_req_ind, \
     gapc_get_dev_info_cfm, GAPC_DEV_INFO, gapc_disconnect_ind, gapc_param_updated_ind, gapc_disconnect_cmd, gapc_bond_cmd, \
-    gapc_peer_version_ind, GAPC_BOND, GAPC_OPERATION, GAPC_DEV_INFO
+    gapc_peer_version_ind, GAPC_BOND, GAPC_OPERATION
 
 from gtl_port.rwip_config import KE_API_ID
 
@@ -201,7 +201,9 @@ class GapcBondInd(GtlMessageBase):
                 param_string += ')'
             case GAPC_BOND.GAPC_IRK_EXCH:
                 param_string += 'irk=gapc_irk('
-                param_string += f'irk=gap_sec_key({self._array_to_str("key", struct.data.irk.irk.key)[:-2]}, addr=gap_bdaddr=(addr_type={struct.data.irk.addr.addr_type}, addr={self._array_to_str("bd_addr", struct.data.irk.addr.addr.addr)[:-2]}))'
+                param_string += f'irk=gap_sec_key({self._array_to_str("key", struct.data.irk.irk.key)[:-2]}, '
+                param_string += f'addr=gap_bdaddr=(addr_type={struct.data.irk.addr.addr_type}, '
+                param_string += f'addr={self._array_to_str("bd_addr", struct.data.irk.addr.addr.addr)[:-2]}))'
                 param_string += ')'
             case GAPC_BOND.GAPC_CSRK_EXCH:
                 param_string += f'csrk=gap_sec_key({self._array_to_str("key", struct.data.csrk.key)[:-2]})'

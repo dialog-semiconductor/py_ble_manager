@@ -276,8 +276,8 @@ def handle_evt_gap_peer_features(central, evt: ble.BleEventGapPeerFeatures):
 
 
 def handle_evt_gap_peer_version(central, evt: ble.BleEventGapPeerVersion):
-    print(f"Peer version: conn_idx={evt.conn_idx}, lmp_version={evt.lmp_version} " +
-          f"company_id={evt.company_id}, lmp_subversion={evt.lmp_subversion}")
+    print(f"Peer version: conn_idx={evt.conn_idx}, lmp_version={evt.lmp_version} "
+          + f"company_id={evt.company_id}, lmp_subversion={evt.lmp_subversion}")
 
 
 def handle_evt_gap_sec_level_changed(central, evt: ble.BleEventGapSecLevelChanged):
@@ -391,9 +391,6 @@ def handle_evt_gap_address_resolved(central: ble.BleCentral, evt: ble.BleEventGa
 
 def handle_evt_gap_numeric_request(central: ble.BleCentral, evt: ble.BleEventGapNumericRequest):
     print(f"Numeric Request: conn_idx={evt.conn_idx}, num_key={evt.num_key}")
-
-
-
 
 
 # TODO move these to a ultility package

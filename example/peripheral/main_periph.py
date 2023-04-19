@@ -10,12 +10,11 @@ sys.path.append(str(HERE / '../../'))
 
 import ble_devices as ble
 
-
-import ble_devices as ble
 from services.CustomBleService import CustomBleService, CustomBleServiceCallbacks
 
 ble.dg_configBLE_CENTRAL = 0
 ble.dg_configBLE_PERIPHERAL = 1
+
 
 async def app_char1_read_callback(svc: CustomBleService, conn_idx: int):
     print("app_char1_read_callback")
@@ -129,5 +128,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     asyncio.run(main(args.com_port))
-
-

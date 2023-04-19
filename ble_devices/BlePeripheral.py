@@ -1,20 +1,11 @@
-import asyncio
-
-from adapter.BleAdapter import BleAdapter
 from ble_devices.BleDeviceBase import BleDeviceBase
 from ble_api.BleAtt import ATT_ERROR
 from ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_EVT_GAP, BLE_EVT_GATTS
-from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_EVT_GAP, BleEventGapConnected, \
+from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BleEventGapConnected, \
     BleEventGapDisconnected, BleEventGapConnParamUpdateReq, BleEventGapPairReq
 from ble_api.BleGatt import GATT_EVENT
-from ble_api.BleGatts import BLE_EVT_GATTS, BleEventGattsReadReq, BleEventGattsWriteReq, \
+from ble_api.BleGatts import BleEventGattsReadReq, BleEventGattsWriteReq, \
     BleEventGattsPrepareWriteReq
-from ble_api.BleGattsApi import BleGattsApi
-from ble_api.BleStorageApi import BleStorageApi
-from manager.BleManager import BleManager
-from manager.BleManagerCommonMsgs import BleMgrCommonResetCmd, BleMgrCommonResetRsp
-from manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, BleMgrGapAdvStartCmd, \
-    BleMgrGapAdvStartRsp
 from services.BleService import BleServiceBase
 
 
@@ -119,7 +110,7 @@ class BlePeripheral(BleDeviceBase):
         error = await self._ble_gatts.add_service(svc.service_defs.uuid,
                                                   svc.service_defs.type,
                                                   svc.service_defs.num_attrs)
-        # TODO not sure if included svc handled correctly                    
+        # TODO not sure if included svc handled correctly
         if error == BLE_ERROR.BLE_STATUS_OK:
             for i in range(0, len(svc.incl_svc_defs)):
                 error, _ = await self._ble_gatts.add_include(svc.incl_svc_defs[i].start_h)
@@ -155,7 +146,7 @@ class BlePeripheral(BleDeviceBase):
                 error = await self._ble_gatts.register_service(svc)
                 if error == BLE_ERROR.BLE_STATUS_OK:
                     self._services.append(svc)
-                    # Set this BlePeripheral with the service so service can make calls to set, notify, read_cfm, etc 
+                    # Set this BlePeripheral with the service so service can make calls to set, notify, read_cfm, etc
                     svc.register_peripheral(self)
 
         return error
