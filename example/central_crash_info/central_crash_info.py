@@ -15,7 +15,7 @@ from pathlib import Path
 FILE_PATH = Path(__file__).parent
 sys.path.append(str(FILE_PATH / '../../'))
 
-import ble_devices as ble
+import ble_devices as ble  # TODO Flake E402 is ignored as workaroung
 
 # TODO need to rethink how configuration
 ble.dg_configBLE_CENTRAL = 1
