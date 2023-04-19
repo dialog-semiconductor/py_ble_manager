@@ -64,7 +64,7 @@ class DciFaultInfo():
     def __init__(self):
         self.data_valid: bool = False
         self.epoch: int = 0
-        self.fault_handler: DCI_LAST_FAULT_HANDLER = DCI_LAST_FAULT_HANDLER.NONE 
+        self.fault_handler: DCI_LAST_FAULT_HANDLER = DCI_LAST_FAULT_HANDLER.NONE
         self.stack_frame = CortexM0StackFrame()
         self.num_of_call_vals: int = 0
         self.call_trace: list[int] = []

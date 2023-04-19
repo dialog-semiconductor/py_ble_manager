@@ -134,7 +134,7 @@ class BleManager(BleManagerBase):
 
     def _task_done_handler(self, task: asyncio.Task):
         pass
-        #if task.exception():
+        # if task.exception():
         #    task.result()  # Raise the exception
 
     async def cmd_execute(self, command: BleMgrMsgBase) -> BLE_ERROR:

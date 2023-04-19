@@ -24,7 +24,7 @@ class SerialStreamManager(asyncio.Protocol):
             for task in done:
                 if task is self._serial_tx_task:
                     # We have received data on the Tx queue, send it and restart the task
-                    # TODO need to rethink waiting here. The _receive task should never be 
+                    # TODO need to rethink waiting here. The _receive task should never be
                     # be blocked for a long time or we will miss data
                     await self._send(task.result())
                     self._serial_tx_task = asyncio.create_task(self._tx_queue_get(), name='SerialStreamTx')

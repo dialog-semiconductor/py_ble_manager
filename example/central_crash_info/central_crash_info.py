@@ -57,7 +57,7 @@ class DebugCrashInfoSvc():
         self.rx_user_desc = ble.GattcItem()
         self.tx = ble.GattcItem()
         self.tx_user_desc = ble.GattcItem()
-        self.tx_ccc = ble.GattcItem()    
+        self.tx_ccc = ble.GattcItem()
 
 
 async def console(ble_command_q: asyncio.Queue, ble_response_q: asyncio.Queue):
@@ -74,7 +74,7 @@ async def console(ble_command_q: asyncio.Queue, ble_response_q: asyncio.Queue):
             ble_command_q.put_nowait(input)
             response = await ble_response_q.get()
             print(f"<<< {response}")
-            #if input == 'GAPSCAN' and response == "OK":
+            # if input == 'GAPSCAN' and response == "OK":
             #    await scan_complete_evt.wait()
             # TODO wait for EVENT from ble_task before accepting additional input (eg scan done)
 
@@ -158,10 +158,10 @@ class BleController():
 
         self.log_tasks = set()
         # TODO move directory
-        logs_directory = f"{FILE_PATH}\logs"
+        logs_directory = f"{FILE_PATH}\\logs"
         if not os.path.exists(logs_directory):
             os.makedirs(logs_directory)
-        self.log_file = await aiofiles.open(f'{logs_directory}\DCI_log_{time.strftime("%Y%m%d-%H%M%S")}.txt', mode='w')
+        self.log_file = await aiofiles.open(f'{logs_directory}\\DCI_log_{time.strftime("%Y%m%d-%H%M%S")}.txt', mode='w')
 
     async def init(self):
         await self.create_log_file()
@@ -243,7 +243,7 @@ class BleController():
                     pass
 
         return error
-    
+
     def handle_evt_gap_adv_report(self, evt: ble.BleEventGapAdvReport):
 
         name = "Unknown"
@@ -275,7 +275,7 @@ class BleController():
         else:
             for ad_struct in ad_structs:
                 # only want devices that advertise Debug Crash Info Service
-                if (ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_UUID128_SVC_DATA 
+                if (ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_UUID128_SVC_DATA
                         and ad_struct.data[:-1] == self.crash_info_uuid.uuid):
                     # first time seeing this device, add it to dict with an empty scan rsp
                     self.scan_dict[evt.address.addr] = (name, evt, ble.BleEventGapAdvReport())
@@ -360,7 +360,7 @@ class BleController():
                 self.log(f"Fault Data #{i}:")
                 self.log(f"\t Epoch: {self.reset_data.fault_data[i].epoch}")
                 self.log(f"\t Fault Type: {self.reset_data.fault_data[i].fault_handler.name}")
-                self.log(f"\t Last stack frame: ")
+                self.log("\t Last stack frame: ")
                 self.log(f"\t\t r0:  0x{self.reset_data.fault_data[i].stack_frame.r0:08x}")
                 self.log(f"\t\t r1:  0x{self.reset_data.fault_data[i].stack_frame.r1:08x}")
                 self.log(f"\t\t r2:  0x{self.reset_data.fault_data[i].stack_frame.r2:08x}")
@@ -370,7 +370,7 @@ class BleController():
                 self.log(f"\t\t return_address: 0x{self.reset_data.fault_data[i].stack_frame.return_address:08x}")
                 self.log(f"\t\t xPSR: 0x{self.reset_data.fault_data[i].stack_frame.xPSR:08x}")
 
-                self.log(f"\t Call trace: ")
+                self.log("\t Call trace: ")
                 for j in range(self.reset_data.fault_data[i].num_of_call_vals):
                     self.log(f"\t\t Call address {j}: 0x{self.reset_data.fault_data[i].call_trace[j]:08x}")
 
@@ -422,21 +422,24 @@ class BleController():
                     self.bg_task = asyncio.create_task(self.central.read(0, DEVICE_NAME_HANDLE, 0))
 
             case FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_NAME:
-                
-                if(evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_READ_COMPLETED
-                    and evt.handle == DEVICE_NAME_HANDLE):
+
+                if (evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_READ_COMPLETED
+                        and evt.handle == DEVICE_NAME_HANDLE):
                     evt: ble.BleEventGattcReadCompleted
                     self.connected_name = evt.value.decode("utf-8")
                     self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_BROWSE_DCI
                     self.bg_task = asyncio.create_task(self.central.browse(0, self.uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR)))
-                
 
             case FETCH_DATA_STATE.FETCH_DATA_BROWSE_DCI:
                 evt: ble.BleEventGattcBrowseCompleted
                 if (evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED
                         and self.dci_svc.svc_handle != 0):
                     self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_ENABLE_CCC
-                    self.bg_task = asyncio.create_task(self.central.write(0, self.dci_svc.tx_ccc.handle, 0, bytes(GATT_EVENT.GATT_EVENT_NOTIFICATION.to_bytes(2, 'little'))))
+                    self.bg_task = asyncio.create_task(self.central.write(0,
+                                                                          self.dci_svc.tx_ccc.handle,
+                                                                          0,
+                                                                          bytes(GATT_EVENT.GATT_EVENT_NOTIFICATION.to_bytes(2, 'little'))
+                                                                          ))
 
             case FETCH_DATA_STATE.FETCH_DATA_ENABLE_CCC:
                 if (evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED
@@ -447,10 +450,14 @@ class BleController():
                         # +1 as handle is for char declaration
                         # TODO rx/tx named from perspective of periph. Change to perspective of central
                         # TODO would be nice to handle a rewsponse FILE_PATH
-                        self.bg_task = asyncio.create_task(self.central.write(0, (self.dci_svc.rx.handle + 1), 0, bytes(DCI_SVC_COMMAND.DCI_SERVICE_COMMAND_GET_ALL_DATA.to_bytes(1, 'little'))))
+                        self.bg_task = asyncio.create_task(self.central.write(0,
+                                                                              (self.dci_svc.rx.handle + 1),
+                                                                              0,
+                                                                              bytes(DCI_SVC_COMMAND.DCI_SERVICE_COMMAND_GET_ALL_DATA.to_bytes(1, 'little'))
+                                                                              ))
                     else:
                         self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_ERROR
-       
+
             case FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_RESPONSE:
                 if (evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_NOTIFICATION
                         and evt.handle == self.dci_svc.tx.handle + 1):
@@ -518,7 +525,7 @@ async def main(com_port: str):
     ble_command_q = asyncio.Queue()
     ble_response_q = asyncio.Queue()
     ble_handler = BleController(com_port, ble_command_q, ble_response_q)
-    
+
     # TODO class to handle console interaction
 
     # return_exceptions: https://stackoverflow.com/questions/65147823/python-asyncio-task-exception-was-never-retrieved
@@ -537,7 +544,7 @@ if __name__ == "__main__":
     try:
         asyncio.run(main(args.com_port))
     except KeyboardInterrupt:
-        # TODO A BLE connection will remain active if the keyboard interrupt happens during the connection 
+        # TODO A BLE connection will remain active if the keyboard interrupt happens during the connection
         # For now restarting the script will reset the BLE stack for the central device, closing the connection
         pass
     finally:
