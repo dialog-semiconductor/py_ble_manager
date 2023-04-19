@@ -80,17 +80,18 @@ class CortexM0StackFrame():
         self.xPSR = self.reg_from_bytes(data[28:32]) if data else 0
 
     def reg_from_bytes(self, data: bytes):
-        return hex((data[0]) | (data[1] << 8) | (data[2] << 16) | (data[3] << 24))
+        return int.from_bytes(data, 'little')
     
 
-    ''' TODO ensure print in hex
+    # TODO ensure print in hex
     def __repr__(self):
-        return_string = f"{type(self).__name__}(data_valid={self.data_valid}, epoch={self.epoch}, " + \
-                        f"fault_handler={self.fault_handler}, stack_frame={self.stack_frame}, " + \
-                        f"num_of_call_vals={self.num_of_call_vals}, call_trace={self.call_trace}, " + \
+        return_string = f"{type(self).__name__}(r0=0x{self.r0:08x}, r1=0x{self.r1:08x}, " + \
+                        f"r2=0x{self.r2:08x}, r3=0x{self.r3:08x}, " + \
+                        f"r12=0x{self.r12:08x}, LR=0x{self.LR:08x}, " + \
+                        f"return_address=0x{self.return_address:08x}, xPSR=0x{self.xPSR:08x})"
 
         return return_string
-    '''
+    
 
 
 
@@ -117,12 +118,16 @@ class DciFaultInfo():
         self.fault_handler: DCI_LAST_FAULT_HANDLER = DCI_LAST_FAULT_HANDLER.NONE 
         self.stack_frame = CortexM0StackFrame()
         self.num_of_call_vals: int = 0
-        self.call_trace: list[bytes] = []
+        self.call_trace: list[int] = []
 
     def __repr__(self):
         return_string = f"{type(self).__name__}(data_valid={self.data_valid}, epoch={self.epoch}, " + \
                         f"fault_handler={self.fault_handler.name}, stack_frame={self.stack_frame}, " + \
-                        f"num_of_call_vals={self.num_of_call_vals}, call_trace={self.call_trace}, "
+                        f"num_of_call_vals={self.num_of_call_vals}, call_trace="
+        for i in range(self.num_of_call_vals):
+            return_string += f"0x{self.call_trace[i]:08x}, "
+        return_string = return_string[:-2]
+        return_string += ")"
         return return_string
 
 
@@ -168,12 +173,14 @@ class BleController():
         self.scan_dict: dict[bytes, tuple[str, ble.BleEventGapAdvReport, ble.BleEventGapAdvReport]] = {}
         self.crash_info_uuid: ble.AttUuid = uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR)
 
+        self.connected_addr: ble.BdAddress = ble.BdAddress()
         self.periph_addr_str = ""
         self.browse_data = []
         self.dci_svc = DebugCrashInfoSvc()
         self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_NONE
         self.response = ResetData()
         self.reset_data = DciData()
+        self.connected_name = "Unknown"
 
         #self.connection_state = CONNECTION_STATE.CONNECTION_STATE_UNCONNECTED  # TODO need to handle multiple connections (use list of connections)
         #self.scanning_state = SCANNING_STATE.SCANNING_STATE_INACTIVE
@@ -402,6 +409,7 @@ class BleController():
                 if (evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_NOTIFICATION
                         and evt.handle == self.dci_svc.tx.handle+1):
 
+                    # TODO need to know what response waiting for
                     evt: ble.BleEventGattcNotification
                     if self.response.command == 0 and len(evt.value) > 2:
                         self.response.command = evt.value[0]
@@ -411,7 +419,9 @@ class BleController():
                         self.response.data += evt.value
                         if len(self.response.data) == self.response.len:
                             print("Received all reset data")
+                            # TODO assert length is 128
                             self.parse_reset_data(self.response.data)
+                            self.log_reset_data()
                             self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_DISCONNECT
                         
 
@@ -420,31 +430,74 @@ class BleController():
         if self.fetch_state == FETCH_DATA_STATE.FETCH_DATA_ERROR:
             self.log("Errorrrrr")
             # TODO disconnect is connected
-                    
+
+    def log_reset_data(self):
+        self.log("*******************Debug Crash Info*******************")
+        self.log(f"Device name: {self.connected_name}")
+        self.log(f"Device address: {bd_addr_to_str(self.connected_addr)}")
+        self.log(f"Last reset reason: {self.reset_data.last_reset_reason.name}")
+        self.log(f"Number of resets: {self.reset_data.num_resets}")
+
+        for i in range(self.reset_data.num_resets):
+            if self.reset_data.fault_data[i].data_valid:
+                self.log(f"Fault Data #{i}:")
+                self.log(f"\t Epoch: {self.reset_data.fault_data[i].epoch}")
+                self.log(f"\t Fault Type: {self.reset_data.fault_data[i].fault_handler.name}")
+                self.log(f"\t Last stack frame: ")
+                self.log(f"\t\t r0:  0x{self.reset_data.fault_data[i].stack_frame.r0:08x}")
+                self.log(f"\t\t r1:  0x{self.reset_data.fault_data[i].stack_frame.r1:08x}")
+                self.log(f"\t\t r2:  0x{self.reset_data.fault_data[i].stack_frame.r2:08x}")
+                self.log(f"\t\t r3:  0x{self.reset_data.fault_data[i].stack_frame.r3:08x}")
+                self.log(f"\t\t r12: 0x{self.reset_data.fault_data[i].stack_frame.r12:08x}")
+                self.log(f"\t\t LR:  0x{self.reset_data.fault_data[i].stack_frame.LR:08x}")
+                self.log(f"\t\t return_address: 0x{self.reset_data.fault_data[i].stack_frame.return_address:08x}")
+                self.log(f"\t\t xPSR: 0x{self.reset_data.fault_data[i].stack_frame.xPSR:08x}")
+
+                self.log(f"\t Call trace: ")
+                for j in range(self.reset_data.fault_data[i].num_of_call_vals):
+                    self.log(f"\t\t Call address {j}: 0x{self.reset_data.fault_data[i].call_trace[j]:08x}")
+
+
     def parse_reset_data(self, data: bytes):
-        length = len(data)
+        
         self.reset_data.last_reset_reason = DCI_REST_REASON(data[0])
         self.reset_data.num_resets = data[1]
 
+        # TODO this is assuming data is the appropriate length
+
+        fault_data = data[2:]
         for i in range(self.reset_data.num_resets):
             self.reset_data.fault_data.append(DciFaultInfo())
             self.reset_data.fault_data[i].data_valid = bool(data[2])
             # Todo need to reverse
-            self.reset_data.fault_data[i].epoch = (data[3]) | (data[4] << 8) | (data[5] << 16) | (data[6] << 24)
+            self.reset_data.fault_data[i].epoch = int.from_bytes(data[3:7], 'little') # (data[3]) | (data[4] << 8) | (data[5] << 16) | (data[6] << 24)
             self.reset_data.fault_data[i].fault_handler = DCI_LAST_FAULT_HANDLER(data[7])
             
-            self.reset_data.fault_data[i].stack_frame = CortexM0StackFrame(data[8:])
+            self.reset_data.fault_data[i].stack_frame = CortexM0StackFrame(data[8:40])
+            self.reset_data.fault_data[i].num_of_call_vals = int(data[40])
+            x = data[40]
+            print(f"{x}")
+            print(f"{int(x)}")
+            # TODO 
+            #self.reset_data.fault_data[i].num_of_call_vals = 3
+            index = 41
+            for _ in range(6):
+                print(f"CAll trace {index} {index + 4}  {data[index:index + 4]}")
+                self.reset_data.fault_data[i].call_trace.append(int.from_bytes(data[index:(index + 4)], 'little'))
+                index = index + 4
+            
+            #data = data[64:]
 
 
         print(f"reset data: {self.reset_data}")
             
 
     def handle_evt_gap_adv_report(self, evt: ble.BleEventGapAdvReport):
-
-        # TODO clean this up
-        # Parse the advertising structures
+        
         name = "Unknown"
         adv_packet = False  # used to separate adv packets from scan responses
+
+        # Parse the advertising structures
         adv_structs = self.parse_adv_data(evt)
         for adv_struct in adv_structs:
             # This is an advertising packet (vs scan response)  # TODO How to initiate scan request from Central?
@@ -514,6 +567,7 @@ class BleController():
         return adv_data_structs
 
     def handle_evt_scan_completed(self, evt: ble.BleEventGapScanCompleted):
+        # TODO print a clean structure
         print(f"Scan complete")
         for key in self.scan_dict:
             name, adv_packet, scan_rsp = self.scan_dict[key]
@@ -541,6 +595,8 @@ class BleController():
 
     def handle_evt_gap_connected(self, evt: ble.BleEventGapConnected):
                 #self.app_frame.connect_btn.SetLabel("Disconnect")
+        self.connected_addr = evt.peer_address
+        self.connected_name = "Unknown"
         print(f"Connected to: address={bd_addr_to_str(evt.peer_address)}")
 
     
