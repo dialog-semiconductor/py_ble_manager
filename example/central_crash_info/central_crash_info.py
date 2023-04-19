@@ -3,8 +3,9 @@ import asyncio
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.patch_stdout import patch_stdout
+import time
 
-# import aiofiles
+import aiofiles
 from enum import IntEnum, auto
 
 # TODO rethink relative import
@@ -46,9 +47,10 @@ class FETCH_DATA_STATE(IntEnum):
     FETCH_DATA_SEND_GET_DATA_COMMAND = auto()
     FETCH_DATA_WAIT_FOR_RESPONSE = auto()
     FETCH_DATA_DISCONNECT = auto()
+    FETCH_DATA_DONE = auto()
     FETCH_DATA_ERROR = auto()
 
-#crash_info_uuid: ble.AttUuid = uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR)
+#crash_info_uuid: ble.AttUuid = self.uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR)
 
 
 class ResetData():
@@ -91,8 +93,6 @@ class CortexM0StackFrame():
                         f"return_address=0x{self.return_address:08x}, xPSR=0x{self.xPSR:08x})"
 
         return return_string
-    
-
 
 
 class DCI_REST_REASON(IntEnum):
@@ -104,7 +104,7 @@ class DCI_REST_REASON(IntEnum):
     NONE = auto()
 
 
-class DCI_LAST_FAULT_HANDLER(IntEnum): 
+class DCI_LAST_FAULT_HANDLER(IntEnum):
     HARDFAULT = 0
     NMI = auto()
     PLATFORM_RESET = auto()
@@ -146,12 +146,7 @@ class DciData():
 
 async def console(ble_command_q: asyncio.Queue, ble_response_q: asyncio.Queue):
         commands = ['GAPSCAN',
-                    'GAPCONNECT',
-                    'GAPBROWSE',
-                    'GAPDISCONNECT',
-                    'GATTWRITE',
-                    'GATTREAD',
-                    'GETRESETDATA']
+                    'GETALLRESETDATA']
         commands.sort()
         word_completer = WordCompleter(commands, ignore_case=True)
 
@@ -171,7 +166,7 @@ class BleController():
         self.response_q = response_q
         #                                 name, adv packet, scan rsp packt
         self.scan_dict: dict[bytes, tuple[str, ble.BleEventGapAdvReport, ble.BleEventGapAdvReport]] = {}
-        self.crash_info_uuid: ble.AttUuid = uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR)
+        self.crash_info_uuid: ble.AttUuid = self.uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR)
 
         self.connected_addr: ble.BdAddress = ble.BdAddress()
         self.periph_addr_str = ""
@@ -181,13 +176,38 @@ class BleController():
         self.response = ResetData()
         self.reset_data = DciData()
         self.connected_name = "Unknown"
+        
 
         #self.connection_state = CONNECTION_STATE.CONNECTION_STATE_UNCONNECTED  # TODO need to handle multiple connections (use list of connections)
         #self.scanning_state = SCANNING_STATE.SCANNING_STATE_INACTIVE
 
+    async def init(self):
+        await self.create_log_file()
+        await self.ble_task()
+
+
+    async def create_log_file(self):
+
+        self.log_tasks = set()
+        # TODO move directory
+        self.log_file = await aiofiles.open(f'DCI_log_{time.strftime("%Y%m%d-%H%M%S")}.txt', mode='w') 
+                
+
     def log(self, string: str):
         print(string)
+        log_to_file_task = asyncio.create_task(self.log_file.write(string + "\r"))
+        self.log_tasks.add(log_to_file_task)
+        log_to_file_task.add_done_callback(self.log_tasks.discard)
         # TODO create task to write str to file
+
+    def bd_addr_to_str(self, bd: ble.BdAddress) -> str:
+        return_string = ""
+        for byte in bd.addr:
+            byte_string = str(hex(byte))[2:]
+            if len(byte_string) == 1:  # Add a leading 0
+                byte_string = "0" + byte_string
+            return_string = byte_string + ":" + return_string
+        return return_string[:-1]
 
     async def ble_task(self):
         assert self.com_port
@@ -254,7 +274,7 @@ class BleController():
                                                           False,
                                                           True)
 
-                case "GAPCONNECT":
+                case "GETALLRESETDATA":
                     if len(args) == 1:  # TODO this case just to avoid having to enter bd addr  # 531B00352348 964700352348
                         periph_bd = ble.BdAddress(ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS, bytes.fromhex("531B00352348"))  # addr is backwards
                         periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
@@ -268,87 +288,13 @@ class BleController():
 
                         # TODO need to enter private vs public type
                         self.periph_addr_str = args[1]
-                        periph_bd = str_to_bd_addr(ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS, self.periph_addr_str)
+                        periph_bd = self.str_to_bd_addr(ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS, self.periph_addr_str)
                         periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
                         error = await self.central.connect(periph_bd, periph_conn_params)
 
                         # move to state machine function
-                        if error == ble.BLE_ERROR.BLE_STATUS_OK:
-                            self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_CONNECT
-
-                case "GAPBROWSE":
-                    if len(args) == 2 or len(args) == 3:
-                        if len(args) == 2:
-                            conn_idx = int(args[1])
-                            uuid = None
-                        elif len(args) == 3:
-                            conn_idx = int(args[1])
-                            print(args[2])
-                            uuid = uuid_from_str(args[2])
-                        
-                        error = await self.central.browse(conn_idx, uuid)
-
-                case "GAPDISCONNECT":
-                    if len(args) >= 2:
-                        conn_idx = int(args[1])
-                        if len(args) == 3:
-                            reason = ble.BLE_HCI_ERROR(int(args[2]))
-                            if reason == ble.BLE_HCI_ERROR.BLE_HCI_ERROR_NO_ERROR:
-                                reason = ble.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON
-                        else:
-                            reason = ble.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON
-                        error = await self.central.disconect(conn_idx, reason)
-
-                case "GATTWRITE":
-                    if len(args) == 4:
-                        conn_idx = int(args[1])
-                        handle = int(args[2])
-                        value = bytes.fromhex(args[3])  # TODO requires leading 0 for 0x0-0xF
-                        error = await self.central.write(conn_idx, handle, 0, value)
-                
-                case "GETRESETDATA":
-                    if len(args) == 1:  # TODO this case just to avoid having to enter bd addr  # 531B00352348 964700352348
-                        periph_bd = ble.BdAddress(ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS, bytes.fromhex("531B00352348"))  # addr is backwards
-                        periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
-                        error = await self.central.connect(periph_bd, periph_conn_params)
-                        # TODO using hardcoded address, Peer Features and Version returned
-                        # Passin address, Peer Features and Version not returned
-
-                    if len(args) == 2:  # TODO pass in addr 48:23:35:00:1b:53
-                        # bd_info = args[1].strip(',')
-                        # bd_type =  if bd_info[1] == 'P' else BLE_ADDR_TYPE.PRIVATE_ADDRESS
-
-                        # TODO need to enter private vs public type
-                        self.periph_addr_str = args[1]
-                        periph_bd = str_to_bd_addr(ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS, self.periph_addr_str)
-                        periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
-                        error = await self.central.connect(periph_bd, periph_conn_params)
-
-                case "GATTREAD":  # TODO char handle displayed by browse is acutally the declaration. The value is +1
-                    if len(args) == 3:
-                        conn_idx = int(args[1])
-                        handle = int(args[2])
-                        error = await self.central.read(conn_idx, handle, 0)
-
-
-                case 'GAPPAIR':
-                    if len(args) == 3:
-                        conn_idx = int(args[1])
-                        bond = bool(int(args[2]))
-                        error = await self.central.pair(conn_idx, bond)
-
-                case 'PASSKEYENTRY':
-                    if len(args) == 4:
-                        conn_idx = int(args[1])
-                        accept = bool(int(args[2]))
-                        passkey = int(args[3])
-                        error = await self.central.passkey_reply(conn_idx, accept, passkey)
-
-                case 'YESNOTENTRY':
-                    if len(args) == 3:
-                        conn_idx = int(args[1])
-                        accept = bool(int(args[2]))
-                        error = await self.central.numeric_reply(conn_idx, accept)
+                    if error == ble.BLE_ERROR.BLE_STATUS_OK:
+                        self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_CONNECT
 
                 case _:
                     pass
@@ -368,7 +314,7 @@ class BleController():
                 case ble.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED:
                     self.handle_evt_gap_connection_compelted(evt)
                 case ble.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED:
-                    handle_evt_gap_disconnected(evt)
+                    self.handle_evt_gap_disconnected(evt)
                 case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_SVC:
                     self.handle_evt_gattc_browse_svc(evt)
                 case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED:
@@ -377,20 +323,27 @@ class BleController():
                     self.handle_evt_gattc_notification(evt)
                 case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED:
                     self.handle_evt_gattc_write_completed(evt)
-                case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_READ_COMPLETED:
-                    handle_evt_gattc_read_completed(evt)
 
                 case _:
-                    print(f"Ble Task unhandled event: {evt}")
                     await self.central.handle_event_default(evt)
 
-            self.update_fetch_state(evt)
+            self.process_fetch_state(evt)
 
 
-    def update_fetch_state(self, evt: ble.BleEventBase):
-        
+    def process_fetch_state(self, evt: ble.BleEventBase):
+
         match self.fetch_state:
-            
+
+            case FETCH_DATA_STATE.FETCH_DATA_CONNECT:
+                if (evt.evt_code == ble.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED):
+                    self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_BROWSE
+                    self.bg_task = asyncio.create_task(self.central.browse(0, self.uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR)))
+
+            case FETCH_DATA_STATE.FETCH_DATA_BROWSE:
+                if (evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED):
+                    self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_ENABLE_CCC
+                    self.bg_task = asyncio.create_task(self.central.write(0, self.dci_svc.tx_ccc.handle, 0, bytes(GATT_EVENT.GATT_EVENT_NOTIFICATION.to_bytes(2, 'little'))))
+
             case FETCH_DATA_STATE.FETCH_DATA_ENABLE_CCC:
                 if (evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED
                         and evt.handle == self.dci_svc.tx_ccc.handle):
@@ -418,15 +371,18 @@ class BleController():
                     else:
                         self.response.data += evt.value
                         if len(self.response.data) == self.response.len:
-                            print("Received all reset data")
                             # TODO assert length is 128
                             self.parse_reset_data(self.response.data)
                             self.log_reset_data()
                             self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_DISCONNECT
-                        
+                            self.bg_task = asyncio.create_task(self.central.disconect(0, ble.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON))
 
+            case FETCH_DATA_STATE.FETCH_DATA_DISCONNECT:
+                if (evt.evt_code == ble.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED):
+                    self.log("Disconnected")
+                    self.log_file.close()
+                    self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_NONE
 
-                    
         if self.fetch_state == FETCH_DATA_STATE.FETCH_DATA_ERROR:
             self.log("Errorrrrr")
             # TODO disconnect is connected
@@ -434,7 +390,7 @@ class BleController():
     def log_reset_data(self):
         self.log("*******************Debug Crash Info*******************")
         self.log(f"Device name: {self.connected_name}")
-        self.log(f"Device address: {bd_addr_to_str(self.connected_addr)}")
+        self.log(f"Device address: {self.bd_addr_to_str(self.connected_addr)}")
         self.log(f"Last reset reason: {self.reset_data.last_reset_reason.name}")
         self.log(f"Number of resets: {self.reset_data.num_resets}")
 
@@ -459,7 +415,7 @@ class BleController():
 
 
     def parse_reset_data(self, data: bytes):
-        
+
         self.reset_data.last_reset_reason = DCI_REST_REASON(data[0])
         self.reset_data.num_resets = data[1]
 
@@ -467,30 +423,17 @@ class BleController():
 
         fault_data = data[2:]
         for i in range(self.reset_data.num_resets):
+            fault_data = fault_data[(i * 63):]
             self.reset_data.fault_data.append(DciFaultInfo())
-            self.reset_data.fault_data[i].data_valid = bool(data[2])
-            # Todo need to reverse
-            self.reset_data.fault_data[i].epoch = int.from_bytes(data[3:7], 'little') # (data[3]) | (data[4] << 8) | (data[5] << 16) | (data[6] << 24)
-            self.reset_data.fault_data[i].fault_handler = DCI_LAST_FAULT_HANDLER(data[7])
-            
-            self.reset_data.fault_data[i].stack_frame = CortexM0StackFrame(data[8:40])
-            self.reset_data.fault_data[i].num_of_call_vals = int(data[40])
-            x = data[40]
-            print(f"{x}")
-            print(f"{int(x)}")
-            # TODO 
-            #self.reset_data.fault_data[i].num_of_call_vals = 3
-            index = 41
+            self.reset_data.fault_data[i].data_valid = bool(fault_data[0])
+            self.reset_data.fault_data[i].epoch = int.from_bytes(fault_data[1:5], 'little')
+            self.reset_data.fault_data[i].fault_handler = DCI_LAST_FAULT_HANDLER(fault_data[5])
+            self.reset_data.fault_data[i].stack_frame = CortexM0StackFrame(fault_data[6:38])
+            self.reset_data.fault_data[i].num_of_call_vals = int(fault_data[38])
+            index = 39
             for _ in range(6):
-                print(f"CAll trace {index} {index + 4}  {data[index:index + 4]}")
-                self.reset_data.fault_data[i].call_trace.append(int.from_bytes(data[index:(index + 4)], 'little'))
+                self.reset_data.fault_data[i].call_trace.append(int.from_bytes(fault_data[index:(index + 4)], 'little'))
                 index = index + 4
-            
-            #data = data[64:]
-
-
-        print(f"reset data: {self.reset_data}")
-            
 
     def handle_evt_gap_adv_report(self, evt: ble.BleEventGapAdvReport):
         
@@ -498,16 +441,16 @@ class BleController():
         adv_packet = False  # used to separate adv packets from scan responses
 
         # Parse the advertising structures
-        adv_structs = self.parse_adv_data(evt)
-        for adv_struct in adv_structs:
+        ad_structs = self.parse_adv_data(evt)
+        for ad_struct in ad_structs:
             # This is an advertising packet (vs scan response)  # TODO How to initiate scan request from Central?
-            if adv_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_FLAGS:
+            if ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_FLAGS:
                 adv_packet = True
             # device name found
-            if (adv_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_LOCAL_NAME
-                    or adv_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_SHORT_LOCAL_NAME):
+            if (ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_LOCAL_NAME
+                    or ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_SHORT_LOCAL_NAME):
                 # some devices have a null character for the short name, ignore them
-                decoded_name = adv_struct.data.decode("utf-8")
+                decoded_name = ad_struct.data.decode("utf-8")
                 if decoded_name != '\x00':
                     name = decoded_name
 
@@ -521,37 +464,16 @@ class BleController():
             else:
                 self.scan_dict[evt.address.addr] = (name, adv_report[1], evt)
         else:
-            for adv_struct in adv_structs:
+            for ad_struct in ad_structs:
                 # only want devices that advertise Debug Crash Info Service
-                if (adv_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_UUID128_SVC_DATA 
-                        and adv_struct.data[:-1] == self.crash_info_uuid.uuid):
+                if (ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_UUID128_SVC_DATA 
+                        and ad_struct.data[:-1] == self.crash_info_uuid.uuid):
                     # first time seeing this device, add it to dict with an empty scan rsp
                     self.scan_dict[evt.address.addr] = (name, evt, ble.BleEventGapAdvReport())
-
-
-        '''
-        # Set the data in the UI
-        self.app_frame.scan_list_ctrl.SetItem(list_index, 0, name)
-        self.app_frame.scan_list_ctrl.SetItem(list_index, 1, bd_addr_to_str(evt.address))
-        self.app_frame.scan_list_ctrl.SetItem(list_index, 2, str(evt.rssi))
-        if adv_packet:
-            self.app_frame.scan_list_ctrl.SetItem(list_index, 3, str(adv_structs))
-        else:
-            self.app_frame.scan_list_ctrl.SetItem(list_index, 4, str(adv_structs))
-
-        # keep track of # of new devices so we can insert them in the list
-        if increment_index:
-            self.app_frame.scan_list_ctrl_index += 1
-
-        print(f"Advertisment: address={bd_addr_to_str(evt.address)} addr_type={evt.address.addr_type} "
-          + f"rssi={evt.rssi}, data={evt.data.hex()}")
-        '''
 
     def parse_adv_data(self, evt: ble.BleEventGapAdvReport) -> list[ble.BleAdvData]:
         data_ptr = 0
         adv_data_structs: ble.BleAdvData = []
-        # print(f"Parsing evt.data={list(evt.data)}")
-        # print(f"parse_adv_data. address={bd_addr_to_str(evt.address)} evt={evt}")
         if evt.length > 0:
             while data_ptr < 31 and data_ptr < evt.length:
                 struct = ble.BleAdvData(len=evt.data[data_ptr], type=evt.data[data_ptr + 1])
@@ -567,57 +489,37 @@ class BleController():
         return adv_data_structs
 
     def handle_evt_scan_completed(self, evt: ble.BleEventGapScanCompleted):
-        # TODO print a clean structure
-        print(f"Scan complete")
+        self.log("Scan complete")
+        device_info = ""
         for key in self.scan_dict:
             name, adv_packet, scan_rsp = self.scan_dict[key]
-            print(f"Device name: {name}, addr: {bd_addr_to_str(adv_packet.address)} report: {adv_packet}")
-            print("\tAdvertising data:")
-            adv_structs = self.parse_adv_data(adv_packet)
-            for adv_struct in adv_structs:
-                print(f"\tAdv struct: {adv_struct}")
-                if adv_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_UUID128_SVC_DATA:
-                    num_resets = adv_struct.data[-1]
-                    print(f"num_resets: {num_resets}")
+            device_info += f"Device name: {name}, addr: {self.bd_addr_to_str(adv_packet.address)}"
 
-            print(f"\t Scan Data:")
-            adv_structs = self.parse_adv_data(scan_rsp)
-            for adv_struct in adv_structs:
-                print(f"\Scan struct: {adv_struct}")
+            ad_structs = self.parse_adv_data(adv_packet)
+            for ad_struct in ad_structs:
+                if ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_UUID128_SVC_DATA:
+                    num_resets = ad_struct.data[-1]
+                    device_info += f", number of resets: {num_resets}"
 
-
-       # self.app_frame.scan_spinner.Stop()
-       # self.app_frame.scan_spinner.Hide()
-       # self.app_frame.scan_btn.SetLabel("Start Scan")
-        # TODO status is always coming back BLE_ERROR_TIMEOUT
-
-       # self.app_frame.log(f"Scan completed: status={evt.status.name}")
+            self.log(device_info)
 
     def handle_evt_gap_connected(self, evt: ble.BleEventGapConnected):
-                #self.app_frame.connect_btn.SetLabel("Disconnect")
+        #self.app_frame.connect_btn.SetLabel("Disconnect")
         self.connected_addr = evt.peer_address
         self.connected_name = "Unknown"
-        print(f"Connected to: address={bd_addr_to_str(evt.peer_address)}")
+        self.log(f"Connected to: address={self.bd_addr_to_str(evt.peer_address)}")
 
     
     def handle_evt_gap_connection_compelted(self, evt: ble.BleEventGapConnectionCompleted):
-        print(f"Connection completed: status={evt.status.name}")
-
-        # move this 
-        self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_BROWSE
-        # start in a background task
-        self.bg_task = asyncio.create_task(self.central.browse(0, uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR)))
+        self.log(f"Connection completed: status={evt.status.name}")
 
     def handle_evt_gattc_browse_svc(self, evt: ble.BleEventGattcBrowseSvc):
-
         self.dci_svc.svc_handle = evt.start_h
-        
-
         for item in evt.items:
             if item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_CHARACTERISTIC:
-                if item.uuid == uuid_from_str(DEBUG_CRASH_INFO_RX_CHAR_UUID_STR):
+                if item.uuid == self.uuid_from_str(DEBUG_CRASH_INFO_RX_CHAR_UUID_STR):
                     self.dci_svc.rx = item
-                elif item.uuid == uuid_from_str(DEBUG_CRASH_INFO_TX_CHAR_UUID_STR):
+                elif item.uuid == self.uuid_from_str(DEBUG_CRASH_INFO_TX_CHAR_UUID_STR):
                     self.dci_svc.tx = item
 
             elif item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_DESCRIPTOR:
@@ -626,45 +528,62 @@ class BleController():
                 elif (item.handle == self.dci_svc.tx.handle + 2
                         or item.handle == self.dci_svc.tx.handle + 3):
 
-                        if uuid_to_str(item.uuid) == CCC_UUID_STR:
+                        if self.uuid_to_str(item.uuid) == CCC_UUID_STR:
                             self.dci_svc.tx_ccc = item
-                        elif uuid_to_str(item.uuid) == CCC_UUID_STR:
-                            self.dci_svc.tx_user_desc = item
-                        #print(f"item handle desc {uuid_to_str(item.uuid)}")
-                    
-                # TODO format properties function
-                print(f"\t\tDescriptor discovered: handle={item.handle}, uuid={uuid_to_str(item.uuid)}")
-
-        print(f"Browse Complete")
-        # move this
-        self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_ENABLE_CCC
-        self.bg_task = asyncio.create_task(self.central.write(0, self.dci_svc.tx_ccc.handle, 0, bytes(GATT_EVENT.GATT_EVENT_NOTIFICATION.to_bytes(2, 'little'))))
-        
+                        elif self.uuid_to_str(item.uuid) == CCC_UUID_STR:
+                            self.dci_svc.tx_user_desc = item       
 
     def handle_evt_gattc_browse_completed(self, evt: ble.BleEventGattcBrowseCompleted):
-        print(f"Browsing complete: conn_idx={evt.conn_idx}, evt={evt.status}")
+        self.log(f"Browsing complete: conn_idx={evt.conn_idx}, evt={evt.status.name}")
 
     def handle_evt_gattc_write_completed(self, evt: ble.BleEventGattcWriteCompleted):
-        print(f"Write Complete: conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status.name}")
+        self.log(f"Write Complete: conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status.name}")
 
 
     def handle_evt_gattc_notification(self, evt: ble.BleEventGattcNotification):
-        print(f"Received Notification: conn_idx={evt.conn_idx}, handle={evt.handle}, value=0x{evt.value.hex()}")
+        self.log(f"Received Notification: conn_idx={evt.conn_idx}, handle={evt.handle}, value=0x{evt.value.hex()}")
+
+    def handle_evt_gap_disconnected(self, evt: ble.BleEventGapDisconnected):
+        # TODO addr to hex str
+        self.log(f"Disconnected from to: addr={self.bd_addr_to_str(evt.address)}")
+
+    def str_to_bd_addr(self, type: ble.BLE_ADDR_TYPE, bd_addr_str: str) -> ble.BdAddress:
+        bd_addr_str = bd_addr_str.replace(":", "")
+        bd_addr_list = [int(bd_addr_str[idx:idx + 2], 16) for idx in range(0, len(bd_addr_str), 2)]
+        bd_addr_list.reverse()  # mcu is little endian
+        return ble.BdAddress(type, bytes(bd_addr_list))
+
+    def uuid_from_str(self, uuid_str: str) -> bytes:
+        uuid_str = uuid_str.replace("-", "")
+        uuid_list = [int(uuid_str[idx:idx + 2], 16) for idx in range(0, len(uuid_str), 2)]
+        uuid_list.reverse()  # mcu is little endian
+        return ble.AttUuid(bytes(uuid_list))
+
+    def uuid_to_str(self, uuid: ble.AttUuid) -> str:
+        data = uuid.uuid
+        return_string = ""
+        if uuid.type == ble.ATT_UUID_TYPE.ATT_UUID_128:
+            for byte in data:
+                byte_string = str(hex(byte))[2:]
+                if len(byte_string) == 1:  # Add a leading 0
+                    byte_string = "0" + byte_string
+                return_string = byte_string + return_string
+        else:
+            for i in range(1, -1, -1):
+                byte_string = str(hex(data[i]))[2:]
+                if len(byte_string) == 1:
+                    byte_string = "0" + byte_string
+                return_string += byte_string
+
+        return return_string
+    
+    
 
 
 
 
 
 
-def handle_evt_gap_disconnected(evt: ble.BleEventGapDisconnected):
-    # TODO addr to hex str
-    print(f"Disconnected from to: addr={bd_addr_to_str(evt.address)}")
-
-
-
-
-def handle_evt_gattc_read_completed(evt: ble.BleEventGattcReadCompleted):
-    print(f"Read Complete: conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status.name}, value=0x{evt.value.hex()}")
 
 
 
@@ -674,55 +593,6 @@ def handle_evt_gattc_read_completed(evt: ble.BleEventGattcReadCompleted):
 
 
 
-
-# TODO move these to a ultility package
-def str_to_bd_addr(type: ble.BLE_ADDR_TYPE, bd_addr_str: str) -> ble.BdAddress:
-    bd_addr_str = bd_addr_str.replace(":", "")
-    bd_addr_list = [int(bd_addr_str[idx:idx + 2], 16) for idx in range(0, len(bd_addr_str), 2)]
-    bd_addr_list.reverse()  # mcu is little endian
-    return ble.BdAddress(type, bytes(bd_addr_list))
-
-
-def bd_addr_to_str(bd: ble.BdAddress) -> str:
-    return_string = ""
-    for byte in bd.addr:
-        byte_string = str(hex(byte))[2:]
-        if len(byte_string) == 1:  # Add a leading 0
-            byte_string = "0" + byte_string
-        return_string = byte_string + ":" + return_string
-    return return_string[:-1]
-
-def uuid_from_str(uuid_str: str) -> bytes:
-    uuid_str = uuid_str.replace("-", "")
-    uuid_list = [int(uuid_str[idx:idx + 2], 16) for idx in range(0, len(uuid_str), 2)]
-    uuid_list.reverse()  # mcu is little endian
-    return ble.AttUuid(bytes(uuid_list))
-
-def uuid_to_str(uuid: ble.AttUuid) -> str:
-    data = uuid.uuid
-    return_string = ""
-    if uuid.type == ble.ATT_UUID_TYPE.ATT_UUID_128:
-        for byte in data:
-            byte_string = str(hex(byte))[2:]
-            if len(byte_string) == 1:  # Add a leading 0
-                byte_string = "0" + byte_string
-            return_string = byte_string + return_string
-    else:
-        for i in range(1, -1, -1):
-            byte_string = str(hex(data[i]))[2:]
-            if len(byte_string) == 1:
-                byte_string = "0" + byte_string
-            return_string += byte_string
-
-    return return_string
-
-
-def format_properties(prop: int) -> str:
-    propr_str = "BRXWNISE"  # each letter corresponds to single property
-    for i in range(0, 8):
-        if prop & (1 << i) == 0:
-            propr_str = propr_str.replace(propr_str[i], '-')
-    return propr_str
 
 
 async def main(com_port: str):
@@ -730,7 +600,7 @@ async def main(com_port: str):
     ble_response_q = asyncio.Queue()
     ble_handler = BleController(com_port, ble_command_q, ble_response_q)
     # TODO class to handle console interaction
-    await asyncio.gather(console(ble_command_q, ble_response_q), ble_handler.ble_task())
+    await asyncio.gather(console(ble_command_q, ble_response_q), ble_handler.init())
 
 
 if __name__ == "__main__":
