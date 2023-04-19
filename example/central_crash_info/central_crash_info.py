@@ -598,8 +598,12 @@ async def main(com_port: str):
     ble_command_q = asyncio.Queue()
     ble_response_q = asyncio.Queue()
     ble_handler = BleController(com_port, ble_command_q, ble_response_q)
+    
     # TODO class to handle console interaction
-    await asyncio.gather(console(ble_command_q, ble_response_q), ble_handler.init())
+
+    # return_exceptions: https://stackoverflow.com/questions/65147823/python-asyncio-task-exception-was-never-retrieved
+    # suppresses "Task exception was never retrieved" when using KeyboardInterrupt
+    await asyncio.gather(console(ble_command_q, ble_response_q), ble_handler.init(), return_exceptions=True)
 
 
 if __name__ == "__main__":
@@ -610,4 +614,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    asyncio.run(main(args.com_port))
+    try:
+        asyncio.run(main(args.com_port))
+    except KeyboardInterrupt:
+        pass
+    finally:
+        print("Exiting")

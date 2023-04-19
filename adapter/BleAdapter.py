@@ -82,8 +82,9 @@ class BleAdapter():
         return await self.serial_rx_q.get()
 
     def _task_done_handler(self, task: asyncio.Task):
-        if task.exception():
-            task.result()  # Raise the exception
+        pass
+        #if task.exception():
+        #    task.result()  # Raise the exception
 
     def init(self):
         self._task = asyncio.create_task(self._adapter_task(), name='BleAdapterTask')

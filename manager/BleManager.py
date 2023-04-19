@@ -133,8 +133,9 @@ class BleManager(BleManagerBase):
                 print(f"BleManager._process_event_queue. Unhandled event={event}\n")
 
     def _task_done_handler(self, task: asyncio.Task):
-        if task.exception():
-            task.result()  # Raise the exception
+        pass
+        #if task.exception():
+        #    task.result()  # Raise the exception
 
     async def cmd_execute(self, command: BleMgrMsgBase) -> BLE_ERROR:
         ble_status = self.gap_mgr.dev_params.status
