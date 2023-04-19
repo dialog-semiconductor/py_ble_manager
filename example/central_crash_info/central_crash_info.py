@@ -157,6 +157,7 @@ async def console(ble_command_q: asyncio.Queue, ble_response_q: asyncio.Queue):
                 ble_command_q.put_nowait(input)
                 response = await ble_response_q.get()
                 print(f"<<< {response}")
+                # TODO wait for EVENT from ble_task before accepting additional input (eg scan done)
 
 
 class BleController():
@@ -176,23 +177,17 @@ class BleController():
         self.response = ResetData()
         self.reset_data = DciData()
         self.connected_name = "Unknown"
-        
-
-        #self.connection_state = CONNECTION_STATE.CONNECTION_STATE_UNCONNECTED  # TODO need to handle multiple connections (use list of connections)
-        #self.scanning_state = SCANNING_STATE.SCANNING_STATE_INACTIVE
 
     async def init(self):
         await self.create_log_file()
         await self.ble_task()
 
-
     async def create_log_file(self):
 
         self.log_tasks = set()
         # TODO move directory
-        self.log_file = await aiofiles.open(f'DCI_log_{time.strftime("%Y%m%d-%H%M%S")}.txt', mode='w') 
+        self.log_file = await aiofiles.open(f'DCI_log_{time.strftime("%Y%m%d-%H%M%S")}.txt', mode='w')
                 
-
     def log(self, string: str):
         print(string)
         log_to_file_task = asyncio.create_task(self.log_file.write(string + "\r"))
@@ -213,8 +208,6 @@ class BleController():
         assert self.com_port
         assert self.command_q
         assert self.response_q
-
-        services = ble.SearchableQueue()
 
         # initalize central device
         self.central = ble.BleCentral(self.com_port, gtl_debug=False)
@@ -251,8 +244,8 @@ class BleController():
 
                 # Handle and BLE events that have occurred
                 if task is self.ble_event_task:
-                    evt: ble.BleEventBase = task.result()  # TODO how does timeout error affect result
-                    await self.handle_ble_event(evt, services)  # TODO services belongs in central??
+                    evt: ble.BleEventBase = task.result()
+                    await self.handle_ble_event(evt)
 
                     # restart ble event task
                     self.ble_event_task = asyncio.create_task(self.central.get_event(), name='GetBleEvent')
@@ -292,7 +285,7 @@ class BleController():
                         periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
                         error = await self.central.connect(periph_bd, periph_conn_params)
 
-                        # move to state machine function
+                    # move to state machine function
                     if error == ble.BLE_ERROR.BLE_STATUS_OK:
                         self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_CONNECT
 
@@ -301,8 +294,7 @@ class BleController():
 
         return error
 
-    async def handle_ble_event(self, evt: ble.BleEventBase = None, services: ble.BleServiceBase = None):
-        # TODO refactor so central and services not required
+    async def handle_ble_event(self, evt: ble.BleEventBase = None):
         if evt:
             match evt.evt_code:
                 case ble.BLE_EVT_GAP.BLE_EVT_GAP_ADV_REPORT:
@@ -353,14 +345,14 @@ class BleController():
                         # +1 as handle is for char declaration
                         # TODO rx/tx named from perspective of periph. Change to perspective of central
                         # TODO would be nice to handle a rewsponse here
-                        
+                        self.connected_name = "Unknown"
                         self.bg_task = asyncio.create_task(self.central.write(0, (self.dci_svc.rx.handle + 1), 0, bytes(DCI_SVC_COMMAND.DCI_SERVICE_COMMAND_GET_ALL_DATA.to_bytes(1, 'little'))))
                     else:
                         self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_ERROR
                        
             case FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_RESPONSE:
                 if (evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_NOTIFICATION
-                        and evt.handle == self.dci_svc.tx.handle+1):
+                        and evt.handle == self.dci_svc.tx.handle + 1):
 
                     # TODO need to know what response waiting for
                     evt: ble.BleEventGattcNotification
@@ -504,12 +496,9 @@ class BleController():
             self.log(device_info)
 
     def handle_evt_gap_connected(self, evt: ble.BleEventGapConnected):
-        #self.app_frame.connect_btn.SetLabel("Disconnect")
         self.connected_addr = evt.peer_address
-        self.connected_name = "Unknown"
         self.log(f"Connected to: address={self.bd_addr_to_str(evt.peer_address)}")
 
-    
     def handle_evt_gap_connection_compelted(self, evt: ble.BleEventGapConnectionCompleted):
         self.log(f"Connection completed: status={evt.status.name}")
 
@@ -528,17 +517,16 @@ class BleController():
                 elif (item.handle == self.dci_svc.tx.handle + 2
                         or item.handle == self.dci_svc.tx.handle + 3):
 
-                        if self.uuid_to_str(item.uuid) == CCC_UUID_STR:
-                            self.dci_svc.tx_ccc = item
-                        elif self.uuid_to_str(item.uuid) == CCC_UUID_STR:
-                            self.dci_svc.tx_user_desc = item       
+                    if self.uuid_to_str(item.uuid) == CCC_UUID_STR:
+                        self.dci_svc.tx_ccc = item
+                    elif self.uuid_to_str(item.uuid) == CCC_UUID_STR:
+                        self.dci_svc.tx_user_desc = item
 
     def handle_evt_gattc_browse_completed(self, evt: ble.BleEventGattcBrowseCompleted):
         self.log(f"Browsing complete: conn_idx={evt.conn_idx}, evt={evt.status.name}")
 
     def handle_evt_gattc_write_completed(self, evt: ble.BleEventGattcWriteCompleted):
         self.log(f"Write Complete: conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status.name}")
-
 
     def handle_evt_gattc_notification(self, evt: ble.BleEventGattcNotification):
         self.log(f"Received Notification: conn_idx={evt.conn_idx}, handle={evt.handle}, value=0x{evt.value.hex()}")
@@ -576,23 +564,6 @@ class BleController():
                 return_string += byte_string
 
         return return_string
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 async def main(com_port: str):
