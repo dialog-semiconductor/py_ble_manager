@@ -98,27 +98,6 @@ class BleController():
         self.connected_name = "Unknown"
         self.device_name_char = ble.GattcItem()
 
-    async def init(self):
-        await self.create_log_file()
-        await self.ble_task()
-
-    async def create_log_file(self):
-
-        self.log_tasks = set()
-        # TODO move directory
-        logs_directory = f"{FILE_PATH}\logs"
-        if not os.path.exists(logs_directory):
-            os.makedirs(logs_directory)
-        self.log_file = await aiofiles.open(f'{logs_directory}\DCI_log_{time.strftime("%Y%m%d-%H%M%S")}.txt', mode='w')
-
-    def log(self, string: str):
-        print(string)
-        log_to_file_task = asyncio.create_task(self.log_file.write(string + "\r"))
-        self.log_tasks.add(log_to_file_task)
-        log_to_file_task.add_done_callback(self.log_tasks.discard)
-
-        # TODO consider asyncio.sleep here to give the logging task a chance to write the data to the file
-
     def bd_addr_to_str(self, bd: ble.BdAddress) -> str:
         return_string = ""
         for byte in bd.addr:
@@ -175,6 +154,48 @@ class BleController():
                     self.ble_event_task = asyncio.create_task(self.central.get_event(), name='GetBleEvent')
                     pending.add(self.ble_event_task)
 
+    async def create_log_file(self):
+
+        self.log_tasks = set()
+        # TODO move directory
+        logs_directory = f"{FILE_PATH}\logs"
+        if not os.path.exists(logs_directory):
+            os.makedirs(logs_directory)
+        self.log_file = await aiofiles.open(f'{logs_directory}\DCI_log_{time.strftime("%Y%m%d-%H%M%S")}.txt', mode='w')
+
+    async def init(self):
+        await self.create_log_file()
+        await self.ble_task()
+
+    async def handle_ble_event(self, evt: ble.BleEventBase = None):
+        if evt:
+            match evt.evt_code:
+                case ble.BLE_EVT_GAP.BLE_EVT_GAP_ADV_REPORT:
+                    self.handle_evt_gap_adv_report(evt)
+                case ble.BLE_EVT_GAP.BLE_EVT_GAP_SCAN_COMPLETED:
+                    self.handle_evt_gap_scan_completed(evt)
+                case ble.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED:
+                    self.handle_evt_gap_connected(evt)
+                case ble.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED:
+                    self.handle_evt_gap_connection_compelted(evt)
+                case ble.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED:
+                    self.handle_evt_gap_disconnected(evt)
+                case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_SVC:
+                    self.handle_evt_gattc_browse_svc(evt)
+                case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED:
+                    self.handle_evt_gattc_browse_completed(evt)
+                case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_NOTIFICATION:
+                    self.handle_evt_gattc_notification(evt)
+                case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED:
+                    self.handle_evt_gattc_write_completed(evt)
+                case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_READ_COMPLETED:
+                    self.handle_evt_gattc_read_completed(evt)
+
+                case _:
+                    await self.central.handle_event_default(evt)
+
+            self.process_fetch_state(evt)
+
     async def handle_console_command(self, command: str) -> ble.BLE_ERROR:
         error = ble.BLE_ERROR.BLE_ERROR_FAILED
         args = command.split()
@@ -222,35 +243,174 @@ class BleController():
                     pass
 
         return error
+    
+    def handle_evt_gap_adv_report(self, evt: ble.BleEventGapAdvReport):
 
-    async def handle_ble_event(self, evt: ble.BleEventBase = None):
-        if evt:
-            match evt.evt_code:
-                case ble.BLE_EVT_GAP.BLE_EVT_GAP_ADV_REPORT:
-                    self.handle_evt_gap_adv_report(evt)
-                case ble.BLE_EVT_GAP.BLE_EVT_GAP_SCAN_COMPLETED:
-                    self.handle_evt_scan_completed(evt)
-                case ble.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED:
-                    self.handle_evt_gap_connected(evt)
-                case ble.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED:
-                    self.handle_evt_gap_connection_compelted(evt)
-                case ble.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED:
-                    self.handle_evt_gap_disconnected(evt)
-                case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_SVC:
-                    self.handle_evt_gattc_browse_svc(evt)
-                case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED:
-                    self.handle_evt_gattc_browse_completed(evt)
-                case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_NOTIFICATION:
-                    self.handle_evt_gattc_notification(evt)
-                case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED:
-                    self.handle_evt_gattc_write_completed(evt)
-                case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_READ_COMPLETED:
-                    self.handle_evt_gattc_read_completed(evt)
+        name = "Unknown"
+        adv_packet = False  # used to separate adv packets from scan responses
 
-                case _:
-                    await self.central.handle_event_default(evt)
+        # Parse the advertising structures
+        ad_structs = self.parse_adv_data(evt)
+        for ad_struct in ad_structs:
+            # This is an advertising packet (vs scan response)  # TODO How to initiate scan request from Central?
+            if ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_FLAGS:
+                adv_packet = True
+            # device name found
+            if (ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_LOCAL_NAME
+                    or ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_SHORT_LOCAL_NAME):
+                # some devices have a null character for the short name, ignore them
+                decoded_name = ad_struct.data.decode("utf-8")
+                if decoded_name != '\x00':
+                    name = decoded_name
 
-            self.process_fetch_state(evt)
+        if adv_report := self.scan_dict.get(evt.address.addr):
+            # Item exists in dict, update it
+            # if we have a name for this device, do not overwrite it with Unknown
+            if adv_report[0] != "Unknown":
+                name = adv_report[0]
+            if adv_packet:
+                self.scan_dict[evt.address.addr] = (name, evt, adv_report[2])
+            else:
+                self.scan_dict[evt.address.addr] = (name, adv_report[1], evt)
+        else:
+            for ad_struct in ad_structs:
+                # only want devices that advertise Debug Crash Info Service
+                if (ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_UUID128_SVC_DATA 
+                        and ad_struct.data[:-1] == self.crash_info_uuid.uuid):
+                    # first time seeing this device, add it to dict with an empty scan rsp
+                    self.scan_dict[evt.address.addr] = (name, evt, ble.BleEventGapAdvReport())
+
+    def handle_evt_gap_connected(self, evt: ble.BleEventGapConnected):
+        self.connected_addr = evt.peer_address
+        self.log(f"Connected to: address={self.bd_addr_to_str(evt.peer_address)}")
+
+    def handle_evt_gap_connection_compelted(self, evt: ble.BleEventGapConnectionCompleted):
+        self.log(f"Connection completed: status={evt.status.name}")
+
+    def handle_evt_gap_disconnected(self, evt: ble.BleEventGapDisconnected):
+        # TODO addr to hex str
+        self.log(f"Disconnected from to: addr={self.bd_addr_to_str(evt.address)}")
+
+    def handle_evt_gap_scan_completed(self, evt: ble.BleEventGapScanCompleted):
+        self.log("Scan complete")
+        device_info = ""
+        for key in self.scan_dict:
+            name, adv_packet, scan_rsp = self.scan_dict[key]
+            device_info += f"Device name: {name}, addr: {self.bd_addr_to_str(adv_packet.address)}"
+
+            ad_structs = self.parse_adv_data(adv_packet)
+            for ad_struct in ad_structs:
+                if ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_UUID128_SVC_DATA:
+                    num_resets = ad_struct.data[-1]
+                    device_info += f", number of resets: {num_resets}"
+
+            self.log(device_info)
+
+    def handle_evt_gattc_browse_completed(self, evt: ble.BleEventGattcBrowseCompleted):
+        self.log(f"Browsing complete: conn_idx={evt.conn_idx}, evt={evt.status.name}")
+
+    def handle_evt_gattc_browse_svc(self, evt: ble.BleEventGattcBrowseSvc):
+
+        if (self.uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR) == evt.uuid):
+            self.dci_svc.svc_handle = evt.start_h
+            for item in evt.items:
+                if item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_CHARACTERISTIC:
+                    if item.uuid == self.uuid_from_str(DEBUG_CRASH_INFO_RX_CHAR_UUID_STR):
+                        self.dci_svc.rx = item
+                    elif item.uuid == self.uuid_from_str(DEBUG_CRASH_INFO_TX_CHAR_UUID_STR):
+                        self.dci_svc.tx = item
+
+                elif item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_DESCRIPTOR:
+                    if item.handle == self.dci_svc.rx.handle + 2:
+                        self.dci_svc.rx_user_desc = item
+                    elif (item.handle == self.dci_svc.tx.handle + 2
+                            or item.handle == self.dci_svc.tx.handle + 3):
+
+                        if self.uuid_to_str(item.uuid) == CCC_UUID_STR:
+                            self.dci_svc.tx_ccc = item
+                        elif self.uuid_to_str(item.uuid) == CCC_UUID_STR:
+                            self.dci_svc.tx_user_desc = item
+
+    def handle_evt_gattc_notification(self, evt: ble.BleEventGattcNotification):
+        self.log(f"Received Notification: conn_idx={evt.conn_idx}, handle={evt.handle}, value=0x{evt.value.hex()}")
+
+    def handle_evt_gattc_read_completed(self, evt: ble.BleEventGattcReadCompleted):
+        self.log(f"Read Complete: conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status.name}, value=0x{evt.value.hex()}")
+
+    def handle_evt_gattc_write_completed(self, evt: ble.BleEventGattcWriteCompleted):
+        self.log(f"Write Complete: conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status.name}")
+
+    def log(self, string: str):
+        print(string)
+        log_to_file_task = asyncio.create_task(self.log_file.write(string + "\r"))
+        self.log_tasks.add(log_to_file_task)
+        log_to_file_task.add_done_callback(self.log_tasks.discard)
+
+        # TODO consider asyncio.sleep here to give the logging task a chance to write the data to the file
+
+    def log_reset_data(self):
+        self.log("*******************Debug Crash Info*******************")
+        self.log(f"Device name: {self.connected_name}")
+        self.log(f"Device address: {self.bd_addr_to_str(self.connected_addr)}")
+        self.log(f"Last reset reason: {self.reset_data.last_reset_reason.name}")
+        self.log(f"Number of resets: {self.reset_data.num_resets}")
+
+        for i in range(self.reset_data.num_resets):
+            if self.reset_data.fault_data[i].data_valid:
+                self.log(f"Fault Data #{i}:")
+                self.log(f"\t Epoch: {self.reset_data.fault_data[i].epoch}")
+                self.log(f"\t Fault Type: {self.reset_data.fault_data[i].fault_handler.name}")
+                self.log(f"\t Last stack frame: ")
+                self.log(f"\t\t r0:  0x{self.reset_data.fault_data[i].stack_frame.r0:08x}")
+                self.log(f"\t\t r1:  0x{self.reset_data.fault_data[i].stack_frame.r1:08x}")
+                self.log(f"\t\t r2:  0x{self.reset_data.fault_data[i].stack_frame.r2:08x}")
+                self.log(f"\t\t r3:  0x{self.reset_data.fault_data[i].stack_frame.r3:08x}")
+                self.log(f"\t\t r12: 0x{self.reset_data.fault_data[i].stack_frame.r12:08x}")
+                self.log(f"\t\t LR:  0x{self.reset_data.fault_data[i].stack_frame.LR:08x}")
+                self.log(f"\t\t return_address: 0x{self.reset_data.fault_data[i].stack_frame.return_address:08x}")
+                self.log(f"\t\t xPSR: 0x{self.reset_data.fault_data[i].stack_frame.xPSR:08x}")
+
+                self.log(f"\t Call trace: ")
+                for j in range(self.reset_data.fault_data[i].num_of_call_vals):
+                    self.log(f"\t\t Call address {j}: 0x{self.reset_data.fault_data[i].call_trace[j]:08x}")
+
+    def parse_adv_data(self, evt: ble.BleEventGapAdvReport) -> list[ble.BleAdvData]:
+        data_ptr = 0
+        adv_data_structs: ble.BleAdvData = []
+        if evt.length > 0:
+            while data_ptr < 31 and data_ptr < evt.length:
+                struct = ble.BleAdvData(len=evt.data[data_ptr], type=evt.data[data_ptr + 1])
+
+                if struct.len == 0 or struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_NONE:
+                    break
+
+                data_ptr += 2
+                struct.data = evt.data[data_ptr:(data_ptr + struct.len - 1)]  # -1 as calc includes AD Type
+                data_ptr += struct.len - 1  # -1 as calc includes AD Type
+                adv_data_structs.append(struct)
+
+        return adv_data_structs
+
+    def parse_reset_data(self, data: bytes):
+
+        self.reset_data.last_reset_reason = DCI_REST_REASON(data[0])
+        self.reset_data.num_resets = data[1]
+
+        # TODO this is assuming data is the appropriate length
+
+        fault_data = data[2:]
+        for i in range(self.reset_data.num_resets):
+            fault_data = fault_data[(i * 63):]
+            self.reset_data.fault_data.append(DciFaultInfo())
+            self.reset_data.fault_data[i].data_valid = bool(fault_data[0])
+            self.reset_data.fault_data[i].epoch = int.from_bytes(fault_data[1:5], 'little')
+            self.reset_data.fault_data[i].fault_handler = DCI_LAST_FAULT_HANDLER(fault_data[5])
+            self.reset_data.fault_data[i].stack_frame = CortexM0StackFrame(fault_data[6:38])
+            self.reset_data.fault_data[i].num_of_call_vals = int(fault_data[38])
+            index = 39
+            for _ in range(6):
+                self.reset_data.fault_data[i].call_trace.append(int.from_bytes(fault_data[index:(index + 4)], 'little'))
+                index = index + 4
 
     def process_fetch_state(self, evt: ble.BleEventBase):
 
@@ -290,7 +450,7 @@ class BleController():
                         self.bg_task = asyncio.create_task(self.central.write(0, (self.dci_svc.rx.handle + 1), 0, bytes(DCI_SVC_COMMAND.DCI_SERVICE_COMMAND_GET_ALL_DATA.to_bytes(1, 'little'))))
                     else:
                         self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_ERROR
-                       
+       
             case FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_RESPONSE:
                 if (evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_NOTIFICATION
                         and evt.handle == self.dci_svc.tx.handle + 1):
@@ -322,167 +482,6 @@ class BleController():
         if self.fetch_state == FETCH_DATA_STATE.FETCH_DATA_ERROR:
             self.log("Errorrrrr")
             # TODO disconnect if connected
-
-    def log_reset_data(self):
-        self.log("*******************Debug Crash Info*******************")
-        self.log(f"Device name: {self.connected_name}")
-        self.log(f"Device address: {self.bd_addr_to_str(self.connected_addr)}")
-        self.log(f"Last reset reason: {self.reset_data.last_reset_reason.name}")
-        self.log(f"Number of resets: {self.reset_data.num_resets}")
-
-        for i in range(self.reset_data.num_resets):
-            if self.reset_data.fault_data[i].data_valid:
-                self.log(f"Fault Data #{i}:")
-                self.log(f"\t Epoch: {self.reset_data.fault_data[i].epoch}")
-                self.log(f"\t Fault Type: {self.reset_data.fault_data[i].fault_handler.name}")
-                self.log(f"\t Last stack frame: ")
-                self.log(f"\t\t r0:  0x{self.reset_data.fault_data[i].stack_frame.r0:08x}")
-                self.log(f"\t\t r1:  0x{self.reset_data.fault_data[i].stack_frame.r1:08x}")
-                self.log(f"\t\t r2:  0x{self.reset_data.fault_data[i].stack_frame.r2:08x}")
-                self.log(f"\t\t r3:  0x{self.reset_data.fault_data[i].stack_frame.r3:08x}")
-                self.log(f"\t\t r12: 0x{self.reset_data.fault_data[i].stack_frame.r12:08x}")
-                self.log(f"\t\t LR:  0x{self.reset_data.fault_data[i].stack_frame.LR:08x}")
-                self.log(f"\t\t return_address: 0x{self.reset_data.fault_data[i].stack_frame.return_address:08x}")
-                self.log(f"\t\t xPSR: 0x{self.reset_data.fault_data[i].stack_frame.xPSR:08x}")
-
-                self.log(f"\t Call trace: ")
-                for j in range(self.reset_data.fault_data[i].num_of_call_vals):
-                    self.log(f"\t\t Call address {j}: 0x{self.reset_data.fault_data[i].call_trace[j]:08x}")
-
-
-    def parse_reset_data(self, data: bytes):
-
-        self.reset_data.last_reset_reason = DCI_REST_REASON(data[0])
-        self.reset_data.num_resets = data[1]
-
-        # TODO this is assuming data is the appropriate length
-
-        fault_data = data[2:]
-        for i in range(self.reset_data.num_resets):
-            fault_data = fault_data[(i * 63):]
-            self.reset_data.fault_data.append(DciFaultInfo())
-            self.reset_data.fault_data[i].data_valid = bool(fault_data[0])
-            self.reset_data.fault_data[i].epoch = int.from_bytes(fault_data[1:5], 'little')
-            self.reset_data.fault_data[i].fault_handler = DCI_LAST_FAULT_HANDLER(fault_data[5])
-            self.reset_data.fault_data[i].stack_frame = CortexM0StackFrame(fault_data[6:38])
-            self.reset_data.fault_data[i].num_of_call_vals = int(fault_data[38])
-            index = 39
-            for _ in range(6):
-                self.reset_data.fault_data[i].call_trace.append(int.from_bytes(fault_data[index:(index + 4)], 'little'))
-                index = index + 4
-
-    def handle_evt_gap_adv_report(self, evt: ble.BleEventGapAdvReport):
-
-        name = "Unknown"
-        adv_packet = False  # used to separate adv packets from scan responses
-
-        # Parse the advertising structures
-        ad_structs = self.parse_adv_data(evt)
-        for ad_struct in ad_structs:
-            # This is an advertising packet (vs scan response)  # TODO How to initiate scan request from Central?
-            if ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_FLAGS:
-                adv_packet = True
-            # device name found
-            if (ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_LOCAL_NAME
-                    or ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_SHORT_LOCAL_NAME):
-                # some devices have a null character for the short name, ignore them
-                decoded_name = ad_struct.data.decode("utf-8")
-                if decoded_name != '\x00':
-                    name = decoded_name
-
-        if adv_report := self.scan_dict.get(evt.address.addr):
-            # Item exists in dict, update it
-            # if we have a name for this device, do not overwrite it with Unknown
-            if adv_report[0] != "Unknown":
-                name = adv_report[0]
-            if adv_packet:
-                self.scan_dict[evt.address.addr] = (name, evt, adv_report[2])
-            else:
-                self.scan_dict[evt.address.addr] = (name, adv_report[1], evt)
-        else:
-            for ad_struct in ad_structs:
-                # only want devices that advertise Debug Crash Info Service
-                if (ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_UUID128_SVC_DATA 
-                        and ad_struct.data[:-1] == self.crash_info_uuid.uuid):
-                    # first time seeing this device, add it to dict with an empty scan rsp
-                    self.scan_dict[evt.address.addr] = (name, evt, ble.BleEventGapAdvReport())
-
-    def parse_adv_data(self, evt: ble.BleEventGapAdvReport) -> list[ble.BleAdvData]:
-        data_ptr = 0
-        adv_data_structs: ble.BleAdvData = []
-        if evt.length > 0:
-            while data_ptr < 31 and data_ptr < evt.length:
-                struct = ble.BleAdvData(len=evt.data[data_ptr], type=evt.data[data_ptr + 1])
-
-                if struct.len == 0 or struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_NONE:
-                    break
-
-                data_ptr += 2
-                struct.data = evt.data[data_ptr:(data_ptr + struct.len - 1)]  # -1 as calc includes AD Type
-                data_ptr += struct.len - 1  # -1 as calc includes AD Type
-                adv_data_structs.append(struct)
-
-        return adv_data_structs
-
-    def handle_evt_scan_completed(self, evt: ble.BleEventGapScanCompleted):
-        self.log("Scan complete")
-        device_info = ""
-        for key in self.scan_dict:
-            name, adv_packet, scan_rsp = self.scan_dict[key]
-            device_info += f"Device name: {name}, addr: {self.bd_addr_to_str(adv_packet.address)}"
-
-            ad_structs = self.parse_adv_data(adv_packet)
-            for ad_struct in ad_structs:
-                if ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_UUID128_SVC_DATA:
-                    num_resets = ad_struct.data[-1]
-                    device_info += f", number of resets: {num_resets}"
-
-            self.log(device_info)
-
-    def handle_evt_gap_connected(self, evt: ble.BleEventGapConnected):
-        self.connected_addr = evt.peer_address
-        self.log(f"Connected to: address={self.bd_addr_to_str(evt.peer_address)}")
-
-    def handle_evt_gap_connection_compelted(self, evt: ble.BleEventGapConnectionCompleted):
-        self.log(f"Connection completed: status={evt.status.name}")
-
-    def handle_evt_gattc_browse_svc(self, evt: ble.BleEventGattcBrowseSvc):
-
-        if (self.uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR) == evt.uuid):
-            self.dci_svc.svc_handle = evt.start_h
-            for item in evt.items:
-                if item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_CHARACTERISTIC:
-                    if item.uuid == self.uuid_from_str(DEBUG_CRASH_INFO_RX_CHAR_UUID_STR):
-                        self.dci_svc.rx = item
-                    elif item.uuid == self.uuid_from_str(DEBUG_CRASH_INFO_TX_CHAR_UUID_STR):
-                        self.dci_svc.tx = item
-
-                elif item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_DESCRIPTOR:
-                    if item.handle == self.dci_svc.rx.handle + 2:
-                        self.dci_svc.rx_user_desc = item
-                    elif (item.handle == self.dci_svc.tx.handle + 2
-                            or item.handle == self.dci_svc.tx.handle + 3):
-
-                        if self.uuid_to_str(item.uuid) == CCC_UUID_STR:
-                            self.dci_svc.tx_ccc = item
-                        elif self.uuid_to_str(item.uuid) == CCC_UUID_STR:
-                            self.dci_svc.tx_user_desc = item
-
-    def handle_evt_gattc_browse_completed(self, evt: ble.BleEventGattcBrowseCompleted):
-        self.log(f"Browsing complete: conn_idx={evt.conn_idx}, evt={evt.status.name}")
-
-    def handle_evt_gattc_write_completed(self, evt: ble.BleEventGattcWriteCompleted):
-        self.log(f"Write Complete: conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status.name}")
-
-    def handle_evt_gattc_notification(self, evt: ble.BleEventGattcNotification):
-        self.log(f"Received Notification: conn_idx={evt.conn_idx}, handle={evt.handle}, value=0x{evt.value.hex()}")
-
-    def handle_evt_gap_disconnected(self, evt: ble.BleEventGapDisconnected):
-        # TODO addr to hex str
-        self.log(f"Disconnected from to: addr={self.bd_addr_to_str(evt.address)}")
-
-    def handle_evt_gattc_read_completed(self, evt: ble.BleEventGattcReadCompleted):
-        self.log(f"Read Complete: conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status.name}, value=0x{evt.value.hex()}")
 
     def str_to_bd_addr(self, type: ble.BLE_ADDR_TYPE, bd_addr_str: str) -> ble.BdAddress:
         bd_addr_str = bd_addr_str.replace(":", "")
