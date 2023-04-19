@@ -26,6 +26,9 @@ DEBUG_CRASH_INFO_TX_CHAR_UUID_STR = "17738e0054f94a2ca6ed1ee67e00f323"
 CCC_UUID_STR = "2902"
 USER_DESC_UUID_STR = "2901"
 
+# TODO is this always 3?
+DEVICE_NAME_HANDLE = 3
+
 
 class GATT_EVENT(IntEnum):
     GATT_EVENT_NONE = 0x0000
@@ -42,7 +45,8 @@ class DCI_SVC_COMMAND(IntEnum):
 class FETCH_DATA_STATE(IntEnum):
     FETCH_DATA_NONE = auto()
     FETCH_DATA_CONNECT = auto()
-    FETCH_DATA_BROWSE = auto()
+    FETCH_DATA_WAIT_FOR_NAME = auto()
+    FETCH_DATA_BROWSE_DCI = auto()
     FETCH_DATA_ENABLE_CCC = auto()
     FETCH_DATA_SEND_GET_DATA_COMMAND = auto()
     FETCH_DATA_WAIT_FOR_RESPONSE = auto()
@@ -177,6 +181,7 @@ class BleController():
         self.response = ResetData()
         self.reset_data = DciData()
         self.connected_name = "Unknown"
+        self.device_name_char = ble.GattcItem()
 
     async def init(self):
         await self.create_log_file()
@@ -256,6 +261,7 @@ class BleController():
         args = command.split()
         if len(args) > 0:
             ble_func = args[0]
+            self.log(f"Incoming command: {command}")
             match ble_func:
                 case 'GAPSCAN':
                     self.scan_dict: dict[bytes, tuple[str, ble.BleEventGapAdvReport]] = {}
@@ -315,6 +321,8 @@ class BleController():
                     self.handle_evt_gattc_notification(evt)
                 case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED:
                     self.handle_evt_gattc_write_completed(evt)
+                case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_READ_COMPLETED:
+                    self.handle_evt_gattc_read_completed(evt)
 
                 case _:
                     await self.central.handle_event_default(evt)
@@ -328,11 +336,23 @@ class BleController():
 
             case FETCH_DATA_STATE.FETCH_DATA_CONNECT:
                 if (evt.evt_code == ble.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED):
-                    self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_BROWSE
-                    self.bg_task = asyncio.create_task(self.central.browse(0, self.uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR)))
+                    self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_NAME
+                    self.bg_task = asyncio.create_task(self.central.read(0, DEVICE_NAME_HANDLE, 0))
 
-            case FETCH_DATA_STATE.FETCH_DATA_BROWSE:
-                if (evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED):
+            case FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_NAME:
+                
+                if(evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_READ_COMPLETED
+                    and evt.handle == DEVICE_NAME_HANDLE):
+                    evt: ble.BleEventGattcReadCompleted
+                    self.connected_name = evt.value.decode("utf-8")
+                    self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_BROWSE_DCI
+                    self.bg_task = asyncio.create_task(self.central.browse(0, self.uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR)))
+                
+
+            case FETCH_DATA_STATE.FETCH_DATA_BROWSE_DCI:
+                evt: ble.BleEventGattcBrowseCompleted
+                if (evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED
+                        and self.dci_svc.svc_handle != 0):
                     self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_ENABLE_CCC
                     self.bg_task = asyncio.create_task(self.central.write(0, self.dci_svc.tx_ccc.handle, 0, bytes(GATT_EVENT.GATT_EVENT_NOTIFICATION.to_bytes(2, 'little'))))
 
@@ -345,7 +365,6 @@ class BleController():
                         # +1 as handle is for char declaration
                         # TODO rx/tx named from perspective of periph. Change to perspective of central
                         # TODO would be nice to handle a rewsponse here
-                        self.connected_name = "Unknown"
                         self.bg_task = asyncio.create_task(self.central.write(0, (self.dci_svc.rx.handle + 1), 0, bytes(DCI_SVC_COMMAND.DCI_SERVICE_COMMAND_GET_ALL_DATA.to_bytes(1, 'little'))))
                     else:
                         self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_ERROR
@@ -377,7 +396,7 @@ class BleController():
 
         if self.fetch_state == FETCH_DATA_STATE.FETCH_DATA_ERROR:
             self.log("Errorrrrr")
-            # TODO disconnect is connected
+            # TODO disconnect if connected
 
     def log_reset_data(self):
         self.log("*******************Debug Crash Info*******************")
@@ -428,7 +447,7 @@ class BleController():
                 index = index + 4
 
     def handle_evt_gap_adv_report(self, evt: ble.BleEventGapAdvReport):
-        
+
         name = "Unknown"
         adv_packet = False  # used to separate adv packets from scan responses
 
@@ -503,24 +522,26 @@ class BleController():
         self.log(f"Connection completed: status={evt.status.name}")
 
     def handle_evt_gattc_browse_svc(self, evt: ble.BleEventGattcBrowseSvc):
-        self.dci_svc.svc_handle = evt.start_h
-        for item in evt.items:
-            if item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_CHARACTERISTIC:
-                if item.uuid == self.uuid_from_str(DEBUG_CRASH_INFO_RX_CHAR_UUID_STR):
-                    self.dci_svc.rx = item
-                elif item.uuid == self.uuid_from_str(DEBUG_CRASH_INFO_TX_CHAR_UUID_STR):
-                    self.dci_svc.tx = item
 
-            elif item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_DESCRIPTOR:
-                if item.handle == self.dci_svc.rx.handle + 2:
-                    self.dci_svc.rx_user_desc = item
-                elif (item.handle == self.dci_svc.tx.handle + 2
-                        or item.handle == self.dci_svc.tx.handle + 3):
+        if (self.uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR) == evt.uuid):
+            self.dci_svc.svc_handle = evt.start_h
+            for item in evt.items:
+                if item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_CHARACTERISTIC:
+                    if item.uuid == self.uuid_from_str(DEBUG_CRASH_INFO_RX_CHAR_UUID_STR):
+                        self.dci_svc.rx = item
+                    elif item.uuid == self.uuid_from_str(DEBUG_CRASH_INFO_TX_CHAR_UUID_STR):
+                        self.dci_svc.tx = item
 
-                    if self.uuid_to_str(item.uuid) == CCC_UUID_STR:
-                        self.dci_svc.tx_ccc = item
-                    elif self.uuid_to_str(item.uuid) == CCC_UUID_STR:
-                        self.dci_svc.tx_user_desc = item
+                elif item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_DESCRIPTOR:
+                    if item.handle == self.dci_svc.rx.handle + 2:
+                        self.dci_svc.rx_user_desc = item
+                    elif (item.handle == self.dci_svc.tx.handle + 2
+                            or item.handle == self.dci_svc.tx.handle + 3):
+
+                        if self.uuid_to_str(item.uuid) == CCC_UUID_STR:
+                            self.dci_svc.tx_ccc = item
+                        elif self.uuid_to_str(item.uuid) == CCC_UUID_STR:
+                            self.dci_svc.tx_user_desc = item
 
     def handle_evt_gattc_browse_completed(self, evt: ble.BleEventGattcBrowseCompleted):
         self.log(f"Browsing complete: conn_idx={evt.conn_idx}, evt={evt.status.name}")
@@ -535,13 +556,16 @@ class BleController():
         # TODO addr to hex str
         self.log(f"Disconnected from to: addr={self.bd_addr_to_str(evt.address)}")
 
+    def handle_evt_gattc_read_completed(self, evt: ble.BleEventGattcReadCompleted):
+        self.log(f"Read Complete: conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status.name}, value=0x{evt.value.hex()}")
+
     def str_to_bd_addr(self, type: ble.BLE_ADDR_TYPE, bd_addr_str: str) -> ble.BdAddress:
         bd_addr_str = bd_addr_str.replace(":", "")
         bd_addr_list = [int(bd_addr_str[idx:idx + 2], 16) for idx in range(0, len(bd_addr_str), 2)]
         bd_addr_list.reverse()  # mcu is little endian
         return ble.BdAddress(type, bytes(bd_addr_list))
 
-    def uuid_from_str(self, uuid_str: str) -> bytes:
+    def uuid_from_str(self, uuid_str: str) -> ble.AttUuid:
         uuid_str = uuid_str.replace("-", "")
         uuid_list = [int(uuid_str[idx:idx + 2], 16) for idx in range(0, len(uuid_str), 2)]
         uuid_list.reverse()  # mcu is little endian
