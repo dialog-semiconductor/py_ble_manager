@@ -1,18 +1,18 @@
 import argparse
+import aiofiles
 import asyncio
+from enum import IntEnum, auto
+import os
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.patch_stdout import patch_stdout
 import time
 
-import aiofiles
-from enum import IntEnum, auto
-
 # TODO rethink relative import
 import sys
 from pathlib import Path
-HERE = Path(__file__).parent
-sys.path.append(str(HERE / '../../'))
+FILE_PATH = Path(__file__).parent
+sys.path.append(str(FILE_PATH / '../../'))
 
 import ble_devices as ble
 
@@ -161,6 +161,8 @@ async def console(ble_command_q: asyncio.Queue, ble_response_q: asyncio.Queue):
                 ble_command_q.put_nowait(input)
                 response = await ble_response_q.get()
                 print(f"<<< {response}")
+                #if input == 'GAPSCAN' and response == "OK":
+                #    await scan_complete_evt.wait()
                 # TODO wait for EVENT from ble_task before accepting additional input (eg scan done)
 
 
@@ -191,8 +193,11 @@ class BleController():
 
         self.log_tasks = set()
         # TODO move directory
-        self.log_file = await aiofiles.open(f'DCI_log_{time.strftime("%Y%m%d-%H%M%S")}.txt', mode='w')
-                
+        logs_directory = f"{FILE_PATH}\logs"
+        if not os.path.exists(logs_directory):
+            os.makedirs(logs_directory)
+        self.log_file = await aiofiles.open(f'{logs_directory}\DCI_log_{time.strftime("%Y%m%d-%H%M%S")}.txt', mode='w')
+
     def log(self, string: str):
         print(string)
         log_to_file_task = asyncio.create_task(self.log_file.write(string + "\r"))
@@ -261,7 +266,6 @@ class BleController():
         args = command.split()
         if len(args) > 0:
             ble_func = args[0]
-            self.log(f"Incoming command: {command}")
             match ble_func:
                 case 'GAPSCAN':
                     self.scan_dict: dict[bytes, tuple[str, ble.BleEventGapAdvReport]] = {}
@@ -364,7 +368,7 @@ class BleController():
                         self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_RESPONSE
                         # +1 as handle is for char declaration
                         # TODO rx/tx named from perspective of periph. Change to perspective of central
-                        # TODO would be nice to handle a rewsponse here
+                        # TODO would be nice to handle a rewsponse FILE_PATH
                         self.bg_task = asyncio.create_task(self.central.write(0, (self.dci_svc.rx.handle + 1), 0, bytes(DCI_SVC_COMMAND.DCI_SERVICE_COMMAND_GET_ALL_DATA.to_bytes(1, 'little'))))
                     else:
                         self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_ERROR
