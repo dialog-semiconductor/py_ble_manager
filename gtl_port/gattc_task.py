@@ -1356,6 +1356,8 @@ class gattc_sdp_att(LittleEndianStructure):
         if len(uuid) == 2 or len(uuid) == 4 or len(uuid) == 16:
             self._uuid = (c_uint8 * ATT_UUID_128_LEN)()
             self._uuid[:len(uuid)] = uuid
+            self.uuid_len = len(uuid)
+
         else:
             raise TypeError("uuid length must be 2, 4, or 16")
 
@@ -1448,6 +1450,8 @@ class gattc_sdp_svc_ind(LittleEndianStructure):
         if len(uuid) == 2 or len(uuid) == 4 or len(uuid) == 16:
             self._uuid = (c_uint8 * ATT_UUID_128_LEN)()
             self._uuid[:len(uuid)] = uuid
+            self.uuid_len = len(uuid)
+
         else:
             raise TypeError("uuid length must be 2, 4, or 16")
 
