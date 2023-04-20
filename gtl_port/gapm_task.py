@@ -760,7 +760,6 @@ class gapm_resolv_addr_cmd(LittleEndianStructure):
     irk = property(get_irk, set_irk)
 
 
-
 # Indicate that resolvable random address has been solved
 class gapm_addr_solved_ind(LittleEndianStructure):
 
