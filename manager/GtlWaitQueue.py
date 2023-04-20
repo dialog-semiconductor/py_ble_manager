@@ -10,7 +10,7 @@ class GtlWaitQueueElement():
                  conn_idx: c_uint16 = 0,  # TODO do these really need to be c_uint16 instead of uint?
                  msg_id: c_uint16 = 0,
                  ext_id: c_uint16 = 0,
-                 cb: Callable = None,  # TODO add args, return type 
+                 cb: Callable = None,  # TODO add args, return type
                  param: object = None) -> None:
         self.conn_idx = conn_idx
         self.msg_id = msg_id

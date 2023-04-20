@@ -422,7 +422,8 @@ class BleManagerGattc(BleManagerBase):
             response.status = BLE_ERROR.BLE_STATUS_OK
 
         self._mgr_response_queue_send(response)
-        
+
+
 '''
 static const ble_mgr_cmd_handler_t h_gattc[BLE_MGR_CMD_GET_IDX(BLE_MGR_GATTC_LAST_CMD)] = {
         ble_mgr_gattc_browse_cmd_handler,               STARTED

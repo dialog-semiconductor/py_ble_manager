@@ -441,6 +441,7 @@ class BleManagerGatts(BleManagerBase):
         evt.value = bytes(gtl.parameters.value)
         self._mgr_event_queue_send(evt)
 
+
 '''
 static const ble_mgr_cmd_handler_t h_gatts[BLE_MGR_CMD_GET_IDX(BLE_MGR_GATTS_LAST_CMD)] = {
         ble_mgr_gatts_service_add_cmd_handler,                       STARTED

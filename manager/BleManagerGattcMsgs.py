@@ -1,8 +1,7 @@
 
-from enum import IntEnum, auto
 from ble_api.BleAtt import AttUuid
 from ble_api.BleCommon import BLE_ERROR
-from manager.BleManagerCommonMsgs import BLE_MGR_CMD_CAT, BleMgrMsgBase, BleMgrMsgRsp, BLE_CMD_GATTC_OPCODE
+from manager.BleManagerCommonMsgs import BleMgrMsgBase, BleMgrMsgRsp, BLE_CMD_GATTC_OPCODE
 
 
 class BleMgrGattcBrowseCmd(BleMgrMsgBase):

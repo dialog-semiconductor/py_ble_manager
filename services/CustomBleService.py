@@ -5,7 +5,7 @@ from ble_api.BleCommon import BLE_ERROR
 from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP, GATT_EVENT
 from ble_api.BleGatts import GATTS_FLAGS, BleEventGattsWriteReq, BleEventGattsPrepareWriteReq, BleEventGattsEventSent, BleEventGattsReadReq
-from services.BleService import BleServiceBase, GattServiceDef, GattCharacteristicDef, DescriptorDef, AttributeHandle
+from services.BleService import BleServiceBase, GattCharacteristicDef, DescriptorDef, AttributeHandle
 from ble_devices.BlePeripheral import BlePeripheral
 
 
@@ -61,7 +61,7 @@ class CustomBleService(BleServiceBase):
 
         char = GattCharacteristicDef()
         char.char_def.uuid.uuid = self._uuid_from_str("3af078b6-12ae-11ed-861d-0242ac120002")
-        char.char_def.prop = GATT_PROP.GATT_PROP_READ | GATT_PROP.GATT_PROP_WRITE 
+        char.char_def.prop = GATT_PROP.GATT_PROP_READ | GATT_PROP.GATT_PROP_WRITE
         char.char_def.perm = ATT_PERM.ATT_PERM_RW
         char.char_def.max_len = 2
         char.char_def.flags = GATTS_FLAGS.GATTS_FLAG_CHAR_NO_READ_REQ
@@ -136,7 +136,8 @@ class CustomBleService(BleServiceBase):
         elif evt.handle == self.char_3_ccc_h.value:
             ccc = int.from_bytes(evt.value, "little")
             self.ccc = ccc  # TODO this should be removed
-            self.periph.storage_put_int(evt.conn_idx, self.char_3_ccc_h.value, ccc, True)  # TODO this is not truly persistent right now. Is persistent btw connections? Or power cycles?
+            # TODO this is not truly persistent right now. Is persistent btw connections? Or power cycles?
+            self.periph.storage_put_int(evt.conn_idx, self.char_3_ccc_h.value, ccc, True)
 
             if self.callbacks and self.callbacks.char3_notif_changed:
                 self.callbacks.char3_notif_changed(self, evt.conn_idx, ccc)

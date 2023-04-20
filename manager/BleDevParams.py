@@ -67,7 +67,7 @@ class BleDevParams():
         self.conn_rssi = 0  # The RSSI reading reported by GAPC_CON_RSSI_IND
 
 
-# TODO any reason not to set these in BleDevParams?? 
+# TODO any reason not to set these in BleDevParams??
 # defined in ble_mgr.c
 class BleDevParamsDefault(BleDevParams):
     def __init__(self) -> None:

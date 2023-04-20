@@ -289,7 +289,7 @@ class key_irk():
         self.key = key if key else bytes()  # TODO raise error on list size?
 
 
-class key_ltk(): # TODO rand is uint64_t
+class key_ltk():  # TODO rand is uint64_t
     def __init__(self, rand: int = 0, ediv: int = 0, key: bytes = None, key_size: int = 0) -> None:
         self.rand = rand
         self.ediv = ediv

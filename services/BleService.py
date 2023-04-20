@@ -1,4 +1,4 @@
-from ble_api.BleAtt import AttUuid, ATT_PERM, ATT_ERROR
+from ble_api.BleAtt import AttUuid, ATT_PERM
 from ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP
 from ble_api.BleGatts import GATTS_FLAGS, BleEventGattsReadReq, BleEventGattsEventSent, BleEventGattsPrepareWriteReq
@@ -87,16 +87,15 @@ class BleServiceBase():
             num_descriptors += len(char.desc_defs)
         return (1 * len(self.incl_svc_defs)) + (2 * len(self.gatt_char_defs)) + (1 * num_descriptors)
 
-    
-     # TODO num_attr should be a property. Should auto calculate num attr
-    #def _get_gatt_service(self):
+    # TODO num_attr should be a property. Should auto calculate num attr
+    # def _get_gatt_service(self):
     #    num_descriptors = 0
     #    for char in self.gatt_characteristics:
     #        num_descriptors += len(char.descriptors)
     #    self._gatt_service.num_attrs = (1 * len(self.included_services)) + (2 * len(self.gatt_characteristics)) + (1 * num_descriptors)
     #    return self._gatt_service
 
-    #def _set_gatt_service(self, svc: GattService):
+    # def _set_gatt_service(self, svc: GattService):
     #    self._gatt_service = svc
 
     # gatt_service = property(_get_gatt_service)
@@ -130,4 +129,3 @@ class BleServiceBase():
 
     def register_peripheral(self, periph: BlePeripheral) -> None:
         self.periph = periph
- 

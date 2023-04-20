@@ -5,7 +5,7 @@ from ble_api.BleAtt import AttUuid, ATT_PERM, ATT_ERROR
 from ble_api.BleCommon import BLE_ERROR, BLE_EVT_CAT
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP, GATT_EVENT
 from ble_api.BleGatts import GATTS_FLAGS
-from manager.BleManagerCommonMsgs import BleMgrMsgBase, BleMgrMsgRsp, BLE_MGR_CMD_CAT, BLE_CMD_GATTS_OPCODE
+from manager.BleManagerCommonMsgs import BleMgrMsgBase, BleMgrMsgRsp, BLE_CMD_GATTS_OPCODE
 
 
 class BLE_EVT_GATTS(IntEnum):
