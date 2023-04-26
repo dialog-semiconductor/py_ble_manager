@@ -15,7 +15,7 @@ from pathlib import Path
 FILE_PATH = Path(__file__).parent
 sys.path.append(str(FILE_PATH / '../../'))
 
-import ble_devices as ble  # TODO Flake E402 is ignored as workaroung
+import ble_devices as ble  # TODO Flake E402 is ignored as workaround
 
 # TODO need to rethink how configuration
 ble.dg_configBLE_CENTRAL = 1
@@ -228,7 +228,6 @@ class BleController():
                     if len(args) == 2:
                         self.periph_addr_str, addr_type_str = args[1].split(',')
                         addr_type = ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS if addr_type_str == 'P' else ble.BLE_ADDR_TYPE.PRIVATE_ADDRESS
-                        print(f"addr_type={addr_type.name}")
                         periph_bd = self.str_to_bd_addr(addr_type, self.periph_addr_str)
                         periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
                         error = await self.central.connect(periph_bd, periph_conn_params)
@@ -375,7 +374,8 @@ class BleController():
                 self.log("\t Call trace: ")
                 for j in range(self.reset_data.fault_data[i].num_of_call_vals):
                     self.log(f"\t\t Call address {j}: 0x{self.reset_data.fault_data[i].call_trace[j]:08x}")
-                self.log("*****************Debug Crash Info End*****************")
+
+        self.log("*****************Debug Crash Info End*****************")
 
     def parse_adv_data(self, evt: ble.BleEventGapAdvReport) -> list[ble.BleAdvData]:
         data_ptr = 0
@@ -465,7 +465,7 @@ class BleController():
 
                     # TODO need to know what response waiting for
                     evt: ble.BleEventGattcNotification
-                    if len(evt.value) > 2:
+                    if self.response.command == DCI_SVC_COMMAND.NONE and len(evt.value) > 2:
                         self.response.command = evt.value[0]
                         self.response.len = evt.value[1]
                         self.response.data += evt.value[2:]
@@ -482,7 +482,7 @@ class BleController():
                 if (evt.evt_code == ble.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED):
                     self.log("Disconnected")
                     self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_NONE
-                    # TODO move these ?
+                    self.exit()
 
 
         if self.fetch_state == FETCH_DATA_STATE.FETCH_DATA_ERROR:
