@@ -169,6 +169,10 @@ class BleController():
         # opent a file for writing
         self.log_file = await aiofiles.open(f'{logs_directory}\\DCI_log_{time.strftime("%Y%m%d-%H%M%S")}.txt', mode='w')
 
+    def exit(self):
+        self.log_file.close()
+        sys.exit(0)  # TODO appropriate exit point?
+
     async def init(self):
         await self.create_log_file()
         await self.ble_task()
@@ -235,9 +239,7 @@ class BleController():
 
                 case "EXIT":
                     # Expected command format: EXIT
-                    self.log_file.close()
-                    self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_NONE
-                    sys.exit(0)
+                    self.exit()
 
                 case _:
                     pass
@@ -479,15 +481,14 @@ class BleController():
             case FETCH_DATA_STATE.FETCH_DATA_DISCONNECT:
                 if (evt.evt_code == ble.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED):
                     self.log("Disconnected")
-
-                    # TODO move these ?
-                    self.log_file.close()
                     self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_NONE
-                    sys.exit(0)
+                    # TODO move these ?
+
 
         if self.fetch_state == FETCH_DATA_STATE.FETCH_DATA_ERROR:
-            self.log("Errorrrrr")
             # TODO disconnect if connected
+            pass
+            
 
     def str_to_bd_addr(self, type: ble.BLE_ADDR_TYPE, bd_addr_str: str) -> ble.BdAddress:
         bd_addr_str = bd_addr_str.replace(":", "")
