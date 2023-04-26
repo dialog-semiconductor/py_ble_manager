@@ -373,6 +373,7 @@ class BleController():
                 self.log("\t Call trace: ")
                 for j in range(self.reset_data.fault_data[i].num_of_call_vals):
                     self.log(f"\t\t Call address {j}: 0x{self.reset_data.fault_data[i].call_trace[j]:08x}")
+                self.log("*****************Debug Crash Info End*****************")
 
     def parse_adv_data(self, evt: ble.BleEventGapAdvReport) -> list[ble.BleAdvData]:
         data_ptr = 0
@@ -453,7 +454,7 @@ class BleController():
                         self.bg_task = asyncio.create_task(self.central.write(0,
                                                                               (self.dci_svc.rx.handle + 1),
                                                                               0,
-                                                                              bytes(DCI_SVC_COMMAND.DCI_SERVICE_COMMAND_GET_ALL_DATA.to_bytes(1, 'little'))
+                                                                              bytes(DCI_SVC_COMMAND.GET_ALL_RESET_DATA.to_bytes(1, 'little'))
                                                                               ))
                     else:
                         self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_ERROR

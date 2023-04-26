@@ -19,9 +19,9 @@ class DCI_REST_REASON(IntEnum):
 
 
 class DCI_SVC_COMMAND(IntEnum):
-    DCI_SERVICE_COMMAND_NONE = 0
-    DCI_SERVICE_COMMAND_GET_ALL_DATA = auto()
-    DCI_SERVICE_COMMAND_GET_NUM_RESETS = auto()
+    NONE = 0
+    GET_ALL_RESET_DATA = auto()
+    GET_NUM_RESETS = auto()
 
 
 class CortexM0StackFrame():
@@ -82,6 +82,6 @@ class DciFaultInfo():
 
 class ResetData():
     def __init__(self):
-        self.command = DCI_SVC_COMMAND.DCI_SERVICE_COMMAND_NONE
+        self.command = DCI_SVC_COMMAND.NONE
         self.len = 0
         self.data = bytes()
