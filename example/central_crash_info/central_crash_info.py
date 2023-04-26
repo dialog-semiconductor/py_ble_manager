@@ -7,7 +7,7 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.patch_stdout import patch_stdout
 import time
-from debug_crash_info import DciData, DciFaultInfo, CortexM0StackFrame, ResetData, DCI_LAST_FAULT_HANDLER, DCI_REST_REASON, DCI_SVC_COMMAND
+from debug_crash_info import DciData, DciFaultInfo, CortexM0StackFrame, DciSvcResponse, DCI_LAST_FAULT_HANDLER, DCI_REST_REASON, DCI_SVC_COMMAND
 
 # TODO rethink relative import
 import sys
@@ -61,6 +61,7 @@ class DebugCrashInfoSvc():
 
 
 async def console(ble_command_q: asyncio.Queue, ble_response_q: asyncio.Queue):
+    # Accepted commands
     commands = ['GAPSCAN',
                 'GETALLRESETDATA',
                 'EXIT']
@@ -70,9 +71,13 @@ async def console(ble_command_q: asyncio.Queue, ble_response_q: asyncio.Queue):
     session = PromptSession(completer=word_completer)
     while True:
         with patch_stdout():
-            input = await session.prompt_async('>>> ')
-            ble_command_q.put_nowait(input)
-            response = await ble_response_q.get()
+            input: str = await session.prompt_async('>>> ')
+            args = input.split()
+            if args[0] in commands:
+                ble_command_q.put_nowait(input)
+                response = await ble_response_q.get()
+            else:
+                response = "ERROR Invalid Command"
             print(f"<<< {response}")
             # if input == 'GAPSCAN' and response == "OK":
             #    await scan_complete_evt.wait()
@@ -93,7 +98,7 @@ class BleController():
         self.browse_data = []
         self.dci_svc = DebugCrashInfoSvc()
         self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_NONE
-        self.response = ResetData()
+        self.response = DciSvcResponse()
         self.reset_data = DciData()
         self.connected_name = "Unknown"
         self.device_name_char = ble.GattcItem()
@@ -155,12 +160,13 @@ class BleController():
                     pending.add(self.ble_event_task)
 
     async def create_log_file(self):
-
+        # create set for background tasks writing to log
         self.log_tasks = set()
-        # TODO move directory
+        # Create the log directory if necessary
         logs_directory = f"{FILE_PATH}\\logs"
         if not os.path.exists(logs_directory):
             os.makedirs(logs_directory)
+        # opent a file for writing
         self.log_file = await aiofiles.open(f'{logs_directory}\\DCI_log_{time.strftime("%Y%m%d-%H%M%S")}.txt', mode='w')
 
     async def init(self):
@@ -203,6 +209,7 @@ class BleController():
             ble_func = args[0]
             match ble_func:
                 case 'GAPSCAN':
+                    # Expected command format: >>>GAPSCAN
                     self.scan_dict: dict[bytes, tuple[str, ble.BleEventGapAdvReport]] = {}
                     self.log("Starting scan...")
                     error = await self.central.scan_start(ble.GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
@@ -213,20 +220,12 @@ class BleController():
                                                           True)
 
                 case "GETALLRESETDATA":
-                    if len(args) == 1:  # TODO this case just to avoid having to enter bd addr  # 531B00352348 964700352348
-                        periph_bd = ble.BdAddress(ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS, bytes.fromhex("531B00352348"))  # addr is backwards
-                        periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
-                        error = await self.central.connect(periph_bd, periph_conn_params)
-                        # TODO using hardcoded address, Peer Features and Version returned
-                        # Passin address, Peer Features and Version not returned
-
-                    if len(args) == 2:  # TODO pass in addr 48:23:35:00:1b:53
-                        # bd_info = args[1].strip(',')
-                        # bd_type =  if bd_info[1] == 'P' else BLE_ADDR_TYPE.PRIVATE_ADDRESS
-
-                        # TODO need to enter private vs public type
-                        self.periph_addr_str = args[1]
-                        periph_bd = self.str_to_bd_addr(ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS, self.periph_addr_str)
+                    # Expected command format: >>>GETALLRESETDATA 48:23:35:00:1b:53,P
+                    if len(args) == 2:
+                        self.periph_addr_str, addr_type_str = args[1].split(',')
+                        addr_type = ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS if addr_type_str == 'P' else ble.BLE_ADDR_TYPE.PRIVATE_ADDRESS
+                        print(f"addr_type={addr_type.name}")
+                        periph_bd = self.str_to_bd_addr(addr_type, self.periph_addr_str)
                         periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
                         error = await self.central.connect(periph_bd, periph_conn_params)
 
@@ -235,6 +234,7 @@ class BleController():
                         self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_CONNECT
 
                 case "EXIT":
+                    # Expected command format: EXIT
                     self.log_file.close()
                     self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_NONE
                     sys.exit(0)
@@ -288,15 +288,17 @@ class BleController():
         self.log(f"Connection completed: status={evt.status.name}")
 
     def handle_evt_gap_disconnected(self, evt: ble.BleEventGapDisconnected):
-        # TODO addr to hex str
-        self.log(f"Disconnected from to: addr={self.bd_addr_to_str(evt.address)}")
+        self.log(f"Disconnected from addr={self.bd_addr_to_str(evt.address)}")
 
     def handle_evt_gap_scan_completed(self, evt: ble.BleEventGapScanCompleted):
         self.log("Scan complete")
         device_info = ""
         for key in self.scan_dict:
             name, adv_packet, scan_rsp = self.scan_dict[key]
-            device_info += f"Device name: {name}, addr: {self.bd_addr_to_str(adv_packet.address)}"
+            # Get addr MSB (addr is stored little endian)
+            addr_type_str = "P" if adv_packet.address.addr_type == ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS else "R"
+
+            device_info += f"Device name: {name}, addr: {self.bd_addr_to_str(adv_packet.address)},{addr_type_str}"
 
             ad_structs = self.parse_adv_data(adv_packet)
             for ad_struct in ad_structs:
@@ -345,8 +347,6 @@ class BleController():
         log_to_file_task = asyncio.create_task(self.log_file.write(string + "\r"))
         self.log_tasks.add(log_to_file_task)
         log_to_file_task.add_done_callback(self.log_tasks.discard)
-
-        # TODO consider asyncio.sleep here to give the logging task a chance to write the data to the file
 
     def log_reset_data(self):
         self.log("*******************Debug Crash Info*******************")
@@ -397,8 +397,7 @@ class BleController():
         self.reset_data.last_reset_reason = DCI_REST_REASON(data[0])
         self.reset_data.num_resets = data[1]
 
-        # TODO this is assuming data is the appropriate length
-
+        # Parsing assumes data is the appropriate length
         fault_data = data[2:]
         for i in range(self.reset_data.num_resets):
             fault_data = fault_data[(i * 63):]
@@ -450,9 +449,8 @@ class BleController():
                         self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_RESPONSE
                         # +1 as handle is for char declaration
                         # TODO rx/tx named from perspective of periph. Change to perspective of central
-                        # TODO would be nice to handle a rewsponse FILE_PATH
                         self.bg_task = asyncio.create_task(self.central.write(0,
-                                                                              (self.dci_svc.rx.handle + 1),
+                                                                              (self.dci_svc.rx.handle + 1),  # saved handle is the char declaration, +1 to write to the char value 
                                                                               0,
                                                                               bytes(DCI_SVC_COMMAND.GET_ALL_RESET_DATA.to_bytes(1, 'little'))
                                                                               ))
@@ -465,7 +463,7 @@ class BleController():
 
                     # TODO need to know what response waiting for
                     evt: ble.BleEventGattcNotification
-                    if self.response.command == 0 and len(evt.value) > 2:
+                    if len(evt.value) > 2:
                         self.response.command = evt.value[0]
                         self.response.len = evt.value[1]
                         self.response.data += evt.value[2:]

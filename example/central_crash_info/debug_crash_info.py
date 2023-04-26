@@ -80,7 +80,7 @@ class DciFaultInfo():
         return return_string
 
 
-class ResetData():
+class DciSvcResponse():
     def __init__(self):
         self.command = DCI_SVC_COMMAND.NONE
         self.len = 0
