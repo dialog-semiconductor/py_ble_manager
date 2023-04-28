@@ -101,12 +101,12 @@ class CustomBleService(BleServiceBase):
     def disconnected_evt(self, evt: BleEventGapDisconnected):
         print("CustomBleService disconnected_evt")
 
-    async def read_req(self, evt: BleEventGattsReadReq):
+    def read_req(self, evt: BleEventGattsReadReq):
         print("CustomBleService read_req")
 
         if evt.handle == self.char_1_value_h.value:
             if self.callbacks.char1_read:
-                await self.callbacks.char1_read(self, evt.conn_idx)
+                self.callbacks.char1_read(self, evt.conn_idx)
 
         elif evt.handle == self.char_3_ccc_h.value:
             status = ATT_ERROR.ATT_ERROR_OK
@@ -115,23 +115,23 @@ class CustomBleService(BleServiceBase):
             error, value = self.periph.storage_get_int(evt.conn_idx, self.char_3_ccc_h.value)
             if error != BLE_ERROR.BLE_STATUS_OK:
                 value = 0
-            await self.periph.read_cfm(evt.conn_idx, evt.handle, status, value)
+            self.periph.read_cfm(evt.conn_idx, evt.handle, status, value)
 
         else:
-            await self.periph.read_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_READ_NOT_PERMITTED, 0)
+            self.periph.read_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_READ_NOT_PERMITTED, 0)
 
-    async def write_req(self, evt: BleEventGattsWriteReq):
+    def write_req(self, evt: BleEventGattsWriteReq):
         print("CustomBleService write_req")
 
         if evt.handle == self.char_1_value_h.value:
             # TODO any validation on input
             if self.callbacks and self.callbacks.char1_write:
-                await self.callbacks.char1_write(self, evt.conn_idx, int.from_bytes(evt.value, "little"))
+                self.callbacks.char1_write(self, evt.conn_idx, int.from_bytes(evt.value, "little"))
 
         elif evt.handle == self.char_2_value_h.value:
             # TODO any validation on input
             if self.callbacks and self.callbacks.char2_write:
-                await self.callbacks.char2_write(self, evt.conn_idx, int.from_bytes(evt.value, "little"))
+                self.callbacks.char2_write(self, evt.conn_idx, int.from_bytes(evt.value, "little"))
 
         elif evt.handle == self.char_3_ccc_h.value:
             ccc = int.from_bytes(evt.value, "little")
@@ -143,16 +143,16 @@ class CustomBleService(BleServiceBase):
                 self.callbacks.char3_notif_changed(self, evt.conn_idx, ccc)
             # TODO notification status change callback
             print(f"CustomerService write_req. Setting ccc={evt.value}")
-            await self.periph.write_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_OK)
+            self.periph.write_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_OK)
 
         else:
-            await self.periph.write_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_WRITE_NOT_PERMITTED)
+            self.periph.write_cfm(evt.conn_idx, evt.handle, ATT_ERROR.ATT_ERROR_WRITE_NOT_PERMITTED)
 
-    async def prepare_write_req(self, evt: BleEventGattsPrepareWriteReq):
+    def prepare_write_req(self, evt: BleEventGattsPrepareWriteReq):
         if evt.handle == self.char_2_value_h.value:
-            await self.periph.prepare_write_cfm(evt.conn_idx, evt.handle, 2, ATT_ERROR.ATT_ERROR_OK)
+            self.periph.prepare_write_cfm(evt.conn_idx, evt.handle, 2, ATT_ERROR.ATT_ERROR_OK)
         else:
-            await self.periph.prepare_write_cfm(evt.conn_idx, evt.handle, 0, ATT_ERROR.ATT_ERROR_REQUEST_NOT_SUPPORTED)
+            self.periph.prepare_write_cfm(evt.conn_idx, evt.handle, 0, ATT_ERROR.ATT_ERROR_REQUEST_NOT_SUPPORTED)
 
     def event_sent(self, evt: BleEventGattsEventSent):
         print("CustomBleService event_sent")
@@ -160,49 +160,49 @@ class CustomBleService(BleServiceBase):
     def cleanup(self):
         print("CustomBleService cleanup")
 
-    async def send_char1_read_cfm(self,
+    def send_char1_read_cfm(self,
                                   conn_idx: int = 0,
                                   status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK,
                                   value: bytes = None
                                   ) -> BLE_ERROR:
 
-        return await self.periph.read_cfm(conn_idx,
+        return self.periph.read_cfm(conn_idx,
                                           self.char_1_value_h.value,
                                           status,
                                           value)
 
-    async def send_char1_write_cfm(self,
+    def send_char1_write_cfm(self,
                                    conn_idx: int = 0,
                                    status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
                                    ) -> BLE_ERROR:
 
-        return await self.periph.write_cfm(conn_idx, self.char_1_value_h.value, status)
+        return self.periph.write_cfm(conn_idx, self.char_1_value_h.value, status)
 
-    async def send_char2_write_cfm(self,
+    def send_char2_write_cfm(self,
                                    conn_idx: int = 0,
                                    status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
                                    ) -> BLE_ERROR:
 
-        return await self.periph.write_cfm(conn_idx, self.char_2_value_h.value, status)
+        return self.periph.write_cfm(conn_idx, self.char_2_value_h.value, status)
 
-    async def set_char2_value(self,
+    def set_char2_value(self,
                               value: bytes
                               ) -> BLE_ERROR:
 
-        return await self.periph.set_value(self.char_2_value_h.value, value)
+        return self.periph.set_value(self.char_2_value_h.value, value)
 
-    async def set_char3_user_desc_value(self,
+    def set_char3_user_desc_value(self,
                                         value: bytes
                                         ) -> BLE_ERROR:
 
-        return await self.periph.set_value(self.char_3_user_desc_h.value, value)
+        return self.periph.set_value(self.char_3_user_desc_h.value, value)
 
-    async def notify_char3(self,
+    def notify_char3(self,
                            conn_idx: int = 0,
                            value: bytes = None
                            ) -> BLE_ERROR:
 
-        return await self.periph.send_event(conn_idx,
+        return self.periph.send_event(conn_idx,
                                             self.char_3_value_h.value,
                                             GATT_EVENT.GATT_EVENT_NOTIFICATION,
                                             value)

@@ -1,4 +1,4 @@
-import asyncio
+import queue
 from ctypes import c_uint8
 
 from ble_api.BleAtt import ATT_ERROR, AttUuid
@@ -25,9 +25,9 @@ from manager.GtlWaitQueue import GtlWaitQueue
 class BleManagerGattc(BleManagerBase):
 
     def __init__(self,
-                 mgr_response_q: asyncio.Queue[BLE_ERROR],
-                 mgr_event_q: asyncio.Queue[BleEventBase],
-                 adapter_command_q: asyncio.Queue[GtlMessageBase],
+                 mgr_response_q: queue.Queue[BLE_ERROR],
+                 mgr_event_q: queue.Queue[BleEventBase],
+                 adapter_command_q: queue.Queue[GtlMessageBase],
                  wait_q: GtlWaitQueue,
                  stored_device_q: StoredDeviceQueue) -> None:
 

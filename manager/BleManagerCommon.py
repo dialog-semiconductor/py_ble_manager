@@ -1,4 +1,4 @@
-import asyncio
+import queue
 
 from ble_api.BleCommon import BLE_ERROR, BleEventBase
 from ble_api.BleGap import BLE_CONN_IDX_INVALID
@@ -15,9 +15,9 @@ from manager.GtlWaitQueue import GtlWaitQueue
 class BleManagerCommon(BleManagerBase):
 
     def __init__(self,
-                 mgr_response_q: asyncio.Queue[BLE_ERROR],
-                 mgr_event_q: asyncio.Queue[BleEventBase],
-                 adapter_command_q: asyncio.Queue[GtlMessageBase],
+                 mgr_response_q: queue.Queue[BLE_ERROR],
+                 mgr_event_q: queue.Queue[BleEventBase],
+                 adapter_command_q: queue.Queue[GtlMessageBase],
                  wait_q: GtlWaitQueue,
                  stored_device_q: StoredDeviceQueue
                  ) -> None:

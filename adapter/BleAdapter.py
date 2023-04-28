@@ -1,4 +1,6 @@
-import asyncio
+import concurrent.futures
+import queue
+import threading
 
 from gtl_messages.gtl_message_factory import GtlMessageFactory
 from gtl_messages.gtl_message_base import GtlMessageBase
@@ -8,44 +10,46 @@ from gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, gapm_reset_cmd
 
 class BleAdapter():
     def __init__(self,
-                 command_q: asyncio.Queue[GtlMessageBase],
-                 event_q: asyncio.Queue[GtlMessageBase],
-                 serial_tx_q: asyncio.Queue[bytes],
-                 serial_rx_q: asyncio.Queue[bytes],
+                 command_q: queue.Queue[GtlMessageBase],
+                 event_q: queue.Queue[GtlMessageBase],
+                 serial_tx_q: queue.Queue[bytes],
+                 serial_rx_q: queue.Queue[bytes],
                  gtl_debug: bool = False) -> None:
 
-        self.command_q: asyncio.Queue[GtlMessageBase] = command_q
-        self.event_q: asyncio.Queue[GtlMessageBase] = event_q
-        self.serial_tx_q: asyncio.Queue[bytes] = serial_tx_q
-        self.serial_rx_q: asyncio.Queue[bytes] = serial_rx_q
+        self.command_q: queue.Queue[GtlMessageBase] = command_q
+        self.event_q: queue.Queue[GtlMessageBase] = event_q
+        self.serial_tx_q: queue.Queue[bytes] = serial_tx_q
+        self.serial_rx_q: queue.Queue[bytes] = serial_rx_q
         self.gtl_debug = gtl_debug
         self.ble_stack_initialized = False
 
-    async def _adapter_task(self):
+    def _adapter_task(self):
 
-        self._tx_task = asyncio.create_task(self._command_queue_get(), name='BleAdapterTx')
-        self._rx_task = asyncio.create_task(self._serial_rx_q_get(), name='BleAdapterRx')
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+
+        self._tx_task = executor.submit(self._command_queue_get)
+        self._rx_task = executor.submit(self._serial_rx_q_get)
 
         pending = [self._tx_task, self._rx_task]
 
         while True:
-            done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
+            done, pending = concurrent.futures.wait(pending, return_when=concurrent.futures.FIRST_COMPLETED)
 
             for task in done:
                 if task is self._tx_task:
                     # This is from Ble Manager command queue
                     self._process_command_queue(task.result())
-                    self._tx_task = asyncio.create_task(self._command_queue_get(), name='BleAdapterTx')
+                    self._tx_task = executor.submit(self._command_queue_get)
                     pending.add(self._tx_task)
 
                 elif task is self._rx_task:
                     # This is from serial Rx queue
                     self._process_serial_rx_q(task.result())
-                    self._rx_task = asyncio.create_task(self._serial_rx_q_get(), name='BleAdapterRx')
+                    self._rx_task = executor.submit(self._serial_rx_q_get)
                     pending.add(self._rx_task)
 
-    async def _command_queue_get(self) -> GtlMessageBase:
-        return await self.command_q.get()
+    def _command_queue_get(self) -> GtlMessageBase:
+        return self.command_q.get()
 
     def _create_reset_command(self):
         return GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
@@ -78,14 +82,9 @@ class BleAdapter():
             print(f"--> Tx: {message}\n")
         self.serial_tx_q.put_nowait(message.to_bytes())
 
-    async def _serial_rx_q_get(self) -> bytes:
-        return await self.serial_rx_q.get()
-
-    def _task_done_handler(self, task: asyncio.Task):
-        pass
-        # if task.exception():
-        #    task.result()  # Raise the exception
+    def _serial_rx_q_get(self) -> bytes:
+        return self.serial_rx_q.get()
 
     def init(self):
-        self._task = asyncio.create_task(self._adapter_task(), name='BleAdapterTask')
-        self._task.add_done_callback(self._task_done_handler)
+        self._task = threading.Thread(target=self._adapter_task)
+        self._task.start()

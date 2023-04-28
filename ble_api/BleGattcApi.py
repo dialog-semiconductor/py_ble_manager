@@ -14,75 +14,75 @@ class BleGattcApi(BleApiBase):
     def __init__(self, ble_manager: BleManager, ble_adapter: BleAdapter):
         super().__init__(ble_manager, ble_adapter)
 
-    async def browse(self,
-                     conn_idx: int,
-                     uuid: AttUuid) -> BLE_ERROR:
+    def browse(self,
+               conn_idx: int,
+               uuid: AttUuid) -> BLE_ERROR:
 
         command = BleMgrGattcBrowseCmd(conn_idx, uuid)
-        resposne: BleMgrGattcBrowseRsp = await self._ble_manager.cmd_execute(command)
+        resposne: BleMgrGattcBrowseRsp = self._ble_manager.cmd_execute(command)
 
         return resposne.status
 
-    async def discover_characteristics(self,
+    def discover_characteristics(self,
                                        conn_idx: int,
                                        start_h: int,
                                        end_h: int,
                                        uuid: AttUuid) -> BLE_ERROR:
         command = BleMgrGattcDiscoverCharCmd(conn_idx, start_h, end_h, uuid)
-        response: BleMgrGattcDiscoverCharRsp = await self._ble_manager.cmd_execute(command)
+        response: BleMgrGattcDiscoverCharRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
 
-    async def discover_descriptors(self,
+    def discover_descriptors(self,
                                    conn_idx: int,
                                    start_h: int,
                                    end_h: int) -> BLE_ERROR:
 
         command = BleMgrGattcDiscoverDescCmd(conn_idx, start_h, end_h)
-        response: BleMgrGattcDiscoverDescRsp = await self._ble_manager.cmd_execute(command)
+        response: BleMgrGattcDiscoverDescRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
 
-    async def discover_services(self, conn_idx: int, uuid: AttUuid):
+    def discover_services(self, conn_idx: int, uuid: AttUuid):
         command = BleMgrGattcDiscoverSvcCmd(conn_idx, uuid)
-        response: BleMgrGattcDiscoverSvcRsp = await self._ble_manager.cmd_execute(command)
+        response: BleMgrGattcDiscoverSvcRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
 
-    async def read(self, conn_idx: int, handle: int, offset: int) -> BLE_ERROR:
+    def read(self, conn_idx: int, handle: int, offset: int) -> BLE_ERROR:
         command = BleMgrGattcReadCmd(conn_idx, handle, offset)
-        response: BleMgrGattcReadRsp = await self._ble_manager.cmd_execute(command)
+        response: BleMgrGattcReadRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
 
-    async def write(self, conn_idx: int, handle: int, offset: int, value: bytes) -> BLE_ERROR:
+    def write(self, conn_idx: int, handle: int, offset: int, value: bytes) -> BLE_ERROR:
         command = BleMgrGattcWriteGenericCmd(conn_idx=conn_idx, handle=handle, offset=offset, value=value)
-        response: BleMgrGattcWriteGenericRsp = await self._ble_manager.cmd_execute(command)
+        response: BleMgrGattcWriteGenericRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
 
-    async def write_no_resp(self, conn_idx: int, handle: int, signed_write: bool, value: bytes) -> BLE_ERROR:
+    def write_no_resp(self, conn_idx: int, handle: int, signed_write: bool, value: bytes) -> BLE_ERROR:
         command = BleMgrGattcWriteGenericCmd(conn_idx=conn_idx,
                                              handle=handle,
                                              no_response=True,
                                              signed_write=signed_write,
                                              value=value)
-        response: BleMgrGattcWriteGenericRsp = await self._ble_manager.cmd_execute(command)
+        response: BleMgrGattcWriteGenericRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
 
-    async def write_prepare(self, conn_idx: int, handle: int, offset: int, value: bytes) -> BLE_ERROR:
+    def write_prepare(self, conn_idx: int, handle: int, offset: int, value: bytes) -> BLE_ERROR:
         command = BleMgrGattcWriteGenericCmd(conn_idx=conn_idx,
                                              handle=handle,
                                              prepare=True,
                                              offset=offset,
                                              value=value)
-        response: BleMgrGattcWriteGenericRsp = await self._ble_manager.cmd_execute(command)
+        response: BleMgrGattcWriteGenericRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
 
-    async def write_execute(self, conn_idx: int, commit: bool) -> BLE_ERROR:
+    def write_execute(self, conn_idx: int, commit: bool) -> BLE_ERROR:
         command = BleMgrGattcWriteExecuteCmd(conn_idx, commit)
-        response: BleMgrGattcWriteExecuteRsp = await self._ble_manager.cmd_execute(command)
+        response: BleMgrGattcWriteExecuteRsp = self._ble_manager.cmd_execute(command)
 
         return response.status

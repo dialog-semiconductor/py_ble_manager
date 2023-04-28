@@ -21,7 +21,7 @@ class BleGattsApi(BleApiBase):
     def __init__(self, ble_manager: BleManager, ble_adapter: BleAdapter):
         super().__init__(ble_manager, ble_adapter)
 
-    async def add_characteristic(self,
+    def add_characteristic(self,
                                  uuid: AttUuid = None,
                                  prop: GATT_PROP = GATT_PROP.GATT_PROP_NONE,
                                  perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
@@ -30,13 +30,13 @@ class BleGattsApi(BleApiBase):
                                  ) -> tuple[BLE_ERROR, int, int]:
 
         command = BleMgrGattsServiceAddCharacteristicCmd(uuid, prop, perm, max_len, flags)
-        response: BleMgrGattsServiceAddCharacteristicRsp = await self._ble_manager.cmd_execute(command)
+        response: BleMgrGattsServiceAddCharacteristicRsp = self._ble_manager.cmd_execute(command)
         if response.status is BLE_ERROR.BLE_STATUS_OK:
             return response.status, response.h_offset, response.h_val_offset
         else:
             return response.status, 0, 0
 
-    async def add_descriptor(self,
+    def add_descriptor(self,
                              uuid: AttUuid = None,
                              perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
                              max_len: int = 0,
@@ -44,49 +44,49 @@ class BleGattsApi(BleApiBase):
                              ) -> tuple[BLE_ERROR, int]:
 
         command = BleMgrGattsServiceAddDescriptorCmd(uuid, perm, max_len, flags)
-        response: BleMgrGattsServiceAddDescriptorRsp = await self._ble_manager.cmd_execute(command)
+        response: BleMgrGattsServiceAddDescriptorRsp = self._ble_manager.cmd_execute(command)
         if response.status is BLE_ERROR.BLE_STATUS_OK:
             return response.status, response.h_offset
         else:
             return response.status, 0
 
     # TODO need to add to register service in Ble.py. Need to find example with included service
-    async def add_include(self,
+    def add_include(self,
                           handle: int = 0
                           ) -> BLE_ERROR:
 
         command = BleMgrGattsServiceAddIncludeCmd(handle)
-        response: BleMgrGattsServiceAddIncludeRsp = await self._ble_manager.cmd_execute(command)
+        response: BleMgrGattsServiceAddIncludeRsp = self._ble_manager.cmd_execute(command)
         if response.status is BLE_ERROR.BLE_STATUS_OK:
             return response.status, response.h_offset
         else:
             return response.status, 0
 
-    async def add_service(self,
+    def add_service(self,
                           uuid: AttUuid = None,
                           type: GATT_SERVICE = GATT_SERVICE.GATT_SERVICE_PRIMARY,
                           num_attrs: int = 0
                           ) -> BLE_ERROR:
 
         command = BleMgrGattsServiceAddCmd(uuid, type, num_attrs)
-        response: BleMgrGattsServiceAddRsp = await self._ble_manager.cmd_execute(command)
+        response: BleMgrGattsServiceAddRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
 
-    async def get_value(self,
+    def get_value(self,
                         handle: int = 0,
                         max_len: int = 0
                         ) -> BLE_ERROR:
 
         command = BleMgrGattsGetValueCmd(handle, max_len)
-        response: BleMgrGattsGetValueRsp = await self._ble_manager.cmd_execute(command)
+        response: BleMgrGattsGetValueRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
 
-    async def register_service(self, svc: BleServiceBase) -> BLE_ERROR:
+    def register_service(self, svc: BleServiceBase) -> BLE_ERROR:
 
         command = BleMgrGattsServiceRegisterCmd()
-        response: BleMgrGattsServiceRegisterRsp = await self._ble_manager.cmd_execute(command)
+        response: BleMgrGattsServiceRegisterRsp = self._ble_manager.cmd_execute(command)
         if response.status is BLE_ERROR.BLE_STATUS_OK:
             if svc:
                 svc.start_h = response.handle
@@ -99,7 +99,7 @@ class BleGattsApi(BleApiBase):
 
         return response.status
 
-    async def prepare_write_cfm(self,
+    def prepare_write_cfm(self,
                                 conn_idx: int = 0,
                                 handle: int = 0,
                                 length: int = 0,
@@ -107,11 +107,11 @@ class BleGattsApi(BleApiBase):
                                 ) -> BLE_ERROR:
 
         command = BleMgrGattsPrepareWriteCfmCmd(conn_idx, handle, length, status)
-        response: BleMgrGattsPrepareWriteCfmRsp = await self._ble_manager.cmd_execute(command)
+        response: BleMgrGattsPrepareWriteCfmRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
 
-    async def send_event(self,
+    def send_event(self,
                          conn_idx: int = 0,
                          handle: int = 0,
                          type: GATT_EVENT = GATT_EVENT.GATT_EVENT_NOTIFICATION,
@@ -119,11 +119,11 @@ class BleGattsApi(BleApiBase):
                          ) -> BLE_ERROR:
 
         command = BleMgrGattsSendEventCmd(conn_idx, handle, type, value)
-        response: BleMgrGattsSendEventRsp = await self._ble_manager.cmd_execute(command)
+        response: BleMgrGattsSendEventRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
 
-    async def read_cfm(self,
+    def read_cfm(self,
                        conn_idx: int = 0,
                        handle: int = 0,
                        status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK,
@@ -131,27 +131,27 @@ class BleGattsApi(BleApiBase):
                        ) -> BLE_ERROR:
 
         command = BleMgrGattsReadCfmCmd(conn_idx, handle, status, value)
-        response: BleMgrGattsReadCfmRsp = await self._ble_manager.cmd_execute(command)
+        response: BleMgrGattsReadCfmRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
 
-    async def write_cfm(self,
+    def write_cfm(self,
                         conn_idx: int = 0,
                         handle: int = 0,
                         status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
                         ) -> BLE_ERROR:
 
         command = BleMgrGattsWriteCfmCmd(conn_idx, handle, status)
-        response: BleMgrGattsWriteCfmRsp = await self._ble_manager.cmd_execute(command)
+        response: BleMgrGattsWriteCfmRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
 
-    async def set_value(self,
+    def set_value(self,
                         handle: int = 0,
                         value: bytes = None
                         ) -> BLE_ERROR:
 
         command = BleMgrGattsSetValueCmd(handle, value)
-        response: BleMgrGattsSetValueRsp = await self._ble_manager.cmd_execute(command)
+        response: BleMgrGattsSetValueRsp = self._ble_manager.cmd_execute(command)
 
         return response.status

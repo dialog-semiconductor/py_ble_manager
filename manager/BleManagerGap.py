@@ -1,5 +1,5 @@
-import asyncio
 from ctypes import c_uint8
+import queue
 import secrets
 
 from ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_OWN_ADDR_TYPE, BLE_ADDR_TYPE, BLE_HCI_ERROR, \
@@ -55,9 +55,9 @@ ATT_DEFAULT_MTU = (23)
 class BleManagerGap(BleManagerBase):
 
     def __init__(self,
-                 mgr_response_q: asyncio.Queue[BLE_ERROR],
-                 mgr_event_q: asyncio.Queue[BleEventBase],
-                 adapter_command_q: asyncio.Queue[GtlMessageBase],
+                 mgr_response_q: queue.Queue[BLE_ERROR],
+                 mgr_event_q: queue.Queue[BleEventBase],
+                 adapter_command_q: queue.Queue[GtlMessageBase],
                  wait_q: GtlWaitQueue,
                  stored_device_q: StoredDeviceQueue) -> None:
 

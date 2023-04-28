@@ -1,4 +1,5 @@
-import asyncio
+import concurrent.futures
+import queue
 from adapter.BleAdapter import BleAdapter
 # from ble_api.BleAtt import ATT_ERROR
 from ble_api.BleCommon import BleEventBase, BLE_ERROR
@@ -19,21 +20,21 @@ from serial_manager.SerialStreamManager import SerialStreamManager
 
 class BleDeviceBase():
     def __init__(self, com_port: str, gtl_debug: bool = False):
-        app_command_q = asyncio.Queue()
-        app_resposne_q = asyncio.Queue()
-        app_event_q = asyncio.Queue()
+        app_command_q = queue.Queue()
+        app_resposne_q = queue.Queue()
+        app_event_q = queue.Queue()
 
-        adapter_command_q = asyncio.Queue()
-        adapter_event_q = asyncio.Queue()
-        serial_tx_q = asyncio.Queue()
-        serial_rx_q = asyncio.Queue()
+        adapter_command_q = queue.Queue()
+        adapter_event_q = queue.Queue()
+        serial_tx_q = queue.Queue()
+        serial_rx_q = queue.Queue()
 
         # Internal BLE framework layers
         self._ble_manager = BleManager(app_command_q, app_resposne_q, app_event_q, adapter_command_q, adapter_event_q)
         self._ble_adapter = BleAdapter(adapter_command_q, adapter_event_q, serial_tx_q, serial_rx_q, gtl_debug)
         self._serial_stream_manager = SerialStreamManager(com_port, serial_tx_q, serial_rx_q)
 
-        # Dialog API
+        # Dialog APIqueue
         self._ble_gap = BleGapApi(self._ble_manager, self._ble_adapter)
         self._ble_gattc = BleGattcApi(self._ble_manager, self._ble_adapter)
         self._ble_gatts = BleGattsApi(self._ble_manager, self._ble_adapter)
@@ -41,51 +42,56 @@ class BleDeviceBase():
 
         self._services: list[BleServiceBase] = []
 
-    async def _ble_reset(self) -> BLE_ERROR:
+        # TODO is there a better way to do this for get_event func?
+        self._executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+
+    def _ble_reset(self) -> BLE_ERROR:
         command = BleMgrCommonResetCmd()
-        response: BleMgrCommonResetRsp = await self._ble_manager.cmd_execute(command)
+        response: BleMgrCommonResetRsp = self._ble_manager.cmd_execute(command)
         return response.status
 
-    async def conn_param_update(self, conn_idx: int, conn_params: GapConnParams) -> BLE_ERROR:
-        return await self._ble_gap.conn_param_update(conn_idx, conn_params)
+    def conn_param_update(self, conn_idx: int, conn_params: GapConnParams) -> BLE_ERROR:
+        return self._ble_gap.conn_param_update(conn_idx, conn_params)
 
-    async def conn_param_update_reply(self, conn_idx: int, accept: bool) -> BLE_ERROR:
-        return await self._ble_gap.conn_param_update_reply(conn_idx, accept)
+    def conn_param_update_reply(self, conn_idx: int, accept: bool) -> BLE_ERROR:
+        return self._ble_gap.conn_param_update_reply(conn_idx, accept)
 
-    async def init(self) -> None:
+    def init(self) -> None:
         try:
             # Open the serial port the the 531
-            await self._serial_stream_manager.open_serial_port()
+            self._serial_stream_manager.open_serial_port()  # TODO implement a timeout for opening the serial port
 
             # Start always running BLE tasks
             self._ble_manager.init()
             self._ble_adapter.init()
             self._serial_stream_manager.init()
 
-        except asyncio.TimeoutError as e:
+        except concurrent.futures.TimeoutError as e:
             raise e
 
-    async def get_event(self, timeout_seconds: float = 0) -> BleEventBase:
+    def get_event(self, timeout_seconds: float = 0) -> BleEventBase:
         evt = None
         try:
             timeout = timeout_seconds if timeout_seconds > 0 else None
-            evt = await asyncio.wait_for(self._ble_manager.mgr_event_queue_get(), timeout)
-        except asyncio.TimeoutError:
+            evt = concurrent.futures.wait([self._executor.submit(self._ble_manager.mgr_event_queue_get)], timeout)
+        except concurrent.futures.TimeoutError:
             pass
+        except TypeError:
+            print("TypeERror")
 
         return evt
 
-    async def numeric_reply(self, conn_idx: int, accept: bool):
-        return await self._ble_gap.numeric_reply(conn_idx, accept)
+    def numeric_reply(self, conn_idx: int, accept: bool):
+        return self._ble_gap.numeric_reply(conn_idx, accept)
 
     def set_io_cap(self, io_cap: GAP_IO_CAPABILITIES) -> BLE_ERROR:
         return self._ble_manager.set_io_cap(io_cap)
 
-    async def start(self, role: BLE_GAP_ROLE) -> BLE_ERROR:
+    def start(self, role: BLE_GAP_ROLE) -> BLE_ERROR:
 
-        error = await self._ble_reset()
+        error = self._ble_reset()
         if error == BLE_ERROR.BLE_STATUS_OK:
-            error = await self._ble_gap.role_set(role)
+            error = self._ble_gap.role_set(role)
 
         return error
 

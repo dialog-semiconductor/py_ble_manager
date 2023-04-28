@@ -1,4 +1,4 @@
-import asyncio
+import queue
 from typing import Callable
 
 from ble_api.BleCommon import BLE_ERROR, BleEventBase
@@ -10,9 +10,9 @@ from manager.GtlWaitQueue import GtlWaitQueue, GtlWaitQueueElement
 
 class BleManagerBase():
     def __init__(self,
-                 mgr_response_q: asyncio.Queue[BLE_ERROR],
-                 mgr_event_q: asyncio.Queue[BleEventBase],
-                 adapter_command_q: asyncio.Queue[GtlMessageBase],
+                 mgr_response_q: queue.Queue[BLE_ERROR],
+                 mgr_event_q: queue.Queue[BleEventBase],
+                 adapter_command_q: queue.Queue[GtlMessageBase],
                  wait_q: GtlWaitQueue,
                  stored_device_q: StoredDeviceQueue) -> None:
 
@@ -32,8 +32,8 @@ class BleManagerBase():
     def _mgr_event_queue_send(self, evt: BleEventBase):
         self._mgr_event_q.put_nowait(evt)
 
-    async def _mgr_response_queue_get(self) -> BleMgrMsgRsp:
-        return await self._mgr_response_q.get()
+    def _mgr_response_queue_get(self) -> BleMgrMsgRsp:
+        return self._mgr_response_q.get()
 
     def _mgr_response_queue_send(self, response: BleMgrMsgRsp):
         self._mgr_response_q.put_nowait(response)
@@ -48,5 +48,5 @@ class BleManagerBase():
     def _task_to_connidx(self, task_id: int) -> int:  # TODO this is repeated from GtlWaitQueue. Do not have in two places
         return task_id >> 8
 
-    async def mgr_event_queue_get(self) -> BleMgrMsgBase:
-        return await self._mgr_event_q.get()
+    def mgr_event_queue_get(self) -> BleMgrMsgBase:
+        return self._mgr_event_q.get()

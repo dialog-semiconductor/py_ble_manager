@@ -1,5 +1,8 @@
 import argparse
-import asyncio
+import concurrent.futures
+import threading
+import time
+import queue
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.patch_stdout import patch_stdout
@@ -17,16 +20,19 @@ ble.dg_configBLE_CENTRAL = 1
 ble.dg_configBLE_PERIPHERAL = 0
 
 
-async def main(com_port: str):
-    ble_command_q = asyncio.Queue()
-    ble_response_q = asyncio.Queue()
+def main(com_port: str):
+    ble_command_q = queue.Queue()
+    ble_response_q = queue.Queue()
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=3)
     # start 2 tasks:
     #   one for handling command line input
-    #   one for handling BLE
-    await asyncio.gather(console(ble_command_q, ble_response_q), ble_task(com_port, ble_command_q, ble_response_q))
+
+    concurrent.futures.wait([executor.submit(user_main),
+                            executor.submit(console, ble_command_q, ble_response_q),
+                            executor.submit(ble_task, com_port, ble_command_q, ble_response_q)])
 
 
-async def console(ble_command_q: asyncio.Queue, ble_response_q: asyncio.Queue):
+def console(ble_command_q: queue.Queue, ble_response_q: queue.Queue):
     commands = ['GAPSCAN',
                 'GAPCONNECT',
                 'GAPBROWSE',
@@ -44,38 +50,46 @@ async def console(ble_command_q: asyncio.Queue, ble_response_q: asyncio.Queue):
     session = PromptSession(completer=word_completer)
     while True:
         with patch_stdout():
-            input = await session.prompt_async('>>> ')
+            input = session.prompt('>>> ')
             ble_command_q.put_nowait(input)
-            response = await ble_response_q.get()
+            response = ble_response_q.get()
             print(f"<<< {response}")
 
 
-async def ble_task(com_port: str, command_q: asyncio.Queue, response_q: asyncio.Queue):
+def ble_task(com_port: str, command_q: queue.Queue, response_q: queue.Queue):
 
     services = ble.SearchableQueue()
 
     # initalize central device
-    central = ble.BleCentral(com_port, gtl_debug=False)
-    await central.init()
-    await central.start()
+    central = ble.BleCentral(com_port, gtl_debug=True)
+    central.init()
+    central.start()
+    central.set_io_cap(ble.GAP_IO_CAPABILITIES.GAP_IO_CAP_KEYBOARD_DISP)
+    error = central.scan_start(ble.GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
+                                                 ble.GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
+                                                 160,
+                                                 80,
+                                                 False,
+                                                 True)
 
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
     # create tasks for:
     #   hanlding commands from the console
     #   responding to BLE events
-    console_command_task = asyncio.create_task(command_q.get(), name='GetConsoleCommand')
-    ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
+
+    console_command_task = executor.submit(command_q.get)
+    ble_event_task = executor.submit(central.get_event)
     pending = [ble_event_task, console_command_task]
 
-    central.set_io_cap(ble.GAP_IO_CAPABILITIES.GAP_IO_CAP_KEYBOARD_DISP)
     while True:
         # Wait for a console command or BLE event to occur
-        done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
+        done, pending = concurrent.futures.wait(pending, return_when=concurrent.futures.FIRST_COMPLETED)
 
         for task in done:
             # Handle command line input
             if task is console_command_task:
                 command: str = task.result()
-                error = await handle_console_command(command, central)
+                error = handle_console_command(command, central)
 
                 if error == ble.BLE_ERROR.BLE_STATUS_OK:
                     response = "OK"
@@ -84,27 +98,27 @@ async def ble_task(com_port: str, command_q: asyncio.Queue, response_q: asyncio.
                 response_q.put_nowait(str(response))
 
                 # restart console command task
-                console_command_task = asyncio.create_task(command_q.get(), name='GetConsoleCommand')
+                console_command_task = executor.submit(command_q.get)
                 pending.add(console_command_task)
 
             # Handle and BLE events that have occurred
             if task is ble_event_task:
                 evt: ble.BleEventBase = task.result()  # TODO how does timeout error affect result
-                await handle_ble_event(central, evt, services)  # TODO services belongs in central??
+                handle_ble_event(central, evt, services)  # TODO services belongs in central??
 
                 # restart ble event task
-                ble_event_task = asyncio.create_task(central.get_event(), name='GetBleEvent')
+                ble_event_task = executor.submit(central.get_event)
                 pending.add(ble_event_task)
 
 
-async def handle_console_command(command: str, central: ble.BleCentral) -> ble.BLE_ERROR:
+def handle_console_command(command: str, central: ble.BleCentral) -> ble.BLE_ERROR:
     error = ble.BLE_ERROR.BLE_ERROR_FAILED
     args = command.split()
     if len(args) > 0:
         ble_func = args[0]
         match ble_func:
             case 'GAPSCAN':
-                error = await central.scan_start(ble.GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
+                error = central.scan_start(ble.GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
                                                  ble.GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
                                                  160,
                                                  80,
@@ -115,18 +129,18 @@ async def handle_console_command(command: str, central: ble.BleCentral) -> ble.B
                 if len(args) == 1:  # TODO this case just to avoid having to enter bd addr  # 531B00352348 964700352348
                     periph_bd = ble.BdAddress(ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS, bytes.fromhex("531B00352348"))  # addr is backwards
                     periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
-                    error = await central.connect(periph_bd, periph_conn_params)
+                    error = central.connect(periph_bd, periph_conn_params)
                 if len(args) == 2:  # TODO pass in addr 48:23:35:00:1b:53
                     # bd_info = args[1].strip(',')
                     # bd_type =  if bd_info[1] == 'P' else BLE_ADDR_TYPE.PRIVATE_ADDRESS
                     periph_bd = str_to_bd_addr(ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS, args[1])
                     periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
-                    error = await central.connect(periph_bd, periph_conn_params)
+                    error = central.connect(periph_bd, periph_conn_params)
 
             case "GAPBROWSE":
                 if len(args) == 2:
                     conn_idx = int(args[1])
-                    error = await central.browse(conn_idx, None)
+                    error = central.browse(conn_idx, None)
 
             case "GAPDISCONNECT":
                 if len(args) >= 2:
@@ -137,14 +151,14 @@ async def handle_console_command(command: str, central: ble.BleCentral) -> ble.B
                             reason = ble.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON
                     else:
                         reason = ble.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON
-                    error = await central.disconect(conn_idx, reason)
+                    error = central.disconect(conn_idx, reason)
 
             case "GATTWRITE":
                 if len(args) == 4:
                     conn_idx = int(args[1])
                     handle = int(args[2])
                     value = bytes.fromhex(args[3])  # TODO requires leading 0 for 0x0-0xF
-                    error = await central.write(conn_idx, handle, 0, value)
+                    error = central.write(conn_idx, handle, 0, value)
 
             case "GATTWRITENORESP":
                 if len(args) == 5:
@@ -152,7 +166,7 @@ async def handle_console_command(command: str, central: ble.BleCentral) -> ble.B
                     handle = int(args[2])
                     signed = bool(int(args[3]))
                     value = bytes.fromhex(args[4])  # TODO requires leading 0 for 0x0-0xF
-                    error = await central.write_no_resp(conn_idx, handle, signed, value)
+                    error = central.write_no_resp(conn_idx, handle, signed, value)
 
             case "GATTWRITEPREPARE":
                 # TODO not receiving GATTC_CMP_EVT after sending GattcWriteCmd
@@ -160,19 +174,19 @@ async def handle_console_command(command: str, central: ble.BleCentral) -> ble.B
                     conn_idx = int(args[1])
                     handle = int(args[2])
                     value = bytes.fromhex(args[3])
-                    error = await central.write_prepare(conn_idx, handle, 0, value)
+                    error = central.write_prepare(conn_idx, handle, 0, value)
 
             case "GATTWRITEEXECUTE":
                 if len(args) == 3:
                     conn_idx = int(args[1])
                     execute = bool(int(args[2]))
-                    error = await central.write_execute(conn_idx, execute)
+                    error = central.write_execute(conn_idx, execute)
 
             case "GATTREAD":  # TODO char handle displayed by browse is acutally the declaration. The value is +1
                 if len(args) == 3:
                     conn_idx = int(args[1])
                     handle = int(args[2])
-                    error = await central.read(conn_idx, handle, 0)
+                    error = central.read(conn_idx, handle, 0)
 
             case 'GAPSETCONNPARAM':
                 if len(args) == 6:
@@ -182,26 +196,26 @@ async def handle_console_command(command: str, central: ble.BleCentral) -> ble.B
                     conn_params.interval_max = int(args[3])
                     conn_params.slave_latency = int(args[4])
                     conn_params.sup_timeout = int(args[5])
-                    error = await central.conn_param_update(conn_idx, conn_params)
+                    error = central.conn_param_update(conn_idx, conn_params)
 
             case 'GAPPAIR':
                 if len(args) == 3:
                     conn_idx = int(args[1])
                     bond = bool(int(args[2]))
-                    error = await central.pair(conn_idx, bond)
+                    error = central.pair(conn_idx, bond)
 
             case 'PASSKEYENTRY':
                 if len(args) == 4:
                     conn_idx = int(args[1])
                     accept = bool(int(args[2]))
                     passkey = int(args[3])
-                    error = await central.passkey_reply(conn_idx, accept, passkey)
+                    error = central.passkey_reply(conn_idx, accept, passkey)
 
             case 'YESNOTENTRY':
                 if len(args) == 3:
                     conn_idx = int(args[1])
                     accept = bool(int(args[2]))
-                    error = await central.numeric_reply(conn_idx, accept)
+                    error = central.numeric_reply(conn_idx, accept)
 
             case _:
                 pass
@@ -209,7 +223,7 @@ async def handle_console_command(command: str, central: ble.BleCentral) -> ble.B
     return error
 
 
-async def handle_ble_event(central: ble.BleCentral, evt: ble.BleEventBase, services):
+def handle_ble_event(central: ble.BleCentral, evt: ble.BleEventBase, services):
     match evt.evt_code:
         case ble.BLE_EVT_GAP.BLE_EVT_GAP_ADV_REPORT:
             handle_evt_gap_adv_report(central, evt)
@@ -225,7 +239,7 @@ async def handle_ble_event(central: ble.BleCentral, evt: ble.BleEventBase, servi
             handle_evt_gattc_discover_svc(central, evt, services)
         case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_COMPLETED:
             if evt.type == ble.GATTC_DISCOVERY_TYPE.GATTC_DISCOVERY_TYPE_SVC:
-                await handle_evt_gattc_discover_completed(central, evt, services)
+                handle_evt_gattc_discover_completed(central, evt, services)
         case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_CHAR:
             handle_evt_gattc_discover_char(central, evt)
         case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_CHAR:
@@ -264,7 +278,7 @@ async def handle_ble_event(central: ble.BleCentral, evt: ble.BleEventBase, servi
             handle_evt_gap_numeric_request(central, evt)
         case _:
             print(f"Ble Task unhandled event: {evt}")
-            await central.handle_event_default(evt)
+            central.handle_event_default(evt)
 
 
 def handle_evt_gap_passkey_notify(central, evt: ble.BleEventGapPasskeyNotify):
@@ -321,17 +335,17 @@ def handle_evt_gattc_discover_svc(central: ble.BleCentral, evt: ble.BleEventGatt
     services.push(service)
 
 
-async def handle_evt_gattc_discover_completed(central: ble.BleCentral, evt: ble.BleEventGattcDiscoverCompleted, services: ble.SearchableQueue):
+def handle_evt_gattc_discover_completed(central: ble.BleCentral, evt: ble.BleEventGattcDiscoverCompleted, services: ble.SearchableQueue):
     print(f"main_central handle_evt_gattc_discover_completed unimplemented. evt={evt}")
 
     if evt.type == ble.GATTC_DISCOVERY_TYPE.GATTC_DISCOVERY_TYPE_SVC:
         service: ble.BleServiceBase = services.peek_back()
-        await central.discover_characteristics(evt.conn_idx, service.start_h, service.end_h, None)
+        central.discover_characteristics(evt.conn_idx, service.start_h, service.end_h, None)
 
     # TODO discover included services
 
     elif evt.type == ble.GATTC_DISCOVERY_TYPE.GATTC_DISCOVERY_TYPE_CHARACTERISTICS:
-        # await central.discover_descriptors(evt.conn_idx. )
+        # central.discover_descriptors(evt.conn_idx. )
         pass
 
 
@@ -438,12 +452,22 @@ def format_properties(prop: int) -> str:
     return propr_str
 
 
+
+def user_main():
+    elapsed = 0
+    delay = 1
+    # asyncio.all_tasks -> test printing all running tasks
+    while True:
+        time.sleep(delay)
+        elapsed += delay
+        print(f"User Main. elapsed={elapsed}")
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog='main_central',
-                                     description='BLE Central AT Command CLI')
+    #parser = argparse.ArgumentParser(prog='main_central',
+    #                                 description='BLE Central AT Command CLI')
 
-    parser.add_argument("com_port")
+    #parser.add_argument("com_port")
 
-    args = parser.parse_args()
+    #args = parser.parse_args()
 
-    asyncio.run(main(args.com_port))
+    main("COM54")
