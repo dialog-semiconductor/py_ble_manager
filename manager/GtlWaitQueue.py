@@ -1,3 +1,4 @@
+import threading
 from ctypes import c_uint16
 from typing import Callable
 from gtl_messages.gtl_message_base import GtlMessageBase
@@ -21,16 +22,20 @@ class GtlWaitQueueElement():
 
 class GtlWaitQueue():
     def __init__(self) -> None:
+        self._wait_queue_lock: threading.Lock = threading.Lock()  # TODO only needed for manager direct access?
         self.queue = []
 
     def _task_to_connidx(self, task_id):  # TODO does not seem like an appropriate method for the wait queue to have
         return task_id >> 8
 
     def add(self, elem: GtlWaitQueueElement):
+        self._wait_queue_lock.acquire()
         self.push(elem)
+        self._wait_queue_lock.release()
 
     def flush(self, conn_idx):
         elem: GtlWaitQueueElement
+        self._wait_queue_lock.acquire()
         for elem in self.queue:
             if elem.conn_idx == conn_idx:
                 is_match = False
@@ -68,10 +73,11 @@ class GtlWaitQueue():
                     if elem.cb:
                         # Fire associated callback with None gtl message # TODO seems like it could cause issue, verify for two cases where match is true
                         elem.cb(None, elem.param)
+        self._wait_queue_lock.release()
 
     def match(self, message: GtlMessageBase) -> bool:
         ret = False
-
+        self._wait_queue_lock.acquire()
         for item in self.queue:
             item: GtlWaitQueueElement
             if item.conn_idx == 0XFFFF:  # TODO no magic number
@@ -99,6 +105,7 @@ class GtlWaitQueue():
                 ret = True
                 break
 
+        self._wait_queue_lock.release()
         return ret
 
     def push(self, elem: GtlWaitQueueElement) -> None:
