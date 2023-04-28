@@ -37,6 +37,7 @@ class BleManager(BleManagerBase):
         self._ble_stack_initialized = False
         self._dev_params = BleDevParamsDefault()
         self._dev_params_lock = threading.Lock()
+        self._mgr_lock = threading.Lock()
         self.common_mgr = BleManagerCommon(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q, self._stored_device_list, self._dev_params, self._dev_params_lock)
         self.gap_mgr = BleManagerGap(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q, self._stored_device_list, self._dev_params, self._dev_params_lock)
         self.gattc_mgr = BleManagerGattc(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q, self._stored_device_list, self._dev_params, self._dev_params_lock)
@@ -148,9 +149,10 @@ class BleManager(BleManagerBase):
         if ble_status == BLE_STATUS.BLE_IS_BUSY or ble_status == BLE_STATUS.BLE_IS_RESET:
             return BleMgrMsgRsp(opcode=command.opcode, status=BLE_ERROR.BLE_ERROR_BUSY)
 
+        self._mgr_lock.acquire()  # TODO unsure why this is needed unless calling manager functions directly 
         self._mgr_command_queue_send(command)
         response = self._mgr_response_queue_get()
-
+        self._mgr_lock.release()
         assert command.opcode == response.opcode
 
         return response
