@@ -62,11 +62,12 @@ class BleManagerGap(BleManagerBase):
                  adapter_command_q: queue.Queue[GtlMessageBase],
                  wait_q: GtlWaitQueue,
                  stored_device_q: StoredDeviceQueue,
+                 stored_device_lock: threading.Lock(),
                  dev_params: BleDevParamsDefault,
                  dev_params_lock: threading.Lock()
                  ) -> None:
 
-        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q, stored_device_q, dev_params, dev_params_lock)
+        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q, stored_device_q, stored_device_lock, dev_params, dev_params_lock)
 
         self.cmd_handlers = {
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADDRESS_SET_CMD: None,
@@ -88,7 +89,7 @@ class BleManagerGap(BleManagerBase):
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ROLE_SET_CMD: self.role_set_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_MTU_SIZE_SET_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CHANNEL_MAP_SET_CMD: None,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_PARAM_UPDATE_CMD: self.conn_param_update,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_PARAM_UPDATE_CMD: self.conn_param_update_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_PARAM_UPDATE_REPLY_CMD: self.conn_param_update_reply_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PAIR_CMD: self.pair_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PAIR_REPLY_CMD: self.pair_reply_cmd_handler,
@@ -253,15 +254,19 @@ class BleManagerGap(BleManagerBase):
 
     def _cmp_security_req_evt_handler(self, gtl: GapcCmpEvt):
         conn_idx = self._task_to_connidx(gtl.src_id)
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
         if dev:
             dev.security_req_pending = False
+        self.storage_release()
 
     def _cmp_update_params_evt_handler(self, gtl: GapcCmpEvt):
         conn_idx = self._task_to_connidx(gtl.src_id)
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
         if dev:
             dev.updating = False
+        self.storage_release()
 
         evt = BleEventGapConnParamUpdateCompleted()
         evt.conn_idx = conn_idx
@@ -299,6 +304,7 @@ class BleManagerGap(BleManagerBase):
         self._mgr_event_queue_send(evt)
 
     def _conn_cleanup(self, conn_idx: int = 0, reason: CO_ERROR = CO_ERROR.CO_ERROR_NO_ERROR) -> None:
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
         if dev:
             dev.pending_events_clear_handles()
@@ -332,6 +338,7 @@ class BleManagerGap(BleManagerBase):
             # endif /* (dg_configBLE_SKIP_LATENCY_API == 1) */
 
             self._mgr_event_queue_send(evt)
+        self.storage_release()
 
     def _connect_cmp_evt_handler(self, gtl: GapmCmpEvt):
 
@@ -340,11 +347,13 @@ class BleManagerGap(BleManagerBase):
         self.mgr_dev_params_release()
 
         if gtl.parameters.status == HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
+            self.storage_acquire()
             dev = self._stored_device_list.find_device_by_connenting()
             if dev:
                 dev.connecting = False
                 if not dev.bonded:
                     self._stored_device_list.remove_device(dev)
+            self.storage_release()
 
         evt = BleEventGapConnectionCompleted()
 
@@ -408,6 +417,7 @@ class BleManagerGap(BleManagerBase):
 
         print("_gapm_address_resolve_complete")
         conn_idx = evt.conn_idx
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
         if dev:
             # Check if the device was resolved and change the address
@@ -442,6 +452,7 @@ class BleManagerGap(BleManagerBase):
                 # ble_storage_get_u16(conn_idx, STORAGE_KEY_SVC_CHANGED_CCC, &svc_chg_ccc);
                 # gcmd->svc_changed_ind_enable = !!(svc_chg_ccc & GATT_CCC_INDICATIONS);
                 self._adapter_command_queue_send(cfm)
+        self.storage_release()
 
     def _get_local_io_cap(self):
         self.mgr_dev_params_acquire()
@@ -476,7 +487,7 @@ class BleManagerGap(BleManagerBase):
                 gtl_io_cap = GAP_IO_CAP.GAP_IO_CAP_NO_INPUT_NO_OUTPUT
         return gtl_io_cap
 
-    def _max_bonded_reached(self):
+    def _max_bonded_reached(self):  # Acquire storage before calling this function
         return self._stored_device_list.count_bonded() >= BLE_GAP_MAX_BONDED
 
     def _resolve_address_from_connected_evt(self, gtl: GapcConnectionReqInd, evt: BleEventGapConnected):
@@ -488,7 +499,10 @@ class BleManagerGap(BleManagerBase):
         if gtl.parameters.peer_addr.addr[5] & 0xC0 != 0x40:
             return False
 
+        # TODO SDK does not lock here ?
+        self.storage_acquire()
         irk_count = self._stored_device_list.get_irk_count()
+        self.storage_release()
         if irk_count == 0:
             return False
 
@@ -574,12 +588,14 @@ class BleManagerGap(BleManagerBase):
         gtl.parameters.pairing.ikey_dist = dg_configBLE_PAIR_INIT_KEY_DIST
         gtl.parameters.pairing.rkey_dist = dg_configBLE_PAIR_RESP_KEY_DIST
 
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
         if not dev:
             print("_send_bond_cmd no device found")
             gtl.parameters.pairing.sec_req = GAP_SEC_REQ.GAP_NO_SEC
         else:
             gtl.parameters.pairing.sec_req = self._sec_req_to_gtl(dev.sec_level_req)
+        self.storage_release()
 
         # print(f"_send_bond_command. io_cap in={io_cap}. gtl.io_cap={gtl.parameters.pairing.iocap}, gtl.auth={gtl.parameters.pairing.auth}")
         self._adapter_command_queue_send(gtl)
@@ -771,7 +787,7 @@ class BleManagerGap(BleManagerBase):
                 evt.status = BLE_ERROR.BLE_STATUS_OK
                 evt.bond = bool(gtl.parameters.data.auth & GAP_AUTH_MASK.GAP_AUTH_BOND)
                 evt.mitm = bool(gtl.parameters.data.auth & GAP_AUTH_MASK.GAP_AUTH_MITM)
-
+                self.storage_acquire()
                 dev = self._stored_device_list.find_device_by_conn_idx(evt.conn_idx)
                 if dev:
                     dev.paired = True
@@ -795,7 +811,7 @@ class BleManagerGap(BleManagerBase):
                 #        self.dev_params.prev_privacy_operation = BLE_MGR_RAL_OP_NONE
 
                 # storage_mark_dirty(true); # TODO storage handling
-
+                self.storage_release()
                 self._mgr_event_queue_send(evt)
 
             case GAPC_BOND.GAPC_PAIRING_FAILED:
@@ -804,11 +820,12 @@ class BleManagerGap(BleManagerBase):
 
                 conn_idx = self._task_to_connidx(gtl.src_id)
                 if dg_configBLE_SECURE_CONNECTIONS == 1:
-
+                    self.storage_acquire()
                     dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
                     if dev:
                         dev.secure = False
                     # storage_mark_dirty(true); # TODO
+                    self.storage_release()
 
                 evt.conn_idx = conn_idx
 
@@ -832,6 +849,7 @@ class BleManagerGap(BleManagerBase):
 
             case GAPC_BOND.GAPC_LTK_EXCH:
                 conn_idx = self._task_to_connidx(gtl.src_id)
+                self.storage_acquire()
                 dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
                 if dev:
 
@@ -842,9 +860,11 @@ class BleManagerGap(BleManagerBase):
                     dev.remote_ltk.key = bytes(gtl.parameters.data.ltk.ltk.key[:])
 
                     # storage_mark_dirty(false); # TODO
+                self.storage_release()
 
             case GAPC_BOND.GAPC_CSRK_EXCH:
                 conn_idx = self._task_to_connidx(gtl.src_id)
+                self.storage_acquire()
                 dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
                 if dev:
 
@@ -852,10 +872,12 @@ class BleManagerGap(BleManagerBase):
                     dev.remote_csrk.sign_cnt = 0
 
                     # storage_mark_dirty(false); # TODO
+                self.storage_release()
 
             case GAPC_BOND.GAPC_IRK_EXCH:
 
                 conn_idx = self._task_to_connidx(gtl.src_id)
+                self.storage_acquire()
                 dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
                 if dev:
                     addr = BdAddress()
@@ -877,6 +899,7 @@ class BleManagerGap(BleManagerBase):
                     self._mgr_event_queue_send(evt)
 
                     # storage_mark_dirty(false); # TODO
+                self.storage_release()
 
     def bond_req_evt_handler(self, gtl: GapcBondReqInd):
 
@@ -891,9 +914,11 @@ class BleManagerGap(BleManagerBase):
 
                 if (dg_configBLE_SECURE_CONNECTIONS == 1):
                     if gtl.parameters.data.auth_req & GAP_AUTH_MASK.GAP_AUTH_SEC:
+                        self.storage_acquire()
                         dev = self._stored_device_list.find_device_by_conn_idx(evt.conn_idx)
                         if dev:
                             dev.secure = True
+                        self.storage_release()
 
                 self._mgr_event_queue_send(evt)
 
@@ -912,8 +937,8 @@ class BleManagerGap(BleManagerBase):
                     cfm.parameters.data.ltk.ltk.key[i] = secrets.randbits(8)
 
                 conn_idx = self._task_to_connidx(gtl.src_id)
+                self.storage_acquire()
                 dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
-
                 if dev:
                     # dev.ltk = cfm.parameters.data.ltk
                     dev.ltk.key_size = cfm.parameters.data.ltk.key_size
@@ -925,7 +950,7 @@ class BleManagerGap(BleManagerBase):
                     dev.ltk.ediv = cfm.parameters.data.ltk.ediv
                     dev.ltk.key = bytes(cfm.parameters.data.ltk.ltk.key[:])
                     # TODO storage_mark_dirty(false)
-
+                self.storage_release()
                 self._adapter_command_queue_send(cfm)
 
             case GAPC_BOND.GAPC_CSRK_EXCH:
@@ -938,12 +963,13 @@ class BleManagerGap(BleManagerBase):
                     cfm.parameters.data.csrk.key[i] = secrets.randbits(8)
 
                 conn_idx = self._task_to_connidx(gtl.src_id)
+                self.storage_acquire()
                 dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
                 if dev:
                     dev.csrk.key = bytes(cfm.parameters.data.csrk.key)
                     dev.csrk.sign_cnt = 0
                     #  TODO storage_mark_dirty(false)
-
+                self.storage_release()
                 self._adapter_command_queue_send(cfm)
 
             case GAPC_BOND.GAPC_TK_EXCH:
@@ -985,9 +1011,9 @@ class BleManagerGap(BleManagerBase):
 
                     self._mgr_event_queue_send(evt)
 
-    def conn_param_update(self, command: BleMgrGapConnParamUpdateCmd):
+    def conn_param_update_cmd_handler(self, command: BleMgrGapConnParamUpdateCmd):
         response = BleMgrGapConnParamUpdateRsp(BLE_ERROR.BLE_ERROR_FAILED)
-
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
@@ -1009,12 +1035,13 @@ class BleManagerGap(BleManagerBase):
             self._adapter_command_queue_send(gtl)
             response.status = BLE_ERROR.BLE_STATUS_OK
 
+        self.storage_release()
         self._mgr_response_queue_send(response)
 
     def conn_param_update_reply_cmd_handler(self, command: BleMgrGapConnParamUpdateReplyCmd):
         response = BleMgrGapConnParamUpdateReplyRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
-
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
         else:
@@ -1027,6 +1054,7 @@ class BleManagerGap(BleManagerBase):
             self._adapter_command_queue_send(gtl)
             response.status = BLE_ERROR.BLE_STATUS_OK
 
+        self.storage_release()
         self._mgr_response_queue_send(response)
 
     def conn_param_updated_evt_handler(self, gtl: GapcParamUpdatedInd):
@@ -1042,10 +1070,12 @@ class BleManagerGap(BleManagerBase):
         evt = BleEventGapConnParamUpdateReq()
         conn_idx = self._task_to_connidx(gtl.src_id)
 
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
         if dev:
             # Set the updating flag until application replies to the update request
             dev.updating = True
+        self.storage_release()
 
         evt.conn_idx = conn_idx
         evt.conn_params.interval_min = gtl.parameters.intv_min
@@ -1079,7 +1109,6 @@ class BleManagerGap(BleManagerBase):
         # endif
         response = BleMgrGapConnectRsp(BLE_ERROR.BLE_ERROR_FAILED)
         self.mgr_dev_params_acquire()
-
         dev = self._stored_device_list.find_device_by_connenting()
         if dev:
             response.status = BLE_ERROR.BLE_ERROR_BUSY
@@ -1126,6 +1155,7 @@ class BleManagerGap(BleManagerBase):
                     self._adapter_command_queue_send(gtl)
                     response.status = BLE_ERROR.BLE_STATUS_OK
 
+        self.storage_release()
         self._mgr_response_queue_send(response)
         self.mgr_dev_params_release()
 
@@ -1150,6 +1180,7 @@ class BleManagerGap(BleManagerBase):
         # ble_mgr_skip_latency_set(evt->conn_idx, false);
         # endif /* (dg_configBLE_SKIP_LATENCY_API == 1) */
 
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_address(evt.peer_address, create=True)
         dev.conn_idx = evt.conn_idx
         dev.connected = True
@@ -1198,34 +1229,37 @@ class BleManagerGap(BleManagerBase):
 
             # TODO something with service changed characteristic value from storage
             self._adapter_command_queue_send(cfm)
+        self.storage_release()
         self.mgr_dev_params_release()
 
     def disconnect_cmd_handler(self, command: BleMgrGapDisconnectCmd) -> None:
         response = BleMgrGapDisconnectRsp(BLE_ERROR.BLE_ERROR_FAILED)
-
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
-
+        # self.storage_release() TODO releaser here ?
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
         else:
             self._send_disconncet_cmd(command.conn_idx, command.reason)
             response.status = BLE_ERROR.BLE_STATUS_OK
 
+        self.storage_release()
         self._mgr_response_queue_send(response)
 
     def disconnected_evt_handler(self, gtl: GapcDisconnectInd) -> None:
-
         conn_idx = self._task_to_connidx(gtl.src_id)
+        self.storage_acquire()
         dev: StoredDevice = self._stored_device_list.find_device_by_conn_idx(conn_idx)
-
         if dev is not None:
             if dev.resolving:
                 dev.discon_reason = gtl.parameters.reason
             else:
                 self._conn_cleanup(conn_idx, gtl.parameters.reason)
+        self.storage_release()
 
     def encrypt_ind_evt_handler(self, gtl: GapcEncryptInd):
         conn_idx = self._task_to_connidx(gtl.src_id)
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
         if dev:
             dev.encrypted = True
@@ -1236,10 +1270,12 @@ class BleManagerGap(BleManagerBase):
 
                 dev.sec_level = self._auth_to_sec_level(gtl.parameters.auth, dev.remote_ltk.key_size)
                 self._send_sec_level_changed_evt(conn_idx, dev.sec_level)
+        self.storage_release()
 
     def encrypt_req_ind_evt_handler(self, gtl: GapcEncryptReqInd):
         conn_idx = self._task_to_connidx(gtl.src_id)
-        cfm = GapcEncryptCfm()
+        cfm = GapcEncryptCfm(conidx=conn_idx)
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
         if dev:
             if dg_configBLE_SECURE_CONNECTIONS == 1:
@@ -1263,7 +1299,8 @@ class BleManagerGap(BleManagerBase):
             if dev and cfm.parameters.found == 0:
                 self._send_bonding_info_miss_evt(dev.conn_idx)
 
-            self._adapter_command_queue_send(cfm)
+        self.storage_release()
+        self._adapter_command_queue_send(cfm)
 
     def gapc_cmp_evt_handler(self, gtl: GapcCmpEvt) -> bool:
 
@@ -1387,20 +1424,28 @@ class BleManagerGap(BleManagerBase):
         response = BleMgrGapPairRsp(BLE_ERROR.BLE_ERROR_FAILED)
 
         secure = True if (dg_configBLE_SECURE_CONNECTIONS == 1) else False
+        self.storage_acquire()  # TODO SDK uses some temp variables to release storage earlier
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
+        master = dev.master
+        bonded = dev.bonded
+        paired = dev.paired
+        self.storage_release()
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
         else:
             io_cap = self._get_local_io_cap()
-            if (not command.bond and (dev.paired or dev.bonded)):
+            if (not command.bond and (paired or bonded)):
                 response.status = BLE_ERROR.BLE_ERROR_ALREADY_DONE
             else:
                 # Don't exceed the max bonded devices threshold
-                if (command.bond and not dev.bonded and self._max_bonded_reached()):
+                self.storage_acquire()
+                max_bonded = self._max_bonded_reached()
+                self.storage_release()
+                if (command.bond and not bonded and max_bonded):
                     response.status = BLE_ERROR.BLE_ERROR_INS_RESOURCES
 
                 mitm = False if io_cap == GAP_IO_CAPABILITIES.GAP_IO_CAP_NO_INPUT_OUTPUT else True
-                if dev.master:
+                if master:
                     if (dg_configBLE_CENTRAL == 1):
                         self._send_bond_cmd(command.conn_idx,
                                             io_cap,
@@ -1411,6 +1456,7 @@ class BleManagerGap(BleManagerBase):
 
                 else:
                     if dg_configBLE_PERIPHERAL == 1:
+                        self.storage_acquire()
                         if dev.security_req_pending:
                             response.status = BLE_ERROR.BLE_ERROR_IN_PROGRESS
                         else:
@@ -1420,19 +1466,23 @@ class BleManagerGap(BleManagerBase):
                                                     mitm,
                                                     secure)
                             response.status = BLE_ERROR.BLE_STATUS_OK
+                        self.storage_release()
 
         self._mgr_response_queue_send(response)
 
     def pair_reply_cmd_handler(self, command: BleMgrGapPairReplyCmd):
         response = BleMgrGapPairReplyRsp(BLE_ERROR.BLE_ERROR_FAILED)
-
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
+        bonded = dev.bonded
+        sec_level_req = dev.sec_level_req
+        self.storage_release()
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
         else:
             if (command.bond
                     and command.accept
-                    and not dev.bonded
+                    and not bonded
                     and self._max_bonded_reached()):
 
                 response.status = BLE_ERROR.BLE_ERROR_INS_RESOURCES
@@ -1453,7 +1503,7 @@ class BleManagerGap(BleManagerBase):
                     gtl.parameters.data.pairing_feat.iocap = self._io_cap_to_gtl(io_cap)
                     gtl.parameters.data.pairing_feat.ikey_dist = dg_configBLE_PAIR_INIT_KEY_DIST
                     gtl.parameters.data.pairing_feat.rkey_dist = dg_configBLE_PAIR_RESP_KEY_DIST
-                    gtl.parameters.data.pairing_feat.sec_req = self._sec_req_to_gtl(dev.sec_level_req)
+                    gtl.parameters.data.pairing_feat.sec_req = self._sec_req_to_gtl(sec_level_req)
 
                 self._adapter_command_queue_send(gtl)
 
@@ -1489,11 +1539,13 @@ class BleManagerGap(BleManagerBase):
                 or dg_configBLE_DATA_LENGTH_TX_MAX > GAPM_LE_LENGTH_EXT_OCTETS_MIN):
 
                 if gtl.parameters.features[0] & BLE_LE_LENGTH_FEATURE:
+                    self.storage_acquire()
                     dev = self._stored_device_list.find_device_by_conn_idx(evt.conn_idx)
                     if dev and dev.master:
                         self._change_conn_data_length(evt.conn_idx,
                                                       dg_configBLE_DATA_LENGTH_TX_MAX,
                                                       ble_data_length_to_time(dg_configBLE_DATA_LENGTH_TX_MAX))
+                    self.storage_release()
         '''
 
     def peer_version_ind_evt_handler(self, gtl: GapcPeerVersionInd):
@@ -1504,9 +1556,11 @@ class BleManagerGap(BleManagerBase):
         evt.lmp_subversion = gtl.parameters.lmp_subvers
         self._mgr_event_queue_send(evt)
 
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(evt.conn_idx)
         if dev and dev.master:
             self._get_peer_features(evt.conn_idx)
+        self.storage_release()
 
     def role_set_cmd_handler(self, command: BleMgrGapRoleSetCmd):
         gtl = self._dev_params_to_gtl()

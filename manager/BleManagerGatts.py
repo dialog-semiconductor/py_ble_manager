@@ -38,11 +38,12 @@ class BleManagerGatts(BleManagerBase):
                  adapter_command_q: queue.Queue[GtlMessageBase],
                  wait_q: GtlWaitQueue,
                  stored_device_q: StoredDeviceQueue,
+                 stored_device_lock: threading.Lock(),
                  dev_params: BleDevParamsDefault,
                  dev_params_lock: threading.Lock()
                  ) -> None:
 
-        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q, stored_device_q, dev_params, dev_params_lock)
+        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q, stored_device_q, stored_device_q, dev_params, dev_params_lock)
 
         self.cmd_handlers = {
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_ADD_CMD: self.service_add_cmd_handler,
@@ -177,9 +178,11 @@ class BleManagerGatts(BleManagerBase):
             evt.type = GATT_EVENT.GATT_EVENT_INDICATION
         evt.status = gtl.parameters.status == HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR
 
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(evt.conn_idx)
         if dev is not None:
             dev.pending_events_clear_handle(evt.handle)
+        self.storage_release()
 
         self._mgr_event_queue_send(evt)
 
@@ -197,6 +200,7 @@ class BleManagerGatts(BleManagerBase):
     def prepare_write_cfm_cmd_handler(self, command: BleMgrGattsPrepareWriteCfmCmd):
         response = BleMgrGattsPrepareWriteCfmRsp(BLE_ERROR.BLE_ERROR_FAILED)
 
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
@@ -209,6 +213,7 @@ class BleManagerGatts(BleManagerBase):
             self._adapter_command_queue_send(gtl)
             response.status = BLE_ERROR.BLE_STATUS_OK
 
+        self.storage_release()
         self._mgr_response_queue_send(response)
 
     def prepare_write_req_evt_handler(self, gtl: GattcAttInfoReqInd):
@@ -222,8 +227,8 @@ class BleManagerGatts(BleManagerBase):
 
         response = BleMgrGattsReadCfmRsp(BLE_ERROR.BLE_ERROR_FAILED)
 
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
-
         if dev is None:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
         else:
@@ -235,6 +240,7 @@ class BleManagerGatts(BleManagerBase):
 
             response.status = BLE_ERROR.BLE_STATUS_OK
 
+        self.storage_release()
         self._mgr_response_queue_send(response)
 
     def read_value_req_evt_handler(self, gtl: GattcReadReqInd):
@@ -246,8 +252,8 @@ class BleManagerGatts(BleManagerBase):
 
     def send_event_cmd_handler(self, command: BleMgrGattsSendEventCmd):
         response = BleMgrGattsSendEventRsp(BLE_ERROR.BLE_ERROR_FAILED)
-            # TODO need to get dev from storage
             # TODO need to check if sending event pending on this char
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
 
         if dev is None:
@@ -271,6 +277,7 @@ class BleManagerGatts(BleManagerBase):
 
                 response.status = BLE_ERROR.BLE_STATUS_OK
 
+        self.storage_release()
         self._mgr_response_queue_send(response)
 
     def service_add_characteristic_cmd_handler(self, command: BleMgrGattsServiceAddCharacteristicCmd) -> None:
@@ -426,6 +433,7 @@ class BleManagerGatts(BleManagerBase):
     def write_cfm_cmd_handler(self, command: BleMgrGattsWriteCfmCmd):
 
         response = BleMgrGattsWriteCfmRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
@@ -436,6 +444,7 @@ class BleManagerGatts(BleManagerBase):
             self._adapter_command_queue_send(req)
             response.status = BLE_ERROR.BLE_STATUS_OK
 
+        self.storage_release()
         self._mgr_response_queue_send(response)
 
     def write_value_req_evt_handler(self, gtl: GattcWriteReqInd):

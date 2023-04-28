@@ -34,14 +34,15 @@ class BleManager(BleManagerBase):
         self._adapter_event_q: queue.Queue[GtlMessageBase] = adapter_event_q
         self._wait_q = GtlWaitQueue()
         self._stored_device_list = StoredDeviceQueue()
+        self._stored_device_lock = threading.Lock()
         self._ble_stack_initialized = False
         self._dev_params = BleDevParamsDefault()
         self._dev_params_lock = threading.Lock()
         self._mgr_lock = threading.Lock()
-        self.common_mgr = BleManagerCommon(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q, self._stored_device_list, self._dev_params, self._dev_params_lock)
-        self.gap_mgr = BleManagerGap(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q, self._stored_device_list, self._dev_params, self._dev_params_lock)
-        self.gattc_mgr = BleManagerGattc(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q, self._stored_device_list, self._dev_params, self._dev_params_lock)
-        self.gatts_mgr = BleManagerGatts(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q, self._stored_device_list, self._dev_params, self._dev_params_lock)
+        self.common_mgr = BleManagerCommon(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q, self._stored_device_list, self._stored_device_lock, self._dev_params, self._dev_params_lock)
+        self.gap_mgr = BleManagerGap(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q, self._stored_device_list, self._stored_device_lock, self._dev_params, self._dev_params_lock)
+        self.gattc_mgr = BleManagerGattc(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q, self._stored_device_list, self._stored_device_lock, self._dev_params, self._dev_params_lock)
+        self.gatts_mgr = BleManagerGatts(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q, self._stored_device_list, self._stored_device_lock, self._dev_params, self._dev_params_lock)
 
         self.cmd_handlers = {
             BLE_MGR_CMD_CAT.BLE_MGR_COMMON_CMD_CAT: self.common_mgr,

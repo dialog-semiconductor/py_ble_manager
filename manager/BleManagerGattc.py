@@ -32,11 +32,12 @@ class BleManagerGattc(BleManagerBase):
                  adapter_command_q: queue.Queue[GtlMessageBase],
                  wait_q: GtlWaitQueue,
                  stored_device_q: StoredDeviceQueue,
+                 stored_device_lock: threading.Lock(),
                  dev_params: BleDevParamsDefault,
                  dev_params_lock: threading.Lock()
                  ) -> None:
 
-        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q, stored_device_q, dev_params, dev_params_lock)
+        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q, stored_device_q, stored_device_q, dev_params, dev_params_lock)
 
         self.cmd_handlers = {
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_BROWSE_CMD: self.browse_cmd_handler,
@@ -126,6 +127,7 @@ class BleManagerGattc(BleManagerBase):
 
     def browse_cmd_handler(self, command: BleMgrGattcBrowseCmd):
         response = BleMgrGattcBrowseRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
@@ -142,6 +144,7 @@ class BleManagerGattc(BleManagerBase):
             self._adapter_command_queue_send(gtl)
             response.status = BLE_ERROR.BLE_STATUS_OK
 
+        self.storage_release()
         self._mgr_response_queue_send(response)
 
     def cmp_evt_handler(self, gtl: GattcCmpEvt):
@@ -209,6 +212,7 @@ class BleManagerGattc(BleManagerBase):
 
         response = BleMgrGattcDiscoverCharRsp(BLE_ERROR.BLE_ERROR_FAILED)
 
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
@@ -228,12 +232,14 @@ class BleManagerGattc(BleManagerBase):
             self._adapter_command_queue_send(gtl)
             response.status = BLE_ERROR.BLE_STATUS_OK
 
+        self.storage_release()
         self._mgr_response_queue_send(response)
 
     # TODO discovering descriptors needs to be tested
     def discover_desc_cmd_handler(self, command: BleMgrGattcDiscoverDescCmd):
         response = BleMgrGattcDiscoverDescRsp(BLE_ERROR.BLE_ERROR_FAILED)
 
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
@@ -247,11 +253,13 @@ class BleManagerGattc(BleManagerBase):
             self._adapter_command_queue_send(gtl)
             response.status = BLE_ERROR.BLE_STATUS_OK
 
+        self.storage_release()
         self._mgr_response_queue_send(response)
 
     def discover_svc_cmd_handler(self, command: BleMgrGattcDiscoverSvcCmd):
         response = BleMgrGattcDiscoverSvcRsp(BLE_ERROR.BLE_ERROR_FAILED)
 
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
 
         if not dev:
@@ -272,6 +280,7 @@ class BleManagerGattc(BleManagerBase):
             self._adapter_command_queue_send(gtl)
             response.status = BLE_ERROR.BLE_STATUS_OK
 
+        self.storage_release()
         self._mgr_response_queue_send(response)
 
     def event_ind_evt_handler(self, gtl: GattcEventInd) -> None:
@@ -309,7 +318,7 @@ class BleManagerGattc(BleManagerBase):
 
     def read_cmd_handler(self, command: BleMgrGattcReadCmd):  # TODO need to test
         response = BleMgrGattcReadRsp(BLE_ERROR.BLE_ERROR_FAILED)
-
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
@@ -323,7 +332,7 @@ class BleManagerGattc(BleManagerBase):
             gtl.parameters.req.simple.length = 0
             self._adapter_command_queue_send(gtl)
             response.status = BLE_ERROR.BLE_STATUS_OK
-
+        self.storage_release()
         self._mgr_response_queue_send(response)
 
     def sdp_svc_ind_evt_handler(self, gtl: GattcSdpSvcInd):
@@ -388,6 +397,7 @@ class BleManagerGattc(BleManagerBase):
 
     def write_execute_cmd_handler(self, command: BleMgrGattcWriteExecuteCmd):
         response = BleMgrGattcWriteExecuteRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
@@ -399,11 +409,12 @@ class BleManagerGattc(BleManagerBase):
             self._adapter_command_queue_send(gtl)
             response.status = BLE_ERROR.BLE_STATUS_OK
 
+        self.storage_release()
         self._mgr_response_queue_send(response)
 
     def write_generic_cmd_handler(self, command: BleMgrGattcWriteGenericCmd):
         response = BleMgrGattcWriteGenericRsp(BLE_ERROR.BLE_ERROR_FAILED)
-
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
@@ -425,7 +436,7 @@ class BleManagerGattc(BleManagerBase):
 
             self._adapter_command_queue_send(gtl)
             response.status = BLE_ERROR.BLE_STATUS_OK
-
+        self.storage_release()
         self._mgr_response_queue_send(response)
 
 
