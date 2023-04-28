@@ -105,14 +105,14 @@ class BleManager(BleManagerBase):
 
             for task in done:
                 if task is self._event_q_task:
-                    print(f"Manager evet {task}")
+                    # print(f"Manager evet {task}")
                     # This is from the adapter_event_q
                     self._process_event_queue(task.result())
                     self._event_q_task = executor.submit(self._adapter_event_queue_get)
                     pending.add(self._event_q_task)
 
                 elif task is self._command_q_task:
-                    print(f"Manager command {task}")
+                    # print(f"Manager command {task}")
                     # This is from the mgr_command_q
                     self._process_command_queue(task.result())
                     self._command_q_task = executor.submit(self._api_commmand_queue_get)

@@ -48,5 +48,5 @@ class BleManagerBase():
     def _task_to_connidx(self, task_id: int) -> int:  # TODO this is repeated from GtlWaitQueue. Do not have in two places
         return task_id >> 8
 
-    def mgr_event_queue_get(self) -> BleMgrMsgBase:
-        return self._mgr_event_q.get()
+    def mgr_event_queue_get(self, timeout) -> BleMgrMsgBase:
+        return self._mgr_event_q.get(timeout=timeout)

@@ -42,9 +42,6 @@ class BleDeviceBase():
 
         self._services: list[BleServiceBase] = []
 
-        # TODO is there a better way to do this for get_event func?
-        self._executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
-
     def _ble_reset(self) -> BLE_ERROR:
         command = BleMgrCommonResetCmd()
         response: BleMgrCommonResetRsp = self._ble_manager.cmd_execute(command)
@@ -73,12 +70,9 @@ class BleDeviceBase():
         evt = None
         try:
             timeout = timeout_seconds if timeout_seconds > 0 else None
-            evt = concurrent.futures.wait([self._executor.submit(self._ble_manager.mgr_event_queue_get)], timeout)
-        except concurrent.futures.TimeoutError:
+            evt = self._ble_manager.mgr_event_queue_get(timeout=timeout)  # TODO add timeout
+        except queue.Empty:
             pass
-        except TypeError:
-            print("TypeERror")
-
         return evt
 
     def numeric_reply(self, conn_idx: int, accept: bool):

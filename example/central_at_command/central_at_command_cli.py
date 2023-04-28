@@ -61,16 +61,11 @@ def ble_task(com_port: str, command_q: queue.Queue, response_q: queue.Queue):
     services = ble.SearchableQueue()
 
     # initalize central device
-    central = ble.BleCentral(com_port, gtl_debug=True)
+    central = ble.BleCentral(com_port, gtl_debug=False)
     central.init()
     central.start()
     central.set_io_cap(ble.GAP_IO_CAPABILITIES.GAP_IO_CAP_KEYBOARD_DISP)
-    error = central.scan_start(ble.GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
-                                                 ble.GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
-                                                 160,
-                                                 80,
-                                                 False,
-                                                 True)
+    
 
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
     # create tasks for:
