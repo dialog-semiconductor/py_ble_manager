@@ -1,8 +1,10 @@
 import queue
+import threading
 from typing import Callable
 
 from ble_api.BleCommon import BLE_ERROR, BleEventBase
 from gtl_messages.gtl_message_base import GtlMessageBase
+from manager.BleDevParams import BleDevParamsDefault, BleDevParams
 from manager.BleManagerCommonMsgs import BleMgrMsgBase, BleMgrMsgRsp
 from manager.BleManagerStorage import StoredDeviceQueue
 from manager.GtlWaitQueue import GtlWaitQueue, GtlWaitQueueElement
@@ -14,7 +16,9 @@ class BleManagerBase():
                  mgr_event_q: queue.Queue[BleEventBase],
                  adapter_command_q: queue.Queue[GtlMessageBase],
                  wait_q: GtlWaitQueue,
-                 stored_device_q: StoredDeviceQueue) -> None:
+                 stored_device_q: StoredDeviceQueue,
+                 dev_params: BleDevParamsDefault,
+                 dev_params_lock: threading.Lock()) -> None:
 
         self._mgr_response_q = mgr_response_q
         self._mgr_event_q = mgr_event_q
@@ -23,8 +27,8 @@ class BleManagerBase():
         self.cmd_handlers = {}
         self.evt_handlers = {}
         self._stored_device_list: StoredDeviceQueue = stored_device_q
-
-        # TODO would be nice to have dev_params here and all ble managers can access same instance
+        self._dev_params = dev_params
+        self._dev_params_lock: threading.Lock() = dev_params_lock
 
     def _adapter_command_queue_send(self, command: GtlMessageBase):
         self._adapter_command_q.put_nowait(command)
@@ -50,3 +54,10 @@ class BleManagerBase():
 
     def mgr_event_queue_get(self, timeout) -> BleMgrMsgBase:
         return self._mgr_event_q.get(timeout=timeout)
+
+    def mgr_dev_params_acquire(self) -> BleDevParams:
+        self._dev_params_lock.acquire()
+        return self._dev_params
+
+    def mgr_dev_params_release(self) -> None:
+        self._dev_params_lock.release()

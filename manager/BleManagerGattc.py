@@ -1,4 +1,5 @@
 import queue
+import threading
 from ctypes import c_uint8
 
 from ble_api.BleAtt import ATT_ERROR, AttUuid
@@ -18,6 +19,7 @@ from manager.BleManagerGattcMsgs import BLE_CMD_GATTC_OPCODE, BleMgrGattcDiscove
     BleMgrGattcDiscoverSvcRsp, BleMgrGattcDiscoverCharCmd, BleMgrGattcDiscoverCharRsp, BleMgrGattcDiscoverDescCmd, \
     BleMgrGattcDiscoverDescRsp, BleMgrGattcBrowseCmd, BleMgrGattcBrowseRsp, BleMgrGattcReadCmd, BleMgrGattcReadRsp, \
     BleMgrGattcWriteGenericCmd, BleMgrGattcWriteGenericRsp, BleMgrGattcWriteExecuteCmd, BleMgrGattcWriteExecuteRsp
+from manager.BleDevParams import BleDevParamsDefault, BleDevParams
 from manager.BleManagerStorage import StoredDeviceQueue
 from manager.GtlWaitQueue import GtlWaitQueue
 
@@ -29,9 +31,12 @@ class BleManagerGattc(BleManagerBase):
                  mgr_event_q: queue.Queue[BleEventBase],
                  adapter_command_q: queue.Queue[GtlMessageBase],
                  wait_q: GtlWaitQueue,
-                 stored_device_q: StoredDeviceQueue) -> None:
+                 stored_device_q: StoredDeviceQueue,
+                 dev_params: BleDevParamsDefault,
+                 dev_params_lock: threading.Lock()
+                 ) -> None:
 
-        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q, stored_device_q)
+        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q, stored_device_q, dev_params, dev_params_lock)
 
         self.cmd_handlers = {
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_BROWSE_CMD: self.browse_cmd_handler,

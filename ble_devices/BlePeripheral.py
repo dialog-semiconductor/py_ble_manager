@@ -189,8 +189,10 @@ class BlePeripheral(BleDeviceBase):
 
     def set_advertising_interval(self, adv_intv_min_ms, adv_intv_max_ms) -> None:
         # TODO ble manager needs an api for this
-        self._ble_manager.gap_mgr.dev_params.adv_intv_min = self._ms_to_adv_slots(adv_intv_min_ms)
-        self._ble_manager.gap_mgr.dev_params.adv_intv_max = self._ms_to_adv_slots(adv_intv_max_ms)
+        self._ble_manager.mgr_dev_params_acquire()
+        self._ble_manager.gap_mgr._dev_params.adv_intv_min = self._ms_to_adv_slots(adv_intv_min_ms)
+        self._ble_manager.gap_mgr._dev_params.adv_intv_max = self._ms_to_adv_slots(adv_intv_max_ms)
+        self._ble_manager.mgr_dev_params_release()
         # TODO save current setting in local?
 
     def set_value(self, handle: int, value: bytes) -> BLE_ERROR:
