@@ -65,13 +65,11 @@ def ble_task(com_port: str, command_q: queue.Queue, response_q: queue.Queue):
     central.init()
     central.start()
     central.set_io_cap(ble.GAP_IO_CAPABILITIES.GAP_IO_CAP_KEYBOARD_DISP)
-    
 
-    executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
     # create tasks for:
     #   hanlding commands from the console
     #   responding to BLE events
-
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
     console_command_task = executor.submit(command_q.get)
     ble_event_task = executor.submit(central.get_event)
     pending = [ble_event_task, console_command_task]

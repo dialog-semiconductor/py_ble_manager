@@ -16,7 +16,6 @@ class SerialStreamManager():
     def _serial_task(self):
 
         executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
-        print("Running thread")
         # create task to wait for data on the tx queue (e.g. data from the BLE adapter)
         self._serial_tx_task = executor.submit(self._tx_queue_get)
         # create task to wait for data on the serial port
@@ -80,4 +79,3 @@ class SerialStreamManager():
         self._serial_port = serial.Serial(self._com_port, baudrate=115200)
         # except :
         #    print(f"{type(self)} failed to open {self._com_port}")
-    

@@ -1109,6 +1109,7 @@ class BleManagerGap(BleManagerBase):
         # endif
         response = BleMgrGapConnectRsp(BLE_ERROR.BLE_ERROR_FAILED)
         self.mgr_dev_params_acquire()
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_connenting()
         if dev:
             response.status = BLE_ERROR.BLE_ERROR_BUSY
@@ -1253,9 +1254,12 @@ class BleManagerGap(BleManagerBase):
         if dev is not None:
             if dev.resolving:
                 dev.discon_reason = gtl.parameters.reason
+                self.storage_release()
             else:
+                self.storage_release()  # TODO all these storage_release are convuluted. Workaround as _conn_cleanup acquires storage. Dont understand how SDK does not have issue here
                 self._conn_cleanup(conn_idx, gtl.parameters.reason)
-        self.storage_release()
+        else:
+            self.storage_release()
 
     def encrypt_ind_evt_handler(self, gtl: GapcEncryptInd):
         conn_idx = self._task_to_connidx(gtl.src_id)
