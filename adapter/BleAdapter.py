@@ -14,7 +14,9 @@ class BleAdapter():
                  event_q: queue.Queue[GtlMessageBase],
                  serial_tx_q: queue.Queue[bytes],
                  serial_rx_q: queue.Queue[bytes],
-                 gtl_debug: bool = False) -> None:
+                 shutdown_event: threading.Event,
+                 gtl_debug: bool = False,
+                 ) -> None:
 
         self.command_q: queue.Queue[GtlMessageBase] = command_q
         self.event_q: queue.Queue[GtlMessageBase] = event_q
@@ -22,10 +24,11 @@ class BleAdapter():
         self.serial_rx_q: queue.Queue[bytes] = serial_rx_q
         self.gtl_debug = gtl_debug
         self.ble_stack_initialized = False
+        self._shutdown_event = shutdown_event
 
     def _adapter_task(self):
 
-        executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=2, thread_name_prefix='BleAdapter')
 
         self._tx_task = executor.submit(self._command_queue_get)
         self._rx_task = executor.submit(self._serial_rx_q_get)
@@ -33,23 +36,38 @@ class BleAdapter():
         pending = [self._tx_task, self._rx_task]
 
         while True:
-            done, pending = concurrent.futures.wait(pending, return_when=concurrent.futures.FIRST_COMPLETED)
+
+            if self._shutdown_event.is_set():
+                executor.shutdown(wait=False, cancel_futures=True)
+                break
+
+            done, pending = concurrent.futures.wait(pending, timeout=1, return_when=concurrent.futures.FIRST_COMPLETED)
 
             for task in done:
                 if task is self._tx_task:
-                    # This is from Ble Manager command queue
-                    self._process_command_queue(task.result())
+                    # This is from Ble Manager command queue.
+                    if task.result():
+                        self._process_command_queue(task.result())
                     self._tx_task = executor.submit(self._command_queue_get)
                     pending.add(self._tx_task)
 
                 elif task is self._rx_task:
                     # This is from serial Rx queue
-                    self._process_serial_rx_q(task.result())
+                    if task.result():
+                        self._process_serial_rx_q(task.result())
                     self._rx_task = executor.submit(self._serial_rx_q_get)
                     pending.add(self._rx_task)
 
     def _command_queue_get(self) -> GtlMessageBase:
-        return self.command_q.get()
+        item = None
+        while item is None:
+            try:
+                if self._shutdown_event.is_set():
+                    break
+                item = self.command_q.get(timeout=1)
+            except queue.Empty:
+                pass
+        return item
 
     def _create_reset_command(self):
         return GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
@@ -83,7 +101,15 @@ class BleAdapter():
         self.serial_tx_q.put_nowait(message.to_bytes())
 
     def _serial_rx_q_get(self) -> bytes:
-        return self.serial_rx_q.get()
+        item = None
+        while item is None:
+            try:
+                if self._shutdown_event.is_set():
+                    break
+                item = self.serial_rx_q.get(timeout=1)
+            except queue.Empty:
+                pass
+        return item
 
     def init(self):
         self._task = threading.Thread(target=self._adapter_task)

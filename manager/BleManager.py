@@ -25,7 +25,8 @@ class BleManager(BleManagerBase):
                  mgr_response_q: queue.Queue[BLE_ERROR],
                  mgr_event_q: queue.Queue[BleEventBase],
                  adapter_command_q: queue.Queue[GtlMessageBase],
-                 adapter_event_q: queue.Queue[GtlMessageBase]) -> None:
+                 adapter_event_q: queue.Queue[GtlMessageBase],
+                 shutdown_event: threading.Event) -> None:
 
         self._mgr_command_q: queue.Queue[BleMgrMsgBase] = mgr_command_q
         self._mgr_response_q: queue.Queue[BLE_ERROR] = mgr_response_q
@@ -39,6 +40,7 @@ class BleManager(BleManagerBase):
         self._dev_params = BleDevParamsDefault()
         self._dev_params_lock = threading.Lock()
         self._mgr_lock = threading.Lock()
+        self._shutdown_event = shutdown_event
         self.common_mgr = BleManagerCommon(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q, self._stored_device_list, self._stored_device_lock, self._dev_params, self._dev_params_lock)
         self.gap_mgr = BleManagerGap(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q, self._stored_device_list, self._stored_device_lock, self._dev_params, self._dev_params_lock)
         self.gattc_mgr = BleManagerGattc(self._mgr_response_q, self._mgr_event_q, self._adapter_commnand_q, self._wait_q, self._stored_device_list, self._stored_device_lock, self._dev_params, self._dev_params_lock)
@@ -55,10 +57,26 @@ class BleManager(BleManagerBase):
         self.evt_handlers = [self.gap_mgr.evt_handlers, self.gattc_mgr.evt_handlers, self.gatts_mgr.evt_handlers]
 
     def _adapter_event_queue_get(self) -> BleEventBase:
-        return self._adapter_event_q.get()
+        item = None
+        while item is None:
+            try:
+                if self._shutdown_event.is_set():
+                    break
+                item = self._adapter_event_q.get(timeout=1)
+            except queue.Empty:
+                pass
+        return item
 
     def _api_commmand_queue_get(self) -> BleMgrMsgBase:
-        return self._mgr_command_q.get()
+        item = None
+        while item is None:
+            try:
+                if self._shutdown_event.is_set():
+                    break
+                item = self._mgr_command_q.get(timeout=1)
+            except queue.Empty:
+                pass
+        return item
 
     def _gattc_cmp_evt_handler(self, evt: GattcCmpEvt):
         if (evt.parameters.operation == GATTC_OPERATION.GATTC_NOTIFY
@@ -97,7 +115,7 @@ class BleManager(BleManagerBase):
 
     def _mgr_task(self):
 
-        executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=2, thread_name_prefix='BleMgr')
 
         # TODO function for creating these tasks so dont have in two spots
         self._command_q_task = executor.submit(self._api_commmand_queue_get)
@@ -106,22 +124,31 @@ class BleManager(BleManagerBase):
         pending = [self._command_q_task, self._event_q_task]
 
         while True:
-            done, pending = concurrent.futures.wait(pending, return_when=concurrent.futures.FIRST_COMPLETED)
+
+            if self._shutdown_event.is_set():
+                executor.shutdown(wait=False, cancel_futures=True)
+                break
+
+            done, pending = concurrent.futures.wait(pending, timeout=1, return_when=concurrent.futures.FIRST_COMPLETED)
 
             for task in done:
                 if task is self._event_q_task:
                     # print(f"Manager evet {task}")
                     # This is from the adapter_event_q
-                    self._process_event_queue(task.result())
+                    if task.result():
+                        self._process_event_queue(task.result())
                     self._event_q_task = executor.submit(self._adapter_event_queue_get)
                     pending.add(self._event_q_task)
 
                 elif task is self._command_q_task:
                     # print(f"Manager command {task}")
                     # This is from the mgr_command_q
-                    self._process_command_queue(task.result())
+                    if task.result():
+                        self._process_command_queue(task.result())
                     self._command_q_task = executor.submit(self._api_commmand_queue_get)
                     pending.add(self._command_q_task)
+
+            
 
     def _process_command_queue(self, command: BleMgrMsgBase):
 

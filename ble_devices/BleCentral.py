@@ -1,3 +1,4 @@
+import threading
 from ble_api.BleAtt import AttUuid
 from ble_devices.BleDeviceBase import BleDeviceBase
 from ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR, BleEventBase, BLE_EVT_GAP
@@ -6,8 +7,8 @@ from ble_api.BleGap import BLE_GAP_ROLE, GapConnParams, GAP_SCAN_TYPE, GAP_SCAN_
 
 
 class BleCentral(BleDeviceBase):
-    def __init__(self, com_port: str, gtl_debug: bool = False):
-        super().__init__(com_port, gtl_debug)
+    def __init__(self, com_port: str, shutdown_event: threading.Event = threading.Event(), gtl_debug: bool = False):
+        super().__init__(com_port, shutdown_event, gtl_debug)
 
     def browse(self, conn_idx: int, uuid: AttUuid) -> BLE_ERROR:
         return self._ble_gattc.browse(conn_idx, uuid)

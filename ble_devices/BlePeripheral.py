@@ -1,3 +1,4 @@
+import threading
 from ble_devices.BleDeviceBase import BleDeviceBase
 from ble_api.BleAtt import ATT_ERROR
 from ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_EVT_GAP, BLE_EVT_GATTS
@@ -10,8 +11,8 @@ from services.BleService import BleServiceBase
 
 
 class BlePeripheral(BleDeviceBase):
-    def __init__(self, com_port: str, gtl_debug: bool = False):
-        super().__init__(com_port, gtl_debug)
+    def __init__(self, com_port: str, shutdown_event: threading.Event = threading.Event(), gtl_debug: bool = False):
+        super().__init__(com_port, shutdown_event, gtl_debug)
 
     def _find_service_by_handle(self, handle: int) -> BleServiceBase:
         for service in self._services:
