@@ -155,7 +155,7 @@ class BleController():
         assert self.response_q
 
         # initalize central device
-        self.central = ble.BleCentral(self.com_port, gtl_debug=False)  # TODO pass in shutdown event?
+        self.central = ble.BleCentral(self.com_port, gtl_debug=False, shutdown_event=self.shutdown_event)  # TODO pass in shutdown event?
         self.central.init()
         self.central.start()
         self.central.set_io_cap(ble.GAP_IO_CAPABILITIES.GAP_IO_CAP_KEYBOARD_DISP)
@@ -166,13 +166,13 @@ class BleController():
         executor = concurrent.futures.ThreadPoolExecutor(max_workers=2, thread_name_prefix='BleController')
         self.console_command_task = executor.submit(self.command_queue_get)
         self.ble_event_task = executor.submit(self.central.get_event)
-        pending = [self.ble_event_task, self.console_command_task]
+        pending = [self.console_command_task, self.ble_event_task]
 
         while True:
             if self.shutdown_event.is_set():
-                print("stopping BLEController")
+                print("Exiting ble_task")
                 executor.shutdown(wait=False, cancel_futures=True)
-                return
+            
             # Wait for a console command or BLE event to occur
             done, pending = concurrent.futures.wait(pending, timeout=1, return_when=concurrent.futures.FIRST_COMPLETED)
 
@@ -189,9 +189,10 @@ class BleController():
                             response = f"ERROR {error}"
                         self.response_q.put_nowait(str(response))
 
-                    # restart console command task
-                    self.console_command_task = executor.submit(self.command_q.get)
-                    pending.add(self.console_command_task)
+                    if not self.shutdown_event.is_set():
+                        # restart console command task
+                        self.console_command_task = executor.submit(self.command_queue_get)
+                        pending.add(self.console_command_task)
 
                 # Handle and BLE events that have occurred
                 if task is self.ble_event_task:
@@ -199,15 +200,20 @@ class BleController():
                         evt: ble.BleEventBase = task.result()
                         self.handle_ble_event(evt)
 
-                    # restart ble event task
-                    self.ble_event_task = executor.submit(self.central.get_event)
-                    pending.add(self.ble_event_task)
+                    if not self.shutdown_event.is_set():
+                        # restart ble event task
+                        self.ble_event_task = executor.submit(self.central.get_event)
+                        pending.add(self.ble_event_task)
+
+            if len(pending) == 0:
+                break
 
     def command_queue_get(self):
         item = None
         while item is None:
             try:
                 if self.shutdown_event.is_set():
+                    print("Exiting command_queue_get")
                     return
                 item = self.command_q.get(timeout=1)
             except queue.Empty:
@@ -586,12 +592,17 @@ def main(com_port: str):
 
     # start 2 tasks:
     #   one for handling command line input
-    executor = concurrent.futures.ThreadPoolExecutor(max_workers=2, thread_name_prefix='MainProgram')
-    pending = [executor.submit(console.start_prompt),
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1, thread_name_prefix='MainProgram')
+    pending = [# executor.submit(console.start_prompt),
                executor.submit(ble_handler.init)]
+    time.sleep(3)
+    ble_command_q.put("GETALLRESETDATA 48:23:35:00:1b:53,P")
     while True:
         try:
-            _, _ = concurrent.futures.wait(pending, timeout=1)
+            done, _ = concurrent.futures.wait(pending, timeout=1)
+            if len(done) == 1:
+                return
+                
         except KeyboardInterrupt:
             executor.shutdown(wait=False, cancel_futures=True)
             ble_handler.shutdown()

@@ -28,7 +28,6 @@ class SerialStreamManager():
 
             if self._shutdown_event.is_set():
                 executor.shutdown(wait=False, cancel_futures=True)
-                break
 
             done, pending = concurrent.futures.wait(pending, timeout=1, return_when=concurrent.futures.FIRST_COMPLETED)
 
@@ -40,16 +39,21 @@ class SerialStreamManager():
                     if task.result():
                         self._send(task.result())
 
-                    self._serial_tx_task = executor.submit(self._tx_queue_get)
-                    pending.add(self._serial_tx_task)
+                    if not self._shutdown_event.is_set():
+                        self._serial_tx_task = executor.submit(self._tx_queue_get)
+                        pending.add(self._serial_tx_task)
 
                 elif task is self._serial_rx_task:
                     # This is from serial Rx queue
                     if task.result():
                         self._process_received_data(task.result())
 
-                    self._serial_rx_task = executor.submit(self._receive)
-                    pending.add(self._serial_rx_task)
+                    if not self._shutdown_event.is_set():
+                        self._serial_rx_task = executor.submit(self._receive)
+                        pending.add(self._serial_rx_task)
+                
+            if len(pending) == 0:
+                break
 
     def _process_received_data(self, buffer: bytes):
         if buffer:
@@ -59,6 +63,7 @@ class SerialStreamManager():
         buffer = bytes()
         while len(buffer) < 1:
             if self._shutdown_event.is_set():
+                print("Exiting Stream _receive")
                 break
             # print("waiting for gtl initiator")
             buffer = self._serial_port.read(1)
@@ -66,6 +71,7 @@ class SerialStreamManager():
                 # Get msg_id, dst_id, src_id, par_len. Use par_len to read rest of message
                 while len(buffer) < (1 + 8):
                     if self._shutdown_event.is_set():
+                        print("Exiting Stream _receive")
                         break
                     # print("waiting for gtl header")
                     buffer += self._serial_port.read(8)
@@ -74,6 +80,7 @@ class SerialStreamManager():
                         if (par_len != 0):
                             while len(buffer) < (1 + 8 + par_len):
                                 if self._shutdown_event.is_set():
+                                    print("Exiting Stream _receive")
                                     break
                                 # print("waiting for gtl message")
                                 buffer += self._serial_port.read(par_len)
@@ -92,6 +99,7 @@ class SerialStreamManager():
         while item is None:
             try:
                 if self._shutdown_event.is_set():
+                    print("Exiting Stream _tx_queue_get")
                     break
                 item = self._tx_queue.get(timeout=1)
             except queue.Empty:

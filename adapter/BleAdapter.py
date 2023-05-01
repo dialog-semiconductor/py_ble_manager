@@ -39,8 +39,7 @@ class BleAdapter():
 
             if self._shutdown_event.is_set():
                 executor.shutdown(wait=False, cancel_futures=True)
-                break
-
+                
             done, pending = concurrent.futures.wait(pending, timeout=1, return_when=concurrent.futures.FIRST_COMPLETED)
 
             for task in done:
@@ -48,21 +47,28 @@ class BleAdapter():
                     # This is from Ble Manager command queue.
                     if task.result():
                         self._process_command_queue(task.result())
-                    self._tx_task = executor.submit(self._command_queue_get)
-                    pending.add(self._tx_task)
+                    if not self._shutdown_event.is_set():
+                        self._tx_task = executor.submit(self._command_queue_get)
+                        pending.add(self._tx_task)
 
                 elif task is self._rx_task:
                     # This is from serial Rx queue
                     if task.result():
                         self._process_serial_rx_q(task.result())
-                    self._rx_task = executor.submit(self._serial_rx_q_get)
-                    pending.add(self._rx_task)
+
+                    if not self._shutdown_event.is_set():
+                        self._rx_task = executor.submit(self._serial_rx_q_get)
+                        pending.add(self._rx_task)
+
+            if len(pending) == 0:
+                break
 
     def _command_queue_get(self) -> GtlMessageBase:
         item = None
         while item is None:
             try:
                 if self._shutdown_event.is_set():
+                    print("Exiting Adapater _command_queue_get")
                     break
                 item = self.command_q.get(timeout=1)
             except queue.Empty:
@@ -105,6 +111,7 @@ class BleAdapter():
         while item is None:
             try:
                 if self._shutdown_event.is_set():
+                    print("Exiting Adapater _serial_rx_q_get")
                     break
                 item = self.serial_rx_q.get(timeout=1)
             except queue.Empty:

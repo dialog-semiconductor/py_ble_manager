@@ -61,6 +61,7 @@ class BleManager(BleManagerBase):
         while item is None:
             try:
                 if self._shutdown_event.is_set():
+                    print("Exiting Manager _adapter_event_queue_get")
                     break
                 item = self._adapter_event_q.get(timeout=1)
             except queue.Empty:
@@ -72,6 +73,7 @@ class BleManager(BleManagerBase):
         while item is None:
             try:
                 if self._shutdown_event.is_set():
+                    print("Exiting Manager _api_commmand_queue_get")
                     break
                 item = self._mgr_command_q.get(timeout=1)
             except queue.Empty:
@@ -127,8 +129,7 @@ class BleManager(BleManagerBase):
 
             if self._shutdown_event.is_set():
                 executor.shutdown(wait=False, cancel_futures=True)
-                break
-
+                
             done, pending = concurrent.futures.wait(pending, timeout=1, return_when=concurrent.futures.FIRST_COMPLETED)
 
             for task in done:
@@ -137,16 +138,21 @@ class BleManager(BleManagerBase):
                     # This is from the adapter_event_q
                     if task.result():
                         self._process_event_queue(task.result())
-                    self._event_q_task = executor.submit(self._adapter_event_queue_get)
-                    pending.add(self._event_q_task)
+                    if not self._shutdown_event.is_set():
+                        self._event_q_task = executor.submit(self._adapter_event_queue_get)
+                        pending.add(self._event_q_task)
 
                 elif task is self._command_q_task:
                     # print(f"Manager command {task}")
                     # This is from the mgr_command_q
                     if task.result():
                         self._process_command_queue(task.result())
-                    self._command_q_task = executor.submit(self._api_commmand_queue_get)
-                    pending.add(self._command_q_task)
+                    if not self._shutdown_event.is_set():
+                        self._command_q_task = executor.submit(self._api_commmand_queue_get)
+                        pending.add(self._command_q_task)
+
+            if len(pending) == 0:
+                break
 
             
 
