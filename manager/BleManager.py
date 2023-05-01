@@ -61,7 +61,6 @@ class BleManager(BleManagerBase):
         while item is None:
             try:
                 if self._shutdown_event.is_set():
-                    print("Exiting Manager _adapter_event_queue_get")
                     break
                 item = self._adapter_event_q.get(timeout=1)
             except queue.Empty:
@@ -73,7 +72,6 @@ class BleManager(BleManagerBase):
         while item is None:
             try:
                 if self._shutdown_event.is_set():
-                    print("Exiting Manager _api_commmand_queue_get")
                     break
                 item = self._mgr_command_q.get(timeout=1)
             except queue.Empty:

@@ -73,7 +73,6 @@ class BleDeviceBase():
         while evt is None:
             try:
                 if self._shutdown_event.is_set():
-                    print("Exiting get_event")
                     return
                 evt = self._ble_manager.mgr_event_queue_get(timeout=1)
             except queue.Empty:

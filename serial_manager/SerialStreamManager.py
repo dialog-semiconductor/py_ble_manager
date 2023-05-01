@@ -60,32 +60,32 @@ class SerialStreamManager():
             self._rx_queue.put_nowait(buffer)
 
     def _receive(self):
+        '''
+        The serial port is opened with a read timeout of 1 second. This is to prevent waiting indefinetly
+        on a serial read when the program attempts to exit (program cannot exit while a concurrent.future started
+        with ThreadPoolExecutor is still running). The read timeout allows us to periodically check the status
+        of an event to see if the future should exit. 
+        '''
         buffer = bytes()
         while len(buffer) < 1:
             if self._shutdown_event.is_set():
-                print("Exiting Stream _receive")
                 break
-            # print("waiting for gtl initiator")
             buffer = self._serial_port.read(1)
             if len(buffer) > 0 and (buffer[0] == GTL_INITIATOR):
                 # Get msg_id, dst_id, src_id, par_len. Use par_len to read rest of message
                 while len(buffer) < (1 + 8):
                     if self._shutdown_event.is_set():
-                        print("Exiting Stream _receive")
                         break
-                    # print("waiting for gtl header")
+
                     buffer += self._serial_port.read(8)
                     if len(buffer) >= (1 + 8):
                         par_len = int.from_bytes(buffer[7:9], "little", signed=False)
                         if (par_len != 0):
                             while len(buffer) < (1 + 8 + par_len):
                                 if self._shutdown_event.is_set():
-                                    print("Exiting Stream _receive")
                                     break
-                                # print("waiting for gtl message")
+
                                 buffer += self._serial_port.read(par_len)
-            #else:
-            # print(f"Returning buffer: {buffer}")
             return buffer
 
     def _send(self, message: bytes):
@@ -99,7 +99,6 @@ class SerialStreamManager():
         while item is None:
             try:
                 if self._shutdown_event.is_set():
-                    print("Exiting Stream _tx_queue_get")
                     break
                 item = self._tx_queue.get(timeout=1)
             except queue.Empty:

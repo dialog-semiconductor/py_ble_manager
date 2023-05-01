@@ -68,7 +68,6 @@ class BleAdapter():
         while item is None:
             try:
                 if self._shutdown_event.is_set():
-                    print("Exiting Adapater _command_queue_get")
                     break
                 item = self.command_q.get(timeout=1)
             except queue.Empty:
@@ -99,7 +98,7 @@ class BleAdapter():
             else:
                 self.event_q.put_nowait(msg)
         else:
-            print("BleAdapter unhandled serial message")
+            print(f"BleAdapter unhandled serial message. byte_string={byte_string.hex()}")
 
     def _send_serial_message(self, message: GtlMessageBase):
         if self.gtl_debug:
@@ -111,7 +110,6 @@ class BleAdapter():
         while item is None:
             try:
                 if self._shutdown_event.is_set():
-                    print("Exiting Adapater _serial_rx_q_get")
                     break
                 item = self.serial_rx_q.get(timeout=1)
             except queue.Empty:
