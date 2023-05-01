@@ -10,8 +10,12 @@ class GtlMessageFactory():
 
     @staticmethod
     def create_message(msg_bytes: bytes):
-        assert (len(msg_bytes) >= 9)
-        assert (int.from_bytes(msg_bytes[:1], "little", signed=False) == GTL_INITIATOR)
+        # assert (len(msg_bytes) >= 9)
+        # assert (int.from_bytes(msg_bytes[:1], "little", signed=False) == GTL_INITIATOR)
+        if len(msg_bytes) < 9:
+            return None
+        if int.from_bytes(msg_bytes[:1], "little", signed=False) != GTL_INITIATOR:
+            return None
 
         dst_id = KE_API_ID(int.from_bytes(msg_bytes[3:5], "little", signed=False))
         src_id = KE_API_ID(int.from_bytes(msg_bytes[5:7], "little", signed=False))
