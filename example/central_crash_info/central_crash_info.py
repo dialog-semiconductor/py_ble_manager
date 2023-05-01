@@ -90,7 +90,7 @@ class CLIHandler():
                 args = input.split()
                 if args[0] in commands:
                     self.ble_command_q.put_nowait(input)
-                    
+          
                     response = None
                     while response is None:
                         if self.shutdown_event.is_set():
@@ -592,17 +592,20 @@ def main(com_port: str):
 
     # start 2 tasks:
     #   one for handling command line input
-    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1, thread_name_prefix='MainProgram')
-    pending = [# executor.submit(console.start_prompt),
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=2, thread_name_prefix='MainProgram')
+    pending = [executor.submit(console.start_prompt),
                executor.submit(ble_handler.init)]
-    time.sleep(3)
-    ble_command_q.put("GETALLRESETDATA 48:23:35:00:1b:53,P")
+
     while True:
         try:
             done, _ = concurrent.futures.wait(pending, timeout=1)
             if len(done) == 1:
+                console.shutdown()
+                ble_handler.exit()
                 return
-                
+            if len(done) == 2:
+                return
+
         except KeyboardInterrupt:
             executor.shutdown(wait=False, cancel_futures=True)
             ble_handler.shutdown()
