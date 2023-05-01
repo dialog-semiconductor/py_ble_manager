@@ -88,9 +88,9 @@ class CLIHandler():
                     self.session.app.exit()
                     return
                 args = input.split()
-                if args[0] in commands:
+                if input and args[0] in commands:
                     self.ble_command_q.put_nowait(input)
-          
+
                     response = None
                     while response is None:
                         if self.shutdown_event.is_set():
