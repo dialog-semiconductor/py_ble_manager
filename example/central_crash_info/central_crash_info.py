@@ -110,14 +110,19 @@ class CLIHandler():
                 # TODO wait for EVENT from ble_task before accepting additional input (eg scan done)
 
     def shutdown(self):
-        if self.session:
-            print("terminating prompt")
+        if self.session and self.session.app.is_running:
             self.session.app.exit()
         self.shutdown_event.set()
 
 
 class BleController():
-    def __init__(self, com_port: str, command_q: queue.Queue, response_q: queue.Queue, shutdown_event: threading.Event = threading.Event()):
+    def __init__(self,
+                 com_port: str,
+                 command_q: queue.Queue,
+                 response_q: queue.Queue,
+                 shutdown_event: threading.Event = threading.Event(),
+                 log = None):
+
         self.com_port = com_port
         self.command_q = command_q
         self.response_q = response_q
@@ -135,6 +140,7 @@ class BleController():
         self.connected_name = "Unknown"
         self.device_name_char = ble.GattcItem()
         self.shutdown_event = shutdown_event
+        self.log_file_handle = log
 
     def shutdown(self):
         self.shutdown_event.set()
@@ -170,7 +176,6 @@ class BleController():
 
         while True:
             if self.shutdown_event.is_set():
-                print("Exiting ble_task")
                 executor.shutdown(wait=False, cancel_futures=True)
             
             # Wait for a console command or BLE event to occur
@@ -213,32 +218,11 @@ class BleController():
         while item is None:
             try:
                 if self.shutdown_event.is_set():
-                    print("Exiting command_queue_get")
                     return
                 item = self.command_q.get(timeout=1)
             except queue.Empty:
                 pass
         return item
-
-    def create_log(self):
-        # Create the log directory if necessary
-        logs_directory = f"{FILE_PATH}\\logs"
-        if not os.path.exists(logs_directory):
-            os.makedirs(logs_directory)
-        # opent a file for writing
-        logging.getLogger().addHandler(logging.StreamHandler())
-        logging.basicConfig(filename=f'{logs_directory}\\DCI_log_{time.strftime("%Y%m%d-%H%M%S")}.txt', 
-                            filemode='w',
-                            format='%s')
-
-    def exit(self):
-        self.shutdown_event.set()
-        self.central.shutdown()
-        #sys.exit()
-
-    def init(self):
-        self.create_log()
-        self.ble_task()
 
     def handle_ble_event(self, evt: ble.BleEventBase = None):
         if evt:
@@ -301,7 +285,7 @@ class BleController():
 
                 case "EXIT":
                     # Expected command format: EXIT
-                    self.exit()
+                    self.shutdown()
 
                 case _:
                     pass
@@ -406,9 +390,12 @@ class BleController():
     def handle_evt_gattc_write_completed(self, evt: ble.BleEventGattcWriteCompleted):
         self.log(f"Write Complete: conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status.name}")
 
-    def log(self, string: str):
+
+    def log(self, string):
         print(string)
-        logging.info(string + "\r")
+        if self.log_file_handle:
+            self.log_file_handle.write(string + "\n")
+        #logging.info(string)
 
     def log_reset_data(self):
         self.log("*******************Debug Crash Info*******************")
@@ -543,7 +530,7 @@ class BleController():
                 if (evt.evt_code == ble.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED):
                     self.log("Disconnected")
                     self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_NONE
-                    self.exit()
+                    self.shutdown()
 
 
         if self.fetch_state == FETCH_DATA_STATE.FETCH_DATA_ERROR:
@@ -581,29 +568,52 @@ class BleController():
         return return_string
 
 
+def create_log():
+
+        # Create the log directory if nec
+        # yessary
+        logs_directory = f"{FILE_PATH}\\logs"
+        if not os.path.exists(logs_directory):
+            os.makedirs(logs_directory)
+
+        log_file = open(f"{logs_directory}\\DCI_log_{time.strftime('%Y%m%d-%H%M%S')}.txt", 'w')
+
+        return log_file
+      
+        # TODO logging is preventing prompt_toolkit from patching stdout
+        # open a file for writing
+        #logging.basicConfig(level=logging.INFO,
+        #                    format='%(asctime)s - %(message)s',
+        #                    handlers=[logging.FileHandler(f"{logs_directory}\\DCI_log_{time.strftime('%Y%m%d-%H%M%S')}.txt"),
+        #                              logging.StreamHandler()],)
+
 def main(com_port: str):
+
+    logfile = create_log()
     ble_command_q = queue.Queue()
     ble_response_q = queue.Queue()
     shutdown_event = threading.Event()
-    ble_handler = BleController(com_port, ble_command_q, ble_response_q, shutdown_event)
+    ble_handler = BleController(com_port, ble_command_q, ble_response_q, shutdown_event, logfile)
     console = CLIHandler(ble_command_q, ble_response_q, shutdown_event)
-
-    # TODO class to handle console interaction
 
     # start 2 tasks:
     #   one for handling command line input
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=2, thread_name_prefix='MainProgram')
-    pending = [executor.submit(console.start_prompt),
-               executor.submit(ble_handler.init)]
+    cli_task = executor.submit(console.start_prompt)
+    ble_task = executor.submit(ble_handler.ble_task)
+    pending = [cli_task,
+               ble_task]
 
     while True:
         try:
             done, _ = concurrent.futures.wait(pending, timeout=1)
             if len(done) == 1:
                 console.shutdown()
-                ble_handler.exit()
+                ble_handler.shutdown()
+                print("Exiting")
                 return
             if len(done) == 2:
+                print("Exiting")
                 return
 
         except KeyboardInterrupt:
@@ -611,7 +621,7 @@ def main(com_port: str):
             ble_handler.shutdown()
             console.shutdown()
             print("Exiting")
-            break
+            return
 
 
 if __name__ == "__main__":

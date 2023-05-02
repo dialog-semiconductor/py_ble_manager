@@ -51,7 +51,7 @@ class SerialStreamManager():
                     if not self._shutdown_event.is_set():
                         self._serial_rx_task = executor.submit(self._receive)
                         pending.add(self._serial_rx_task)
-                
+
             if len(pending) == 0:
                 break
 
