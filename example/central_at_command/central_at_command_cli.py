@@ -336,8 +336,13 @@ class BleController():
 
     def handle_evt_gap_adv_report(self, evt: ble.BleEventGapAdvReport):
         addr_type_str = "P" if evt.address.addr_type == ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS else "R"
+        adv_structs = self.parse_adv_data(evt)
+
         print(f"Advertisment: address={self.bd_addr_to_str(evt.address)},{addr_type_str} "
-              + f"rssi={evt.rssi}, data={evt.data.hex()}")
+              + f"rssi={evt.rssi}, data(raw)={evt.data.hex()}")
+        print("AD Structs:")
+        for struct in adv_structs:
+            print(f"\t{struct}")
 
     def handle_evt_gap_connected(self, evt: ble.BleEventGapConnected):
         print(f"Connected to: addr={self.bd_addr_to_str(evt.peer_address)}, conn_idx={evt.conn_idx}")
@@ -430,6 +435,24 @@ class BleController():
 
     def handle_evt_gattc_write_completed(self, evt: ble.BleEventGattcWriteCompleted):
         print(f"Write Complete: conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status.name}")
+
+    def parse_adv_data(self, evt: ble.BleEventGapAdvReport) -> list[ble.BleAdvData]:
+        data_ptr = 0
+        adv_data_structs: ble.BleAdvData = []
+        if evt.length > 0:
+            while data_ptr < 31 and data_ptr < evt.length:
+                struct = ble.BleAdvData(len=evt.data[data_ptr], type=evt.data[data_ptr + 1])
+
+                if struct.len == 0 or struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_NONE:
+                    break
+
+                data_ptr += 2
+                struct.data = evt.data[data_ptr:(data_ptr + struct.len - 1)]  # -1 as calc includes AD Type
+                data_ptr += struct.len - 1  # -1 as calc includes AD Type
+                adv_data_structs.append(struct)
+
+        return adv_data_structs
+
 
     def shutdown(self):
         self.shutdown_event.set()
