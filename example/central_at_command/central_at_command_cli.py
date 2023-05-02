@@ -15,11 +15,6 @@ sys.path.append(str(HERE / '../../'))
 
 import ble_devices as ble
 
-# TODO need to rethink how configuration
-ble.dg_configBLE_CENTRAL = 1
-ble.dg_configBLE_PERIPHERAL = 0
-
-
 class CLIHandler():
     def __init__(self, ble_command_q: queue.Queue, ble_response_q: queue.Queue, shutdown_event: threading.Event):
         self.ble_command_q = ble_command_q
@@ -81,7 +76,7 @@ class BleController():
                  com_port: str,
                  command_q: queue.Queue,
                  response_q: queue.Queue,
-                 shutdown_event: threading.Event = threading.Event()): 
+                 shutdown_event: threading.Event = threading.Event()):
 
         self.com_port = com_port
         self.command_q = command_q
@@ -164,7 +159,7 @@ class BleController():
             except queue.Empty:
                 pass
         return item
-    
+
     def format_properties(self, prop: int) -> str:
         propr_str = "BRXWNISE"  # each letter corresponds to single property
         for i in range(0, 8):

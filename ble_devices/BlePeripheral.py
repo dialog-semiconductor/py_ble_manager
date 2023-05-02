@@ -1,18 +1,23 @@
 import threading
-from ble_devices.BleDeviceBase import BleDeviceBase
 from ble_api.BleAtt import ATT_ERROR
 from ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_EVT_GAP, BLE_EVT_GATTS
+from ble_api.BleConfig import BleConfigDefault, BLE_DEVICE_TYPE
 from ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BleEventGapConnected, \
     BleEventGapDisconnected, BleEventGapConnParamUpdateReq, BleEventGapPairReq
 from ble_api.BleGatt import GATT_EVENT
 from ble_api.BleGatts import BleEventGattsReadReq, BleEventGattsWriteReq, \
     BleEventGattsPrepareWriteReq
+from ble_devices.BleDeviceBase import BleDeviceBase
 from services.BleService import BleServiceBase
 
 
 class BlePeripheral(BleDeviceBase):
-    def __init__(self, com_port: str, shutdown_event: threading.Event = threading.Event(), gtl_debug: bool = False):
-        super().__init__(com_port, shutdown_event, gtl_debug)
+    def __init__(self,
+                 com_port: str,
+                 ble_config: BleConfigDefault = BleConfigDefault(BLE_DEVICE_TYPE.PERIPHERAL),
+                 shutdown_event: threading.Event = threading.Event(),
+                 gtl_debug: bool = False):
+        super().__init__(com_port, ble_config, shutdown_event, gtl_debug)
 
     def _find_service_by_handle(self, handle: int) -> BleServiceBase:
         for service in self._services:

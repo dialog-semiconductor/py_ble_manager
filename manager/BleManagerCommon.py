@@ -2,6 +2,7 @@ import queue
 import threading
 
 from ble_api.BleCommon import BLE_ERROR, BleEventBase
+from ble_api.BleConfig import BleConfigDefault
 from ble_api.BleGap import BLE_CONN_IDX_INVALID
 from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gapm import GapmResetCmd
@@ -24,10 +25,11 @@ class BleManagerCommon(BleManagerBase):
                  stored_device_q: StoredDeviceQueue,
                  stored_device_lock: threading.Lock(),
                  dev_params: BleDevParamsDefault,
-                 dev_params_lock: threading.Lock()
+                 dev_params_lock: threading.Lock(),
+                 ble_config: BleConfigDefault = BleConfigDefault()
                  ) -> None:
 
-        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q, stored_device_q, stored_device_lock, dev_params, dev_params_lock)
+        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q, stored_device_q, stored_device_lock, dev_params, dev_params_lock, ble_config)
 
         self.cmd_handlers = {
             BLE_MGR_COMMON_CMD_OPCODE.BLE_MGR_COMMON_RESET_CMD: self.reset_cmd_handler,

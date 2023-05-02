@@ -4,6 +4,7 @@ from ctypes import c_uint8
 
 from ble_api.BleAtt import ATT_PERM, ATT_UUID_TYPE
 from ble_api.BleCommon import BLE_ERROR, BleEventBase
+from ble_api.BleConfig import BleConfigDefault
 from ble_api.BleGap import BLE_CONN_IDX_INVALID
 from ble_api.BleGatt import GATT_SERVICE, GATT_PROP, GATT_EVENT
 from ble_api.BleGatts import BleEventGattsReadReq, BleEventGattsWriteReq, BleEventGattsEventSent, BleEventGattsPrepareWriteReq
@@ -40,10 +41,11 @@ class BleManagerGatts(BleManagerBase):
                  stored_device_q: StoredDeviceQueue,
                  stored_device_lock: threading.Lock(),
                  dev_params: BleDevParamsDefault,
-                 dev_params_lock: threading.Lock()
+                 dev_params_lock: threading.Lock(),
+                 ble_config: BleConfigDefault = BleConfigDefault()
                  ) -> None:
 
-        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q, stored_device_q, stored_device_lock, dev_params, dev_params_lock)
+        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q, stored_device_q, stored_device_lock, dev_params, dev_params_lock, ble_config)
 
         self.cmd_handlers = {
             BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_ADD_CMD: self.service_add_cmd_handler,

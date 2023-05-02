@@ -19,10 +19,6 @@ sys.path.append(str(FILE_PATH / '../../'))
 
 import ble_devices as ble  # TODO Flake E402 is ignored as workaround
 
-# TODO need to rethink how configuration
-ble.dg_configBLE_CENTRAL = 1
-ble.dg_configBLE_PERIPHERAL = 0
-
 DEBUG_CRASH_INFO_SVC_UUID_STR = "21ce31fc-da27-11ed-afa1-0242ac120002"
 DEBUG_CRASH_INFO_RX_CHAR_UUID_STR = "8a8b791b-82f3-4ecf-9ce4-7d422c371a01"
 DEBUG_CRASH_INFO_TX_CHAR_UUID_STR = "17738e00-54f9-4a2c-a6ed-1ee67e00f323"

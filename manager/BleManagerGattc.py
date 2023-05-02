@@ -4,6 +4,7 @@ from ctypes import c_uint8
 
 from ble_api.BleAtt import ATT_ERROR, AttUuid
 from ble_api.BleCommon import BleEventBase, BLE_ERROR
+from ble_api.BleConfig import BleConfigDefault
 from ble_api.BleGattc import BleEventGattcDiscoverSvc, BleEventGattcDiscoverCompleted, GATTC_DISCOVERY_TYPE, \
     BleEventGattcDiscoverChar, BleEventGattcDiscoverDesc, BleEventGattcBrowseSvc, BleEventGattcBrowseCompleted, \
     GattcItem, GATTC_ITEM_TYPE, GattcServiceData, GattcCharacteristicData, BleEventGattcReadCompleted,\
@@ -34,10 +35,11 @@ class BleManagerGattc(BleManagerBase):
                  stored_device_q: StoredDeviceQueue,
                  stored_device_lock: threading.Lock(),
                  dev_params: BleDevParamsDefault,
-                 dev_params_lock: threading.Lock()
+                 dev_params_lock: threading.Lock(),
+                 ble_config: BleConfigDefault = BleConfigDefault()
                  ) -> None:
 
-        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q, stored_device_q, stored_device_lock, dev_params, dev_params_lock)
+        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q, stored_device_q, stored_device_lock, dev_params, dev_params_lock, ble_config)
 
         self.cmd_handlers = {
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_BROWSE_CMD: self.browse_cmd_handler,

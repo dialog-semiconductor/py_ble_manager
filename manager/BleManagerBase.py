@@ -3,6 +3,7 @@ import threading
 from typing import Callable
 
 from ble_api.BleCommon import BLE_ERROR, BleEventBase
+from ble_api.BleConfig import BleConfigDefault
 from gtl_messages.gtl_message_base import GtlMessageBase
 from manager.BleDevParams import BleDevParamsDefault, BleDevParams
 from manager.BleManagerCommonMsgs import BleMgrMsgBase, BleMgrMsgRsp
@@ -19,7 +20,8 @@ class BleManagerBase():
                  stored_device_q: StoredDeviceQueue,
                  stored_device_lock: threading.Lock(),
                  dev_params: BleDevParamsDefault,
-                 dev_params_lock: threading.Lock()) -> None:
+                 dev_params_lock: threading.Lock(),
+                 config: BleConfigDefault = BleConfigDefault()) -> None:
 
         self._mgr_response_q = mgr_response_q
         self._mgr_event_q = mgr_event_q
@@ -31,6 +33,7 @@ class BleManagerBase():
         self._stored_device_lock: threading.Lock = stored_device_lock
         self._dev_params = dev_params
         self._dev_params_lock: threading.Lock = dev_params_lock
+        self._ble_config = config
 
     def _adapter_command_queue_send(self, command: GtlMessageBase):
         self._adapter_command_q.put_nowait(command)

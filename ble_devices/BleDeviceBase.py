@@ -4,6 +4,7 @@ import threading
 from adapter.BleAdapter import BleAdapter
 # from ble_api.BleAtt import ATT_ERROR
 from ble_api.BleCommon import BleEventBase, BLE_ERROR
+from ble_api.BleConfig import BleConfigDefault, BLE_DEVICE_TYPE
 from ble_api.BleGap import BLE_GAP_ROLE, GAP_IO_CAPABILITIES  # BLE_GAP_CONN_MODE, BLE_EVT_GAP, BleEventGapConnected, \
     # BleEventGapDisconnected
 from ble_api.BleGapApi import BleGapApi, GapConnParams
@@ -20,7 +21,7 @@ from serial_manager.SerialStreamManager import SerialStreamManager
 
 
 class BleDeviceBase():
-    def __init__(self, com_port: str, shutdown_event: threading.Event = threading.Event(), gtl_debug: bool = False):
+    def __init__(self, com_port: str, config: BleConfigDefault = BleConfigDefault(), shutdown_event: threading.Event = threading.Event(), gtl_debug: bool = False):
         app_command_q = queue.Queue()
         app_resposne_q = queue.Queue()
         app_event_q = queue.Queue()
@@ -30,9 +31,9 @@ class BleDeviceBase():
         serial_tx_q = queue.Queue()
         serial_rx_q = queue.Queue()
         self._shutdown_event = shutdown_event
-
+        self._config = config
         # Internal BLE framework layers
-        self._ble_manager = BleManager(app_command_q, app_resposne_q, app_event_q, adapter_command_q, adapter_event_q, self._shutdown_event)
+        self._ble_manager = BleManager(app_command_q, app_resposne_q, app_event_q, adapter_command_q, adapter_event_q, self._shutdown_event, config)
         self._ble_adapter = BleAdapter(adapter_command_q, adapter_event_q, serial_tx_q, serial_rx_q, self._shutdown_event, gtl_debug)
         self._serial_stream_manager = SerialStreamManager(com_port, serial_tx_q, serial_rx_q, self._shutdown_event)
 
