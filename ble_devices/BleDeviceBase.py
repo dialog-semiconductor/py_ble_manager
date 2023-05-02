@@ -36,7 +36,7 @@ class BleDeviceBase():
         self._ble_adapter = BleAdapter(adapter_command_q, adapter_event_q, serial_tx_q, serial_rx_q, self._shutdown_event, gtl_debug)
         self._serial_stream_manager = SerialStreamManager(com_port, serial_tx_q, serial_rx_q, self._shutdown_event)
 
-        # Dialog APIqueue
+        # Dialog API
         self._ble_gap = BleGapApi(self._ble_manager, self._ble_adapter)
         self._ble_gattc = BleGattcApi(self._ble_manager, self._ble_adapter)
         self._ble_gatts = BleGattsApi(self._ble_manager, self._ble_adapter)
