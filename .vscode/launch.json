@@ -11,7 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["COM11"],
+            "args": ["COM54"],
             "purpose": ["debug-in-terminal"]
         }
     ]
