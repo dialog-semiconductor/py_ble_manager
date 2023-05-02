@@ -6,6 +6,8 @@ class BLE_DEVICE_TYPE(IntEnum):
     NONE = 0
     CENTRAL = auto()
     PERIPHERAL = auto()
+    OBSERVER = auto()
+    BROADCASTER = auto()
 
 
 class BleConfigDefault():
@@ -17,7 +19,9 @@ class BleConfigDefault():
         self.dg_configBLE_PRIVACY_1_2 = (0)
 
         self.dg_configBLE_CENTRAL = 1 if ble_device_type == BLE_DEVICE_TYPE.CENTRAL else 0
-        self.dg_configBLE_PERIPHERAL = 0 if ble_device_type == BLE_DEVICE_TYPE.CENTRAL else 1
+        self.dg_configBLE_PERIPHERAL = 1 if ble_device_type == BLE_DEVICE_TYPE.PERIPHERAL else 0
+        self.dg_configBLE_OBSERVER = 1 if ble_device_type == BLE_DEVICE_TYPE.OBSERVER else 0
+        self.dg_configBLE_BROADCASTER = 1 if ble_device_type == BLE_DEVICE_TYPE.BROADCASTER else 0
 
         self.dg_configBLE_DATA_LENGTH_RX_MAX = 251
         self.dg_configBLE_DATA_LENGTH_TX_MAX = 251
