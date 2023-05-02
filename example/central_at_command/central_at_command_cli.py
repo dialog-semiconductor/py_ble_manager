@@ -27,7 +27,7 @@ def main(com_port: str):
     # start 2 tasks:
     #   one for handling command line input
 
-    concurrent.futures.wait([executor.submit(user_main),
+    concurrent.futures.wait([#executor.submit(user_main),
                             executor.submit(console, ble_command_q, ble_response_q),
                             executor.submit(ble_task, com_port, ble_command_q, ble_response_q)])
 
@@ -445,22 +445,21 @@ def format_properties(prop: int) -> str:
     return propr_str
 
 
-
 def user_main():
     elapsed = 0
     delay = 1
-    # asyncio.all_tasks -> test printing all running tasks
     while True:
         time.sleep(delay)
         elapsed += delay
         print(f"User Main. elapsed={elapsed}")
 
+
 if __name__ == "__main__":
-    #parser = argparse.ArgumentParser(prog='main_central',
-    #                                 description='BLE Central AT Command CLI')
+    parser = argparse.ArgumentParser(prog='main_central',
+                                     description='BLE Central AT Command CLI')
 
-    #parser.add_argument("com_port")
+    parser.add_argument("com_port")
 
-    #args = parser.parse_args()
+    args = parser.parse_args()
 
-    main("COM54")
+    main(args.com_port)

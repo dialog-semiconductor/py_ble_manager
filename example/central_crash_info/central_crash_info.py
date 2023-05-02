@@ -625,11 +625,11 @@ def main(com_port: str):
 
 
 if __name__ == "__main__":
-    #parser = argparse.ArgumentParser(prog='main_central',
-    #                                 description='BLE Central AT Command CLI')
+    parser = argparse.ArgumentParser(prog='main_central',
+                                     description='BLE Central Crash Info CLI')
 
-    #parser.add_argument("com_port")
+    parser.add_argument("com_port")
 
-    #args = parser.parse_args()
+    args = parser.parse_args()
 
-    main("COM54")
+    main(args.com_port)
