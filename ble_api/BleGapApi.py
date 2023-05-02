@@ -89,13 +89,13 @@ class BleGapApi(BleApiBase):
         return response.status
 
     def scan_start(self,
-                         type: GAP_SCAN_TYPE = GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
-                         mode: GAP_SCAN_MODE = GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
-                         interval: int = 0,
-                         window: int = 0,
-                         filt_wlist: bool = False,
-                         filt_dupl: bool = False
-                         ) -> BLE_ERROR:
+                   type: GAP_SCAN_TYPE = GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
+                   mode: GAP_SCAN_MODE = GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
+                   interval: int = 0,
+                   window: int = 0,
+                   filt_wlist: bool = False,
+                   filt_dupl: bool = False
+                   ) -> BLE_ERROR:
 
         command = BleMgrGapScanStartCmd(type, mode, interval, window, filt_wlist, filt_dupl)
         response: BleMgrGapScanStartRsp = self._ble_manager.cmd_execute(command)
@@ -106,8 +106,8 @@ class BleGapApi(BleApiBase):
         return self._ble_manager.set_io_cap(io_cap)
 
     def start_advertising(self,
-                                adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
-                                ) -> BLE_ERROR:
+                          adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
+                          ) -> BLE_ERROR:
 
         command = BleMgrGapAdvStartCmd(adv_type)
         response: BleMgrGapAdvStartRsp = self._ble_manager.cmd_execute(command)

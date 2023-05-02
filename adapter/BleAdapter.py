@@ -39,7 +39,7 @@ class BleAdapter():
 
             if self._shutdown_event.is_set():
                 executor.shutdown(wait=False, cancel_futures=True)
-                
+
             done, pending = concurrent.futures.wait(pending, timeout=1, return_when=concurrent.futures.FIRST_COMPLETED)
 
             for task in done:

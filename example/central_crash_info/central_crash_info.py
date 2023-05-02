@@ -1,6 +1,6 @@
 import argparse
 import concurrent.futures
-import logging
+# import logging
 import threading
 import queue
 from enum import IntEnum, auto
@@ -121,7 +121,7 @@ class BleController():
                  command_q: queue.Queue,
                  response_q: queue.Queue,
                  shutdown_event: threading.Event = threading.Event(),
-                 log = None):
+                 log: object = None):  # TODO correct type hint for file handle
 
         self.com_port = com_port
         self.command_q = command_q
@@ -177,7 +177,7 @@ class BleController():
         while True:
             if self.shutdown_event.is_set():
                 executor.shutdown(wait=False, cancel_futures=True)
-            
+
             # Wait for a console command or BLE event to occur
             done, pending = concurrent.futures.wait(pending, timeout=1, return_when=concurrent.futures.FIRST_COMPLETED)
 
@@ -264,11 +264,11 @@ class BleController():
                     self.scan_dict: dict[bytes, tuple[str, ble.BleEventGapAdvReport]] = {}
                     self.log("Starting scan...")
                     error = self.central.scan_start(ble.GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
-                                                          ble.GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
-                                                          160,
-                                                          80,
-                                                          False,
-                                                          True)
+                                                    ble.GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
+                                                    160,
+                                                    80,
+                                                    False,
+                                                    True)
 
                 case "GETALLRESETDATA":
                     # Expected command format: >>>GETALLRESETDATA 48:23:35:00:1b:53,P
@@ -390,12 +390,11 @@ class BleController():
     def handle_evt_gattc_write_completed(self, evt: ble.BleEventGattcWriteCompleted):
         self.log(f"Write Complete: conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status.name}")
 
-
     def log(self, string):
         print(string)
         if self.log_file_handle:
             self.log_file_handle.write(string + "\n")
-        #logging.info(string)
+        # logging.info(string)
 
     def log_reset_data(self):
         self.log("*******************Debug Crash Info*******************")
@@ -500,7 +499,7 @@ class BleController():
                         # +1 as handle is for char declaration
                         # TODO rx/tx named from perspective of periph. Change to perspective of central
                         self.central.write(0,
-                                           (self.dci_svc.rx.handle + 1),  # saved handle is the char declaration, +1 to write to the char value 
+                                           (self.dci_svc.rx.handle + 1),  # saved handle is the char declaration, +1 to write to the char value
                                            0,
                                            bytes(DCI_SVC_COMMAND.GET_ALL_RESET_DATA.to_bytes(1, 'little'))
                                            )
@@ -531,7 +530,6 @@ class BleController():
                     self.log("Disconnected")
                     self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_NONE
                     self.shutdown()
-
 
         if self.fetch_state == FETCH_DATA_STATE.FETCH_DATA_ERROR:
             # TODO disconnect if connected
@@ -570,22 +568,23 @@ class BleController():
 
 def create_log():
 
-        # Create the log directory if nec
-        # yessary
-        logs_directory = f"{FILE_PATH}\\logs"
-        if not os.path.exists(logs_directory):
-            os.makedirs(logs_directory)
+    # Create the log directory if nec
+    # yessary
+    logs_directory = f"{FILE_PATH}\\logs"
+    if not os.path.exists(logs_directory):
+        os.makedirs(logs_directory)
 
-        log_file = open(f"{logs_directory}\\DCI_log_{time.strftime('%Y%m%d-%H%M%S')}.txt", 'w')
+    log_file = open(f"{logs_directory}\\DCI_log_{time.strftime('%Y%m%d-%H%M%S')}.txt", 'w')
 
-        return log_file
-      
-        # TODO logging is preventing prompt_toolkit from patching stdout
-        # open a file for writing
-        #logging.basicConfig(level=logging.INFO,
-        #                    format='%(asctime)s - %(message)s',
-        #                    handlers=[logging.FileHandler(f"{logs_directory}\\DCI_log_{time.strftime('%Y%m%d-%H%M%S')}.txt"),
-        #                              logging.StreamHandler()],)
+    return log_file
+
+    # TODO logging is preventing prompt_toolkit from patching stdout
+    # open a file for writing
+    # logging.basicConfig(level=logging.INFO,
+    #                    format='%(asctime)s - %(message)s',
+    #                    handlers=[logging.FileHandler(f"{logs_directory}\\DCI_log_{time.strftime('%Y%m%d-%H%M%S')}.txt"),
+    #                              logging.StreamHandler()],)
+
 
 def main(com_port: str):
 

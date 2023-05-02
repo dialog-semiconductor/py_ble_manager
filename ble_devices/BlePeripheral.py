@@ -89,28 +89,28 @@ class BlePeripheral(BleDeviceBase):
         return self._ble_gap.pair_reply(conn_idx, accept, bond)
 
     def prepare_write_cfm(self,
-                                conn_idx: int,
-                                handle: int,
-                                length: int,
-                                status: ATT_ERROR
-                                ) -> BLE_ERROR:
+                          conn_idx: int,
+                          handle: int,
+                          length: int,
+                          status: ATT_ERROR
+                          ) -> BLE_ERROR:
 
         return self._ble_gatts.prepare_write_cfm(conn_idx, handle, length, status)
 
     def read_cfm(self,
-                       conn_idx: int = 0,
-                       handle: int = 0,
-                       status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK,
-                       data: bytes = None
-                       ) -> BLE_ERROR:
+                 conn_idx: int = 0,
+                 handle: int = 0,
+                 status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK,
+                 data: bytes = None
+                 ) -> BLE_ERROR:
 
         return self._ble_gatts.read_cfm(conn_idx, handle, status, data)
 
     def register_service(self, svc: BleServiceBase) -> BLE_ERROR:
 
         error = self._ble_gatts.add_service(svc.service_defs.uuid,
-                                                  svc.service_defs.type,
-                                                  svc.service_defs.num_attrs)
+                                            svc.service_defs.type,
+                                            svc.service_defs.num_attrs)
         # TODO not sure if included svc handled correctly
         if error == BLE_ERROR.BLE_STATUS_OK:
             for i in range(0, len(svc.incl_svc_defs)):
@@ -123,17 +123,17 @@ class BlePeripheral(BleDeviceBase):
                 char_def = gatt_char_def.char_def
                 # TODO is there a case where you need the char declartion handle offset (h_offset)?
                 error, _, char_def.handle.value = self._ble_gatts.add_characteristic(char_def.uuid,
-                                                                                           char_def.prop,
-                                                                                           char_def.perm,
-                                                                                           char_def.max_len,
-                                                                                           char_def.flags)
+                                                                                     char_def.prop,
+                                                                                     char_def.perm,
+                                                                                     char_def.max_len,
+                                                                                     char_def.flags)
                 if error == BLE_ERROR.BLE_STATUS_OK:
                     for j in range(0, len(gatt_char_def.desc_defs)):
                         desc = gatt_char_def.desc_defs[j]
                         error, desc.handle.value = self._ble_gatts.add_descriptor(desc.uuid,
-                                                                                        desc.perm,
-                                                                                        desc.max_len,
-                                                                                        desc.flags)
+                                                                                  desc.perm,
+                                                                                  desc.max_len,
+                                                                                  desc.flags)
                         if error != BLE_ERROR.BLE_STATUS_OK:
                             break
                     # Break out of both loops
@@ -153,10 +153,10 @@ class BlePeripheral(BleDeviceBase):
         return error
 
     def send_event(self,
-                         conn_idx: int = 0,
-                         handle: int = 0,
-                         type: GATT_EVENT = GATT_EVENT.GATT_EVENT_NOTIFICATION,
-                         value: bytes = None) -> BLE_ERROR:
+                   conn_idx: int = 0,
+                   handle: int = 0,
+                   type: GATT_EVENT = GATT_EVENT.GATT_EVENT_NOTIFICATION,
+                   value: bytes = None) -> BLE_ERROR:
 
         error = BLE_ERROR.BLE_ERROR_FAILED
         service = self._find_service_by_handle(handle)
@@ -207,8 +207,8 @@ class BlePeripheral(BleDeviceBase):
         return super().start(BLE_GAP_ROLE.GAP_PERIPHERAL_ROLE)
 
     def start_advertising(self,
-                                adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
-                                ) -> BLE_ERROR:
+                          adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
+                          ) -> BLE_ERROR:
 
         return self._ble_gap.start_advertising(adv_type)
 
@@ -219,9 +219,9 @@ class BlePeripheral(BleDeviceBase):
         return self._ble_storage.put_int(conn_idx, key, value, persistent)
 
     def write_cfm(self,
-                        conn_idx: int = 0,
-                        handle: int = 0,
-                        status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
-                        ) -> BLE_ERROR:
+                  conn_idx: int = 0,
+                  handle: int = 0,
+                  status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
+                  ) -> BLE_ERROR:
 
         return self._ble_gatts.write_cfm(conn_idx, handle, status)

@@ -64,7 +64,7 @@ class SerialStreamManager():
         The serial port is opened with a read timeout of 1 second. This is to prevent waiting indefinetly
         on a serial read when the program attempts to exit (program cannot exit while a concurrent.future started
         with ThreadPoolExecutor is still running). The read timeout allows us to periodically check the status
-        of an event to see if the future should exit. 
+        of an event to see if the future should exit.
         '''
         buffer = bytes()
         while len(buffer) < 1:

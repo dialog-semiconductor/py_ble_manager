@@ -1,6 +1,6 @@
 import argparse
 import concurrent.futures
-import threading
+# import threading
 import time
 import queue
 from prompt_toolkit import PromptSession
@@ -27,7 +27,7 @@ def main(com_port: str):
     # start 2 tasks:
     #   one for handling command line input
 
-    concurrent.futures.wait([#executor.submit(user_main),
+    concurrent.futures.wait([  # executor.submit(user_main),
                             executor.submit(console, ble_command_q, ble_response_q),
                             executor.submit(ble_task, com_port, ble_command_q, ble_response_q)])
 
@@ -112,11 +112,11 @@ def handle_console_command(command: str, central: ble.BleCentral) -> ble.BLE_ERR
         match ble_func:
             case 'GAPSCAN':
                 error = central.scan_start(ble.GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
-                                                 ble.GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
-                                                 160,
-                                                 80,
-                                                 False,
-                                                 True)
+                                           ble.GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
+                                           160,
+                                           80,
+                                           False,
+                                           True)
 
             case "GAPCONNECT":
                 if len(args) == 1:  # TODO this case just to avoid having to enter bd addr  # 531B00352348 964700352348

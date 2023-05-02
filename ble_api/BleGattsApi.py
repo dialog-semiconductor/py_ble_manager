@@ -22,12 +22,12 @@ class BleGattsApi(BleApiBase):
         super().__init__(ble_manager, ble_adapter)
 
     def add_characteristic(self,
-                                 uuid: AttUuid = None,
-                                 prop: GATT_PROP = GATT_PROP.GATT_PROP_NONE,
-                                 perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
-                                 max_len: int = 0,
-                                 flags: GATTS_FLAGS = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ,
-                                 ) -> tuple[BLE_ERROR, int, int]:
+                           uuid: AttUuid = None,
+                           prop: GATT_PROP = GATT_PROP.GATT_PROP_NONE,
+                           perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
+                           max_len: int = 0,
+                           flags: GATTS_FLAGS = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ,
+                           ) -> tuple[BLE_ERROR, int, int]:
 
         command = BleMgrGattsServiceAddCharacteristicCmd(uuid, prop, perm, max_len, flags)
         response: BleMgrGattsServiceAddCharacteristicRsp = self._ble_manager.cmd_execute(command)
@@ -37,11 +37,11 @@ class BleGattsApi(BleApiBase):
             return response.status, 0, 0
 
     def add_descriptor(self,
-                             uuid: AttUuid = None,
-                             perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
-                             max_len: int = 0,
-                             flags: GATTS_FLAGS = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ,
-                             ) -> tuple[BLE_ERROR, int]:
+                       uuid: AttUuid = None,
+                       perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
+                       max_len: int = 0,
+                       flags: GATTS_FLAGS = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ,
+                       ) -> tuple[BLE_ERROR, int]:
 
         command = BleMgrGattsServiceAddDescriptorCmd(uuid, perm, max_len, flags)
         response: BleMgrGattsServiceAddDescriptorRsp = self._ble_manager.cmd_execute(command)
@@ -52,8 +52,8 @@ class BleGattsApi(BleApiBase):
 
     # TODO need to add to register service in Ble.py. Need to find example with included service
     def add_include(self,
-                          handle: int = 0
-                          ) -> BLE_ERROR:
+                    handle: int = 0
+                    ) -> BLE_ERROR:
 
         command = BleMgrGattsServiceAddIncludeCmd(handle)
         response: BleMgrGattsServiceAddIncludeRsp = self._ble_manager.cmd_execute(command)
@@ -63,10 +63,10 @@ class BleGattsApi(BleApiBase):
             return response.status, 0
 
     def add_service(self,
-                          uuid: AttUuid = None,
-                          type: GATT_SERVICE = GATT_SERVICE.GATT_SERVICE_PRIMARY,
-                          num_attrs: int = 0
-                          ) -> BLE_ERROR:
+                    uuid: AttUuid = None,
+                    type: GATT_SERVICE = GATT_SERVICE.GATT_SERVICE_PRIMARY,
+                    num_attrs: int = 0
+                    ) -> BLE_ERROR:
 
         command = BleMgrGattsServiceAddCmd(uuid, type, num_attrs)
         response: BleMgrGattsServiceAddRsp = self._ble_manager.cmd_execute(command)
@@ -74,9 +74,9 @@ class BleGattsApi(BleApiBase):
         return response.status
 
     def get_value(self,
-                        handle: int = 0,
-                        max_len: int = 0
-                        ) -> BLE_ERROR:
+                  handle: int = 0,
+                  max_len: int = 0
+                  ) -> BLE_ERROR:
 
         command = BleMgrGattsGetValueCmd(handle, max_len)
         response: BleMgrGattsGetValueRsp = self._ble_manager.cmd_execute(command)
@@ -100,11 +100,11 @@ class BleGattsApi(BleApiBase):
         return response.status
 
     def prepare_write_cfm(self,
-                                conn_idx: int = 0,
-                                handle: int = 0,
-                                length: int = 0,
-                                status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
-                                ) -> BLE_ERROR:
+                          conn_idx: int = 0,
+                          handle: int = 0,
+                          length: int = 0,
+                          status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
+                          ) -> BLE_ERROR:
 
         command = BleMgrGattsPrepareWriteCfmCmd(conn_idx, handle, length, status)
         response: BleMgrGattsPrepareWriteCfmRsp = self._ble_manager.cmd_execute(command)
@@ -112,11 +112,11 @@ class BleGattsApi(BleApiBase):
         return response.status
 
     def send_event(self,
-                         conn_idx: int = 0,
-                         handle: int = 0,
-                         type: GATT_EVENT = GATT_EVENT.GATT_EVENT_NOTIFICATION,
-                         value: bytes = None
-                         ) -> BLE_ERROR:
+                   conn_idx: int = 0,
+                   handle: int = 0,
+                   type: GATT_EVENT = GATT_EVENT.GATT_EVENT_NOTIFICATION,
+                   value: bytes = None
+                   ) -> BLE_ERROR:
 
         command = BleMgrGattsSendEventCmd(conn_idx, handle, type, value)
         response: BleMgrGattsSendEventRsp = self._ble_manager.cmd_execute(command)
@@ -124,11 +124,11 @@ class BleGattsApi(BleApiBase):
         return response.status
 
     def read_cfm(self,
-                       conn_idx: int = 0,
-                       handle: int = 0,
-                       status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK,
-                       value: bytes = None
-                       ) -> BLE_ERROR:
+                 conn_idx: int = 0,
+                 handle: int = 0,
+                 status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK,
+                 value: bytes = None
+                 ) -> BLE_ERROR:
 
         command = BleMgrGattsReadCfmCmd(conn_idx, handle, status, value)
         response: BleMgrGattsReadCfmRsp = self._ble_manager.cmd_execute(command)
@@ -136,10 +136,10 @@ class BleGattsApi(BleApiBase):
         return response.status
 
     def write_cfm(self,
-                        conn_idx: int = 0,
-                        handle: int = 0,
-                        status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
-                        ) -> BLE_ERROR:
+                  conn_idx: int = 0,
+                  handle: int = 0,
+                  status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
+                  ) -> BLE_ERROR:
 
         command = BleMgrGattsWriteCfmCmd(conn_idx, handle, status)
         response: BleMgrGattsWriteCfmRsp = self._ble_manager.cmd_execute(command)
@@ -147,9 +147,9 @@ class BleGattsApi(BleApiBase):
         return response.status
 
     def set_value(self,
-                        handle: int = 0,
-                        value: bytes = None
-                        ) -> BLE_ERROR:
+                  handle: int = 0,
+                  value: bytes = None
+                  ) -> BLE_ERROR:
 
         command = BleMgrGattsSetValueCmd(handle, value)
         response: BleMgrGattsSetValueRsp = self._ble_manager.cmd_execute(command)

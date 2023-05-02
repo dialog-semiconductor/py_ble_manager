@@ -25,7 +25,7 @@ from manager.BleManagerGattsMsgs import BLE_CMD_GATTS_OPCODE, BleMgrGattsReadCfm
     BleMgrGattsSetValueRsp, BleMgrGattsWriteCfmCmd, BleMgrGattsWriteCfmRsp, BleMgrGattsSendEventCmd, BleMgrGattsSendEventRsp, \
     BleMgrGattsServiceAddDescriptorCmd, BleMgrGattsServiceAddDescriptorRsp, BleMgrGattsGetValueCmd, BleMgrGattsGetValueRsp, \
     BleMgrGattsServiceAddIncludeCmd, BleMgrGattsServiceAddIncludeRsp, BleMgrGattsPrepareWriteCfmCmd, BleMgrGattsPrepareWriteCfmRsp
-from manager.BleDevParams import BleDevParamsDefault, BleDevParams
+from manager.BleDevParams import BleDevParamsDefault
 from manager.BleManagerStorage import StoredDeviceQueue
 from manager.GtlWaitQueue import GtlWaitQueue
 

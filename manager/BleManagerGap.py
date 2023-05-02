@@ -685,7 +685,7 @@ class BleManagerGap(BleManagerBase):
         self._mgr_event_queue_send(evt)
 
     def adv_start_cmd_handler(self, command: BleMgrGapAdvStartCmd):
-        # TODO 
+        # TODO
         # if (dg_configBLE_PRIVACY_1_2 == 1)
         # ble_mgr_gap_ral_sync(ble_mgr_gap_adv_start_cmd_exec, param);
         # else
@@ -702,8 +702,7 @@ class BleManagerGap(BleManagerBase):
 
             if ((command.adv_type == BLE_GAP_CONN_MODE.GAP_CONN_MODE_NON_CONN
                     and self._dev_params.adv_data_length > BLE_NON_CONN_ADV_DATA_LEN_MAX)
-                or
-                (command.adv_type == BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
+                or (command.adv_type == BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
                     and self._dev_params.adv_data_length > BLE_ADV_DATA_LEN_MAX)):
 
                 pass
@@ -1256,7 +1255,8 @@ class BleManagerGap(BleManagerBase):
                 dev.discon_reason = gtl.parameters.reason
                 self.storage_release()
             else:
-                self.storage_release()  # TODO all these storage_release are convuluted. Workaround as _conn_cleanup acquires storage. Dont understand how SDK does not have issue here
+                # TODO all these storage_release are convuluted. Workaround as _conn_cleanup acquires storage. Dont understand how SDK does not have issue here
+                self.storage_release()
                 self._conn_cleanup(conn_idx, gtl.parameters.reason)
         else:
             self.storage_release()

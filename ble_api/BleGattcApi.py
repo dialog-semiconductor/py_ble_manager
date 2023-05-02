@@ -24,19 +24,19 @@ class BleGattcApi(BleApiBase):
         return resposne.status
 
     def discover_characteristics(self,
-                                       conn_idx: int,
-                                       start_h: int,
-                                       end_h: int,
-                                       uuid: AttUuid) -> BLE_ERROR:
+                                 conn_idx: int,
+                                 start_h: int,
+                                 end_h: int,
+                                 uuid: AttUuid) -> BLE_ERROR:
         command = BleMgrGattcDiscoverCharCmd(conn_idx, start_h, end_h, uuid)
         response: BleMgrGattcDiscoverCharRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
 
     def discover_descriptors(self,
-                                   conn_idx: int,
-                                   start_h: int,
-                                   end_h: int) -> BLE_ERROR:
+                             conn_idx: int,
+                             start_h: int,
+                             end_h: int) -> BLE_ERROR:
 
         command = BleMgrGattcDiscoverDescCmd(conn_idx, start_h, end_h)
         response: BleMgrGattcDiscoverDescRsp = self._ble_manager.cmd_execute(command)

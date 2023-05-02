@@ -6,7 +6,7 @@ from ble_api.BleGap import BLE_CONN_IDX_INVALID
 from gtl_messages.gtl_message_base import GtlMessageBase
 from gtl_messages.gtl_message_gapm import GapmResetCmd
 from gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, gapm_reset_cmd
-from manager.BleDevParams import BleDevParamsDefault, BleDevParams
+from manager.BleDevParams import BleDevParamsDefault
 from manager.BleManagerBase import BleManagerBase
 from manager.BleManagerCommonMsgs import BleMgrCommonResetCmd, BleMgrCommonResetRsp, BLE_MGR_COMMON_CMD_OPCODE
 from manager.BleManagerStorage import StoredDeviceQueue
