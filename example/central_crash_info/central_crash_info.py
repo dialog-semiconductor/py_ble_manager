@@ -137,10 +137,6 @@ class BleController():
         self.shutdown_event = shutdown_event
         self.log_file_handle = log
 
-    def shutdown(self):
-        self.shutdown_event.set()
-        self.central.shutdown()
-
     def bd_addr_to_str(self, bd: ble.BdAddress) -> str:
         return_string = ""
         for byte in bd.addr:
@@ -156,7 +152,7 @@ class BleController():
         assert self.response_q
 
         # initalize central device
-        self.central = ble.BleCentral(self.com_port, gtl_debug=False, shutdown_event=self.shutdown_event)  # TODO pass in shutdown event?
+        self.central = ble.BleCentral(self.com_port, gtl_debug=False, shutdown_event=self.shutdown_event)
         self.central.init()
         self.central.start()
         self.central.set_io_cap(ble.GAP_IO_CAPABILITIES.GAP_IO_CAP_KEYBOARD_DISP)
@@ -542,6 +538,10 @@ class BleController():
         if self.fetch_state == FETCH_DATA_STATE.FETCH_DATA_ERROR:
             # TODO disconnect if connected
             pass
+
+    def shutdown(self):
+        self.shutdown_event.set()
+        self.central.shutdown()
 
     def str_to_bd_addr(self, type: ble.BLE_ADDR_TYPE, bd_addr_str: str) -> ble.BdAddress:
         bd_addr_str = bd_addr_str.replace(":", "")
