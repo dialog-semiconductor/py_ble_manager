@@ -343,9 +343,7 @@ class BleController():
         device_info = ""
         for key in self.scan_dict:
             name, adv_packet, scan_rsp = self.scan_dict[key]
-            # Get addr MSB (addr is stored little endian)
             addr_type_str = "P" if adv_packet.address.addr_type == ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS else "R"
-
             device_info += f"Device name: {name}, addr: {self.bd_addr_to_str(adv_packet.address)},{addr_type_str}"
 
             ad_structs = self.parse_adv_data(adv_packet)
