@@ -20,7 +20,7 @@ The BLE Framework implemented in SDK10 is depecited below:
 
 In SDK10, FreeRTOS is used as an operating system. FreeRTOS provides prioritized scheduling of tasks as well as primitives for communication between tasks such as queues, mutexes, semaphores, etc.
 
-This library provides a python implementation for several layers of the SDK10 BLE Framework (BLE Service Framework, Dialog BLE API Library, BLE Manager, and BLE Adapter) in order to control DA14xxx devices from a python enviornment running on your PC. The python [asyncio](https://docs.python.org/3/library/asyncio.html) library is used to achieve concurrency between tasks.
+This library provides a python implementation for several layers of the SDK10 BLE Framework (BLE Service Framework, Dialog BLE API Library, BLE Manager, and BLE Adapter) in order to control DA14xxx devices from a python enviornment running on your PC. The python [threading](https://docs.python.org/3/library/threading.html) and [concurrent.futures](https://docs.python.org/3/library/concurrent.futures.html) libraries are used to achieve concurrency between tasks.
 
 The architecture implemented in python is depecited below:
 
