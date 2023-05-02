@@ -81,16 +81,12 @@ class CLIHandler():
             if self.shutdown_event.is_set():
                 break
             with patch_stdout():
-                try:
-                    input: str = self.session.prompt('>>> ')
-                except KeyboardInterrupt:
-                    print("Session keyboard")
-                    self.session.app.exit()
-                    return
+                input: str = self.session.prompt('>>> ')
                 args = input.split()
+
+                # Ensure we have a valid command
                 if input and args[0] in commands:
                     self.ble_command_q.put_nowait(input)
-
                     response = None
                     while response is None:
                         if self.shutdown_event.is_set():
@@ -105,9 +101,8 @@ class CLIHandler():
 
                 if self.shutdown_event.is_set():
                     break
-                # if input == 'GAPSCAN' and response == "OK":
-                #    scan_complete_evt.wait()
-                # TODO wait for EVENT from ble_task before accepting additional input (eg scan done)
+
+                # TODO wait for event from ble_task before accepting additional input (eg scan done)?
 
     def shutdown(self):
         if self.session and self.session.app.is_running:
@@ -126,7 +121,7 @@ class BleController():
         self.com_port = com_port
         self.command_q = command_q
         self.response_q = response_q
-        #                                 name, adv packet, scan rsp packt
+        #                                 name, adv packet, scan rsp packet
         self.scan_dict: dict[bytes, tuple[str, ble.BleEventGapAdvReport, ble.BleEventGapAdvReport]] = {}
         self.crash_info_uuid: ble.AttUuid = self.uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR)
 
@@ -300,19 +295,19 @@ class BleController():
         # Parse the advertising structures
         ad_structs = self.parse_adv_data(evt)
         for ad_struct in ad_structs:
-            # This is an advertising packet (vs scan response)  # TODO How to initiate scan request from Central?
             if ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_FLAGS:
+                # This is an advertising packet (vs scan response)  # TODO How to initiate scan request from Central?
                 adv_packet = True
-            # device name found
+
             if (ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_LOCAL_NAME
                     or ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_SHORT_LOCAL_NAME):
-                # some devices have a null character for the short name, ignore them
+                # device name found
                 decoded_name = ad_struct.data.decode("utf-8")
-                if decoded_name != '\x00':
+                if decoded_name != '\x00':  # some devices have a null character for the short name, ignore them
                     name = decoded_name
 
         if adv_report := self.scan_dict.get(evt.address.addr):
-            # Item exists in dict, update it
+            # Item exists in the scan dict, update it
             # if we have a name for this device, do not overwrite it with Unknown
             if adv_report[0] != "Unknown":
                 name = adv_report[0]
@@ -321,6 +316,7 @@ class BleController():
             else:
                 self.scan_dict[evt.address.addr] = (name, adv_report[1], evt)
         else:
+            # Item does not exist in the scan dict, add it to the dict
             for ad_struct in ad_structs:
                 # only want devices that advertise Debug Crash Info Service
                 if (ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_UUID128_SVC_DATA
@@ -341,6 +337,7 @@ class BleController():
     def handle_evt_gap_scan_completed(self, evt: ble.BleEventGapScanCompleted):
         self.log("Scan complete")
         device_info = ""
+        # Display information for all devices advertising with the Debug Crash Info Service
         for key in self.scan_dict:
             name, adv_packet, scan_rsp = self.scan_dict[key]
             addr_type_str = "P" if adv_packet.address.addr_type == ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS else "R"
@@ -359,6 +356,7 @@ class BleController():
 
     def handle_evt_gattc_browse_svc(self, evt: ble.BleEventGattcBrowseSvc):
 
+        # If browse info is for Debug Crash Info Service,  store attribute handles so we can access attributes via read/write/etc.
         if (self.uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR) == evt.uuid):
             self.dci_svc.svc_handle = evt.start_h
             for item in evt.items:
@@ -460,6 +458,18 @@ class BleController():
                 index = index + 4
 
     def process_fetch_state(self, evt: ble.BleEventBase):
+        '''
+        Fetch Process:
+        1. Connect to the device on interest
+        2. Read the device name
+        3. Browse the Device Crash Info Service to determine characteristic/descriptor handles
+        4. Enable TX Characteristic CCC to receive data from peripheral
+        5. Send Get All Reset Data command
+        6. Receive notifications with data
+        7. When all data received, disconnect
+        8. Parse reset data and log reset data
+        9. Exit the application
+        '''
 
         match self.fetch_state:
 
@@ -604,12 +614,10 @@ def main(com_port: str):
     while True:
         try:
             done, _ = concurrent.futures.wait(pending, timeout=1)
-            if len(done) == 1:
+            if len(done) >= 1:
+                # At least one task ended, signal shutdown to stop any active threads and close the application
                 console.shutdown()
                 ble_handler.shutdown()
-                print("Exiting")
-                return
-            if len(done) == 2:
                 print("Exiting")
                 return
 
