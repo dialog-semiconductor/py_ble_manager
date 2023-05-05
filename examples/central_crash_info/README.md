@@ -54,7 +54,7 @@ For example:
 
 When the procedure is complete, the reset data will be printed to the terminal and the application will exit
 
-![getallresetdata](assets/getallresetdata.png) 
+![getallresetdata](assets/getallresetdata.PNG) 
 
 ### EXIT
 
