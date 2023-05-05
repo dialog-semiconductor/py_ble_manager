@@ -34,6 +34,8 @@ Scan for peripheral devices.
 
 Advertisement data will print to the terminal. Once the scan is finished, a message indicating the scan is complete will be printed to the terminal:
 
+# TODO scan image needs to be updated for refactored address 
+
 ![terminal4](assets/terminal4.png)
 
 ### GAPCONNECT
@@ -44,7 +46,7 @@ Connect to a peripheral.
 
 For example:
 
-`GAPCONNECT 48:23:35:00:1b:53`
+`GAPCONNECT 48:23:35:00:1b:53,P`
 
 When the procedure is complete, a message indicationg so will be printed to the terminal:
 

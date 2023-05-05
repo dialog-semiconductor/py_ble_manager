@@ -30,7 +30,7 @@ It is largely similar to the original SDK10 architecture, with the addition of t
 
 ## Getting Started
 
-To use the library, the DA14xxx device must be running firmware that supports GTL commands. 
+To use the library, the DA14xxx device must be running firmware that supports GTL commands.
 
 For DA14585/DA14531 devices, SDK6 includes projects which support GTL commands. Specifically the  `empty_template_ext` project, located in `projects\target_apps\template\empty_template_ext`, is a good starting point for a GTL based application.
 

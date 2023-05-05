@@ -271,6 +271,7 @@ class BleController():
                 case "EXIT":
                     # Expected command format: EXIT
                     self.shutdown()
+                    error = ble.BLE_ERROR.BLE_STATUS_OK
 
                 case _:
                     pass
