@@ -11,7 +11,6 @@ import python_gtl_thread as ble
 
 
 
-
 class CLIHandler():
     def __init__(self, ble_command_q: queue.Queue, ble_response_q: queue.Queue, shutdown_event: threading.Event):
         self.ble_command_q = ble_command_q
