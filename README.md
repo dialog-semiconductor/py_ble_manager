@@ -6,7 +6,7 @@ For additional information on the GTL please see the [GTL User Manual](https://w
 
 ## Purpose
 
-The intent of this library is to provide a python interface similar to [SDK10](http://lpccs-docs.renesas.com/um-b-092-da1469x_software_platform_reference/User_guides/User_guides.html#the-ble-framework) for controlling BLE of DA14xxx devices. This is achieved by communicating with a development kit running GTL supported firmware over a USB port on your PC.
+The intent of this library is to provide a python interface similar to [SDK10](http://lpccs-docs.renesas.com/um-b-092-da1469x_software_platform_reference/User_guides/User_guides.html#the-ble-framework) for controlling BLE of DA14xxx devices. This is achieved by communicating with a development kit running GTL supported firmware over a USB port on your PC:
 
 ![usb_to_pc](assets/usb_to_pc.png)
 
@@ -28,20 +28,42 @@ The architecture implemented in python is depecited below:
 
 It is largely similar to the original SDK10 architecture, with the addition of the `Serial Manager` layer, whose responsibility it is to communicate serialized GTL messages with the development kit over the serial port.
 
-## Getting Started
+## Quickstart
 
-To use the library, the DA14xxx device must be running firmware that supports GTL commands.
+1. Clone or download this repository
 
-For DA14585/DA14531 devices, SDK6 includes projects which support GTL commands. Specifically the  `empty_template_ext` project, located in `projects\target_apps\template\empty_template_ext`, is a good starting point for a GTL based application.
+2. Connect the jumpers on the DA14531 Pro Development kit as depicted below:
 
-In addition the `prox_reporter_ext` and `prox_monitor_ext` projects, located in the `projects\target_apps\ble_examples\prox_reporter_ext` and
-`projects\target_apps\ble_examples\prox_monitor_ext` folders respectively, are available.
+![da14531_jumpers](assets/da14531_pro_kit_jumpers.png)
 
-To communicate with a DA145xx running GTL supported firmware from python, you must setup your development kit as described in [here](http://lpccs-docs.renesas.com/UM-140-DA145x-CodeLess/howToUse.html#hardware-setup). Please note, you may need to modify the UART pin definitions defined in `user_periph_setup.h` of the firmware project you use (e.g. `empty_template_ext`) depending on which daughterboard you are using.
+3. Download the GTL enabled [firmware binary](firmware/da14531mod_pro_kit.bin) to the DA14531 Pro Development kit.
 
-Once you have programmed the development kit with GTL supported firmware, you are ready to communicate with it from python.
+4. Open a command prompt or terminal and navigate to the directory for the repository on your PC.
 
-The [central_at_command](example/central_at_command/central_at_command_cli.py) is the most developed example. It provides a AT Command like interface to control a BLE central deivce.
+5. Setup a virtual envirornment by calling: `<path_to/python_gtl_thread>$ py -3.10 -m vevn ./venv`. Note this library has been tested with Python v3.10.5. To create
+a virtual enviornment that uses Python 3.10.5, you must already have Python 3.10.5 downloaded on your computer. You can download it from the [python website](https://www.python.org/downloads/release/python-3105/).
+
+6. Activate the virtual enviornment. The specific command depends on your operating system. From a windows command prompt call: `<path_to_venv>\Scripts\activate.bat`
+
+7. Call: `pip install -e .` to install the python_gtl_thread package and its dependencies. Note this installs the package in editable mode. This allows changes to the source code to be reflected next time the python interpreter is run.
+
+8. The pacakge is now installed ang you are ready to run one of the [examples](examples)
+
+## Quickstart (VS Code)
+
+1. Follow steps 1-3 in the [Quickstart](#quickstart) section.
+
+2. Open the `python_gtl_thread` repository directory in VS Code.
+
+3. Setup a virtual envirornment by calling: `$ python3.10.5 -m venv ./venv` from the VS Code terminal. Note this library has been tested with Python v3.10.5. To create
+a virtual enviornment that uses Python 3.10.5, you must already have Python 3.10.5 downloaded on your computer. You can download it from the [python website](https://www.python.org/downloads/release/python-3105/).
+
+4. Activate the virtual enviornment. Hold CTRL+shift+P to opent he command palette. Select `Python: Select Interpreter`. Select the interpreter in the virtual enviorment you just created (labeled venv). 
+Open a new terminal in VS Code and the virtual enviornment will be activated. 
+
+5. Call: `pip install -e .` to install the python_gtl_thread package and its dependencies. Note this installs the package in editable mode. This allows changes to the source code to be reflected next time the python interpreter is run.
+
+6. The pacakge is now installed ang you are ready to run one of the [examples](examples)
 
 ## High Level Directory Overview
 
@@ -62,6 +84,9 @@ The [ble_api](ble_api) directory contains classes that implement the functionali
 ### manager
 
 The [manager](manager) directory contains classes that implement the functionality of the `BLE Manager`. For example, `BleManagerGap.py` implements functionality of the `ble_manager_gap.c` API.
+It is concerned with:
+- Converting commands from the [ble_api](#ble_api) to GTL messages that are passed the [adapter](#adapter).
+- Converting GTL messages from the [adapter](#adapter) into responses and events understood by the [ble_api](#ble_api).
 
 ### adapter
 
@@ -72,7 +97,9 @@ The [adapter](adapter) directory contains the `BleAdapter` class. Its is concern
 
 ### serial_manager
 
-The [serial_manager](serial_manager) directory contains the `SerialStreamManager` class. It is responsible for transmitting serialized GTL messages from the BLE Adapter over the serial port. In addition, it receives serialized GTL messages over the serial port (from the development kit) and provides them to the `BleAdapter` for consumption.
+The [serial_manager](serial_manager) directory contains the `SerialStreamManager` class. It is concerned with
+- Transmitting serialized GTL messages from the BLE Adapter over the serial port
+- Receiving serialized GTL messages over the serial port (from the development kit) and providing them to the `BleAdapter` for consumption.
 
 ### gtl_messages
 

@@ -111,6 +111,8 @@ class SerialStreamManager():
 
     def open_serial_port(self):
         # try:
+        # TODO timeout opening port
         self._serial_port = serial.Serial(self._com_port, baudrate=115200, timeout=1)
+
         # except :
         #    print(f"{type(self)} failed to open {self._com_port}")
