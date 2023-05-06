@@ -61,6 +61,7 @@ class CLIHandler():
     def __init__(self, ble_command_q: queue.Queue, ble_response_q: queue.Queue):
         self.ble_command_q = ble_command_q
         self.ble_response_q = ble_response_q
+        self.exit = threading.Event()
 
     def start_prompt(self):
         # Accepted commands
@@ -74,20 +75,20 @@ class CLIHandler():
         while True:
             with patch_stdout():
                 try:
-                    input: str = self.session.prompt('>>> ')
-                    args = input.split()
-                    # Ensure we have a valid command
-                    if input and args[0] in commands:
-                        self.ble_command_q.put_nowait(input)
-                        response = self.ble_response_q.get()
-
-                    else:
-                        response = "ERROR Invalid Command"
-                    print(f"<<< {response}")
-                    if response == "EXIT":
-                        print("REceived exit signal")
-
+                    if self.exit.is_set():
                         return
+                    input: str = self.session.prompt('>>> ')
+                    if input:
+                        args = input.split()
+                        # Ensure we have a valid command
+                        if input and args[0] in commands:
+                            self.ble_command_q.put_nowait(input)
+                            response = self.ble_response_q.get()
+                        else:
+                            response = "ERROR Invalid Command"
+                        print(f"<<< {response}")
+                        #if response == "EXIT":
+                        #    return
                 except KeyboardInterrupt:
                     print("Session Keyboard Interrupt")
                     return
@@ -95,8 +96,12 @@ class CLIHandler():
                 # TODO wait for event from ble_task before accepting additional input (eg scan done)?
 
     def shutdown(self):
-        if self.session and self.session.app.is_running:
-            self.session.app.exit()
+        try:
+            if self.session and self.session.app.is_running:
+                self.session.app.exit()
+                self.exit.set()
+        finally:
+            pass
 
 
 class BleController():
@@ -159,6 +164,8 @@ class BleController():
         self.central.start()
         self.central.set_io_cap(ble.GAP_IO_CAPABILITIES.GAP_IO_CAP_KEYBOARD_DISP)
 
+        self.exit = threading.Event()
+
         self._command_task = threading.Thread(target=self._command_queue_task)
         self._command_task.daemon = True
         self._command_task.start()
@@ -166,6 +173,9 @@ class BleController():
         self._evnt_task = threading.Thread(target=self._event_queue_task)
         self._evnt_task.daemon = True
         self._evnt_task.start()
+
+        self.exit.wait()
+
 
     def command_queue_get(self):
         return self.command_q.get()
@@ -497,7 +507,8 @@ class BleController():
 
     def shutdown(self):
         self.log_file_handle.close()
-        self.response_q.put("EXIT")
+        #self.response_q.put("EXIT")
+        self.exit.set()
 
     def str_to_bd_addr(self, type: ble.BLE_ADDR_TYPE, bd_addr_str: str) -> ble.BdAddress:
         bd_addr_str = bd_addr_str.replace(":", "")
@@ -569,8 +580,17 @@ def main(com_port: str):
     ble_task.daemon = True
     ble_task.start()
 
+
+
     while True:
-        pass
+
+        if cli_task.is_alive() and ble_task.is_alive():
+            time.sleep(1)
+        else:
+            #print(f"cli: {cli_task.is_alive()} ble: {ble_task.is_alive()}")
+            if cli_task.is_alive():
+                console.shutdown()
+            return
 
 
 if __name__ == "__main__":
