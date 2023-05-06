@@ -15,6 +15,7 @@ class CLIHandler():
     def __init__(self, ble_command_q: queue.Queue, ble_response_q: queue.Queue):
         self.ble_command_q = ble_command_q
         self.ble_response_q = ble_response_q
+        self.exit = threading.Event()
 
     def start_prompt(self):
         # Accepted commands
@@ -28,7 +29,8 @@ class CLIHandler():
                     'GAPPAIR',
                     'GAPSETCONNPARAM',
                     'PASSKEYENTRY',
-                    'YESNOTENTRY']
+                    'YESNOTENTRY',
+                    'EXIT']
         commands.sort()
         word_completer = WordCompleter(commands, ignore_case=True)
 
@@ -36,16 +38,18 @@ class CLIHandler():
         while True:
             with patch_stdout():
                 try:
+                    if self.exit.is_set():
+                        return
                     input: str = self.session.prompt('>>> ')
-                    args = input.split()
-                    # Ensure we have a valid command
-                    if input and args[0] in commands:
-                        self.ble_command_q.put_nowait(input)     
-                        response = self.ble_response_q.get()
-                        
-                    else:
-                        response = "ERROR Invalid Command"
-                    print(f"<<< {response}")
+                    if input:
+                        args = input.split()
+                        # Ensure we have a valid command
+                        if input and args[0] in commands:
+                            self.ble_command_q.put_nowait(input)
+                            response = self.ble_response_q.get()
+                        else:
+                            response = "ERROR Invalid Command"
+                        print(f"<<< {response}")
                 except KeyboardInterrupt:
                     print("Session Keyboard Interrupt")
                     return
@@ -53,9 +57,12 @@ class CLIHandler():
                 # TODO wait for event from ble_task before accepting additional input (eg scan done)?
 
     def shutdown(self):
-        if self.session and self.session.app.is_running:
-            self.session.app.exit()
-
+        try:
+            if self.session and self.session.app.is_running:
+                self.session.app.exit()
+                self.exit.set()
+        finally:
+            pass
 
 
 class BleController():
@@ -67,6 +74,7 @@ class BleController():
         self.com_port = com_port
         self.command_q = command_q
         self.response_q = response_q
+        self._exit = threading.Event()
 
     def bd_addr_to_str(self, bd: ble.BdAddress) -> str:
         return_string = ""
@@ -109,6 +117,8 @@ class BleController():
         self._evnt_task = threading.Thread(target=self._event_queue_task)
         self._evnt_task.daemon = True
         self._evnt_task.start()
+
+        self._exit.wait()
 
     def command_queue_get(self):
         return self.command_q.get()
@@ -221,6 +231,11 @@ class BleController():
                         conn_idx = int(args[1])
                         accept = bool(int(args[2]))
                         error = self.central.numeric_reply(conn_idx, accept)
+
+                case 'EXIT':
+                    # Expected command format: EXIT
+                    self.shutdown()
+                    error = ble.BLE_ERROR.BLE_STATUS_OK
 
                 case _:
                     pass
@@ -407,6 +422,10 @@ class BleController():
 
         return adv_data_structs
 
+    def shutdown(self):
+        self._exit.set()
+
+
     def str_to_bd_addr(self, type: ble.BLE_ADDR_TYPE, bd_addr_str: str) -> ble.BdAddress:
         bd_addr_str = bd_addr_str.replace(":", "")
         bd_addr_list = [int(bd_addr_str[idx:idx + 2], 16) for idx in range(0, len(bd_addr_str), 2)]
@@ -449,17 +468,23 @@ def main(com_port: str):
 
     # start 2 tasks:
     #   one for handling command line input
+    #   one for handling BLE
 
     cli_task = threading.Thread(target=console.start_prompt)
-    cli_task.daemon = True
     cli_task.start()
 
     ble_task = threading.Thread(target=ble_handler.ble_task)
-    ble_task.daemon = True
     ble_task.start()
 
     while True:
-        pass
+        if cli_task.is_alive() and ble_task.is_alive():
+            time.sleep(1)
+        else:
+            if cli_task.is_alive():
+                console.shutdown()
+            if ble_task.is_alive():
+                ble_handler.shutdown()
+            return
 
 
 if __name__ == "__main__":

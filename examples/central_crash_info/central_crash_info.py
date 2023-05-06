@@ -87,8 +87,6 @@ class CLIHandler():
                         else:
                             response = "ERROR Invalid Command"
                         print(f"<<< {response}")
-                        #if response == "EXIT":
-                        #    return
                 except KeyboardInterrupt:
                     print("Session Keyboard Interrupt")
                     return
@@ -114,6 +112,7 @@ class BleController():
         self.com_port = com_port
         self.command_q = command_q
         self.response_q = response_q
+        self._exit = threading.Event()
         #                                 name, adv packet, scan rsp packet
         self.scan_dict: dict[bytes, tuple[str, ble.BleEventGapAdvReport, ble.BleEventGapAdvReport]] = {}
         self.crash_info_uuid: ble.AttUuid = self.uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR)
@@ -164,8 +163,6 @@ class BleController():
         self.central.start()
         self.central.set_io_cap(ble.GAP_IO_CAPABILITIES.GAP_IO_CAP_KEYBOARD_DISP)
 
-        self.exit = threading.Event()
-
         self._command_task = threading.Thread(target=self._command_queue_task)
         self._command_task.daemon = True
         self._command_task.start()
@@ -174,7 +171,7 @@ class BleController():
         self._evnt_task.daemon = True
         self._evnt_task.start()
 
-        self.exit.wait()
+        self._exit.wait()
 
 
     def command_queue_get(self):
@@ -508,7 +505,7 @@ class BleController():
     def shutdown(self):
         self.log_file_handle.close()
         #self.response_q.put("EXIT")
-        self.exit.set()
+        self._exit.set()
 
     def str_to_bd_addr(self, type: ble.BLE_ADDR_TYPE, bd_addr_str: str) -> ble.BdAddress:
         bd_addr_str = bd_addr_str.replace(":", "")
@@ -571,25 +568,22 @@ def main(com_port: str):
 
     # start 2 tasks:
     #   one for handling command line input
+    #   one for handling BLE
 
     cli_task = threading.Thread(target=console.start_prompt)
-    cli_task.daemon = True
     cli_task.start()
 
     ble_task = threading.Thread(target=ble_handler.ble_task)
-    ble_task.daemon = True
     ble_task.start()
 
-
-
     while True:
-
         if cli_task.is_alive() and ble_task.is_alive():
             time.sleep(1)
         else:
-            #print(f"cli: {cli_task.is_alive()} ble: {ble_task.is_alive()}")
             if cli_task.is_alive():
                 console.shutdown()
+            if ble_task.is_alive():
+                ble_handler.shutdown()
             return
 
 
