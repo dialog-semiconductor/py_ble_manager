@@ -66,8 +66,8 @@ class BleManagerBase():
     def mgr_dev_params_release(self) -> None:
         self._dev_params_lock.release()
 
-    def mgr_event_queue_get(self, timeout) -> BleMgrMsgBase:
-        return self._mgr_event_q.get(timeout=timeout)
+    def mgr_event_queue_get(self) -> BleMgrMsgBase:
+        return self._mgr_event_q.get()
 
     def storage_acquire(self) -> BleDevParams:
         self._stored_device_lock.acquire()

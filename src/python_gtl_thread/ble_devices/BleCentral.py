@@ -11,9 +11,8 @@ class BleCentral(BleDeviceBase):
     def __init__(self,
                  com_port: str,
                  ble_config: BleConfigDefault = BleConfigDefault(BLE_DEVICE_TYPE.CENTRAL),
-                 shutdown_event: threading.Event = threading.Event(),
                  gtl_debug: bool = False):
-        super().__init__(com_port, ble_config, shutdown_event, gtl_debug)
+        super().__init__(com_port, ble_config, gtl_debug)
 
     def browse(self, conn_idx: int, uuid: AttUuid) -> BLE_ERROR:
         return self._ble_gattc.browse(conn_idx, uuid)

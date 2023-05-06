@@ -6,16 +6,15 @@ import queue
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.patch_stdout import patch_stdout
-
+import sys
 import python_gtl_thread as ble
 
 
 
 class CLIHandler():
-    def __init__(self, ble_command_q: queue.Queue, ble_response_q: queue.Queue, shutdown_event: threading.Event):
+    def __init__(self, ble_command_q: queue.Queue, ble_response_q: queue.Queue):
         self.ble_command_q = ble_command_q
         self.ble_response_q = ble_response_q
-        self.shutdown_event = shutdown_event
 
     def start_prompt(self):
         # Accepted commands
@@ -35,49 +34,39 @@ class CLIHandler():
 
         self.session = PromptSession(completer=word_completer)
         while True:
-            if self.shutdown_event.is_set():
-                break
             with patch_stdout():
-                input: str = self.session.prompt('>>> ')
-                args = input.split()
-
-                # Ensure we have a valid command
-                if input and args[0] in commands:
-                    self.ble_command_q.put_nowait(input)
-                    response = None
-                    while response is None:
-                        if self.shutdown_event.is_set():
-                            break
-                        try:
-                            response = self.ble_response_q.get(timeout=1)
-                        except queue.Empty:
-                            pass
-                else:
-                    response = "ERROR Invalid Command"
-                print(f"<<< {response}")
-
-                if self.shutdown_event.is_set():
-                    break
+                try:
+                    input: str = self.session.prompt('>>> ')
+                    args = input.split()
+                    # Ensure we have a valid command
+                    if input and args[0] in commands:
+                        self.ble_command_q.put_nowait(input)     
+                        response = self.ble_response_q.get()
+                        
+                    else:
+                        response = "ERROR Invalid Command"
+                    print(f"<<< {response}")
+                except KeyboardInterrupt:
+                    print("Session Keyboard Interrupt")
+                    return
 
                 # TODO wait for event from ble_task before accepting additional input (eg scan done)?
 
     def shutdown(self):
         if self.session and self.session.app.is_running:
             self.session.app.exit()
-        self.shutdown_event.set()
+
 
 
 class BleController():
     def __init__(self,
                  com_port: str,
                  command_q: queue.Queue,
-                 response_q: queue.Queue,
-                 shutdown_event: threading.Event = threading.Event()):
+                 response_q: queue.Queue):
 
         self.com_port = com_port
         self.command_q = command_q
         self.response_q = response_q
-        self.shutdown_event = shutdown_event
 
     def bd_addr_to_str(self, bd: ble.BdAddress) -> str:
         return_string = ""
@@ -87,6 +76,21 @@ class BleController():
                 byte_string = "0" + byte_string
             return_string = byte_string + ":" + return_string
         return return_string[:-1]
+
+    def _command_queue_task(self):
+        while True:
+            command = self.command_queue_get()
+            error = self.handle_console_command(command)
+            if error == ble.BLE_ERROR.BLE_STATUS_OK:
+                response = "OK"
+            else:
+                response = f"ERROR {error}"
+            self.response_q.put_nowait(str(response))
+
+    def _event_queue_task(self):
+        while True:
+            evt = self.central.get_event()
+            self.handle_ble_event(evt)
 
     def ble_task(self):
 
@@ -98,63 +102,16 @@ class BleController():
         self.central.start()
         self.central.set_io_cap(ble.GAP_IO_CAPABILITIES.GAP_IO_CAP_KEYBOARD_DISP)
 
-        # create tasks for:
-        #   hanlding commands from the console
-        #   responding to BLE events
-        executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
-        self.console_command_task = executor.submit(self.command_queue_get)
-        self.ble_event_task = executor.submit(self.central.get_event)
-        pending = [self.ble_event_task, self.console_command_task]
+        self._command_task = threading.Thread(target=self._command_queue_task)
+        self._command_task.daemon = True
+        self._command_task.start()
 
-        while True:
-            if self.shutdown_event.is_set():
-                executor.shutdown(wait=False, cancel_futures=True)
-
-            # Wait for a console command or BLE event to occur
-            done, pending = concurrent.futures.wait(pending, timeout=1, return_when=concurrent.futures.FIRST_COMPLETED)
-
-            for task in done:
-                # Handle command line input
-                if task is self.console_command_task:
-                    if task.result():
-                        command: str = task.result()
-                        error = self.handle_console_command(command)
-
-                        if error == ble.BLE_ERROR.BLE_STATUS_OK:
-                            response = "OK"
-                        else:
-                            response = f"ERROR {error}"
-                        self.response_q.put_nowait(str(response))
-
-                    if not self.shutdown_event.is_set():
-                        # restart console command task
-                        self.console_command_task = executor.submit(self.command_queue_get)
-                        pending.add(self.console_command_task)
-
-                # Handle and BLE events that have occurred
-                if task is self.ble_event_task:
-                    if task.result():
-                        evt: ble.BleEventBase = task.result()
-                        self.handle_ble_event(evt)
-
-                    if not self.shutdown_event.is_set():
-                        # restart ble event task
-                        self.ble_event_task = executor.submit(self.central.get_event)
-                        pending.add(self.ble_event_task)
-
-            if len(pending) == 0:
-                break
+        self._evnt_task = threading.Thread(target=self._event_queue_task)
+        self._evnt_task.daemon = True
+        self._evnt_task.start()
 
     def command_queue_get(self):
-        item = None
-        while item is None:
-            try:
-                if self.shutdown_event.is_set():
-                    return
-                item = self.command_q.get(timeout=1)
-            except queue.Empty:
-                pass
-        return item
+        return self.command_q.get()
 
     def format_properties(self, prop: int) -> str:
         propr_str = "BRXWNISE"  # each letter corresponds to single property
@@ -336,10 +293,10 @@ class BleController():
 
         print(f"Advertisment: address={self.bd_addr_to_str(evt.address)},{addr_type_str} "
               + f"rssi={evt.rssi}, data(raw)={evt.data.hex()}")
-        print("AD Structs:")
-        for struct in adv_structs:
-            print(f"\t{struct}")
-        print("")
+        #print("AD Structs:")
+        #for struct in adv_structs:
+        #    print(f"\t{struct}")
+        #print("")
 
     def handle_evt_gap_connected(self, evt: ble.BleEventGapConnected):
         print(f"Connected to: addr={self.bd_addr_to_str(evt.peer_address)}, conn_idx={evt.conn_idx}")
@@ -450,11 +407,6 @@ class BleController():
 
         return adv_data_structs
 
-
-    def shutdown(self):
-        self.shutdown_event.set()
-        self.central.shutdown()
-
     def str_to_bd_addr(self, type: ble.BLE_ADDR_TYPE, bd_addr_str: str) -> ble.BdAddress:
         bd_addr_str = bd_addr_str.replace(":", "")
         bd_addr_list = [int(bd_addr_str[idx:idx + 2], 16) for idx in range(0, len(bd_addr_str), 2)]
@@ -492,37 +444,22 @@ def user_main():
 def main(com_port: str):
     ble_command_q = queue.Queue()
     ble_response_q = queue.Queue()
-    shutdown_event = threading.Event()
-    ble_handler = BleController(com_port, ble_command_q, ble_response_q, shutdown_event)
-    console = CLIHandler(ble_command_q, ble_response_q, shutdown_event)
+    ble_handler = BleController(com_port, ble_command_q, ble_response_q)
+    console = CLIHandler(ble_command_q, ble_response_q)
 
     # start 2 tasks:
     #   one for handling command line input
-    executor = concurrent.futures.ThreadPoolExecutor(max_workers=2, thread_name_prefix='MainProgram')
-    cli_task = executor.submit(console.start_prompt)
-    ble_task = executor.submit(ble_handler.ble_task)
-    pending = [cli_task,
-               ble_task]
+
+    cli_task = threading.Thread(target=console.start_prompt)
+    cli_task.daemon = True
+    cli_task.start()
+
+    ble_task = threading.Thread(target=ble_handler.ble_task)
+    ble_task.daemon = True
+    ble_task.start()
 
     while True:
-        try:
-            done, _ = concurrent.futures.wait(pending, timeout=1)
-            if len(done) >= 1:
-                for task in done:
-                    print(task.result())
-                    print(task.exception) 
-                # At least one task ended, signal shutdown to stop any active threads and close the application
-                console.shutdown()
-                ble_handler.shutdown()
-                print("Exiting")
-                return
-
-        except KeyboardInterrupt:
-            executor.shutdown(wait=False, cancel_futures=True)
-            ble_handler.shutdown()
-            console.shutdown()
-            print("Exiting")
-            return
+        pass
 
 
 if __name__ == "__main__":
@@ -533,4 +470,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(args.com_port)
+    try:
+        main(args.com_port)
+    except KeyboardInterrupt:
+        print("Keyborard")

@@ -8,86 +8,33 @@ from ..gtl_messages.gtl_message_base import GTL_INITIATOR
 
 class SerialStreamManager():
 
-    def __init__(self, com_port: str, tx_queue: queue.Queue[bytes], rx_queue: queue.Queue[bytes], shutdown_event: threading.Event) -> None:
+    def __init__(self, com_port: str, tx_queue: queue.Queue[bytes], rx_queue: queue.Queue[bytes]) -> None:
         self._tx_queue: queue.Queue[bytes] = tx_queue
         self._rx_queue: queue.Queue[bytes] = rx_queue
         self._com_port: str = com_port
-        self._shutdown_event = shutdown_event
-
-    def _serial_task(self):
-
-        executor = concurrent.futures.ThreadPoolExecutor(max_workers=2, thread_name_prefix='SerialStream')
-        # create task to wait for data on the tx queue (e.g. data from the BLE adapter)
-        self._serial_tx_task = executor.submit(self._tx_queue_get)
-        # create task to wait for data on the serial port
-        self._serial_rx_task = executor.submit(self._receive)
-
-        pending = [self._serial_tx_task, self._serial_rx_task]
-
-        while True:
-
-            if self._shutdown_event.is_set():
-                executor.shutdown(wait=False, cancel_futures=True)
-
-            done, pending = concurrent.futures.wait(pending, timeout=1, return_when=concurrent.futures.FIRST_COMPLETED)
-
-            for task in done:
-                if task is self._serial_tx_task:
-                    # We have received data on the Tx queue, send it and restart the task
-                    # TODO need to rethink waiting here. The _receive task should never be
-                    # be blocked for a long time or we will miss data
-                    if task.result():
-                        self._send(task.result())
-
-                    if not self._shutdown_event.is_set():
-                        self._serial_tx_task = executor.submit(self._tx_queue_get)
-                        pending.add(self._serial_tx_task)
-
-                elif task is self._serial_rx_task:
-                    # This is from serial Rx queue
-                    if task.result():
-                        self._process_received_data(task.result())
-
-                    if not self._shutdown_event.is_set():
-                        self._serial_rx_task = executor.submit(self._receive)
-                        pending.add(self._serial_rx_task)
-
-            if len(pending) == 0:
-                break
 
     def _process_received_data(self, buffer: bytes):
         if buffer:
             self._rx_queue.put_nowait(buffer)
 
     def _receive(self):
-        '''
-        The serial port is opened with a read timeout of 1 second. This is to prevent waiting indefinetly
-        on a serial read when the program attempts to exit (program cannot exit while a concurrent.future started
-        with ThreadPoolExecutor is still running). The read timeout allows us to periodically check the status
-        of an event to see if the future should exit.
-        '''
         buffer = bytes()
-        while len(buffer) < 1:
-            if self._shutdown_event.is_set():
-                break
-            buffer = self._serial_port.read(1)
-            if len(buffer) > 0 and (buffer[0] == GTL_INITIATOR):
-                # Get msg_id, dst_id, src_id, par_len. Use par_len to read rest of message
-                while len(buffer) < (1 + 8):
-                    if self._shutdown_event.is_set():
-                        break
-
-                    buffer += self._serial_port.read(8)
-                    if len(buffer) >= (1 + 8):
-                        par_len = int.from_bytes(buffer[7:9], "little", signed=False)
-                        if (par_len != 0):
-                            while len(buffer) < (1 + 8 + par_len):
-                                if self._shutdown_event.is_set():
-                                    break
-
-                                buffer += self._serial_port.read(par_len)
-            return buffer
-
+        buffer = self._serial_port.read(1)
+        if (buffer[0] == GTL_INITIATOR):
+            # Get msg_id, dst_id, src_id, par_len. Use par_len to read rest of message
+            buffer += self._serial_port.read(8)
+            par_len = int.from_bytes(buffer[7:9], "little", signed=False)
+            if (par_len != 0):
+                buffer += self._serial_port.read(par_len)
+        else:
+            print("Received some garbage")
+        return buffer
+    
+    def _receive_task(self):
+        while True:
+            serial_message = self._receive()
+            self._process_received_data(serial_message)
+    
     def _send(self, message: bytes):
         if message:
             # print(f"Sending: {message}")
@@ -95,24 +42,26 @@ class SerialStreamManager():
             self._serial_port.flush()  # TODO is this needed?
 
     def _tx_queue_get(self) -> bytes:
-        item = None
-        while item is None:
-            try:
-                if self._shutdown_event.is_set():
-                    break
-                item = self._tx_queue.get(timeout=1)
-            except queue.Empty:
-                pass
-        return item
+        return self._tx_queue.get()
+    
+    def _tx_queue_task(self):
+        while True:
+            serial_message = self._tx_queue_get()
+            self._send(serial_message)
 
     def init(self):
-        self._task = threading.Thread(target=self._serial_task)
-        self._task.start()
+        self._tx_task = threading.Thread(target=self._tx_queue_task)
+        self._tx_task.daemon = True
+        self._tx_task.start()
+
+        self._rx_task = threading.Thread(target=self._receive_task)
+        self._rx_task.daemon = True
+        self._rx_task.start()
 
     def open_serial_port(self):
         # try:
         # TODO timeout opening port
-        self._serial_port = serial.Serial(self._com_port, baudrate=115200, timeout=1)
+        self._serial_port = serial.Serial(self._com_port, baudrate=115200)
 
         # except :
         #    print(f"{type(self)} failed to open {self._com_port}")

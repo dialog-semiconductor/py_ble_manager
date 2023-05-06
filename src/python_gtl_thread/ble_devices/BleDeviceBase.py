@@ -21,7 +21,7 @@ from ..serial_manager.SerialStreamManager import SerialStreamManager
 
 
 class BleDeviceBase():
-    def __init__(self, com_port: str, config: BleConfigDefault = BleConfigDefault(), shutdown_event: threading.Event = threading.Event(), gtl_debug: bool = False):
+    def __init__(self, com_port: str, config: BleConfigDefault = BleConfigDefault(), gtl_debug: bool = False):
         app_command_q = queue.Queue()
         app_resposne_q = queue.Queue()
         app_event_q = queue.Queue()
@@ -30,12 +30,11 @@ class BleDeviceBase():
         adapter_event_q = queue.Queue()
         serial_tx_q = queue.Queue()
         serial_rx_q = queue.Queue()
-        self._shutdown_event = shutdown_event
         self._config = config
         # Internal BLE framework layers
-        self._ble_manager = BleManager(app_command_q, app_resposne_q, app_event_q, adapter_command_q, adapter_event_q, self._shutdown_event, config)
-        self._ble_adapter = BleAdapter(adapter_command_q, adapter_event_q, serial_tx_q, serial_rx_q, self._shutdown_event, gtl_debug)
-        self._serial_stream_manager = SerialStreamManager(com_port, serial_tx_q, serial_rx_q, self._shutdown_event)
+        self._ble_manager = BleManager(app_command_q, app_resposne_q, app_event_q, adapter_command_q, adapter_event_q, config)
+        self._ble_adapter = BleAdapter(adapter_command_q, adapter_event_q, serial_tx_q, serial_rx_q, gtl_debug)
+        self._serial_stream_manager = SerialStreamManager(com_port, serial_tx_q, serial_rx_q)
 
         # Dialog API
         self._ble_gap = BleGapApi(self._ble_manager, self._ble_adapter)
@@ -70,24 +69,13 @@ class BleDeviceBase():
             raise e
 
     def get_event(self) -> BleEventBase:
-        evt = None
-        while evt is None:
-            try:
-                if self._shutdown_event.is_set():
-                    return
-                evt = self._ble_manager.mgr_event_queue_get(timeout=1)
-            except queue.Empty:
-                pass
-        return evt
+        return self._ble_manager.mgr_event_queue_get()
 
     def numeric_reply(self, conn_idx: int, accept: bool):
         return self._ble_gap.numeric_reply(conn_idx, accept)
 
     def set_io_cap(self, io_cap: GAP_IO_CAPABILITIES) -> BLE_ERROR:
         return self._ble_manager.set_io_cap(io_cap)
-
-    def shutdown(self) -> None:
-        self._shutdown_event.set()
 
     def start(self, role: BLE_GAP_ROLE) -> BLE_ERROR:
 
