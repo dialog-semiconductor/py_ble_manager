@@ -1,3 +1,3 @@
 import python_gtl_thread as ble
-
-print(ble.ATT_ERROR(0x81))
+test = ble.BLE_ERROR(5) if 5 in ble.BLE_ERROR.__members__.values() else ble.BLE_ERROR.BLE_ERROR_FAILED
+print(test )

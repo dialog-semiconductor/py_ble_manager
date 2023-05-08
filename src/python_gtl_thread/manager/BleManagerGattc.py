@@ -116,7 +116,7 @@ class BleManagerGattc(BleManagerBase):
             evt = BleEventGattcReadCompleted()
             evt.conn_idx = self._task_to_connidx(gtl.src_id)
             evt.handle = gtl.parameters.seq_num
-            evt.status = gtl.parameters.status
+            evt.status = ATT_ERROR(gtl.parameters.status)
             self._mgr_event_queue_send(evt)
 
     def _cmp_write_evt_handler(self, gtl: GattcCmpEvt):
