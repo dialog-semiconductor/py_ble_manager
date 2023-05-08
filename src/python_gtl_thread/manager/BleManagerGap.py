@@ -1288,7 +1288,7 @@ class BleManagerGap(BleManagerBase):
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
         if dev:
-            if self._ble_config.self._ble_config.dg_configBLE_SECURE_CONNECTIONS == 1:
+            if self._ble_config.dg_configBLE_SECURE_CONNECTIONS == 1:
                 if (not dev.bonded) or (not gtl.parameters.ediv):
                     if dev.remote_ltk.key != b'':
                         cfm.parameters.ltk.key = (c_uint8 * len(dev.remote_ltk.key)).from_buffer_copy(dev.remote_ltk.key)
@@ -1433,7 +1433,7 @@ class BleManagerGap(BleManagerBase):
     def pair_cmd_handler(self, command: BleMgrGapPairCmd):
         response = BleMgrGapPairRsp(BLE_ERROR.BLE_ERROR_FAILED)
 
-        secure = True if (self._ble_config.self._ble_config.dg_configBLE_SECURE_CONNECTIONS == 1) else False
+        secure = True if (self._ble_config.dg_configBLE_SECURE_CONNECTIONS == 1) else False
         self.storage_acquire()  # TODO SDK uses some temp variables to release storage earlier
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
         master = dev.master
