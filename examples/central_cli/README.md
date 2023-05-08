@@ -112,7 +112,7 @@ When the procedure is complete, a message indicationg so will be printed to the 
 
 `GATTWRITE <connection_index> <handle> <data>`
 
-For example, to write 0x1234 to hanlde 13 of the peripheral at connection index 0:
+For example, to write 0x1234 to handle 13 of the peripheral at connection index 0:
 
 `GATTWRITE 0 13 3412`
 
@@ -124,7 +124,7 @@ Note the data should be written little endian. When the procedure is complete, a
 
 `GATTWRITENORESP <connection_index> <handle> <signed> <data>`
 
-For example, to perform a signed write or 0x1234 to hanlde 13 of the peripheral at connection index 0:
+For example, to perform a signed write or 0x1234 to handle 13 of the peripheral at connection index 0:
 
 `GATTWRITENORESP 0 13 1 3412`
 
