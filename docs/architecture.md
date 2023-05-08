@@ -22,7 +22,13 @@ It is largely similar to the original SDK10 architecture, with the addition of t
 
 The [ble_devices](ble_devices) directory contains the primary classes enabling a user to interact with the python BLE framework, namely the `BleCentral` and `BlePeripheral` classes. These classes provide methods for achieving most of the functionality required by a BLE application.
 
-For example, the `BleCentral` class implement methods for scanning, connecting, browsing, discovering, reading, writing, etc. These methods are wrappers for various methods implemented implemented in various classes of the `ble_api`.
+For example, the `BleCentral` class implement methods for scanning, connecting, browsing, discovering, reading, writing, etc.
+
+`BleCentral` and `BlePeripheral` both inherit from `BleDeviceBase`, which implements functionality common to both central and peripheral devcies. 
+
+
+
+ These methods are wrappers for various methods implemented implemented in various classes of the `ble_api`.
 
 ### services
 
@@ -40,6 +46,20 @@ It is concerned with:
 - Converting GTL messages from the [adapter](#adapter) into responses and events understood by the [ble_api](#ble_api).
 
 When the `BleManager` is started, two daemon threads are created. One to receive and process commands from the [ble_api](#ble_api), and a second to receive and process responses/events from the [adapter](#adapter).
+
+As with SDK10, functionality for different BLE layers is logically separated. 
+
+The `BleManager` class has member variables that encapsulate various BLE functionality. For example:
+
+`BleManagerGap` handles all GAP related functionality for the `BleManager`
+
+BleManagerCommon(self._mgr_response_q,
+
+        self.gap_mgr = BleManagerGap(self._mgr_response_q,
+
+        self.gattc_mgr = BleManagerGattc(self._mgr_response_q,
+
+        self.gatts_mgr = BleManagerGatts(
 
 ### adapter
 
