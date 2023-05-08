@@ -90,7 +90,7 @@ For example, to disconnect from a peripheral at connection index 0 with the reas
 
 For example, to pair to the peripheral at connection index 0:
 
-`GAPPAIR 0 1`
+`GAPPAIR 0 0`
 
 When the procedure is complete, a message indicationg so will be printed to the terminal:
 
