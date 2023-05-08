@@ -1,3 +1,3 @@
-import python_gtl_thread as pd
+import python_gtl_thread as ble
 
-print(pd.__version__)
+print(ble.__version__)
