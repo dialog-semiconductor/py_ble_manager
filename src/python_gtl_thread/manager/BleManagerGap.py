@@ -590,7 +590,7 @@ class BleManagerGap(BleManagerBase):
         gtl.parameters.pairing.auth |= GAP_AUTH_MASK.GAP_AUTH_MITM if mitm else GAP_AUTH_MASK.GAP_AUTH_NONE
         gtl.parameters.pairing.auth |= GAP_AUTH_MASK.GAP_AUTH_SEC if secure else GAP_AUTH_MASK.GAP_AUTH_NONE
         gtl.parameters.pairing.key_size = BLE_ENC_KEY_SIZE_MAX
-        gtl.parameters.pairing.ikey_dist = self._ble_config.gBLE_PAIR_INIT_KEY_DIST
+        gtl.parameters.pairing.ikey_dist = self._ble_config.dgBLE_PAIR_INIT_KEY_DIST
         gtl.parameters.pairing.rkey_dist = self._ble_config.dg_configBLE_PAIR_RESP_KEY_DIST
 
         self.storage_acquire()
