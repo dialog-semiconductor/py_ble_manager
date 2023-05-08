@@ -100,7 +100,7 @@ When the procedure is complete, a message indicationg so will be printed to the 
 
 `GATTREAD <connection_index> <handle>`
 
-For example, to read hanlde 13 from the peripheral at connection index 0:
+For example, to read handle 13 from the peripheral at connection index 0:
 
 `GATTREAD 0 13`
 
