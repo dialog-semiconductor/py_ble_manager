@@ -108,13 +108,15 @@ When the procedure is complete, a message indicationg so will be printed to the 
 
 ![gattread](assets/gattread.png)
 
+Note the data returned is little endian.
+
 ### GATTWRITE
 
 `GATTWRITE <connection_index> <handle> <data>`
 
 For example, to write 0x1234 to handle 13 of the peripheral at connection index 0:
 
-`GATTWRITE 0 13 3412`
+`GATTWRITE 0 13 1234`
 
 Note the data should be written little endian. When the procedure is complete, a message indicationg so will be printed to the terminal:
 

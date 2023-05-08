@@ -397,10 +397,10 @@ class BleController():
         self.services.push(service)
 
     def handle_evt_gattc_notification(self, evt: ble.BleEventGattcNotification):
-        print(f"Received Notification: conn_idx={evt.conn_idx}, handle={evt.handle}, value=0x{evt.value.hex()}")
+        print(f"Received Notification: conn_idx={evt.conn_idx}, handle={evt.handle}, value={evt.value.hex()}")
 
     def handle_evt_gattc_read_completed(self, evt: ble.BleEventGattcReadCompleted):
-        print(f"Read Complete: conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status.name}, value=0x{evt.value.hex()}")
+        print(f"Read Complete: conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status.name}, value={evt.value.hex()}")
 
     def handle_evt_gattc_write_completed(self, evt: ble.BleEventGattcWriteCompleted):
         print(f"Write Complete: conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status.name}")
