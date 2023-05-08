@@ -8,7 +8,7 @@ The BLE Framework implemented in SDK10 is depecited below:
 
 In SDK10, FreeRTOS is used as an operating system. FreeRTOS provides prioritized scheduling of tasks as well as primitives for communication between tasks such as queues, mutexes, semaphores, etc.
 
-This library provides a python implementation for several layers of the SDK10 BLE Framework (BLE Service Framework, Dialog BLE API Library, BLE Manager, and BLE Adapter) in order to control DA14xxx devices from a python enviornment running on your PC. The python [threading](https://docs.python.org/3/library/threading.html) and [concurrent.futures](https://docs.python.org/3/library/concurrent.futures.html) libraries are used to achieve concurrency between tasks.
+This library provides a python implementation for several layers of the SDK10 BLE Framework (BLE Service Framework, Dialog BLE API Library, BLE Manager, and BLE Adapter) in order to control DA14xxx devices from a python enviornment running on your PC. The python [threading](https://docs.python.org/3/library/threading.html) library is used to achieve concurrency between tasks.
 
 The architecture implemented in python is depecited below:
 
@@ -20,15 +20,47 @@ It is largely similar to the original SDK10 architecture, with the addition of t
 
 ### ble_devices
 
+The [ble_devices](ble_devices) directory contains the primary classes enabling a user to interact with the python BLE framework, namely the `BleCentral` and `BlePeripheral` classes. These classes provide methods for achieving most of the functionality required by a BLE application.
+
+For example, the `BleCentral` class implement methods for scanning, connecting, browsing, discovering, reading, writing, etc. These methods are wrappers for various methods implemented implemented in various classes of the `ble_api`.
+
 ### services
 
 ### ble_api
 
+The [ble_api](ble_api) directory contains classes that implement the functionality of the `Dialog BLE API Library`.
+
 ### manager
+
+The [manager](manager) directory contains classes that implement the functionality of the `BLE Manager`.
+
+It is concerned with:
+
+- Converting commands from the [ble_api](#ble_api) to GTL messages that are passed to the [adapter](#adapter).
+- Converting GTL messages from the [adapter](#adapter) into responses and events understood by the [ble_api](#ble_api).
+
+When the `BleManager` is started, two daemon threads are created. One to receive and process commands from the [ble_api](#ble_api), and a second to receive and process responses/events from the [adapter](#adapter).
 
 ### adapter
 
+The [adapter](adapter) directory contains the `BleAdapter` class.
+
+It is concerned with:
+
+- Converting GTL messages from the `BleManager` to byte streams and passing them to the `SerialStreamManager` for transmission over the serial port
+- Converting byte streams received from the `SerialStreamManager` into GTL messages for consumption by the `BleManager`
+
+When the `BleAdapter` is started, two daemon threads are created. One to receive and process commands from the `BleManager`, and a second to receive and process bytes streams from the `SerialStreamManager`.
+
 ### serial_manager
+
+The [serial_manager](serial_manager) directory contains the `SerialStreamManager` class. 
+
+It is concerned with
+- Transmitting serialized GTL messages from the `BleAdapter` over the serial port
+- Receiving serialized GTL messages over the serial port (from the DA14xxx development kit) and providing them to the `BleAdapter` for consumption.
+
+When the `SerialStreamManager` is started, two daemon threads are created. One to receive byte streams from the `BleAdapter` and transmit them over the serial port, and a second to receive byte streams over the serial port and process them for consumption by the `BleAdapater`. 
 
 ### gtl_messages
 

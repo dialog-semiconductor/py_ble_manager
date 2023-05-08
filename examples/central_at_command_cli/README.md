@@ -1,6 +1,6 @@
 # central_at_command_cli
 
-This example provides a AT Command like interface to control a BLE central deivce. It supports scanning, connecting, reading, writing, etc.
+This example provides a command line interface to control a BLE central deivce. It supports scanning, connecting, reading, writing, etc.
 
 You can run it with:
 

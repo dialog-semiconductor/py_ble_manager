@@ -56,7 +56,8 @@ class BleAdapter():
             else:
                 self.event_q.put_nowait(msg)
         else:
-            print(f"BleAdapter unhandled serial message. byte_string={byte_string.hex()}")
+            # print(f"BleAdapter unhandled serial message. byte_string={byte_string.hex()}")
+            pass
 
     def _send_serial_message(self, message: GtlMessageBase):
         if self.gtl_debug:
@@ -65,7 +66,7 @@ class BleAdapter():
 
     def _serial_rx_q_get(self) -> bytes:
         return self.serial_rx_q.get()
-    
+
     def _serial_rx_queue_task(self):
         while True:
             serial_rx = self._serial_rx_q_get()

@@ -24,6 +24,7 @@ class ATT_ERROR(IntEnum):
     ATT_ERROR_APPLICATION_ERROR = 0x80
     ATT_ERROR_CCC_DESCRIPTOR_IMPROPERLY_CONFIGURED = 0xFD
     ATT_ERROR_PROCEDURE_ALREADY_IN_PROGRESS = 0xFE
+    # TODO need to add HOST_STACK_ERROR_CODE values to this enum. If try to put a host stack error code that does not exist in ATT_ERROR, will get value error
 
 
 # TODO rename BLE_ATT_PERM
