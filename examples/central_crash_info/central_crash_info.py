@@ -494,7 +494,6 @@ class BleController():
 
             case FETCH_DATA_STATE.FETCH_DATA_DISCONNECT:
                 if (evt.evt_code == ble.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED):
-                    self.log("Disconnected")
                     self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_NONE
                     self.shutdown()
 
