@@ -307,7 +307,7 @@ class BleController():
         adv_structs = self.parse_adv_data(evt)
 
         print(f"Advertisment: address={self.bd_addr_to_str(evt.address)},{addr_type_str} "
-              + f"rssi={evt.rssi}, data(raw)={evt.data.hex()}")
+              + f"rssi={evt.rssi}, data={evt.data.hex()}")
         #print("AD Structs:")
         #for struct in adv_structs:
         #    print(f"\t{struct}")

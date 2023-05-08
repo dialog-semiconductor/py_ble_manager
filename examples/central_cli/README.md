@@ -1,10 +1,10 @@
-# central_at_command_cli
+# central_cli
 
 This example provides a command line interface to control a BLE central deivce. It supports scanning, connecting, reading, writing, etc.
 
 You can run it with:
 
-`python central_at_command_cli.py <COM_PORT>`
+`python central_cli.py <COM_PORT>`
 
 where `<COM_PORT>` is the COM port associated with your development kit. Note, in the case of the Pro development kit there will be two COM ports associated with your development kit. You should use the lower of the two.
 
@@ -33,8 +33,6 @@ Scan for peripheral devices.
 `GAPSCAN`
 
 Advertisement data will print to the terminal. Once the scan is finished, a message indicating the scan is complete will be printed to the terminal:
-
-# TODO scan image needs to be updated for refactored address 
 
 ![terminal4](assets/terminal4.png)
 
@@ -90,7 +88,7 @@ For example, to disconnect from a peripheral at connection index 0 with the reas
 
 `GAPPAIR <connection_index> <bond>`
 
-For example, to bond to the peripheral at connection index 0:
+For example, to pair to the peripheral at connection index 0:
 
 `GAPPAIR 0 1`
 
@@ -116,9 +114,9 @@ When the procedure is complete, a message indicationg so will be printed to the 
 
 For example, to write 0x1234 to hanlde 13 of the peripheral at connection index 0:
 
-`GATTWRITE 0 13 1234`
+`GATTWRITE 0 13 3412`
 
-When the procedure is complete, a message indicationg so will be printed to the terminal:
+Note the data should be written little endian. When the procedure is complete, a message indicationg so will be printed to the terminal:
 
 ![gattwrite](assets/gattwrite.png)
 
@@ -128,7 +126,7 @@ When the procedure is complete, a message indicationg so will be printed to the 
 
 For example, to perform a signed write or 0x1234 to hanlde 13 of the peripheral at connection index 0:
 
-`GATTWRITENORESP 0 13 1 1234`
+`GATTWRITENORESP 0 13 1 3412`
 
 
 ### GAPSETCONNPARAM
@@ -143,14 +141,14 @@ For example:
 
 `PASSKEYENTRY <connection_index> <accept> <passkey>`
 
-For example, to accept a ...(TODO)... at connection index 0 with passkey 1234:
+For example, to accept pairing at connection index 0 with passkey 123456:
 
-`PASSKEYENTRY 0 1 1234`
+`PASSKEYENTRY 0 1 123456`
 
 ### YESNOTENTRY
 
 `YESNOTENTRY <connection_index> <accept>`
 
-For example, to accept a ...(TODO)... at connection index 0:
+For example, to accept a secure connection at connection index 0:
 
 `YESNOTENTRY 0 1`
