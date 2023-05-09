@@ -114,7 +114,7 @@ Note the data returned is little endian.
 
 `GATTWRITE <connection_index> <handle> <data>`
 
-For example, to write 0x1234 to handle 13 of the peripheral at connection index 0:
+For example, to write 0x3412 to handle 13 of the peripheral at connection index 0:
 
 `GATTWRITE 0 13 1234`
 
@@ -126,9 +126,9 @@ Note the data should be written little endian. When the procedure is complete, a
 
 `GATTWRITENORESP <connection_index> <handle> <signed> <data>`
 
-For example, to perform a signed write or 0x1234 to handle 13 of the peripheral at connection index 0:
+For example, to perform a signed write or 0x3412 to handle 13 of the peripheral at connection index 0:
 
-`GATTWRITENORESP 0 13 1 3412`
+`GATTWRITENORESP 0 13 1 1234`
 
 
 ### GAPSETCONNPARAM
@@ -139,13 +139,21 @@ For example:
 
 `GAPSETCONNPARAM 0 50 70 0 420`
 
+When the procedure is complete, a message indicationg so will be printed to the terminal:
+
+![gapsetconnparam](assets/gapsetconnparams.png)
+
 ### PASSKEYENTRY
 
 `PASSKEYENTRY <connection_index> <accept> <passkey>`
 
 For example, to accept pairing at connection index 0 with passkey 123456:
 
-`PASSKEYENTRY 0 1 123456`
+`PASSKEYENTRY 0 1 945553`
+
+When the procedure is complete, a message indicationg so will be printed to the terminal:
+
+![passkeyentry](assets/passkeyentry.png)
 
 ### YESNOTENTRY
 
@@ -154,3 +162,7 @@ For example, to accept pairing at connection index 0 with passkey 123456:
 For example, to accept a secure connection at connection index 0:
 
 `YESNOTENTRY 0 1`
+
+When the procedure is complete, a message indicationg so will be printed to the terminal:
+
+![yesnoentry](assets/yesnoentry.png)

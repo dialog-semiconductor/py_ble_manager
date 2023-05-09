@@ -297,7 +297,7 @@ class BleController():
                 self.central.handle_event_default(evt)
 
     def handle_evt_gap_address_resolved(self, evt: ble.BleEventGapAddressResolved):
-        print(f"Address resolved: conn_idx={evt.conn_idx}, evt={evt}")
+        print(f"Address resolved: conn_idx={evt.conn_idx}, resolved_address={self.bd_addr_to_str(evt.resolved_address)}")
 
     def handle_evt_gap_adv_report(self, evt: ble.BleEventGapAdvReport):
         addr_type_str = "P" if evt.address.addr_type == ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS else "R"
@@ -317,10 +317,10 @@ class BleController():
         print(f"Connection completed: status={evt.status.name}")
 
     def handle_evt_gap_conn_param_updated(self, evt: ble.BleEventGapConnParamUpdated):
-        print(f"Connection Parameters updated: evt={evt}")
+        print(f"Connection Parameters updated: conn_idx={evt.conn_idx}, conn_params={evt.conn_params}")
 
     def handle_evt_gap_conn_param_update_compelted(self, evt: ble.BleEventGapConnParamUpdateCompleted):
-        print(f"Connection Parameters update completed: evt={evt}")
+        print(f"Connection Parameters update completed: status={evt.status.name}")
 
     def handle_evt_gap_disconnected(self, evt: ble.BleEventGapDisconnected):
         print(f"Disconnected from to: addr={self.bd_addr_to_str(evt.address)}")

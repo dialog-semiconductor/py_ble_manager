@@ -250,7 +250,7 @@ class GapConnParams():
 
     def __repr__(self) -> str:
 
-        return f"{type(self).__name__}(interval_min={self.interval_min}, interval_max={self.interval_max}) " + \
+        return f"{type(self).__name__}(interval_min={self.interval_min}, interval_max={self.interval_max} " + \
             f" slave_latency={self.slave_latency}, sup_timeout={self.sup_timeout})"
 
 
