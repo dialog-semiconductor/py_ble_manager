@@ -256,7 +256,7 @@ class StoredDeviceQueue(SearchableQueue):
         self.queue.append(elem)
 
     def push_front(self, elem: StoredDevice) -> None:
-        self.queue = [elem, self.queue]
+        self.queue.insert(0, elem)
 
     def remove_device(self, device: StoredDevice):
         self.queue.remove(device)
