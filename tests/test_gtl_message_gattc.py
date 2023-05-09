@@ -1,6 +1,6 @@
 import unittest
-from src.python_gtl_thread.gtl_messages.gtl_message_gattc import *
-from src.python_gtl_thread.gtl_port.gattc_task import *
+from python_gtl_thread.gtl_messages.gtl_message_gattc import *
+from python_gtl_thread.gtl_port.gattc_task import *
 
 
 # Table 54

@@ -1,7 +1,7 @@
 import unittest
-from src.python_gtl_thread.gtl_messages.gtl_message_gapc import *
-from src.python_gtl_thread.gtl_port.co_bt import BD_ADDR_LEN
-from src.python_gtl_thread.gtl_port.gapc_task import *
+from python_gtl_thread.gtl_messages.gtl_message_gapc import *
+from python_gtl_thread.gtl_port.co_bt import BD_ADDR_LEN
+from python_gtl_thread.gtl_port.gapc_task import *
 
 # Table 13
 class TestGapcConnectionReqInd(unittest.TestCase):
