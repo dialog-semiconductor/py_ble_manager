@@ -1,5 +1,4 @@
 import argparse
-import concurrent.futures
 # import logging
 import threading
 import queue
@@ -10,7 +9,6 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.patch_stdout import patch_stdout
 import time
-import sys
 
 from debug_crash_info import DciData, DciFaultInfo, CortexM0StackFrame, DciSvcResponse, DCI_LAST_FAULT_HANDLER, DCI_REST_REASON, DCI_SVC_COMMAND
 import python_gtl_thread as ble
@@ -172,7 +170,6 @@ class BleController():
         self._evnt_task.start()
 
         self._exit.wait()
-
 
     def command_queue_get(self):
         return self.command_q.get()
@@ -503,7 +500,7 @@ class BleController():
 
     def shutdown(self):
         self.log_file_handle.close()
-        #self.response_q.put("EXIT")
+        # self.response_q.put("EXIT")
         self._exit.set()
 
     def str_to_bd_addr(self, type: ble.BLE_ADDR_TYPE, bd_addr_str: str) -> ble.BdAddress:
