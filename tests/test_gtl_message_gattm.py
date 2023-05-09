@@ -1,7 +1,7 @@
 import unittest
-from gtl_messages.gtl_message_gattm import *
-from gtl_port.gattm_task import *
-from gtl_port.attm import *
+from python_gtl_thread.gtl_messages.gtl_message_gattm import *
+from python_gtl_thread.gtl_port.gattm_task import *
+from python_gtl_thread.gtl_port.attm import *
 
 # Table 70
 class TestGattmAddSvcReq(unittest.TestCase):
