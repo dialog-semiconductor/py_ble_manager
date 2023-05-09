@@ -184,7 +184,7 @@ class GapcBondInd(GtlMessageBase):
         param_string = ''
 
         param_string += f'(info={str(GAPC_BOND(struct.info))}, '
-        param_string += f'padding={0}, '  # TODO this always reports padding 0 
+        param_string += f'padding={0}, '  # TODO this always reports padding 0
         param_string += 'data=gapc_bond_data('
 
         match struct.info:
