@@ -147,9 +147,11 @@ When the procedure is complete, a message indicationg so will be printed to the 
 
 `PASSKEYENTRY <connection_index> <accept> <passkey>`
 
-For example, to accept pairing at connection index 0 with passkey 123456:
+For example, to accept pairing at connection index 0 with passkey 945553:
 
 `PASSKEYENTRY 0 1 945553`
+
+Note the passkey to enter is presented on the display of the Peripheral.
 
 When the procedure is complete, a message indicationg so will be printed to the terminal:
 
