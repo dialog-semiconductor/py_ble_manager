@@ -1,7 +1,6 @@
-import concurrent.futures
 import queue
-import threading
 import serial
+import threading
 
 from ..gtl_messages.gtl_message_base import GTL_INITIATOR
 
@@ -30,12 +29,12 @@ class SerialStreamManager():
             # print("Received some garbage")
             pass
         return buffer
-    
+
     def _receive_task(self):
         while True:
             serial_message = self._receive()
             self._process_received_data(serial_message)
-    
+
     def _send(self, message: bytes):
         if message:
             # print(f"Sending: {message}")
@@ -44,7 +43,7 @@ class SerialStreamManager():
 
     def _tx_queue_get(self) -> bytes:
         return self._tx_queue.get()
-    
+
     def _tx_queue_task(self):
         while True:
             serial_message = self._tx_queue_get()

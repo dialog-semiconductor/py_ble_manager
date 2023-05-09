@@ -1,21 +1,14 @@
-import concurrent.futures
 import queue
-import threading
-from python_gtl_thread.adapter.BleAdapter import BleAdapter
-# from ble_api.BleAtt import ATT_ERROR
+from ..adapter.BleAdapter import BleAdapter
 from ..ble_api.BleCommon import BleEventBase, BLE_ERROR
-from ..ble_api.BleConfig import BleConfigDefault, BLE_DEVICE_TYPE
-from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_IO_CAPABILITIES  # BLE_GAP_CONN_MODE, BLE_EVT_GAP, BleEventGapConnected, \
-    # BleEventGapDisconnected
+from ..ble_api.BleConfig import BleConfigDefault
+from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_IO_CAPABILITIES
 from ..ble_api.BleGapApi import BleGapApi, GapConnParams
-# from ble_api.BleGatt import GATT_EVENT
 from ..ble_api.BleGattcApi import BleGattcApi
-# from ble_api.BleGatts import BLE_EVT_GATTS, BleEventGattsReadReq, BleEventGattsWriteReq
 from ..ble_api.BleGattsApi import BleGattsApi
 from ..ble_api.BleStorageApi import BleStorageApi
 from ..manager.BleManager import BleManager
 from ..manager.BleManagerCommonMsgs import BleMgrCommonResetCmd, BleMgrCommonResetRsp
-# from manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp
 from ..services.BleService import BleServiceBase
 from ..serial_manager.SerialStreamManager import SerialStreamManager
 
@@ -56,17 +49,18 @@ class BleDeviceBase():
         return self._ble_gap.conn_param_update_reply(conn_idx, accept)
 
     def init(self) -> None:
-        try:
-            # Open the serial port the the 531
-            self._serial_stream_manager.open_serial_port()  # TODO implement a timeout for opening the serial port
+        # try:
+        # Open the serial port the the 531
+        self._serial_stream_manager.open_serial_port()  # TODO implement a timeout for opening the serial port
 
-            # Start always running BLE tasks
-            self._ble_manager.init()
-            self._ble_adapter.init()
-            self._serial_stream_manager.init()
+        # Start always running BLE tasks
+        self._ble_manager.init()
+        self._ble_adapter.init()
+        self._serial_stream_manager.init()
 
-        except concurrent.futures.TimeoutError as e:
-            raise e
+        # TODO timeout on opening serial port
+        # except concurrent.futures.TimeoutError as e:
+        #    raise e
 
     def get_event(self) -> BleEventBase:
         return self._ble_manager.mgr_event_queue_get()

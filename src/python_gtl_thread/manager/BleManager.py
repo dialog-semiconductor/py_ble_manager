@@ -1,4 +1,3 @@
-import concurrent.futures
 import queue
 import threading
 
@@ -91,7 +90,7 @@ class BleManager(BleManagerBase):
 
     def _adapter_event_queue_get(self) -> BleEventBase:
         return self._adapter_event_q.get()
-    
+
     def _adapter_event_queue_task(self):
         while True:
             event = self._adapter_event_queue_get()
@@ -99,11 +98,11 @@ class BleManager(BleManagerBase):
 
     def _api_commmand_queue_get(self) -> BleMgrMsgBase:
         return self._mgr_command_q.get()
-    
+
     def _api_command_queue_task(self):
         while True:
             command = self._api_commmand_queue_get()
-            self._process_command_queue(command)    
+            self._process_command_queue(command)
 
     def _gattc_cmp_evt_handler(self, evt: GattcCmpEvt):
         if (evt.parameters.operation == GATTC_OPERATION.GATTC_NOTIFY

@@ -1,4 +1,3 @@
-import threading
 from ..ble_api.BleAtt import ATT_ERROR
 from ..ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_EVT_GAP, BLE_EVT_GATTS
 from ..ble_api.BleConfig import BleConfigDefault, BLE_DEVICE_TYPE

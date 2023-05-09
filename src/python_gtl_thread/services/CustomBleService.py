@@ -161,48 +161,48 @@ class CustomBleService(BleServiceBase):
         print("CustomBleService cleanup")
 
     def send_char1_read_cfm(self,
-                                  conn_idx: int = 0,
-                                  status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK,
-                                  value: bytes = None
-                                  ) -> BLE_ERROR:
+                            conn_idx: int = 0,
+                            status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK,
+                            value: bytes = None
+                            ) -> BLE_ERROR:
 
         return self.periph.read_cfm(conn_idx,
-                                          self.char_1_value_h.value,
-                                          status,
-                                          value)
+                                    self.char_1_value_h.value,
+                                    status,
+                                    value)
 
     def send_char1_write_cfm(self,
-                                   conn_idx: int = 0,
-                                   status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
-                                   ) -> BLE_ERROR:
+                             conn_idx: int = 0,
+                             status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
+                             ) -> BLE_ERROR:
 
         return self.periph.write_cfm(conn_idx, self.char_1_value_h.value, status)
 
     def send_char2_write_cfm(self,
-                                   conn_idx: int = 0,
-                                   status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
-                                   ) -> BLE_ERROR:
+                             conn_idx: int = 0,
+                             status: ATT_ERROR = ATT_ERROR.ATT_ERROR_OK
+                             ) -> BLE_ERROR:
 
         return self.periph.write_cfm(conn_idx, self.char_2_value_h.value, status)
 
     def set_char2_value(self,
-                              value: bytes
-                              ) -> BLE_ERROR:
+                        value: bytes
+                        ) -> BLE_ERROR:
 
         return self.periph.set_value(self.char_2_value_h.value, value)
 
     def set_char3_user_desc_value(self,
-                                        value: bytes
-                                        ) -> BLE_ERROR:
+                                  value: bytes
+                                  ) -> BLE_ERROR:
 
         return self.periph.set_value(self.char_3_user_desc_h.value, value)
 
     def notify_char3(self,
-                           conn_idx: int = 0,
-                           value: bytes = None
-                           ) -> BLE_ERROR:
+                     conn_idx: int = 0,
+                     value: bytes = None
+                     ) -> BLE_ERROR:
 
         return self.periph.send_event(conn_idx,
-                                            self.char_3_value_h.value,
-                                            GATT_EVENT.GATT_EVENT_NOTIFICATION,
-                                            value)
+                                      self.char_3_value_h.value,
+                                      GATT_EVENT.GATT_EVENT_NOTIFICATION,
+                                      value)

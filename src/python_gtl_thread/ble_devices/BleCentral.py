@@ -1,4 +1,3 @@
-import threading
 from ..ble_api.BleAtt import AttUuid
 from ..ble_api.BleConfig import BleConfigDefault, BLE_DEVICE_TYPE
 from ..ble_devices.BleDeviceBase import BleDeviceBase

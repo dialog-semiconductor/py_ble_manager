@@ -4,7 +4,7 @@ from ..ble_api.BleGatt import GATT_SERVICE, GATT_PROP
 from ..ble_api.BleGatts import GATTS_FLAGS, BleEventGattsReadReq, BleEventGattsEventSent, BleEventGattsPrepareWriteReq
 from ..ble_api.BleCommon import BleEventBase
 # TODO need to handle circular import
-#from python_gtl_thread.ble_devices.BleCentralPeripheral import BlePeripheral
+# from python_gtl_thread.ble_devices.BleCentralPeripheral import BlePeripheral
 
 # TODO Bleperipheral and BleService tightly coupled. Consider using a mediator
 
@@ -80,7 +80,7 @@ class BleServiceBase():
         self.gatt_char_defs: list[GattCharacteristicDef] = []
 
         # TODO need to handle circular import
-        #self.periph: BlePeripheral = None
+        # self.periph: BlePeripheral = None
 
     # TODO num_attr should be a property. Should auto calculate num attr
     def _get_num_attr(self) -> int:
@@ -130,5 +130,5 @@ class BleServiceBase():
         pass
 
     # TODO need to handle circular import
-    #def register_peripheral(self, periph: BlePeripheral) -> None:
+    # def register_peripheral(self, periph: BlePeripheral) -> None:
     #    self.periph = periph

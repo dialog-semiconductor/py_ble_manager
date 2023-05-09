@@ -1,14 +1,11 @@
 import argparse
-import concurrent.futures
 import threading
 import time
 import queue
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.patch_stdout import patch_stdout
-import sys
 import python_gtl_thread as ble
-
 
 
 class CLIHandler():
@@ -241,7 +238,7 @@ class BleController():
                     pass
 
         return error
-    
+
     def handle_ble_event(self, evt: ble.BleEventBase):
         match evt.evt_code:
             case ble.BLE_EVT_GAP.BLE_EVT_GAP_ADV_REPORT:
@@ -304,14 +301,14 @@ class BleController():
 
     def handle_evt_gap_adv_report(self, evt: ble.BleEventGapAdvReport):
         addr_type_str = "P" if evt.address.addr_type == ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS else "R"
-        adv_structs = self.parse_adv_data(evt)
 
         print(f"Advertisment: address={self.bd_addr_to_str(evt.address)},{addr_type_str} "
               + f"rssi={evt.rssi}, data={evt.data.hex()}")
-        #print("AD Structs:")
-        #for struct in adv_structs:
+        # adv_structs = self.parse_adv_data(evt)
+        # print("AD Structs:")
+        # for struct in adv_structs:
         #    print(f"\t{struct}")
-        #print("")
+        # print("")
 
     def handle_evt_gap_connected(self, evt: ble.BleEventGapConnected):
         print(f"Connected to: addr={self.bd_addr_to_str(evt.peer_address)}, conn_idx={evt.conn_idx}")
@@ -424,7 +421,6 @@ class BleController():
 
     def shutdown(self):
         self._exit.set()
-
 
     def str_to_bd_addr(self, type: ble.BLE_ADDR_TYPE, bd_addr_str: str) -> ble.BdAddress:
         bd_addr_str = bd_addr_str.replace(":", "")
