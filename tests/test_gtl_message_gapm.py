@@ -1,7 +1,7 @@
 import unittest
-from src.python_gtl_thread.gtl_messages.gtl_message_gapm import *
-from src.python_gtl_thread.gtl_port.co_bt import *
-from src.python_gtl_thread.gtl_port.gapm_task import *
+from gtl_messages.gtl_message_gapm import *
+from gtl_port.co_bt import *
+from gtl_port.gapm_task import *
 
 # Table 3
 class TestGapmDeviceReadyInd(unittest.TestCase):
