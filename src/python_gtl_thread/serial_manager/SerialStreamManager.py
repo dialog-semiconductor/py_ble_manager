@@ -27,7 +27,8 @@ class SerialStreamManager():
             if (par_len != 0):
                 buffer += self._serial_port.read(par_len)
         else:
-            print("Received some garbage")
+            # print("Received some garbage")
+            pass
         return buffer
     
     def _receive_task(self):

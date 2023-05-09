@@ -375,10 +375,8 @@ class BleManagerGap(BleManagerBase):
             case HOST_STACK_ERROR_CODE.LL_ERR_UNSPECIFIED_ERROR:
                 evt.status = BLE_ERROR.BLE_ERROR_INS_BANDWIDTH
             case _:
-                print(f"BleManagerGap._connect_cmp_evt_handler. gtl.status = {hex(gtl.parameters.status)}")
                 # evt.status = gtl.parameters.status  # TODO this throws a ValueError if not a valid BLE_ERROR
                 # need to be able to set a BLE_ERROR that is not defined. Could make a LittleEndianStructure
-
                 evt.status = BLE_ERROR.BLE_ERROR_FAILED
 
         self._mgr_event_queue_send(evt)
@@ -417,8 +415,6 @@ class BleManagerGap(BleManagerBase):
         return gtl
 
     def _gapm_address_resolve_complete(self, gtl: GapcCmpEvt, evt: BleEventGapConnected):
-
-        print("_gapm_address_resolve_complete")
         conn_idx = evt.conn_idx
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
@@ -596,13 +592,11 @@ class BleManagerGap(BleManagerBase):
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
         if not dev:
-            print("_send_bond_cmd no device found")
             gtl.parameters.pairing.sec_req = GAP_SEC_REQ.GAP_NO_SEC
         else:
             gtl.parameters.pairing.sec_req = self._sec_req_to_gtl(dev.sec_level_req)
         self.storage_release()
 
-        # print(f"_send_bond_command. io_cap in={io_cap}. gtl.io_cap={gtl.parameters.pairing.iocap}, gtl.auth={gtl.parameters.pairing.auth}")
         self._adapter_command_queue_send(gtl)
 
     def _send_bonding_info_miss_evt(self, conn_idx: int):
@@ -907,12 +901,8 @@ class BleManagerGap(BleManagerBase):
                 self.storage_release()
 
     def bond_req_evt_handler(self, gtl: GapcBondReqInd):
-
         match gtl.parameters.request:
             case GAPC_BOND.GAPC_PAIRING_REQ:
-                # print(f"bond_req_evt_handler GAPC_BOND.GAPC_PAIRING_REQ. auth_req={gtl.parameters.data.auth_req} " +
-                #      f"bond={bool(gtl.parameters.data.auth_req & GAP_AUTH_MASK.GAP_AUTH_BOND) } " +
-                #      f"sec={bool(gtl.parameters.data.auth_req & GAP_AUTH_MASK.GAP_AUTH_SEC)}")
                 evt = BleEventGapPairReq()
                 evt.conn_idx = self._task_to_connidx(gtl.src_id)
                 evt.bond = bool(gtl.parameters.data.auth_req & GAP_AUTH_MASK.GAP_AUTH_BOND)
@@ -928,7 +918,6 @@ class BleManagerGap(BleManagerBase):
                 self._mgr_event_queue_send(evt)
 
             case GAPC_BOND.GAPC_LTK_EXCH:
-                # print("bond_req_evt_handler GAPC_BOND.GAPC_LTK_EXCH")
                 cfm = GapcBondCfm()
                 cfm.parameters.accept = 0x01
                 cfm.parameters.request = GAPC_BOND.GAPC_LTK_EXCH
@@ -945,7 +934,6 @@ class BleManagerGap(BleManagerBase):
                 self.storage_acquire()
                 dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
                 if dev:
-                    # dev.ltk = cfm.parameters.data.ltk
                     dev.ltk.key_size = cfm.parameters.data.ltk.key_size
 
                     dev.ltk.rand = 0
@@ -959,7 +947,6 @@ class BleManagerGap(BleManagerBase):
                 self._adapter_command_queue_send(cfm)
 
             case GAPC_BOND.GAPC_CSRK_EXCH:
-                # print("bond_req_evt_handler GAPC_BOND.GAPC_CSRK_EXCH")
                 cfm = GapcBondCfm()
                 cfm.parameters.accept = 0x01
                 cfm.parameters.request = GAPC_BOND.GAPC_CSRK_EXCH
@@ -978,7 +965,6 @@ class BleManagerGap(BleManagerBase):
                 self._adapter_command_queue_send(cfm)
 
             case GAPC_BOND.GAPC_TK_EXCH:
-                # print(f"bond_req_evt_handler GAPC_BOND.GAPC_TK_EXCH. tk_type={gtl.parameters.data.tk_type}")
                 if gtl.parameters.data.tk_type == GAP_TK_TYPE.GAP_TK_DISPLAY:
                     cfm = GapcBondCfm()
                     cfm.parameters.accept = 0x01
@@ -1520,7 +1506,6 @@ class BleManagerGap(BleManagerBase):
         self._mgr_response_queue_send(response)
 
     def passkey_reply_cmd_handler(self, command: BleMgrGapPasskeyReplyCmd):
-        print("passkey_reply_cmd_handler")
         response = BleMgrGapPasskeyReplyRsp(BLE_ERROR.BLE_ERROR_FAILED)
 
         gtl = GapcBondCfm(conidx=command.conn_idx)
