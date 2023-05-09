@@ -40,7 +40,7 @@ class BleAdapter():
     def _process_serial_rx_q(self, byte_string: bytes):
         msg = GtlMessageFactory().create_message(byte_string)  # # TODO catch error
         if self.gtl_debug:
-            print(f"<-- Rx: init{self.ble_stack_initialized}, {msg}\n")
+            print(f"<-- Rx: {msg}\n")
 
         if msg:
             if msg.msg_id == GAPM_MSG_ID.GAPM_DEVICE_READY_IND:
