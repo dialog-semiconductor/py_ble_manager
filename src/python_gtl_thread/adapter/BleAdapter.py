@@ -40,7 +40,7 @@ class BleAdapter():
     def _process_serial_rx_q(self, byte_string: bytes):
         msg = GtlMessageFactory().create_message(byte_string)  # # TODO catch error
         if self.gtl_debug:
-            print(f"<-- Rx: {msg}\n")
+            print(f"<-- Rx: init{self.ble_stack_initialized}, {msg}\n")
 
         if msg:
             if msg.msg_id == GAPM_MSG_ID.GAPM_DEVICE_READY_IND:
@@ -53,7 +53,8 @@ class BleAdapter():
                 self.event_q.put_nowait(msg)  # Not making an adapter msg, just forwarding to manager
 
             else:
-                self.event_q.put_nowait(msg)
+                if self.ble_stack_initialized:
+                    self.event_q.put_nowait(msg)
         else:
             # print(f"BleAdapter unhandled serial message. byte_string={byte_string.hex()}")
             pass
