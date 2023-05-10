@@ -1,4 +1,4 @@
-# python_gtl
+# python_gtl_thread
 
 A python library for controlling Renesas BLE devices (DA14xxx) using the Generic Transport Layer (GTL)
 
