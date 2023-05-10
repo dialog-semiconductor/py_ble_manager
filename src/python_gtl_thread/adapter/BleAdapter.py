@@ -45,7 +45,7 @@ class BleAdapter():
         if msg:
             if msg.msg_id == GAPM_MSG_ID.GAPM_DEVICE_READY_IND:
                 # Reset the BLE Stacks
-                command = self._create_reset_command()  # TODO thin this should go to mgr instead to give it a chance to clean up
+                command = self._create_reset_command()  # TODO think this should go to mgr instead to give it a chance to clean up
                 self._send_serial_message(command)
 
             elif msg.msg_id == GAPM_MSG_ID.GAPM_CMP_EVT:
