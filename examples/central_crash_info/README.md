@@ -1,9 +1,7 @@
-# central_at_command_cli
+# central_crash_info
 
 This example provides a command line interface to retreive crash information from a DA14531 peripheral running the Debug Crash Info Service. See the 
 [Debug Crash Info Github](https://github.com/Renesas-US-Connectivity/dlg_crash_info) for additional details. 
-
-A Bcontrol a BLE central deivce. It supports scanning, connecting, reading, writing, etc.
 
 You can run it with:
 
@@ -23,12 +21,11 @@ For example, to scan for peripheral devices the `GAPSCAN` command can be used. W
 
 ![terminal3](assets/terminal3.png)
 
-Once the command is processed, data from the BLE interaction will be returned. In the case of the `GAPSCAN` command, The name, Bluetooth Device Address, and number of resets with data available from any
-peripheral devices are printed to the terminal:
+Once the command is processed, data from the BLE interaction will be returned. In the case of the `GAPSCAN` command, The name, Bluetooth device address, and number of resets from any peripheral devices advertising the AD Type `Service Data - 128-bit UUID` for the Debug Crash Info service, will be printed to the terminal:
 
 ![terminal4](assets/terminal4.png)
 
-Note all data printed to the terminal that is not preceded with `>>>` or `<<<` will be saved to a log in `<path_to_script>/logs`.  Logs names include the date/time the script was run, for example: `DCI_log_20230502-175133.txt`
+Note all data printed to the terminal that is not preceded with `>>>` or `<<<` will be saved to a log in `<path_to_script>/logs`. Log names include the date/time the script was run, for example: `DCI_log_20230502-175133.txt`
 
 ## Command Usage
 
@@ -38,7 +35,7 @@ Scan for peripheral devices.
 
 `GAPSCAN`
 
-The name, Bluetooth Device Address, and number of resets for any device advertising the Debug Crash Info Service will be printed to the terminal
+The name, Bluetooth device address, and number of resets for any device advertising the AD Type `Service Data - 128-bit UUID` for the Debug Crash Info service will be printed to the terminal
 
 ![terminal4](assets/terminal4.png)
 
@@ -52,9 +49,9 @@ For example:
 
 `GETALLRESETDATA 48:23:35:00:1b:53,P`
 
-When the procedure is complete, the reset data will be printed to the terminal and the application will exit
+When the procedure is complete, the reset data will be printed to the terminal and the application will exit:
 
-![getallresetdata](assets/getallresetdata.PNG) 
+![getallresetdata](assets/getallresetdata.PNG)
 
 ### EXIT
 
