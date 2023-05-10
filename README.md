@@ -24,8 +24,7 @@ The primary intent is for use as a central device for benchtop testing, continuo
 
 4. Open a command prompt or terminal and navigate to the repository on your PC.
 
-5. Setup a virtual envirornment by calling: `<path_to/python_gtl_thread>$ py -3.10 -m venv ./venv`. Note this library has been tested with Python v3.10.5. To create
-a virtual enviornment that uses Python 3.10.5, you must already have Python 3.10.5 downloaded on your computer. You can download it from the [python website](https://www.python.org/downloads/release/python-3105/).
+5. Setup a virtual envirornment by calling: `<path_to/python_gtl_thread>$ python -m venv ./venv`. Note this library has been tested with Python v3.10.5. To create a virtual enviornment that uses Python 3.10.5, you must already have Python 3.10.5 downloaded on your computer and configured in your PATH. You can download it from the [python website](https://www.python.org/downloads/release/python-3105/).
 
 6. Activate the virtual enviornment. The specific command depends on your operating system. From a windows command prompt call: `<path_to_venv>\Scripts\activate.bat`
 
@@ -39,8 +38,7 @@ a virtual enviornment that uses Python 3.10.5, you must already have Python 3.10
 
 2. Open the `python_gtl_thread` repository directory in VS Code.
 
-3. Setup a virtual envirornment by calling: `$ py -3.10 -m venv ./venv` from the VS Code terminal. Note this library has been tested with Python v3.10.5. To create
-a virtual enviornment that uses Python 3.10.5, you must already have Python 3.10.5 downloaded on your computer. You can download it from the [python website](https://www.python.org/downloads/release/python-3105/).
+3. Setup a virtual envirornment by calling: `$ python -m venv ./venv` from the VS Code terminal. Note this library has been tested with Python v3.10.5. To create a virtual enviornment that uses Python 3.10.5, you must already have Python 3.10.5 downloaded on your computer and configured in your PATH. You can download it from the [python website](https://www.python.org/downloads/release/python-3105/).
 
 4. Activate the virtual enviornment. Hold CTRL+shift+P to open the command palette. Select `Python: Select Interpreter`. Select the interpreter in the virtual enviorment you just created (labeled venv).
 Open a new terminal in VS Code and the virtual enviornment will be activated.

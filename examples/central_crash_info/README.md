@@ -55,6 +55,6 @@ When the procedure is complete, the reset data will be printed to the terminal a
 
 ### EXIT
 
-Exit the application:
+Exit the application. For example:
 
 `EXIT`
