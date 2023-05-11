@@ -128,7 +128,7 @@ class BleManagerGap(BleManagerBase):
         }
 
     def _adv_cmp_evt_handler(self, gtl: GapmCmpEvt):
-        self.mgr_dev_params_acquire()
+        self.dev_params_acquire()
         self._dev_params.advertising = False
         evt = BleEventGapAdvCompleted()
 
@@ -171,7 +171,7 @@ class BleManagerGap(BleManagerBase):
                 evt.status = BLE_ERROR.BLE_ERROR_FAILED
 
         self._mgr_event_queue_send(evt)
-        self.mgr_dev_params_release()
+        self.dev_params_release()
 
     def _auth_to_sec_level(self, auth: GAP_AUTH_MASK, key_size: int):
 
@@ -345,9 +345,9 @@ class BleManagerGap(BleManagerBase):
 
     def _connect_cmp_evt_handler(self, gtl: GapmCmpEvt):
 
-        self.mgr_dev_params_acquire()
+        self.dev_params_acquire()
         self._dev_params.connecting = False
-        self.mgr_dev_params_release()
+        self.dev_params_release()
 
         if gtl.parameters.status == HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
             self.storage_acquire()
@@ -383,7 +383,7 @@ class BleManagerGap(BleManagerBase):
 
     def _dev_params_to_gtl(self) -> GapmSetDevConfigCmd:  # TODO SDK passes in dev params and locks outside this function
         gtl = GapmSetDevConfigCmd()
-        self.mgr_dev_params_acquire()
+        self.dev_params_acquire()
         gtl.parameters.role = self._ble_role_to_gtl_role(self._dev_params.role)
         gtl.parameters.renew_dur = self._dev_params.addr_renew_duration
         gtl.parameters.att_cfg = self._dev_params.att_db_cfg
@@ -411,7 +411,7 @@ class BleManagerGap(BleManagerBase):
         gtl.parameters.max_txoctets = self._ble_config.dg_configBLE_DATA_LENGTH_TX_MAX
         gtl.parameters.max_txtime = (self._ble_config.dg_configBLE_DATA_LENGTH_TX_MAX + 11 + 3) * 8
 
-        self.mgr_dev_params_release()
+        self.dev_params_release()
         return gtl
 
     def _gapm_address_resolve_complete(self, gtl: GapcCmpEvt, evt: BleEventGapConnected):
@@ -454,9 +454,9 @@ class BleManagerGap(BleManagerBase):
         self.storage_release()
 
     def _get_local_io_cap(self):
-        self.mgr_dev_params_acquire()
+        self.dev_params_acquire()
         io_cap = self._dev_params.io_capabilities
-        self.mgr_dev_params_release()
+        self.dev_params_release()
         return io_cap
 
     def _get_peer_features(self, conn_idx: int):
@@ -525,7 +525,7 @@ class BleManagerGap(BleManagerBase):
     def _scan_cmp_evt_handler(self, gtl: GapmCmpEvt) -> None:
 
         evt = BleEventGapScanCompleted()
-        self.mgr_dev_params_acquire()
+        self.dev_params_acquire()
         self._dev_params.scanning = False
 
         match gtl.parameters.operation:
@@ -556,7 +556,7 @@ class BleManagerGap(BleManagerBase):
                 evt.status = BLE_ERROR.BLE_ERROR_FAILED
 
         self._mgr_event_queue_send(evt)
-        self.mgr_dev_params_release()
+        self.dev_params_release()
 
     def _sec_req_to_gtl(self, sec_level: GAP_SEC_LEVEL):
         gtl_sec_req = GAP_SEC_REQ.GAP_NO_SEC
@@ -641,7 +641,7 @@ class BleManagerGap(BleManagerBase):
     def _set_role_rsp(self, gtl: GapmCmpEvt, new_role: BLE_GAP_ROLE = BLE_GAP_ROLE.GAP_NO_ROLE):
         event = gtl.parameters
         response = BleMgrGapRoleSetRsp()
-        self.mgr_dev_params_acquire()
+        self.dev_params_acquire()
         response.prev_role = self._dev_params.role
         response.new_role = new_role
         response.status = BLE_ERROR.BLE_ERROR_FAILED
@@ -660,7 +660,7 @@ class BleManagerGap(BleManagerBase):
                 response.status = event.status
 
         self._mgr_response_queue_send(response)
-        self.mgr_dev_params_release()
+        self.dev_params_release()
 
     def adv_report_evt_handler(self, gtl: GapmAdvReportInd) -> None:
         evt = BleEventGapAdvReport()
@@ -693,7 +693,7 @@ class BleManagerGap(BleManagerBase):
 
         response = BleMgrGapAdvStartRsp(BLE_ERROR.BLE_ERROR_FAILED)
 
-        self.mgr_dev_params_acquire()
+        self.dev_params_acquire()
         if self._dev_params.advertising is True:
             response.status = BLE_ERROR.BLE_ERROR_IN_PROGRESS
 
@@ -775,7 +775,7 @@ class BleManagerGap(BleManagerBase):
                 response = BleMgrGapAdvStartRsp(BLE_ERROR.BLE_STATUS_OK)
 
         self._mgr_response_queue_send(response)
-        self.mgr_dev_params_release()
+        self.dev_params_release()
 
     def bond_ind_evt_handler(self, gtl: GapcBondInd):
         match gtl.parameters.info:
@@ -1079,7 +1079,7 @@ class BleManagerGap(BleManagerBase):
     # TODO need to test
     def connect_cancel_cmd_handler(self, command: BleMgrGapConnectCancelCmd):
         response = BleMgrGapConnectCancelRsp(BLE_ERROR.BLE_ERROR_FAILED)
-        self.mgr_dev_params_acquire()
+        self.dev_params_acquire()
         if not self._dev_params.connecting:
             response.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
         else:
@@ -1089,7 +1089,7 @@ class BleManagerGap(BleManagerBase):
             response.status = BLE_ERROR.BLE_STATUS_OK
 
         self._mgr_response_queue_send(response)
-        self.mgr_dev_params_release()
+        self.dev_params_release()
 
     def connect_cmd_handler(self, command: BleMgrGapConnectCmd):
         # TODO handle privacy
@@ -1099,7 +1099,7 @@ class BleManagerGap(BleManagerBase):
         # ble_mgr_gap_connect_cmd_exec(param); # TODO This function implemented below. Separate func?
         # endif
         response = BleMgrGapConnectRsp(BLE_ERROR.BLE_ERROR_FAILED)
-        self.mgr_dev_params_acquire()
+        self.dev_params_acquire()
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_connenting()
         if dev:
@@ -1149,12 +1149,12 @@ class BleManagerGap(BleManagerBase):
 
         self.storage_release()
         self._mgr_response_queue_send(response)
-        self.mgr_dev_params_release()
+        self.dev_params_release()
 
     def connected_evt_handler(self, gtl: GapcConnectionReqInd):
         evt = BleEventGapConnected()
         evt.conn_idx = self._task_to_connidx(gtl.src_id)
-        self.mgr_dev_params_acquire()
+        self.dev_params_acquire()
         evt.own_addr.addr_type = self._dev_params.own_addr.addr_type
         evt.own_addr.addr = self._dev_params.own_addr.addr
         # if (dg_configBLE_PRIVACY_1_2 == 1)
@@ -1222,7 +1222,7 @@ class BleManagerGap(BleManagerBase):
             # TODO something with service changed characteristic value from ..storage
             self._adapter_command_queue_send(cfm)
         self.storage_release()
-        self.mgr_dev_params_release()
+        self.dev_params_release()
 
     def disconnect_cmd_handler(self, command: BleMgrGapDisconnectCmd) -> None:
         response = BleMgrGapDisconnectRsp(BLE_ERROR.BLE_ERROR_FAILED)
@@ -1390,7 +1390,7 @@ class BleManagerGap(BleManagerBase):
 
         cfm = GapcGetDevInfoCfm(conidx=self._task_to_connidx(gtl.src_id))
         cfm.parameters.req = gtl.parameters.req
-        self.mgr_dev_params_acquire()
+        self.dev_params_acquire()
         match gtl.parameters.req:
             case GAPC_DEV_INFO.GAPC_DEV_NAME:
                 cfm.parameters.info.name.value = (c_uint8 * len(self._dev_params.dev_name)).from_buffer_copy(self._dev_params.dev_name)
@@ -1405,7 +1405,7 @@ class BleManagerGap(BleManagerBase):
                 pass
 
         self._adapter_command_queue_send(cfm)
-        self.mgr_dev_params_release()
+        self.dev_params_release()
 
     def numeric_reply_cmd_handler(self, command: BleMgrGapNumericReplyCmd):
         response = BleMgrGapNumericReplyRsp(BLE_ERROR.BLE_ERROR_FAILED)
@@ -1576,7 +1576,7 @@ class BleManagerGap(BleManagerBase):
         # ble_mgr_gap_scan_start_cmd_exec(param);
         # endif /* (dg_configBLE_PRIVACY_1_2 == 1) */
         response = BleMgrGapScanStartRsp(BLE_ERROR.BLE_ERROR_FAILED)
-        self.mgr_dev_params_acquire()
+        self.dev_params_acquire()
 
         if self._dev_params.scanning:
             response.status = BLE_ERROR.BLE_ERROR_IN_PROGRESS
@@ -1622,12 +1622,12 @@ class BleManagerGap(BleManagerBase):
             response.status = BLE_ERROR.BLE_STATUS_OK
 
         self._mgr_response_queue_send(response)
-        self.mgr_dev_params_release()
+        self.dev_params_release()
 
     def set_io_cap(self, io_cap: GAP_IO_CAPABILITIES) -> BLE_ERROR:
-        self.mgr_dev_params_acquire()
+        self.dev_params_acquire()
         self._dev_params.io_capabilities = io_cap
-        self.mgr_dev_params_release()
+        self.dev_params_release()
         return BLE_ERROR.BLE_STATUS_OK
 
 

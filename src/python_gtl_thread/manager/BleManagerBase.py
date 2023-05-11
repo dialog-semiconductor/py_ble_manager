@@ -54,16 +54,14 @@ class BleManagerBase():
     def _wait_queue_flush(self, conn_idx: int) -> None:
         self._wait_q.flush(conn_idx)
 
-    def _task_to_connidx(self, task_id: int) -> int:  # TODO this is repeated from ..GtlWaitQueue. Do not have in two places
+    def _task_to_connidx(self, task_id: int) -> int:
         return task_id >> 8
 
-    # TODO rename dev_params_acquire
-    def mgr_dev_params_acquire(self):
+    def dev_params_acquire(self):
         self._dev_params_lock.acquire()
         # return self._dev_params  # TODO return dev params instead?
 
-    # TODO rename dev_params_release
-    def mgr_dev_params_release(self) -> None:
+    def dev_params_release(self) -> None:
         self._dev_params_lock.release()
 
     def mgr_event_queue_get(self) -> BleMgrMsgBase:

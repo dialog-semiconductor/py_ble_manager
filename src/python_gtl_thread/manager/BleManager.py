@@ -160,13 +160,13 @@ class BleManager(BleManagerBase):
                 print(f"BleManager._process_event_queue. Unhandled event={event}\n")
 
     def cmd_execute(self, command: BleMgrMsgBase) -> BLE_ERROR:
-        self.mgr_dev_params_acquire()
+        self.dev_params_acquire()
         ble_status = self._dev_params.status
-        self.mgr_dev_params_release()
+        self.dev_params_release()
         if ble_status == BLE_STATUS.BLE_IS_BUSY or ble_status == BLE_STATUS.BLE_IS_RESET:
             return BleMgrMsgRsp(opcode=command.opcode, status=BLE_ERROR.BLE_ERROR_BUSY)
 
-        self._mgr_lock.acquire()  # TODO unsure why this is needed unless calling manager functions directly
+        self._mgr_lock.acquire()
         self._mgr_command_queue_send(command)
         response = self._mgr_response_queue_get()
         self._mgr_lock.release()
@@ -187,10 +187,10 @@ class BleManager(BleManagerBase):
         return self._stored_device_list.find_device_by_conn_idx(conn_idx)
 
     def set_advertising_interval(self, adv_intv_min_slots, adv_intv_max_slots) -> None:
-        self.mgr_dev_params_acquire()
+        self.dev_params_acquire()
         self._dev_params.adv_intv_min = adv_intv_min_slots
         self._dev_params.adv_intv_max = adv_intv_max_slots
-        self.mgr_dev_params_release()
+        self.dev_params_release()
 
     def set_io_cap(self, io_cap: GAP_IO_CAPABILITIES) -> BLE_ERROR:
         return self.gap_mgr.set_io_cap(io_cap)
