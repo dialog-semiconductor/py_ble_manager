@@ -70,7 +70,7 @@ Functionality of the `BLE Manager` layer is broken into 5 main classes:
 
 The `BleManager` class orchestrates command and event processing. When the `BleManager` is initialized, two daemon threads are created. One to receive and process commands from the [ble_api](#ble_api), and a second to receive and process events from the [BleAdapter](#adapter). When a command or event is received, the `BleManager` forwards it to the appropriate handler implemented in one of the processing classes: `BleManagerGap`, `BleManagerGattc`, `BleManagerGatts`, or `BleManagerCommon`
 
-The `BleManagerGap` class processes GAP related commands and events. The `BleManagerGattc` class processes GATT client related commands and events. The `BleManagerGatts` class processes GATT service related commands and events. The `BleManagerCommon` class processes common commmands and event (e.g. stack reset handling).
+The `BleManagerGap` class processes GAP related commands and events. The `BleManagerGattc` class processes GATT client related commands and events. The `BleManagerGatts` class processes GATT service related commands and events. The `BleManagerCommon` class processes common commands and events (e.g. stack reset handling).
 
 ### adapter
 
