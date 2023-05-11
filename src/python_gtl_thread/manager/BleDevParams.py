@@ -37,7 +37,7 @@ class BleDevParams():
         self.channel_map = GapChnlMap()  # Channel map #
         self.adv_type = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED  # Advertising type
         self.adv_mode = GAP_DISC_MODE.GAP_DISC_MODE_GEN_DISCOVERABLE  # Discoverability mode for adv.=
-        self.adv_channel_map = ADV_CHANNEL_MAP.ADV_ALL_CHNLS_EN  # Channel map used for advertising 
+        self.adv_channel_map = ADV_CHANNEL_MAP.ADV_ALL_CHNLS_EN  # Channel map used for advertising
         self.adv_intv_min = 0  # Minimum advertising interval
         self.adv_intv_max = 0  # Maximum advertising interval
         self.adv_filter_policy = ADV_FILT_POL.ADV_ALLOW_SCAN_ANY_CONN_ANY  # Advertising filter policy
