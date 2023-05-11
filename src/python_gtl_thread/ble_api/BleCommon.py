@@ -41,7 +41,6 @@ class BLE_EVT_CAT(IntEnum):
     BLE_EVT_CAT_L2CAP = auto()
 
 
-# TODO rename BLE_GAP_EVT? Moved here for __repr__ method of BleEventBase
 class BLE_EVT_GAP(IntEnum):
     # Connection established
     BLE_EVT_GAP_CONNECTED = BLE_EVT_CAT.BLE_EVT_CAT_GAP << 8
@@ -140,7 +139,6 @@ class BLE_EVT_GATTC(IntEnum):
     BLE_EVT_GATTC_MTU_CHANGED = auto()
 
 
-# TODO rename BLE_GATTS_EVT? Moved here for __repr__ method of BleEventBase
 class BLE_EVT_GATTS(IntEnum):
     # Read request from peer
     BLE_EVT_GATTS_READ_REQ = BLE_EVT_CAT.BLE_EVT_CAT_GATTS << 8
@@ -237,10 +235,9 @@ class BLE_STATUS(IntEnum):
 
 
 # Bluetooth Device address
-class BdAddress():  # TODO rename BdAddress to differentiate from ctypes structures?
+class BdAddress():
     def __init__(self, addr_type: BLE_ADDR_TYPE = BLE_ADDR_TYPE.PUBLIC_ADDRESS, addr: bytes = None) -> None:
-        self.addr_type = addr_type  # TODO determine address type by addr?
-        # TODO raise error on bytes len
+        self.addr_type = addr_type
         self.addr = addr if addr else bytes()
 
     def __repr__(self):
@@ -279,12 +276,10 @@ class BleEventBase():
 
 class Irk():
     def __init__(self, key: bytes = None) -> None:
-        # TODO raise error on key len
         self.key = key if key else bytes()
 
 
 class OwnAddress():
     def __init__(self, addr_type: BLE_OWN_ADDR_TYPE = BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS, addr: bytes = None) -> None:
         self.addr_type = addr_type
-        # TODO raise error on bytes len
         self.addr = addr if addr else bytes()

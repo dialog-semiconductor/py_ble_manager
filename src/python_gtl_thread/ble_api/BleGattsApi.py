@@ -50,7 +50,6 @@ class BleGattsApi(BleApiBase):
         else:
             return response.status, 0
 
-    # TODO need to add to register service in Ble.py. Need to find example with included service
     def add_include(self,
                     handle: int = 0
                     ) -> BLE_ERROR:

@@ -361,11 +361,9 @@ class BleController():
             if item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_INCLUDE:
                 print(f"\tIncluded service discovered: handle={item.handle}, uuid={self.uuid_to_str(item.uuid)}")
             elif item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_CHARACTERISTIC:
-                # TODO format properties function
                 print(f"\tCharacteristic discovered: handle={item.handle}, uuid={self.uuid_to_str(item.uuid)}, prop={item.char_data.properties} "
                       + f"{self.format_properties(item.char_data.properties)}")
             elif item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_DESCRIPTOR:
-                # TODO format properties function
                 print(f"\t\tDescriptor discovered: handle={item.handle}, uuid={self.uuid_to_str(item.uuid)}")
 
     def handle_evt_gattc_discover_char(self, evt: ble.BleEventGattcDiscoverChar):

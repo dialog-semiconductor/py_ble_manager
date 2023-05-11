@@ -22,7 +22,6 @@ DEBUG_CRASH_INFO_TX_CHAR_UUID_STR = "17738e00-54f9-4a2c-a6ed-1ee67e00f323"
 CCC_UUID_STR = "2902"
 USER_DESC_UUID_STR = "2901"
 
-# TODO is this always 3?
 DEVICE_NAME_HANDLE = 3
 
 
@@ -483,7 +482,6 @@ class BleController():
                     else:
                         self.response.data += evt.value
                         if len(self.response.data) == self.response.len:
-                            # TODO assert length is 128
                             self.parse_reset_data(self.response.data)
                             self.log_reset_data()
                             self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_DISCONNECT

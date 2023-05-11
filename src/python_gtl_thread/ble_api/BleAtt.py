@@ -344,7 +344,6 @@ class ATT_ERROR(IntEnum):
     LL_ERR_CONN_FAILED_TO_BE_EST = 0xCE
 
 
-# TODO rename BLE_ATT_PERM
 # ATT attribute permission
 class ATT_PERM(IntEnum):
     ATT_PERM_NONE = 0
@@ -361,7 +360,6 @@ class ATT_PERM(IntEnum):
     ATT_PERM_RW_ENCRYPT = ATT_PERM_READ_ENCRYPT | ATT_PERM_WRITE_ENCRYPT
 
 
-# TODO rename BLE_ATT_UUID_TYPE
 class ATT_UUID_TYPE(IntEnum):
     ATT_UUID_16 = 0
     ATT_UUID_128 = 1

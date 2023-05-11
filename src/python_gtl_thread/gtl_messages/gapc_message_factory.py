@@ -13,10 +13,6 @@ class GapcMessageFactory():
 
     @staticmethod
     def create_message(msg_bytes: bytes):
-        assert (len(msg_bytes) >= 9)
-
-        assert (int.from_bytes(msg_bytes[:1], "little", signed=False) == GTL_INITIATOR)
-
         msg_id = GAPC_MSG_ID(int.from_bytes(msg_bytes[1:3], "little", signed=False))
         dst_id = KE_API_ID(int.from_bytes(msg_bytes[3:4], "little", signed=False))
 

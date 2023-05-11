@@ -1,8 +1,6 @@
 from enum import IntEnum, auto
 
 
-# TODO  rename BLE_GATT_EVENT, BLE_GATT_PROP, and BLE_GATT_SERVICE?
-
 class GATT_EVENT(IntEnum):
     GATT_EVENT_NOTIFICATION = 0
     GATT_EVENT_INDICATION = 1

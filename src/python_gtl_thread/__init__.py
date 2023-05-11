@@ -1,5 +1,3 @@
-# TODO would be nice to dynamically load these instead of explicitly loading each class
-
 from .ble_api.BleAtt import ATT_ERROR, ATT_UUID_TYPE, AttUuid, ATT_PERM
 from .ble_api.BleCommon import BLE_ADDR_TYPE, BLE_ERROR, BLE_EVT_CAT, BLE_EVT_GAP, BLE_EVT_GATTC, BLE_EVT_GATTS, \
     BLE_HCI_ERROR, BLE_OWN_ADDR_TYPE, BLE_STATUS, BdAddress, BleEventBase, Irk, OwnAddress
@@ -20,7 +18,7 @@ from .ble_api.BleGattc import GATTC_DISCOVERY_TYPE, GATTC_ITEM_TYPE, GattcServic
     BleEventGattcDiscoverCompleted, BleEventGattcDiscoverDesc, BleEventGattcDiscoverSvc, BleEventGattcNotification, \
     BleEventGattcIndication, BleEventGattcReadCompleted, BleEventGattcWriteCompleted
 
-from .ble_api.BleGatts import GATTS_FLAGS, BleEventGattsEventSent, BleEventGattsPrepareWriteReq, BleEventGattsReadReq, BleEventGattsWriteReq
+from .ble_api.BleGatts import GATTS_FLAG, BleEventGattsEventSent, BleEventGattsPrepareWriteReq, BleEventGattsReadReq, BleEventGattsWriteReq
 
 from .ble_devices.BleCentral import BleCentral
 from .ble_devices.BlePeripheral import BlePeripheral

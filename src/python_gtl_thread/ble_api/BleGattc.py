@@ -71,7 +71,7 @@ class BleEventGattcBrowseSvc(BleEventBase):
 class BleEventGattcBrowseCompleted(BleEventBase):
     def __init__(self,
                  conn_idx: int = 0,
-                 status: int = 0  # TODO is there an enum for this?
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED
                  ) -> None:
         super().__init__(evt_code=BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED)
         self.conn_idx = conn_idx

@@ -10,7 +10,6 @@ BLE_ADV_DATA_LEN_MAX = ADV_DATA_LEN - 3
 BLE_NON_CONN_ADV_DATA_LEN_MAX = ADV_DATA_LEN
 
 
-# TODO prefix with BLE_GAP?
 # Advertising filter policy
 class ADV_FILT_POL():
     ADV_ALLOW_SCAN_ANY_CONN_ANY = 0  # Allow all scan and connect requests
@@ -192,7 +191,6 @@ class GAP_DATA_TYPE(IntEnum):
     GAP_DATA_TYPE_MANUFACTURER_SPEC = 0xFF
 
 
-# TODO prefix these enums with BLE_
 # GAP discoverability modes
 class GAP_DISC_MODE(IntEnum):
     GAP_DISC_MODE_NON_DISCOVERABLE = 0  # Non-Discoverable mode
@@ -234,14 +232,12 @@ class GAP_SEC_LEVEL(IntEnum):
 
 # Link Layer channel map
 class GapChnlMap():
-    def __init__(self, map: bytes = None) -> None:  # TODO is ctypes array appriopriate at this layer?
-        # TODO raise error on bytes len
+    def __init__(self, map: bytes = None) -> None:
         self.map = map if map else bytes()
 
 
 # GAP connection parameters
 class GapConnParams():
-    # TODO is ctypes array appriopriate at this layer?
     def __init__(self, interval_min_ms: int = 0, interval_max_ms: int = 0, slave_latency: int = 0, sup_timeout_ms: int = 0) -> None:
         self.interval_min = interval_min_ms * 100 // 125  # Minimum connection interval
         self.interval_max = interval_max_ms * 100 // 125  # Maximum connection interval
@@ -256,7 +252,7 @@ class GapConnParams():
 
 # GAP scan parameters
 class GapScanParams():
-    def __init__(self, interval: int = 0, window: int = 0) -> None:  # TODO is ctypes array appriopriate at this layer?
+    def __init__(self, interval: int = 0, window: int = 0) -> None:
         self.interval = interval  # Scan interval
         self.window = window  # Scan window
 
