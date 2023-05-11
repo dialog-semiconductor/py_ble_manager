@@ -6,21 +6,26 @@ from ..gtl_messages.gtl_message_gattc import GattcReadReqInd, GattcWriteReqInd, 
 from ..gtl_port.gattc_task import GATTC_MSG_ID, gattc_read_req_ind, gattc_write_req_ind, gattc_cmp_evt, gattc_disc_svc_ind, \
     gattc_disc_char_ind, gattc_sdp_svc_ind, gattc_sdp_att_info, gattc_read_ind, gattc_event_ind, gattc_event_req_ind, \
     gattc_att_info_req_ind
-
+from ..gtl_port.rwip_config import KE_API_ID
 
 class GattcMessageFactory():
 
     @staticmethod
     def create_message(msg_bytes: bytes):
-        assert (len(msg_bytes) >= 9)
-
-        assert (int.from_bytes(msg_bytes[:1], "little", signed=False) == GTL_INITIATOR)
         msg_id = GATTC_MSG_ID(int.from_bytes(msg_bytes[1:3], "little", signed=False))
+        dst_id = KE_API_ID(int.from_bytes(msg_bytes[3:4], "little", signed=False))
+
+        if dst_id != KE_API_ID.TASK_ID_GTL:
+            # If task ID is not TASK_ID_GTL, then it has the connection index in the LSB
+            conidx = int.from_bytes(msg_bytes[4:5], "little", signed=False)
+        else:
+            conidx = int.from_bytes(msg_bytes[6:7], "little", signed=False)
+
         params_buf = msg_bytes[9:]
 
         try:
             if msg_id == GATTC_MSG_ID.GATTC_READ_REQ_IND:
-                return GattcReadReqInd(parameters=gattc_read_req_ind.from_buffer_copy(params_buf))
+                return GattcReadReqInd(conidx=conidx, parameters=gattc_read_req_ind.from_buffer_copy(params_buf))
 
             elif msg_id == GATTC_MSG_ID.GATTC_WRITE_REQ_IND:
                 # TODO issue using from_buffer_copy due to POINTER, is there a better way to convert?
@@ -32,10 +37,10 @@ class GattcMessageFactory():
                 assert length == len(params_buf[6:])  # Check for mismatch in value length and remaining bytes
 
                 parameters.value = (c_uint8 * len(params_buf[6:])).from_buffer_copy(params_buf[6:])
-                return GattcWriteReqInd(parameters=parameters)
+                return GattcWriteReqInd(conidx=conidx, parameters=parameters)
 
             elif msg_id == GATTC_MSG_ID.GATTC_CMP_EVT:
-                return GattcCmpEvt(parameters=gattc_cmp_evt.from_buffer_copy(params_buf))
+                return GattcCmpEvt(conidx=conidx, parameters=gattc_cmp_evt.from_buffer_copy(params_buf))
 
             elif msg_id == GATTC_MSG_ID.GATTC_DISC_SVC_IND:
                 parameters = gattc_disc_svc_ind()
@@ -46,7 +51,7 @@ class GattcMessageFactory():
                 assert length == len(params_buf[5:-1])  # Check for mismatch in value length and remaining bytes
 
                 parameters.uuid = (c_uint8 * len(params_buf[5:-1])).from_buffer_copy(params_buf[5:-1])  # -1 to account for padding
-                return GattcDiscSvcInd(parameters=parameters)
+                return GattcDiscSvcInd(conidx=conidx, parameters=parameters)
 
             elif msg_id == GATTC_MSG_ID.GATTC_DISC_CHAR_IND:
                 parameters = gattc_disc_char_ind()
@@ -58,7 +63,7 @@ class GattcMessageFactory():
                 assert length == len(params_buf[6:])  # Check for mismatch in value length and remaining bytes
 
                 parameters.uuid = (c_uint8 * len(params_buf[6:])).from_buffer_copy(params_buf[6:])
-                return GattcDiscCharInd(parameters=parameters)
+                return GattcDiscCharInd(conidx=conidx, parameters=parameters)
 
             elif msg_id == GATTC_MSG_ID.GATTC_SDP_SVC_IND:
                 parameters = gattc_sdp_svc_ind()
@@ -70,7 +75,7 @@ class GattcMessageFactory():
                 # max size for gattc_sdp_att_info is 22
                 parameters.info = (gattc_sdp_att_info * (len(params_buf[22:]) // 22)).from_buffer_copy(params_buf[22:])
 
-                return GattcSdpSvcInd(parameters=parameters)
+                return GattcSdpSvcInd(conidx=conidx, parameters=parameters)
 
             elif msg_id == GATTC_MSG_ID.GATTC_READ_IND:
                 parameters = gattc_read_ind()
@@ -82,7 +87,7 @@ class GattcMessageFactory():
 
                 parameters.value = (c_uint8 * len(params_buf[6:])).from_buffer_copy(params_buf[6:])
 
-                return GattcReadInd(parameters=parameters)
+                return GattcReadInd(conidx=conidx, parameters=parameters)
 
             elif msg_id == GATTC_MSG_ID.GATTC_EVENT_IND:
                 parameters = gattc_event_ind()
@@ -94,7 +99,7 @@ class GattcMessageFactory():
                 assert length == len(params_buf[6:])  # Check for mismatch in value length and remaining bytes
 
                 parameters.value = (c_uint8 * len(params_buf[6:])).from_buffer_copy(params_buf[6:])
-                return GattcEventInd(parameters=parameters)
+                return GattcEventInd(conidx=conidx, parameters=parameters)
 
             elif msg_id == GATTC_MSG_ID.GATTC_EVENT_IND:
                 parameters = gattc_event_req_ind()
@@ -106,10 +111,10 @@ class GattcMessageFactory():
                 assert length == len(params_buf[6:])  # Check for mismatch in value length and remaining bytes
 
                 parameters.value = (c_uint8 * len(params_buf[6:])).from_buffer_copy(params_buf[6:])
-                return GattcEventReqInd(parameters=parameters)
+                return GattcEventReqInd(conidx=conidx, parameters=parameters)
 
             elif msg_id == GATTC_MSG_ID.GATTC_ATT_INFO_REQ_IND:
-                return GattcAttInfoReqInd(parameters=gattc_att_info_req_ind.from_buffer_copy(params_buf))
+                return GattcAttInfoReqInd(conidx=conidx, parameters=gattc_att_info_req_ind.from_buffer_copy(params_buf))
 
             else:
                 raise AssertionError(f"GattcMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")
