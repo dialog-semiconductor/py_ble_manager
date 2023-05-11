@@ -4,7 +4,7 @@ from enum import IntEnum, auto
 from ..ble_api.BleAtt import AttUuid, ATT_PERM, ATT_ERROR
 from ..ble_api.BleCommon import BLE_ERROR, BLE_EVT_CAT
 from ..ble_api.BleGatt import GATT_SERVICE, GATT_PROP, GATT_EVENT
-from ..ble_api.BleGatts import GATTS_FLAGS
+from ..ble_api.BleGatts import GATTS_FLAG
 from ..manager.BleManagerCommonMsgs import BleMgrMsgBase, BleMgrMsgRsp, BLE_CMD_GATTS_OPCODE
 
 
@@ -111,7 +111,7 @@ class BleMgrGattsServiceAddCharacteristicCmd(BleMgrMsgBase):
                  prop: GATT_PROP = GATT_PROP.GATT_PROP_NONE,
                  perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
                  max_len: int = 0,
-                 flags: GATTS_FLAGS = GATTS_FLAGS.GATTS_FLAG_CHAR_NO_READ_REQ,
+                 flags: GATTS_FLAG = GATTS_FLAG.GATTS_FLAG_CHAR_NO_READ_REQ,
                  ) -> None:
         super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_CHARACTERISTIC_ADD_CMD)
         self.uuid = uuid if uuid else AttUuid()
@@ -155,7 +155,7 @@ class BleMgrGattsServiceAddDescriptorCmd(BleMgrMsgBase):
                  uuid: AttUuid = None,
                  perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
                  max_len: int = 0,
-                 flags: GATTS_FLAGS = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ,
+                 flags: GATTS_FLAG = GATTS_FLAG.GATTS_FLAG_CHAR_READ_REQ,
                  ) -> None:
         super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_DESCRIPTOR_ADD_CMD)
         self.uuid = uuid if uuid else AttUuid()

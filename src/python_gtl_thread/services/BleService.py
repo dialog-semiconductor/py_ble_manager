@@ -1,7 +1,7 @@
 from ..ble_api.BleAtt import AttUuid, ATT_PERM
 from ..ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
 from ..ble_api.BleGatt import GATT_SERVICE, GATT_PROP
-from ..ble_api.BleGatts import GATTS_FLAGS, BleEventGattsReadReq, BleEventGattsEventSent, BleEventGattsPrepareWriteReq
+from ..ble_api.BleGatts import GATTS_FLAG, BleEventGattsReadReq, BleEventGattsEventSent, BleEventGattsPrepareWriteReq
 from ..ble_api.BleCommon import BleEventBase
 # TODO need to handle circular import
 # from python_gtl_thread.ble_devices.BleCentralPeripheral import BlePeripheral
@@ -30,7 +30,7 @@ class CharacteristicDef():
                  prop: GATT_PROP = GATT_PROP.GATT_PROP_NONE,
                  perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
                  max_len: int = 0,
-                 flags: GATTS_FLAGS = GATTS_FLAGS.GATTS_FLAG_CHAR_NO_READ_REQ,
+                 flags: GATTS_FLAG = GATTS_FLAG.GATTS_FLAG_CHAR_NO_READ_REQ,
                  handle: AttributeHandle = None
                  ) -> None:
         self.uuid = uuid if uuid else AttUuid()
@@ -46,7 +46,7 @@ class DescriptorDef():
                  uuid: AttUuid = None,
                  perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
                  max_len: int = 0,
-                 flags: GATTS_FLAGS = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ,
+                 flags: GATTS_FLAG = GATTS_FLAG.GATTS_FLAG_CHAR_READ_REQ,
                  handle: AttributeHandle = None
                  ) -> None:
         self.uuid = uuid if uuid else AttUuid()

@@ -4,10 +4,9 @@ from ..ble_api.BleCommon import BleEventBase, BLE_EVT_GATTS
 from ..ble_api.BleGatt import GATT_EVENT
 
 
-# TODO rename BLE_GATTS_FLAGS
 # GATT Server flags
-class GATTS_FLAGS(IntEnum):
-    GATTS_FLAG_CHAR_NO_READ_REQ = 0x00  # TODO need better name
+class GATTS_FLAG(IntEnum):
+    GATTS_FLAG_CHAR_NO_READ_REQ = 0x00
     GATTS_FLAG_CHAR_READ_REQ = 0x01        # enable ::BLE_EVT_GATTS_READ_REQ for attribute
 
 

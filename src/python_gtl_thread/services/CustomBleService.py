@@ -4,7 +4,7 @@ from ..ble_api.BleAtt import ATT_PERM, ATT_ERROR
 from ..ble_api.BleCommon import BLE_ERROR
 from ..ble_api.BleGap import BleEventGapConnected, BleEventGapDisconnected
 from ..ble_api.BleGatt import GATT_SERVICE, GATT_PROP, GATT_EVENT
-from ..ble_api.BleGatts import GATTS_FLAGS, BleEventGattsWriteReq, BleEventGattsPrepareWriteReq, BleEventGattsEventSent, BleEventGattsReadReq
+from ..ble_api.BleGatts import GATTS_FLAG, BleEventGattsWriteReq, BleEventGattsPrepareWriteReq, BleEventGattsEventSent, BleEventGattsReadReq
 from ..services.BleService import BleServiceBase, GattCharacteristicDef, DescriptorDef, AttributeHandle
 from ..ble_devices.BlePeripheral import BlePeripheral
 
@@ -55,7 +55,7 @@ class CustomBleService(BleServiceBase):
         char.char_def.prop = GATT_PROP.GATT_PROP_READ | GATT_PROP.GATT_PROP_WRITE
         char.char_def.perm = ATT_PERM.ATT_PERM_RW
         char.char_def.max_len = 2
-        char.char_def.flags = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ
+        char.char_def.flags = GATTS_FLAG.GATTS_FLAG_CHAR_READ_REQ
         char.char_def.handle = self.char_1_value_h  # self.char_1_value_h will be automatically updated by BlePeripheral when service registered
         self.gatt_char_defs.append(char)
 
@@ -64,7 +64,7 @@ class CustomBleService(BleServiceBase):
         char.char_def.prop = GATT_PROP.GATT_PROP_READ | GATT_PROP.GATT_PROP_WRITE
         char.char_def.perm = ATT_PERM.ATT_PERM_RW
         char.char_def.max_len = 2
-        char.char_def.flags = GATTS_FLAGS.GATTS_FLAG_CHAR_NO_READ_REQ
+        char.char_def.flags = GATTS_FLAG.GATTS_FLAG_CHAR_NO_READ_REQ
         char.char_def.handle = self.char_2_value_h
         self.gatt_char_defs.append(char)
 

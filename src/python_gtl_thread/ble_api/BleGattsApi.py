@@ -3,7 +3,7 @@ from ..ble_api.BleApiBase import BleApiBase
 from ..ble_api.BleAtt import AttUuid, ATT_PERM, ATT_ERROR
 from ..ble_api.BleCommon import BLE_ERROR
 from ..ble_api.BleGatt import GATT_SERVICE, GATT_PROP, GATT_EVENT
-from ..ble_api.BleGatts import GATTS_FLAGS
+from ..ble_api.BleGatts import GATTS_FLAG
 from ..manager.BleManager import BleManager
 from ..manager.BleManagerGattsMsgs import BleMgrGattsServiceAddCmd, BleMgrGattsServiceAddRsp, \
     BleMgrGattsServiceAddCharacteristicCmd, BleMgrGattsServiceAddCharacteristicRsp, \
@@ -26,7 +26,7 @@ class BleGattsApi(BleApiBase):
                            prop: GATT_PROP = GATT_PROP.GATT_PROP_NONE,
                            perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
                            max_len: int = 0,
-                           flags: GATTS_FLAGS = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ,
+                           flags: GATTS_FLAG = GATTS_FLAG.GATTS_FLAG_CHAR_READ_REQ,
                            ) -> tuple[BLE_ERROR, int, int]:
 
         command = BleMgrGattsServiceAddCharacteristicCmd(uuid, prop, perm, max_len, flags)
@@ -40,7 +40,7 @@ class BleGattsApi(BleApiBase):
                        uuid: AttUuid = None,
                        perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
                        max_len: int = 0,
-                       flags: GATTS_FLAGS = GATTS_FLAGS.GATTS_FLAG_CHAR_READ_REQ,
+                       flags: GATTS_FLAG = GATTS_FLAG.GATTS_FLAG_CHAR_READ_REQ,
                        ) -> tuple[BLE_ERROR, int]:
 
         command = BleMgrGattsServiceAddDescriptorCmd(uuid, perm, max_len, flags)
