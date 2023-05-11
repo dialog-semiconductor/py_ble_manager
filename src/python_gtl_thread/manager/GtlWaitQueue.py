@@ -1,6 +1,7 @@
 import threading
 from ctypes import c_uint16
 from typing import Callable
+from ..ble_api.BleGap import BLE_CONN_IDX_INVALID
 from ..gtl_messages.gtl_message_base import GtlMessageBase
 from ..gtl_port.gapc_task import GAPC_MSG_ID, GAPC_OPERATION
 from ..gtl_port.gapm_task import GAPM_MSG_ID
@@ -22,10 +23,10 @@ class GtlWaitQueueElement():
 
 class GtlWaitQueue():
     def __init__(self) -> None:
-        self._wait_queue_lock: threading.Lock = threading.Lock()  # TODO only needed for manager direct access?
+        self._wait_queue_lock: threading.Lock = threading.Lock()
         self.queue = []
 
-    def _task_to_connidx(self, task_id):  # TODO does not seem like an appropriate method for the wait queue to have
+    def _task_to_connidx(self, task_id):
         return task_id >> 8
 
     def add(self, elem: GtlWaitQueueElement):
@@ -80,7 +81,7 @@ class GtlWaitQueue():
         self._wait_queue_lock.acquire()
         for item in self.queue:
             item: GtlWaitQueueElement
-            if item.conn_idx == 0XFFFF:  # TODO no magic number
+            if item.conn_idx == BLE_CONN_IDX_INVALID:
                 match = item.msg_id == message.msg_id
             else:
                 match = (item.conn_idx == self._task_to_connidx(message.src_id)

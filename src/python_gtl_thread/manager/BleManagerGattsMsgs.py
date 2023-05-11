@@ -139,7 +139,7 @@ class BleMgrGattsServiceAddCmd(BleMgrMsgBase):
                  type: GATT_SERVICE = GATT_SERVICE.GATT_SERVICE_PRIMARY,
                  num_attrs: int = 0) -> None:
         super().__init__(opcode=BLE_CMD_GATTS_OPCODE.BLE_MGR_GATTS_SERVICE_ADD_CMD)
-        self.uuid = uuid if uuid else AttUuid()  # TODO raise error is length off
+        self.uuid = uuid if uuid else AttUuid()
         self.type = type
         self.num_attrs = num_attrs
 

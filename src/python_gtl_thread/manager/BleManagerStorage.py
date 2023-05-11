@@ -280,18 +280,18 @@ class StoredDeviceQueue(SearchableQueue):
 
 class key_csrk():
     def __init__(self, key: bytes = None, sign_cnt: int = 0) -> None:
-        self.key = key if key else bytes()  # TODO raise error on list size?
+        self.key = key if key else bytes()
         self.sign_cnt = sign_cnt
 
 
 class key_irk():
     def __init__(self, key: bytes = None) -> None:
-        self.key = key if key else bytes()  # TODO raise error on list size?
+        self.key = key if key else bytes()
 
 
 class key_ltk():  # TODO rand is uint64_t
     def __init__(self, rand: int = 0, ediv: int = 0, key: bytes = None, key_size: int = 0) -> None:
         self.rand = rand
         self.ediv = ediv
-        self.key = key if key else bytes()  # TODO raise error on list size?
+        self.key = key if key else bytes()
         self.key_size = key_size

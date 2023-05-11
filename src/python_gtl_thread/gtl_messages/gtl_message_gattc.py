@@ -7,8 +7,6 @@ from ..gtl_port.gattc_task import GATTC_MSG_ID, gattc_write_req_ind, gattc_write
     GATTC_SDP_ATT_TYPE, gattc_execute_write_cmd
 from ..gtl_port.rwip_config import KE_API_ID
 
-# TODO next message GATTC_ATT_INFO_REQ_IND, GATTC_ATT_INFO_CFM
-
 
 class GattcExcMtuCmd(GtlMessageBase):
 

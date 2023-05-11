@@ -39,7 +39,7 @@ class SerialStreamManager():
         if message:
             # print(f"Sending: {message}")
             self._serial_port.write(message)
-            self._serial_port.flush()  # TODO is this needed?
+            self._serial_port.flush()
 
     def _tx_queue_get(self) -> bytes:
         return self._tx_queue.get()

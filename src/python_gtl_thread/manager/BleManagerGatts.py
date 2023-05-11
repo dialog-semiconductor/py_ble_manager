@@ -358,7 +358,6 @@ class BleManagerGatts(BleManagerBase):
             # Check if there are enough free attributes left
             if (self._add_svc_msg.parameters.svc_desc.nb_att - self._attr_idx) >= 1:
                 # Check if it is Extended properties descriptor and set it's value
-                # TODO create method to compare att_uuid class
                 if command.uuid.uuid == UUID_GATT_CHAR_EXT_PROPERTIES:  # TODO be carefule with endianess here
                     max_len = 0
                     if self._extended_prop & GATT_PROP.GATT_PROP_EXTENDED_RELIABLE_WRITE:

@@ -11,9 +11,7 @@ class BleDevParams():
 
     def __init__(self) -> None:
         # GAP device information
-        # TODO Max len + null char. Should we create property
-        # TODO just make a string, convert in dev_params to gtl
-        self.dev_name = b""  # (c_uint8 * (BD_NAME_SIZE + 1))()  # GAP device name plus NULL char # TODO F8 seems realy long
+        self.dev_name = b""  # GAP device name plus NULL char # TODO F8 seems realy long
 
         self.appearance = BLE_GAP_APPEARANCE.BLE_GAP_APPEARANCE_UNKNOWN  # GAP device appearance
         # BLE state
@@ -36,29 +34,28 @@ class BleDevParams():
         self.att_db_cfg = gapm_att_cfg_flag()  # Attribute DB Configuration bitmask
         self.mtu_size = 0  # MTU size
         # Channel map (central only)
-        self.channel_map = GapChnlMap()  # Channel map # TODO use ble apis
-        # TODO one of GAPM_ADV_NON_CONN, GAPM_ADV_UNDIRECT, GAPM_ADV_DIRECT, GAPM_ADV_DIRECT_LDC
+        self.channel_map = GapChnlMap()  # Channel map #
         self.adv_type = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED  # Advertising type
-        self.adv_mode = GAP_DISC_MODE.GAP_DISC_MODE_GEN_DISCOVERABLE  # Discoverability mode for adv. # TODO use ble api
-        self.adv_channel_map = ADV_CHANNEL_MAP.ADV_ALL_CHNLS_EN  # Channel map used for advertising  # TODO use ble api
+        self.adv_mode = GAP_DISC_MODE.GAP_DISC_MODE_GEN_DISCOVERABLE  # Discoverability mode for adv.=
+        self.adv_channel_map = ADV_CHANNEL_MAP.ADV_ALL_CHNLS_EN  # Channel map used for advertising 
         self.adv_intv_min = 0  # Minimum advertising interval
         self.adv_intv_max = 0  # Maximum advertising interval
-        self.adv_filter_policy = ADV_FILT_POL.ADV_ALLOW_SCAN_ANY_CONN_ANY  # Advertising filter policy  # TODO use ble api
-        self.adv_direct_address = BdAddress()  # Address used for directed advertising  # TODO use ble api
+        self.adv_filter_policy = ADV_FILT_POL.ADV_ALLOW_SCAN_ANY_CONN_ANY  # Advertising filter policy
+        self.adv_direct_address = BdAddress()  # Address used for directed advertising
         self.adv_data_length = 0  # Length of advertising data
-        self.adv_data = (c_uint8 * ADV_DATA_LEN)()  # Advertising data  # TODO use ble api
+        self.adv_data = (c_uint8 * ADV_DATA_LEN)()  # Advertising data
         self.scan_rsp_data_length = 0  # Length of scan response
-        self.scan_rsp_data = (c_uint8 * SCAN_RSP_DATA_LEN)()  # Scan response data  # TODO use ble api
+        self.scan_rsp_data = (c_uint8 * SCAN_RSP_DATA_LEN)()  # Scan response data
         # Scan parameters used for connection procedures
-        self.scan_params = GapScanParams()  # Scan parameters # TODO does this struct exist in gtl_port files?  # TODO use ble api
+        self.scan_params = GapScanParams()  # Scan parameters
         # Peripheral preferred connection parameters
-        self.gap_ppcp = GapConnParams()  # Connection parameters structure  # TODO use ble api
+        self.gap_ppcp = GapConnParams()  # Connection parameters structure
         # IO Capabilities configuration
-        self.io_capabilities = GAP_IO_CAPABILITIES.GAP_IO_CAP_NO_INPUT_OUTPUT  # GAP IO capabilities  # TODO use ble api
+        self.io_capabilities = GAP_IO_CAPABILITIES.GAP_IO_CAP_NO_INPUT_OUTPUT  # GAP IO capabilities
 # if (dg_configBLE_PRIVACY_1_2 == 1) # TODO add privacy
         # ble_mgr_ral_op_t  prev_privacy_operation;  # TODO add privacy enum
 # endif /* (dg_configBLE_PRIVACY_1_2 == 1)
-# if (dg_configBLE_2MBIT_PHY == 1) # TODO 2M PHY??
+# if (dg_configBLE_2MBIT_PHY == 1) # TODO 2M PHY
         # self.tx_phy_pref_default = 0  # GAP default TX PHY preference
         # self.rx_phy_pref_default = 0  # GAP default RX PHY preference
         # self.phy_set_pending = False  # GAP PHY set operation pending
@@ -67,7 +64,6 @@ class BleDevParams():
         self.conn_rssi = 0  # The RSSI reading reported by GAPC_CON_RSSI_IND
 
 
-# TODO any reason not to set these in BleDevParams??
 # defined in ble_mgr.c
 class BleDevParamsDefault(BleDevParams):
     def __init__(self) -> None:
@@ -97,7 +93,7 @@ class BleDevParamsDefault(BleDevParams):
 
         self.adv_type = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
         self.adv_mode = GAP_DISC_MODE.GAP_DISC_MODE_GEN_DISCOVERABLE
-        self.adv_channel_map = ADV_CHANNEL_MAP.ADV_CHNL_37_EN  # TODO use gap_adv_chnl_t
+        self.adv_channel_map = ADV_CHANNEL_MAP.ADV_CHNL_37_EN
         self.adv_intv_min = int(((687.5) * 1000 // 625))  # TODO function for this
         self.adv_intv_max = int(((687.5) * 1000 // 625))  # TODO same as above
         self.adv_filter_policy = ADV_FILT_POL.ADV_ALLOW_SCAN_ANY_CONN_ANY
@@ -122,7 +118,7 @@ class BleDevParamsDefault(BleDevParams):
 # if (dg_configBLE_PRIVACY_1_2 == 1) # TODO add privacy
         # ble_mgr_ral_op_t  prev_privacy_operation;  # TODO add privacy enum
 # endif /* (dg_configBLE_PRIVACY_1_2 == 1)
-# if (dg_configBLE_2MBIT_PHY == 1) # TODO 2M PHY??
+# if (dg_configBLE_2MBIT_PHY == 1) # TODO 2M PHY
         # self.tx_phy_pref_default = 0  # GAP default TX PHY preference
         # self.rx_phy_pref_default = 0  # GAP default RX PHY preference
         # self.phy_set_pending = False  # GAP PHY set operation pending
