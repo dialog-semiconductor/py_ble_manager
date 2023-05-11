@@ -26,7 +26,7 @@ class CLIHandler():
                     'GAPPAIR',
                     'GAPSETCONNPARAM',
                     'PASSKEYENTRY',
-                    'YESNOTENTRY',
+                    'YESNOENTRY',
                     'EXIT']
         commands.sort()
         word_completer = WordCompleter(commands, ignore_case=True)
@@ -223,7 +223,7 @@ class BleController():
                         passkey = int(args[3])
                         error = self.central.passkey_reply(conn_idx, accept, passkey)
 
-                case 'YESNOTENTRY':
+                case 'YESNOENTRY':
                     if len(args) == 3:
                         conn_idx = int(args[1])
                         accept = bool(int(args[2]))

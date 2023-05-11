@@ -169,13 +169,13 @@ When the procedure is complete, a message indicationg so will be printed to the 
 
 ![passkeyentry](assets/passkeyentry.png)
 
-### YESNOTENTRY
+### YESNOENTRY
 
-`YESNOTENTRY <connection_index> <accept>`
+`YESNOENTRY <connection_index> <accept>`
 
 For example, to accept a secure connection at connection index 0:
 
-`YESNOTENTRY 0 1`
+`YESNOENTRY 0 1`
 
 When the procedure is complete, a message indicationg so will be printed to the terminal:
 
