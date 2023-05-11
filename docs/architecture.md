@@ -95,9 +95,9 @@ When the `SerialStreamManager` is initialized, two daemon threads are created. O
 
 ### gtl_messages
 
-The [gtl_messages](gtl_messages) directory contains various GTL messages defined in the [GTL User Manual](https://www.renesas.com/us/en/document/mat/um-b-143-renesas-external-processor-interface-gtl-interface?language=en&r=1564826)  
+The [gtl_messages](gtl_messages) directory contains classes implementing various GTL messages defined in the [GTL User Manual](https://www.renesas.com/us/en/document/mat/um-b-143-renesas-external-processor-interface-gtl-interface?language=en&r=1564826)  
 
-A generic base class for every message is defined in [gtl_messages/gtl_message_base.py](gtl_messages/gtl_message_base.py):
+A generic base class for every message is defined in [gtl_message_base.py](../src/python_gtl_thread/gtl_messages/gtl_message_base.py):
 
 ```python
 class GtlMessageBase():
@@ -120,15 +120,17 @@ This message definition is consistent with the the GTL message format from the u
 
 ![GTL message format](../assets/gtl_message_format.png)
 
-Separate python files exist for messages related to different BLE Layers. For example, the [gtl_message_gapm.py](../src/python_gtl_thread/gtl_messages/gtl_message_gapm.py) is a port of GAP Manager related GTL messages.
+Separate python files exist for messages related to different BLE layers. For example, [gtl_message_gapm.py](../src/python_gtl_thread/gtl_messages/gtl_message_gapm.py) defines GAP Manager related GTL messages.
 
-Each message takes care of setting the appropriate MSG_ID, DST_ID, SRC_ID, and PAR_LEN for its specific message type. A user only needs to provide the appropriate `parameters` to create a valid message. The `parameters` are one of the `LittleEndianStructure`'s defind in [gtl_port](gtl_port). For example, below demonstrates creating a `GAPM_RESET_CMD`:
+Each message takes care of setting the appropriate MSG_ID, DST_ID, SRC_ID, and PAR_LEN for its specific message type. A user only needs to provide the appropriate `parameters` to create a valid message. The `parameters` are one of the `LittleEndianStructure`'s defind in [gtl_port](gtl_port).
+
+For example, below demonstrates creating a [GapmResetCmd](https://github.com/Renesas-US-Connectivity/python_gtl_thread/blob/4d2c118afd886daabd73dd39d6d1d3fe650dbebc/src/python_gtl_thread/gtl_messages/gtl_message_gapm.py#L19-L29) using the [gapm_reset_cmd](https://github.com/Renesas-US-Connectivity/python_gtl_thread/blob/4d2c118afd886daabd73dd39d6d1d3fe650dbebc/src/python_gtl_thread/gtl_port/gapm_task.py#L451-L458) parameters:
 
 ```python
 reset_cmd = GapmResetCmd(parameters = gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
 ```
 
-If no `parameters` are specified when the message is created, default `parameters` will be created. The parameters can then be modified after construction as demonstrated in the  `GAPM_SET_DEV_CONFIG_CMD` below:
+If no `parameters` are specified when the message is created, default `parameters` will be created. The parameters can then be modified after construction as demonstrated in the  `GapmSetDevConfigCmd` below:
 
 ```python 
 set_dev_cmd = GapmSetDevConfigCmd()
