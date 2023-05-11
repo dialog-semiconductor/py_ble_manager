@@ -161,7 +161,7 @@ class BleManager(BleManagerBase):
 
     def cmd_execute(self, command: BleMgrMsgBase) -> BLE_ERROR:
         self.mgr_dev_params_acquire()
-        ble_status = self.gap_mgr._dev_params.status
+        ble_status = self._dev_params.status
         self.mgr_dev_params_release()
         if ble_status == BLE_STATUS.BLE_IS_BUSY or ble_status == BLE_STATUS.BLE_IS_RESET:
             return BleMgrMsgRsp(opcode=command.opcode, status=BLE_ERROR.BLE_ERROR_BUSY)
@@ -185,6 +185,12 @@ class BleManager(BleManagerBase):
 
     def find_stored_device_by_conn_idx(self, conn_idx: int) -> StoredDevice:
         return self._stored_device_list.find_device_by_conn_idx(conn_idx)
+
+    def set_advertising_interval(self, adv_intv_min_slots, adv_intv_max_slots) -> None:
+        self.mgr_dev_params_acquire()
+        self._dev_params.adv_intv_min = adv_intv_min_slots
+        self._dev_params.adv_intv_max = adv_intv_max_slots
+        self.mgr_dev_params_release()
 
     def set_io_cap(self, io_cap: GAP_IO_CAPABILITIES) -> BLE_ERROR:
         return self.gap_mgr.set_io_cap(io_cap)
