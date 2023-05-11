@@ -110,11 +110,11 @@ When the procedure is complete, a message indicationg so will be printed to the 
 
 Note the data returned is little endian.
 
-Note the Characteristic handle returned by the `GAPBROWSE` command is that of the Characteristic Declaration. To read the value of the characteristic, add 1 to the handle returned by the `GAPBROWSE` command. For example, if the `GAPBROWSE` command identifies a Characteristic handle as 12:
+Note the Characteristic handle returned by the `GAPBROWSE` command is that of the characteristic declaration. To read the value of the characteristic, add 1 to the handle returned by the `GAPBROWSE` command. For example, if the `GAPBROWSE` command identifies a characteristic handle as 12:
 
 ![gapbrowse](assets/gapbrowse_char_handle.png)
 
-You would use handle 13 to read the Characteristic Value. 
+You would use handle 13 to read the characteristic value.
 
 ### GATTWRITE
 
@@ -128,11 +128,11 @@ Note the data should be written little endian. When the procedure is complete, a
 
 ![gattwrite](assets/gattwrite.png)
 
-Again note the Characteristic handle returned by the `GAPBROWSE` command is that of the Characteristic Declaration. To write the value of the characteristic, add 1 to the handle returned by the `GAPBROWSE` command. For example, if the `GAPBROWSE` command identifies a Characteristic handle as 12:
+Again note the Characteristic handle returned by the `GAPBROWSE` command is that of the characteristic declaration. To write the value of the characteristic, add 1 to the handle returned by the `GAPBROWSE` command. For example, if the `GAPBROWSE` command identifies a characteristic handle as 12:
 
 ![gapbrowse](assets/gapbrowse_char_handle.png)
 
-You would use handle 13 to write the Characteristic Value. 
+You would use handle 13 to write the characteristic value. 
 
 ### GATTWRITENORESP
 
