@@ -59,7 +59,6 @@ class BleManagerBase():
 
     def dev_params_acquire(self):
         self._dev_params_lock.acquire()
-        # return self._dev_params  # TODO return dev params instead?
 
     def dev_params_release(self) -> None:
         self._dev_params_lock.release()

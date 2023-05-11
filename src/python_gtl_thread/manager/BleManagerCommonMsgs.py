@@ -128,7 +128,7 @@ class BleMgrMsgBase():
         self.opcode = opcode
 
 
-class BleMgrMsgRsp(BleMgrMsgBase):  # TODO reponses should inherit fromm this class instead of BleMgrMsgBase
+class BleMgrMsgRsp(BleMgrMsgBase):
     def __init__(self,
                  opcode: (BLE_MGR_COMMON_CMD_OPCODE
                           | BLE_CMD_GAP_OPCODE

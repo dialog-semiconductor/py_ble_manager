@@ -6,7 +6,7 @@ from ..manager.BleManagerCommonMsgs import BleMgrMsgBase, BleMgrMsgRsp, BLE_CMD_
 class BleMgrGapAdvStartCmd(BleMgrMsgBase):
     def __init__(self, adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_START_CMD)
-        self.adv_type = adv_type  # TODO raise error on bad arg
+        self.adv_type = adv_type
 
 
 class BleMgrGapAdvStartRsp(BleMgrMsgRsp):

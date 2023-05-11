@@ -102,7 +102,6 @@ class BleManagerGap(BleManagerBase):
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PHY_SET_CMD: None
         }
 
-        # TODO separate gapm and gapc?
         self.evt_handlers = {
             GAPM_MSG_ID.GAPM_DEV_BDADDR_IND: None,
             GAPM_MSG_ID.GAPM_ADV_REPORT_IND: self.adv_report_evt_handler,
@@ -637,7 +636,6 @@ class BleManagerGap(BleManagerBase):
         # @ send_ltk_evt(conn_idx);
         # endif
 
-    # TODO sdk passes rsp in as param. you have passed in command.params
     def _set_role_rsp(self, gtl: GapmCmpEvt, new_role: BLE_GAP_ROLE = BLE_GAP_ROLE.GAP_NO_ROLE):
         event = gtl.parameters
         response = BleMgrGapRoleSetRsp()
@@ -801,7 +799,7 @@ class BleManagerGap(BleManagerBase):
                         self._send_sec_level_changed_evt(evt.conn_idx, sec_level)
 
                     if dev.bonded:
-                        self._stored_device_list.move_to_front(dev)  # TODO just to access quicker??
+                        self._stored_device_list.move_to_front(dev)
 
                 # TODO Privacy
                 # if (dg_configBLE_PRIVACY_1_2 == 1):
@@ -1187,7 +1185,7 @@ class BleManagerGap(BleManagerBase):
         else:
             dev.master = False
 
-        if (self._ble_config.dg_configBLE_CENTRAL == 1):  # TODO what is best way to handle these config params
+        if (self._ble_config.dg_configBLE_CENTRAL == 1):
             if dev.master:
                 # Initiate a Version Exchange
                 self._get_peer_version(evt.conn_idx)
@@ -1203,7 +1201,6 @@ class BleManagerGap(BleManagerBase):
             self._mgr_event_queue_send(evt)
 
             cfm = GapcConnectionCfm(conidx=evt.conn_idx)
-            # TODO should this be GAP_AUTH_MASK
             cfm.parameters.auth = GAP_AUTH_MASK.GAP_AUTH_BOND if dev.bonded else GAP_AUTH_MASK.GAP_AUTH_NONE
             cfm.parameters.auth |= GAP_AUTH_MASK.GAP_AUTH_MITM if dev.mitm else GAP_AUTH_MASK.GAP_AUTH_NONE
             if (self._ble_config.dg_configBLE_SECURE_CONNECTIONS == 1):
@@ -1212,10 +1209,10 @@ class BleManagerGap(BleManagerBase):
             # if (RWBLE_SW_VERSION >= VERSION_8_1) # TODO
             cfm.parameters.auth |= GAPC_FIELDS_MASK.GAPC_LTK_MASK if dev.remote_ltk else GAP_AUTH_MASK.GAP_AUTH_NONE
             # endif /* (RWBL
-            if dev.csrk.key != b'':  # TODO need to do equiv of null check
+            if dev.csrk.key != b'':
                 cfm.parameters.lsign_counter = dev.csrk.sign_cnt
                 cfm.parameters.lcsrk.key = (c_uint8 * KEY_LEN).from_buffer_copy(dev.csrk.key)
-            if dev.remote_csrk.key != b'':  # TODO need to do equiv of null check
+            if dev.remote_csrk.key != b'':
                 cfm.parameters.rsign_counter = dev.remote_csrk.sign_cnt
                 cfm.parameters.rcsrk.key = (c_uint8 * KEY_LEN).from_buffer_copy(dev.remote_csrk.key)
 
@@ -1228,7 +1225,6 @@ class BleManagerGap(BleManagerBase):
         response = BleMgrGapDisconnectRsp(BLE_ERROR.BLE_ERROR_FAILED)
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
-        # self.storage_release() TODO releaser here ?
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
         else:
@@ -1420,7 +1416,7 @@ class BleManagerGap(BleManagerBase):
         response = BleMgrGapPairRsp(BLE_ERROR.BLE_ERROR_FAILED)
 
         secure = True if (self._ble_config.dg_configBLE_SECURE_CONNECTIONS == 1) else False
-        self.storage_acquire()  # TODO SDK uses some temp variables to release storage earlier
+        self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
         master = dev.master
         bonded = dev.bonded
@@ -1607,7 +1603,7 @@ class BleManagerGap(BleManagerBase):
 
             gtl.parameters.interval = command.interval
             gtl.parameters.window = command.window
-            gtl.parameters.mode = command.mode  # TODO GAP_SCAP_MOD enum redfine
+            gtl.parameters.mode = command.mode  # TODO GAP_SCAP_MODE enum redfine
 
             gtl.parameters.filt_policy = (SCAN_FILTER_POLICY.SCAN_ALLOW_ADV_WLST
                                           if command.filt_wlist

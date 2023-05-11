@@ -78,7 +78,6 @@ class BleManagerGatts(BleManagerBase):
         self._attr_idx = 0
         self._extended_prop = 0
 
-    # TODO need to rethink logic of this function as SDK using |=
     def _api_to_rwperm(self, prop: GATT_PROP, perm: ATTM_PERM, uuid_type: ATT_UUID_TYPE, current_perm: att_perm = None):
 
         rwperm = current_perm if current_perm else att_perm()
@@ -134,7 +133,6 @@ class BleManagerGatts(BleManagerBase):
         length = min(max_len, gtl.parameters.length)
         response = BleMgrGattsGetValueRsp(BLE_ERROR.BLE_ERROR_FAILED)
         if gtl.parameters.status == HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR:
-            # TODO verify do not need length in response
             response.status = BLE_ERROR.BLE_STATUS_OK
             response.value = bytes(gtl.parameters.value[:length])
 
