@@ -17,6 +17,7 @@ class GapcMessageFactory():
         dst_id = KE_API_ID(int.from_bytes(msg_bytes[3:4], "little", signed=False))
 
         if dst_id != KE_API_ID.TASK_ID_GTL:
+            # If task ID is not TASK_ID_GTL, then it has the connection index in the LSB
             conidx = int.from_bytes(msg_bytes[4:5], "little", signed=False)
         else:
             conidx = int.from_bytes(msg_bytes[6:7], "little", signed=False)

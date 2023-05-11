@@ -10,8 +10,6 @@ class GtlMessageFactory():
 
     @staticmethod
     def create_message(msg_bytes: bytes):
-        # assert (len(msg_bytes) >= 9)
-        # assert (int.from_bytes(msg_bytes[:1], "little", signed=False) == GTL_INITIATOR)
         if len(msg_bytes) < 9:
             return None
         if int.from_bytes(msg_bytes[:1], "little", signed=False) != GTL_INITIATOR:
