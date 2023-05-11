@@ -1,4 +1,3 @@
-from ..gtl_messages.gtl_message_base import GTL_INITIATOR
 from ..gtl_messages.gtl_message_gapm import GapmDeviceReadyInd, GapmCmpEvt, \
     GapmStartAdvertiseCmd, GapmAdvReportInd
 from ..gtl_port.gapm_task import GAPM_MSG_ID, gapm_cmp_evt, \

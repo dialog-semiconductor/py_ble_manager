@@ -1,4 +1,3 @@
-from ..gtl_messages.gtl_message_base import GTL_INITIATOR
 from ..gtl_messages.gtl_message_gapc import GapcConnectionReqInd, GapcConnectionCfm, GapcSecurityCmd, GapcCmpEvt, GapcGetInfoCmd, \
     GapcPeerFeaturesInd, GapcBondReqInd, GapcBondCfm, GapcGetDevInfoReqInd, GapcDisconnectInd, GapcParamUpdateReqInd, \
     GapcParamUpdatedInd, GapcBondInd, GapcPeerVersionInd, GapcEncryptReqInd, GapcEncryptInd

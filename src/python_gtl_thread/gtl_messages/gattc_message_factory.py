@@ -1,12 +1,12 @@
 from ctypes import c_uint8
 
-from ..gtl_messages.gtl_message_base import GTL_INITIATOR
 from ..gtl_messages.gtl_message_gattc import GattcReadReqInd, GattcWriteReqInd, GattcCmpEvt, GattcDiscSvcInd, GattcDiscCharInd, \
     GattcSdpSvcInd, GattcReadInd, GattcEventInd, GattcEventReqInd, GattcAttInfoReqInd
 from ..gtl_port.gattc_task import GATTC_MSG_ID, gattc_read_req_ind, gattc_write_req_ind, gattc_cmp_evt, gattc_disc_svc_ind, \
     gattc_disc_char_ind, gattc_sdp_svc_ind, gattc_sdp_att_info, gattc_read_ind, gattc_event_ind, gattc_event_req_ind, \
     gattc_att_info_req_ind
 from ..gtl_port.rwip_config import KE_API_ID
+
 
 class GattcMessageFactory():
 
