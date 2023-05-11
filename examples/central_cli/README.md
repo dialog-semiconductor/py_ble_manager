@@ -110,6 +110,12 @@ When the procedure is complete, a message indicationg so will be printed to the 
 
 Note the data returned is little endian.
 
+Note the Characteristic handle returned by the `GAPBROWSE` command is that of the Characteristic Declaration. To read the value of the characteristic, add 1 to the handle returned by the `GAPBROWSE` command. For example, if the `GAPBROWSE` command identifies a Characteristic handle as 12:
+
+![gapbrowse](assets/gapbrowse_char_handle.png)
+
+You would use handle 13 to read the Characteristic Value. 
+
 ### GATTWRITE
 
 `GATTWRITE <connection_index> <handle> <data>`
@@ -121,6 +127,12 @@ For example, to write 0x3412 to handle 13 of the peripheral at connection index 
 Note the data should be written little endian. When the procedure is complete, a message indicationg so will be printed to the terminal:
 
 ![gattwrite](assets/gattwrite.png)
+
+Again note the Characteristic handle returned by the `GAPBROWSE` command is that of the Characteristic Declaration. To write the value of the characteristic, add 1 to the handle returned by the `GAPBROWSE` command. For example, if the `GAPBROWSE` command identifies a Characteristic handle as 12:
+
+![gapbrowse](assets/gapbrowse_char_handle.png)
+
+You would use handle 13 to write the Characteristic Value. 
 
 ### GATTWRITENORESP
 
