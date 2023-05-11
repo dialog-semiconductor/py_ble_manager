@@ -73,15 +73,6 @@ class BleController():
         self.response_q = response_q
         self._exit = threading.Event()
 
-    def bd_addr_to_str(self, bd: ble.BdAddress) -> str:
-        return_string = ""
-        for byte in bd.addr:
-            byte_string = str(hex(byte))[2:]
-            if len(byte_string) == 1:  # Add a leading 0
-                byte_string = "0" + byte_string
-            return_string = byte_string + ":" + return_string
-        return return_string[:-1]
-
     def _command_queue_task(self):
         while True:
             command = self.command_queue_get()
@@ -96,6 +87,15 @@ class BleController():
         while True:
             evt = self.central.get_event()
             self.handle_ble_event(evt)
+
+    def bd_addr_to_str(self, bd: ble.BdAddress) -> str:
+        return_string = ""
+        for byte in bd.addr:
+            byte_string = str(hex(byte))[2:]
+            if len(byte_string) == 1:  # Add a leading 0
+                byte_string = "0" + byte_string
+            return_string = byte_string + ":" + return_string
+        return return_string[:-1]
 
     def ble_task(self):
 
@@ -447,15 +447,6 @@ class BleController():
         return return_string
 
 
-def user_main():
-    elapsed = 0
-    delay = 1
-    while True:
-        time.sleep(delay)
-        elapsed += delay
-        print(f"User Main. elapsed={elapsed}")
-
-
 def main(com_port: str):
     ble_command_q = queue.Queue()
     ble_response_q = queue.Queue()
@@ -473,6 +464,7 @@ def main(com_port: str):
     ble_task.start()
 
     while True:
+        # If one of the tasks exits, clean up and exit the application
         if cli_task.is_alive() and ble_task.is_alive():
             time.sleep(1)
         else:

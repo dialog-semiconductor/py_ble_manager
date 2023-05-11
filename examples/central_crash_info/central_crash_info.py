@@ -126,15 +126,6 @@ class BleController():
         self.device_name_char = ble.GattcItem()
         self.log_file_handle = log
 
-    def bd_addr_to_str(self, bd: ble.BdAddress) -> str:
-        return_string = ""
-        for byte in bd.addr:
-            byte_string = str(hex(byte))[2:]
-            if len(byte_string) == 1:  # Add a leading 0
-                byte_string = "0" + byte_string
-            return_string = byte_string + ":" + return_string
-        return return_string[:-1]
-
     def _command_queue_task(self):
         while True:
             command = self.command_queue_get()
@@ -149,6 +140,15 @@ class BleController():
         while True:
             evt = self.central.get_event()
             self.handle_ble_event(evt)
+
+    def bd_addr_to_str(self, bd: ble.BdAddress) -> str:
+        return_string = ""
+        for byte in bd.addr:
+            byte_string = str(hex(byte))[2:]
+            if len(byte_string) == 1:  # Add a leading 0
+                byte_string = "0" + byte_string
+            return_string = byte_string + ":" + return_string
+        return return_string[:-1]
 
     def ble_task(self):
         assert self.com_port
@@ -573,6 +573,7 @@ def main(com_port: str):
     ble_task.start()
 
     while True:
+        # If one of the tasks exits, clean up and exit the application
         if cli_task.is_alive() and ble_task.is_alive():
             time.sleep(1)
         else:
