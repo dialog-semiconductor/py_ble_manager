@@ -95,7 +95,7 @@ When the `SerialStreamManager` is initialized, two daemon threads are created. O
 
 ### gtl_messages
 
-The [gtl_messages](gtl_messages) directory contains classes implementing various GTL messages defined in the [GTL User Manual](https://www.renesas.com/us/en/document/mat/um-b-143-renesas-external-processor-interface-gtl-interface?language=en&r=1564826)  
+The [gtl_messages](#gtl_messages) directory contains classes implementing various GTL messages defined in the [GTL User Manual](https://www.renesas.com/us/en/document/mat/um-b-143-renesas-external-processor-interface-gtl-interface?language=en&r=1564826)  
 
 A generic base class for every message is defined in [gtl_message_base.py](../src/python_gtl_thread/gtl_messages/gtl_message_base.py):
 
@@ -142,11 +142,11 @@ set_dev_cmd.parameters.max_txoctets = 251
 set_dev_cmd.parameters.max_txtime = 2120
 ```
 
-In addition, the [gtl_messages](gtl_messages) directory contains factory classes for creating GTL messages from byte streams. For example, the [GattcMessageFactory](../src/python_gtl_thread/gtl_messages/gattc_message_factory.py) class coverts byte streams into the appropriate GATT client related GTL message. These are leveraged by the `BleAdapter` to create valid GTL messages from byte streams received over the serial port.
+In addition, the [gtl_messages](#gtl_messages) directory contains factory classes for creating GTL messages from byte streams. For example, the [GattcMessageFactory](../src/python_gtl_thread/gtl_messages/gattc_message_factory.py) class coverts byte streams into the appropriate GATT client related GTL message. These are leveraged by the `BleAdapter` to create valid GTL messages from byte streams received over the serial port.
 
 ### gtl_port
 
-The [gtl_port](gtl_port) directory is a port of files with GTL structure and enum definitions from their corresponding .h files. Each .h file has a corresponding .py file:
+The [gtl_port](#gtl_port) directory is a port of files with GTL structure and enum definitions from their corresponding .h files in the SDK. Each .h file has a corresponding .py file:
 
 * co_bt.h -> co_bt.py
 * co_version.h -> co_version.py
