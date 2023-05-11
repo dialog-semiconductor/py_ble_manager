@@ -458,9 +458,11 @@ def main(com_port: str):
     #   one for handling BLE
 
     cli_task = threading.Thread(target=console.start_prompt)
+    cli_task.daemon = True
     cli_task.start()
 
     ble_task = threading.Thread(target=ble_handler.ble_task)
+    ble_task.daemon = True
     ble_task.start()
 
     while True:
