@@ -25,7 +25,7 @@ class BleCentral(BleDeviceBase):
     def connect_cancel(self) -> None:
         return self._ble_gap.connect_cancel()
 
-    def disconect(self, conn_idx: int, reason: BLE_HCI_ERROR) -> BLE_ERROR:
+    def disconect(self, conn_idx: int, reason: BLE_HCI_ERROR = BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON) -> BLE_ERROR:
         return self._ble_gap.disconnect(conn_idx, reason)
 
     def discover_descriptors(self,
