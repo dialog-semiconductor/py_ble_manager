@@ -49,7 +49,7 @@ Open a new terminal in VS Code and the virtual enviornment will be activated.
 
 ## Basic Usage
 
-Create a BLE Central object and perform initilization:
+### Create a BLE Central object and perform initilization:
 
 ```
 import python_gtl_thread as ble
@@ -66,7 +66,9 @@ central.start()
 central.set_io_cap(ble.GAP_IO_CAPABILITIES.GAP_IO_CAP_KEYBOARD_DISP)
 ```
 
-Initiate BLE Operations
+### Initiate a BLE Operation. 
+
+Some examples include:
 
 Scanning:
 ```
@@ -85,16 +87,37 @@ connection_params = ble.GapConnParams(interval_min_ms=50, interval_max_ms=70, sl
 central.connect(peripheral_addr, connection_params)
 ```
 
-Read Characteristic
+Read characteristic value
 ```
 central.read(conn_idx=0, handle=24, offset=0) 
 ```
 
-Handle asynchronus events:
+Write characteristic value
 ```
+central.write(conn_idx=0, handle=24, offset=0, value=1234) 
+```
+
+Disconnect
+```
+central.disconnect(conn_idx=0) 
+```
+
+### Handle any asynchronus events.
+
+The framework returns asynchronous events through an event queue. Calling `BleCentral.get_event()` will get an event from the queue. All of the events returned by `BleCentral.get_event()` are a subclass of `BleEventBase`. 
+A variety of different events occur throughout the life a BLE application. Some example events include `BleEventGapConnectionCompleted`, `BleEventGapDisconnected`, `BleEventGattcReadCompleted`, `BleEventGattcWriteCompleted`. 
+Each event has an `evt_code` to identify the type of event.  
+
+For example, after you initiate a write you will receive a `BleEventGattcWriteCompleted` event which has an `evt_code` of `BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED`. Your application can
+handle the event however it sees fit. If your application does not handle the event, call the `BleCentral.handle_event_default()` to have the BLE framework process the event for you. 
+```
+# This call will block until an event is available
 evt = central.get_event()
-    if evt:
+    
+    # Determine which event occurred. It will be a BLE_EVT_GAP, BLE_EVT_GATTC, or BLE_EVT_GATTS
     match evt.evt_code:
+
+        # Handle the event
         case ble.BLE_EVT_GAP.BLE_EVT_GAP_ADV_REPORT:
             handle_evt_gap_adv_report(evt)
         case ble.BLE_EVT_GAP.BLE_EVT_GAP_SCAN_COMPLETED:
@@ -115,7 +138,9 @@ evt = central.get_event()
             handle_evt_gattc_write_completed(evt)
         case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_READ_COMPLETED:
             handle_evt_gattc_read_completed(evt)
+
         case _:
+            # For any events not handled by your application, call the BleCentral default handler to process the event
             central.handle_event_default(evt)
 ```
 
