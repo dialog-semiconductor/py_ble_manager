@@ -3,16 +3,17 @@ import sys
 import time
 import python_gtl_thread as ble
 
+
 def main(com_port, peripheral_addr):
     central = ble.BleCentral(com_port)
 
     # Initialize the Pytohn BLE Framework
     central.init()
 
-    # Start operating as a BLE Central 
+    # Start operating as a BLE Central
     central.start()
 
-    peripheral_addr = ble.BleUtils.str_to_bd_addr(peripheral_addr) 
+    peripheral_addr = ble.BleUtils.str_to_bd_addr(peripheral_addr)
     connection_params = ble.GapConnParams(interval_min_ms=50, interval_max_ms=70, slave_latency=0, sup_timeout_ms=420)
     central.connect(peripheral_addr, connection_params)
 

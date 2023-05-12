@@ -290,7 +290,6 @@ class BleController():
         print(f"Address resolved: conn_idx={evt.conn_idx}, resolved_address={ble.BleUtils.bd_addr_to_str(evt.resolved_address)}")
 
     def handle_evt_gap_adv_report(self, evt: ble.BleEventGapAdvReport):
-        
 
         print(f"Advertisment: address={ble.BleUtils.bd_addr_to_str(evt.address)} "
               + f"rssi={evt.rssi}, data={evt.data.hex()}")

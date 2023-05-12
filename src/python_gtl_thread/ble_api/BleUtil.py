@@ -16,7 +16,6 @@ class BleUtils():
         return_string += ",P" if bd.addr_type == BLE_ADDR_TYPE.PUBLIC_ADDRESS else ",R"
         return return_string
 
-
     @staticmethod
     def str_to_bd_addr(bd_addr_str: str) -> BdAddress:
         '''

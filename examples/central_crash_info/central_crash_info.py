@@ -489,10 +489,10 @@ class BleController():
         # self.response_q.put("EXIT")
         self._exit.set()
 
+
 def create_log():
 
-    # Create the log directory if nec
-    # yessary
+    # Create the log directory if necessary
     logs_directory = f"{FILE_PATH}\\logs"
     if not os.path.exists(logs_directory):
         os.makedirs(logs_directory)
@@ -543,7 +543,7 @@ def main(com_port: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog='BLE Central Crash Info CLI',
-                                     description='A command line interface for retreiving crash information from a peripheral running the Debug Crash Info ' \
+                                     description='A command line interface for retreiving crash information from a peripheral running the Debug Crash Info '
                                      + 'Service')
 
     parser.add_argument("com_port", type=str, help='COM port for your development kit')

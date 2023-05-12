@@ -4,9 +4,9 @@ This example provides a command line interface to control a BLE central deivce. 
 
 You can run it with:
 
-`python central_cli.py <COM_PORT>`
+`python central_cli.py <com_port>`
 
-where `<COM_PORT>` is the COM port associated with your development kit. Note, in the case of the Pro development kit there will be two COM ports associated with your development kit. You should use the lower of the two.
+where `<com_port>` is the COM port associated with your development kit. Note, in the case of the Pro development kit there will be two COM ports associated with your development kit. You should use the lower of the two.
 
 Once running, you will be provided with a prompt:
 
@@ -132,7 +132,7 @@ Again note the Characteristic handle returned by the `GAPBROWSE` command is that
 
 ![gapbrowse](assets/gapbrowse_char_handle.png)
 
-You would use handle 13 to write the characteristic value. 
+You would use handle 13 to write the characteristic value.
 
 ### GATTWRITENORESP
 
@@ -141,7 +141,6 @@ You would use handle 13 to write the characteristic value.
 For example, to perform a signed write or 0x3412 to handle 13 of the peripheral at connection index 0:
 
 `GATTWRITENORESP 0 13 1 1234`
-
 
 ### GAPSETCONNPARAM
 

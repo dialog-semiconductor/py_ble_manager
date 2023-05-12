@@ -2,7 +2,7 @@
 
 ## Framework Overview
 
-The intent of this library is to provide a python interface similar to [SDK10](http://lpccs-docs.renesas.com/um-b-092-da1469x_software_platform_reference/User_guides/User_guides.html#the-ble-framework) for controlling BLE of DA14xxx devices. 
+The intent of this library is to provide a python interface similar to [SDK10](http://lpccs-docs.renesas.com/um-b-092-da1469x_software_platform_reference/User_guides/User_guides.html#the-ble-framework) for controlling BLE of DA14xxx devices.
 
 The BLE Framework implemented in SDK10 is depecited below:
 
@@ -30,13 +30,14 @@ For example, the `BleCentral` class implements methods for scanning, connecting,
 
 The method signatures of these classes are anagolous to their SDK10 counterparts. For example, the scan start function in SDK10 is defined as:
 
-```
+```C
 ble_error_t ble_gap_scan_start(gap_scan_type_t type, gap_scan_mode_t mode, uint16_t interval,
                            uint16_t window, bool filt_wlist, bool filt_dupl)
 ```
 
 The scan start function in python is defined as:
-```
+
+```Python
     def scan_start(self,
                    type: GAP_SCAN_TYPE = GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
                    mode: GAP_SCAN_MODE = GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
@@ -88,6 +89,7 @@ When the `BleAdapter` is initialized, two daemon threads are created. One to rec
 The [serial_manager](#serial_manager) directory contains classes that implement the functionality of the `Serial Manager` layer, specifically the `SerialStreamManager` class.
 
 The `Serial Manager` layer is concerned with:
+
 - Transmitting byte streams from the [BleAdapter](#adapter) over the serial port
 - Receiving byte streams over the serial port from the DA14xxx development kit and providing them to the [BleAdapter](#adapter) for consumption.
 
@@ -132,7 +134,7 @@ reset_cmd = GapmResetCmd(parameters = gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
 
 If no `parameters` are specified when the message is created, default `parameters` will be created. The parameters can then be modified after construction as demonstrated in the  `GapmSetDevConfigCmd` below:
 
-```python 
+```Python
 set_dev_cmd = GapmSetDevConfigCmd()
 set_dev_cmd.parameters.operation = GAPM_OPERATION.GAPM_SET_DEV_CONFIG
 set_dev_cmd.parameters.role = GAP_ROLE.GAP_ROLE_PERIPHERAL
@@ -148,13 +150,13 @@ In addition, the [gtl_messages](#gtl_messages) directory contains factory classe
 
 The [gtl_port](#gtl_port) directory is a port of files with GTL structure and enum definitions from their corresponding .h files in the SDK. Each .h file has a corresponding .py file:
 
-* co_bt.h -> co_bt.py
-* co_version.h -> co_version.py
-* gap.h -> gap.py
-* gapm_task.h -> gapm_task.py
-* rwble_hl_error.h -> rwble_hl_error.py
-* rwip_config.h -> rwip_config.py
-* etc.
+- co_bt.h -> co_bt.py
+- co_version.h -> co_version.py
+- gap.h -> gap.py
+- gapm_task.h -> gapm_task.py
+- rwble_hl_error.h -> rwble_hl_error.py
+- rwip_config.h -> rwip_config.py
+- etc.
 
 The C enums defined in these .h files are defined as Python IntEnums in the corresponding .py file.
 

@@ -1,13 +1,13 @@
 # central_crash_info
 
-This example provides a command line interface to retreive crash information from a DA14531 peripheral running the Debug Crash Info Service. See the 
-[Debug Crash Info Github](https://github.com/Renesas-US-Connectivity/dlg_crash_info) for additional details. 
+This example provides a command line interface to retreive crash information from a DA14531 peripheral running the Debug Crash Info Service. See the
+[Debug Crash Info Github](https://github.com/Renesas-US-Connectivity/dlg_crash_info) for additional details.
 
 You can run it with:
 
-`python central_crash_info.py <COM_PORT>`
+`python central_crash_info.py <com_port>`
 
-where `<COM_PORT>` is the COM port associated with your development kit. Note, in the case of the Pro development kit there will be two COM ports associated with your development kit. You should use the lower of the two.
+where `<com_port>` is the COM port associated with your development kit. Note, in the case of the Pro development kit there will be two COM ports associated with your development kit. You should use the lower of the two.
 
 Once running, you will be provided with a prompt:
 

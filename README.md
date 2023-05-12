@@ -18,7 +18,7 @@ The primary intent is for use as a central device for benchtop testing, continuo
 
 2. Connect the jumpers on the DA14531 Pro Development kit as depicted below:
 
-![da14531_jumpers](assets/da14531_pro_kit_jumpers.png)
+    ![da14531_jumpers](assets/da14531_pro_kit_jumpers.png)
 
 3. Download the GTL enabled [firmware binary](firmware/da14531mod_pro_kit.bin) to the DA14531 Pro Development kit.
 
@@ -49,9 +49,9 @@ Open a new terminal in VS Code and the virtual enviornment will be activated.
 
 ## Basic Usage
 
-### Create a BLE Central object and perform initilization:
+### Create a BLE Central object and perform initilization
 
-```
+```Python
 import python_gtl_thread as ble
 
 central = ble.BleCentral("COM54")
@@ -71,7 +71,8 @@ central.set_io_cap(ble.GAP_IO_CAPABILITIES.GAP_IO_CAP_KEYBOARD_DISP)
 Some examples include:
 
 Scanning:
-```
+
+```Python
 central.scan_start(type=ble.GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
                    mode=ble.GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
                    interval=160,
@@ -81,36 +82,41 @@ central.scan_start(type=ble.GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
 ```
 
 Connecting:
-```
+
+```Python
 peripheral_addr = ble.BleUtils.str_to_bd_addr("48:23:35:00:1b:53,P") 
 connection_params = ble.GapConnParams(interval_min_ms=50, interval_max_ms=70, slave_latency=0, sup_timeout_ms=420)
 central.connect(peripheral_addr, connection_params)
 ```
 
 Read a characteristic value
-```
+
+```Python
 central.read(conn_idx=0, handle=24, offset=0) 
 ```
 
 Write a characteristic value
-```
+
+```Python
 central.write(conn_idx=0, handle=24, offset=0, value=1234) 
 ```
 
 Disconnect
-```
+
+```Python
 central.disconnect(conn_idx=0) 
 ```
 
 ### Handle asynchronus events
 
-The framework returns asynchronous events to the application through an event queue. Calling `BleCentral.get_event()` will get an event from the queue. All of the events returned by `BleCentral.get_event()` are a subclass of `BleEventBase`. 
-A variety of different events occur throughout the life a BLE application. Some example events include `BleEventGapConnectionCompleted`, `BleEventGapDisconnected`, `BleEventGattcReadCompleted`, `BleEventGattcWriteCompleted`. 
+The framework returns asynchronous events to the application through an event queue. Calling `BleCentral.get_event()` will get an event from the queue. All of the events returned by `BleCentral.get_event()` are a subclass of `BleEventBase`.
+A variety of different events occur throughout the life a BLE application. Some example events include `BleEventGapConnectionCompleted`, `BleEventGapDisconnected`, `BleEventGattcReadCompleted`, `BleEventGattcWriteCompleted`.
 Each event has an `evt_code` to identify the type of event.  
 
 For example, after you initiate a write you will receive a `BleEventGattcWriteCompleted` event which has an `evt_code` of `BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED`. Your application can
-handle the event however it sees fit. If your application does not handle the event, call the `BleCentral.handle_event_default()` to have the BLE framework process the event for you. 
-```
+handle the event however it sees fit. If your application does not handle the event, call the `BleCentral.handle_event_default()` to have the BLE framework process the event for you.
+
+```Python
 # This call will block until an event is available
 evt = central.get_event()
     
