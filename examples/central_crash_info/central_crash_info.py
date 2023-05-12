@@ -112,10 +112,9 @@ class BleController():
         self._exit = threading.Event()
         #                                 name, adv packet, scan rsp packet
         self.scan_dict: dict[bytes, tuple[str, ble.BleEventGapAdvReport, ble.BleEventGapAdvReport]] = {}
-        self.crash_info_uuid: ble.AttUuid = self.uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR)
+        self.crash_info_uuid: ble.AttUuid = ble.BleUtils.uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR)
 
         self.connected_addr: ble.BdAddress = ble.BdAddress()
-        self.periph_addr_str = ""
         self.browse_data = []
         self.dci_svc = DebugCrashInfoSvc()
         self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_NONE
@@ -140,15 +139,6 @@ class BleController():
             evt = self.central.get_event()
             if evt:
                 self.handle_ble_event(evt)
-
-    def bd_addr_to_str(self, bd: ble.BdAddress) -> str:
-        return_string = ""
-        for byte in bd.addr:
-            byte_string = str(hex(byte))[2:]
-            if len(byte_string) == 1:  # Add a leading 0
-                byte_string = "0" + byte_string
-            return_string = byte_string + ":" + return_string
-        return return_string[:-1]
 
     def ble_task(self):
         assert self.com_port
@@ -223,9 +213,7 @@ class BleController():
                 case "GETALLRESETDATA":
                     # Expected command format: >>>GETALLRESETDATA 48:23:35:00:1b:53,P
                     if len(args) == 2:
-                        self.periph_addr_str, addr_type_str = args[1].split(',')
-                        addr_type = ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS if addr_type_str == 'P' else ble.BLE_ADDR_TYPE.PRIVATE_ADDRESS
-                        periph_bd = self.str_to_bd_addr(addr_type, self.periph_addr_str)
+                        periph_bd = ble.BleUtils.str_to_bd_addr(args[1])
                         periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
                         error = self.central.connect(periph_bd, periph_conn_params)
 
@@ -282,13 +270,13 @@ class BleController():
 
     def handle_evt_gap_connected(self, evt: ble.BleEventGapConnected):
         self.connected_addr = evt.peer_address
-        self.log(f"Connected to: address={self.bd_addr_to_str(evt.peer_address)}")
+        self.log(f"Connected to: address={ble.BleUtils.bd_addr_to_str(evt.peer_address)}")
 
     def handle_evt_gap_connection_compelted(self, evt: ble.BleEventGapConnectionCompleted):
         self.log(f"Connection completed: status={evt.status.name}")
 
     def handle_evt_gap_disconnected(self, evt: ble.BleEventGapDisconnected):
-        self.log(f"Disconnected from addr={self.bd_addr_to_str(evt.address)}")
+        self.log(f"Disconnected from addr={ble.BleUtils.bd_addr_to_str(evt.address)}")
 
     def handle_evt_gap_scan_completed(self, evt: ble.BleEventGapScanCompleted):
         self.log("Scan complete")
@@ -296,8 +284,7 @@ class BleController():
         # Display information for all devices advertising with the Debug Crash Info Service
         for key in self.scan_dict:
             name, adv_packet, scan_rsp = self.scan_dict[key]
-            addr_type_str = "P" if adv_packet.address.addr_type == ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS else "R"
-            device_info += f"Device name: {name}, addr: {self.bd_addr_to_str(adv_packet.address)},{addr_type_str}"
+            device_info += f"Device name: {name}, addr: {ble.BleUtils.bd_addr_to_str(adv_packet.address)}"
 
             ad_structs = self.parse_adv_data(adv_packet)
             for ad_struct in ad_structs:
@@ -313,13 +300,13 @@ class BleController():
     def handle_evt_gattc_browse_svc(self, evt: ble.BleEventGattcBrowseSvc):
 
         # If browse info is for Debug Crash Info Service,  store attribute handles so we can access attributes via read/write/etc.
-        if (self.uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR) == evt.uuid):
+        if (ble.BleUtils.uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR) == evt.uuid):
             self.dci_svc.svc_handle = evt.start_h
             for item in evt.items:
                 if item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_CHARACTERISTIC:
-                    if item.uuid == self.uuid_from_str(DEBUG_CRASH_INFO_RX_CHAR_UUID_STR):
+                    if item.uuid == ble.BleUtils.uuid_from_str(DEBUG_CRASH_INFO_RX_CHAR_UUID_STR):
                         self.dci_svc.rx = item
-                    elif item.uuid == self.uuid_from_str(DEBUG_CRASH_INFO_TX_CHAR_UUID_STR):
+                    elif item.uuid == ble.BleUtils.uuid_from_str(DEBUG_CRASH_INFO_TX_CHAR_UUID_STR):
                         self.dci_svc.tx = item
 
                 elif item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_DESCRIPTOR:
@@ -328,9 +315,9 @@ class BleController():
                     elif (item.handle == self.dci_svc.tx.handle + 2
                             or item.handle == self.dci_svc.tx.handle + 3):
 
-                        if self.uuid_to_str(item.uuid) == CCC_UUID_STR:
+                        if ble.BleUtils.uuid_to_str(item.uuid) == CCC_UUID_STR:
                             self.dci_svc.tx_ccc = item
-                        elif self.uuid_to_str(item.uuid) == CCC_UUID_STR:
+                        elif ble.BleUtils.uuid_to_str(item.uuid) == CCC_UUID_STR:
                             self.dci_svc.tx_user_desc = item
 
     def handle_evt_gattc_notification(self, evt: ble.BleEventGattcNotification):
@@ -351,7 +338,7 @@ class BleController():
     def log_reset_data(self):
         self.log("*******************Debug Crash Info*******************")
         self.log(f"Device name: {self.connected_name}")
-        self.log(f"Device address: {self.bd_addr_to_str(self.connected_addr)}")
+        self.log(f"Device address: {ble.BleUtils.bd_addr_to_str(self.connected_addr)}")
         self.log(f"Last reset reason: {self.reset_data.last_reset_reason.name}")
         self.log(f"Number of resets: {self.reset_data.num_resets}")
 
@@ -441,7 +428,7 @@ class BleController():
                     evt: ble.BleEventGattcReadCompleted
                     self.connected_name = evt.value.decode("utf-8")
                     self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_BROWSE_DCI
-                    self.central.browse(0, self.uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR))
+                    self.central.browse(0, ble.BleUtils.uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR))
 
             case FETCH_DATA_STATE.FETCH_DATA_BROWSE_DCI:
                 evt: ble.BleEventGattcBrowseCompleted
@@ -501,37 +488,6 @@ class BleController():
         self.log_file_handle.close()
         # self.response_q.put("EXIT")
         self._exit.set()
-
-    def str_to_bd_addr(self, type: ble.BLE_ADDR_TYPE, bd_addr_str: str) -> ble.BdAddress:
-        bd_addr_str = bd_addr_str.replace(":", "")
-        bd_addr_list = [int(bd_addr_str[idx:idx + 2], 16) for idx in range(0, len(bd_addr_str), 2)]
-        bd_addr_list.reverse()  # mcu is little endian
-        return ble.BdAddress(type, bytes(bd_addr_list))
-
-    def uuid_from_str(self, uuid_str: str) -> ble.AttUuid:
-        uuid_str = uuid_str.replace("-", "")
-        uuid_list = [int(uuid_str[idx:idx + 2], 16) for idx in range(0, len(uuid_str), 2)]
-        uuid_list.reverse()  # mcu is little endian
-        return ble.AttUuid(bytes(uuid_list))
-
-    def uuid_to_str(self, uuid: ble.AttUuid) -> str:
-        data = uuid.uuid
-        return_string = ""
-        if uuid.type == ble.ATT_UUID_TYPE.ATT_UUID_128:
-            for byte in data:
-                byte_string = str(hex(byte))[2:]
-                if len(byte_string) == 1:  # Add a leading 0
-                    byte_string = "0" + byte_string
-                return_string = byte_string + return_string
-        else:
-            for i in range(1, -1, -1):
-                byte_string = str(hex(data[i]))[2:]
-                if len(byte_string) == 1:
-                    byte_string = "0" + byte_string
-                return_string += byte_string
-
-        return return_string
-
 
 def create_log():
 

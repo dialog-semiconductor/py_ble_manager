@@ -89,15 +89,6 @@ class BleController():
             if evt:
                 self.handle_ble_event(evt)
 
-    def bd_addr_to_str(self, bd: ble.BdAddress) -> str:
-        return_string = ""
-        for byte in bd.addr:
-            byte_string = str(hex(byte))[2:]
-            if len(byte_string) == 1:  # Add a leading 0
-                byte_string = "0" + byte_string
-            return_string = byte_string + ":" + return_string
-        return return_string[:-1]
-
     def ble_task(self):
 
         self.services = ble.SearchableQueue()
@@ -144,9 +135,7 @@ class BleController():
 
                 case "GAPCONNECT":
                     if len(args) == 2:
-                        self.periph_addr_str, addr_type_str = args[1].split(',')
-                        addr_type = ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS if addr_type_str == 'P' else ble.BLE_ADDR_TYPE.PRIVATE_ADDRESS
-                        periph_bd = self.str_to_bd_addr(addr_type, self.periph_addr_str)
+                        periph_bd = ble.BleUtils.str_to_bd_addr(args[1])
                         periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
                         error = self.central.connect(periph_bd, periph_conn_params)
 
@@ -298,12 +287,12 @@ class BleController():
                 self.central.handle_event_default(evt)
 
     def handle_evt_gap_address_resolved(self, evt: ble.BleEventGapAddressResolved):
-        print(f"Address resolved: conn_idx={evt.conn_idx}, resolved_address={self.bd_addr_to_str(evt.resolved_address)}")
+        print(f"Address resolved: conn_idx={evt.conn_idx}, resolved_address={ble.BleUtils.bd_addr_to_str(evt.resolved_address)}")
 
     def handle_evt_gap_adv_report(self, evt: ble.BleEventGapAdvReport):
-        addr_type_str = "P" if evt.address.addr_type == ble.BLE_ADDR_TYPE.PUBLIC_ADDRESS else "R"
+        
 
-        print(f"Advertisment: address={self.bd_addr_to_str(evt.address)},{addr_type_str} "
+        print(f"Advertisment: address={ble.BleUtils.bd_addr_to_str(evt.address)} "
               + f"rssi={evt.rssi}, data={evt.data.hex()}")
         # adv_structs = self.parse_adv_data(evt)
         # print("AD Structs:")
@@ -312,7 +301,7 @@ class BleController():
         # print("")
 
     def handle_evt_gap_connected(self, evt: ble.BleEventGapConnected):
-        print(f"Connected to: addr={self.bd_addr_to_str(evt.peer_address)}, conn_idx={evt.conn_idx}")
+        print(f"Connected to: addr={ble.BleUtils.bd_addr_to_str(evt.peer_address)}, conn_idx={evt.conn_idx}")
 
     def handle_evt_gap_connection_compelted(self, evt: ble.BleEventGapConnectionCompleted):
         print(f"Connection completed: status={evt.status.name}")
@@ -324,7 +313,7 @@ class BleController():
         print(f"Connection Parameters update completed: status={evt.status.name}")
 
     def handle_evt_gap_disconnected(self, evt: ble.BleEventGapDisconnected):
-        print(f"Disconnected from to: addr={self.bd_addr_to_str(evt.address)}")
+        print(f"Disconnected from: addr={ble.BleUtils.bd_addr_to_str(evt.address)}")
 
     def handle_evt_gap_numeric_request(central: ble.BleCentral, evt: ble.BleEventGapNumericRequest):
         print(f"Numeric Request: conn_idx={evt.conn_idx}, num_key={evt.num_key}")
@@ -357,15 +346,15 @@ class BleController():
 
     def handle_evt_gattc_browse_svc(self, evt: ble.BleEventGattcBrowseSvc):
 
-        print(f"Service discovered: uuid={self.uuid_to_str(evt.uuid)}. handle={evt.start_h}")
+        print(f"Service discovered: uuid={ble.BleUtils.uuid_to_str(evt.uuid)}. handle={evt.start_h}")
         for item in evt.items:
             if item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_INCLUDE:
-                print(f"\tIncluded service discovered: handle={item.handle}, uuid={self.uuid_to_str(item.uuid)}")
+                print(f"\tIncluded service discovered: handle={item.handle}, uuid={ble.BleUtils.uuid_to_str(item.uuid)}")
             elif item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_CHARACTERISTIC:
-                print(f"\tCharacteristic discovered: handle={item.handle}, uuid={self.uuid_to_str(item.uuid)}, prop={item.char_data.properties} "
+                print(f"\tCharacteristic discovered: handle={item.handle}, uuid={ble.BleUtils.uuid_to_str(item.uuid)}, prop={item.char_data.properties} "
                       + f"{self.format_properties(item.char_data.properties)}")
             elif item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_DESCRIPTOR:
-                print(f"\t\tDescriptor discovered: handle={item.handle}, uuid={self.uuid_to_str(item.uuid)}")
+                print(f"\t\tDescriptor discovered: handle={item.handle}, uuid={ble.BleUtils.uuid_to_str(item.uuid)}")
 
     def handle_evt_gattc_discover_char(self, evt: ble.BleEventGattcDiscoverChar):
         print(f"main_central handle_evt_gattc_discover_char unimplemented. evt={evt}")
@@ -420,30 +409,6 @@ class BleController():
 
     def shutdown(self):
         self._exit.set()
-
-    def str_to_bd_addr(self, type: ble.BLE_ADDR_TYPE, bd_addr_str: str) -> ble.BdAddress:
-        bd_addr_str = bd_addr_str.replace(":", "")
-        bd_addr_list = [int(bd_addr_str[idx:idx + 2], 16) for idx in range(0, len(bd_addr_str), 2)]
-        bd_addr_list.reverse()  # mcu is little endian
-        return ble.BdAddress(type, bytes(bd_addr_list))
-
-    def uuid_to_str(self, uuid: ble.AttUuid) -> str:
-        data = uuid.uuid
-        return_string = ""
-        if uuid.type == ble.ATT_UUID_TYPE.ATT_UUID_128:
-            for byte in data:
-                byte_string = str(hex(byte))[2:]
-                if len(byte_string) == 1:  # Add a leading 0
-                    byte_string = "0" + byte_string
-                return_string = byte_string + return_string
-        else:
-            for i in range(1, -1, -1):
-                byte_string = str(hex(data[i]))[2:]
-                if len(byte_string) == 1:
-                    byte_string = "0" + byte_string
-                return_string += byte_string
-
-        return return_string
 
 
 def main(com_port: str):

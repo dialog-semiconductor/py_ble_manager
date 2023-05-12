@@ -20,6 +20,8 @@ from .ble_api.BleGattc import GATTC_DISCOVERY_TYPE, GATTC_ITEM_TYPE, GattcServic
 
 from .ble_api.BleGatts import GATTS_FLAG, BleEventGattsEventSent, BleEventGattsPrepareWriteReq, BleEventGattsReadReq, BleEventGattsWriteReq
 
+from .ble_api.BleUtil import BleUtils
+
 from .ble_devices.BleCentral import BleCentral
 from .ble_devices.BlePeripheral import BlePeripheral
 from .manager.BleManagerStorage import SearchableQueue
