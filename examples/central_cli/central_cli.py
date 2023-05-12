@@ -442,10 +442,10 @@ def main(com_port: str):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog='main_central',
-                                     description='BLE Central AT Command CLI')
+    parser = argparse.ArgumentParser(prog='BLE Central CLI',
+                                     description='A command line interface for controlling a BLE Central device')
 
-    parser.add_argument("com_port")
+    parser.add_argument("com_port", type=str, help='COM port for your development kit')
 
     args = parser.parse_args()
 
