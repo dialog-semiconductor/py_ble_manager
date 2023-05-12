@@ -1620,12 +1620,6 @@ class BleManagerGap(BleManagerBase):
         self._mgr_response_queue_send(response)
         self.dev_params_release()
 
-    def set_io_cap(self, io_cap: GAP_IO_CAPABILITIES) -> BLE_ERROR:
-        self.dev_params_acquire()
-        self._dev_params.io_capabilities = io_cap
-        self.dev_params_release()
-        return BLE_ERROR.BLE_STATUS_OK
-
 
 '''
 static const ble_mgr_cmd_handler_t h_gap[BLE_MGR_CMD_GET_IDX(BLE_MGR_GAP_LAST_CMD)] = {

@@ -193,4 +193,7 @@ class BleManager(BleManagerBase):
         self.dev_params_release()
 
     def set_io_cap(self, io_cap: GAP_IO_CAPABILITIES) -> BLE_ERROR:
-        return self.gap_mgr.set_io_cap(io_cap)
+        self.dev_params_acquire()
+        self._dev_params.io_capabilities = io_cap
+        self.dev_params_release()
+        return BLE_ERROR.BLE_STATUS_OK
