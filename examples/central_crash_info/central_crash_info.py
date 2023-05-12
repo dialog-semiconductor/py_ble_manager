@@ -138,7 +138,8 @@ class BleController():
     def _event_queue_task(self):
         while True:
             evt = self.central.get_event()
-            self.handle_ble_event(evt)
+            if evt:
+                self.handle_ble_event(evt)
 
     def bd_addr_to_str(self, bd: ble.BdAddress) -> str:
         return_string = ""

@@ -62,8 +62,8 @@ class BleDeviceBase():
         # except concurrent.futures.TimeoutError as e:
         #    raise e
 
-    def get_event(self) -> BleEventBase:
-        return self._ble_manager.mgr_event_queue_get()
+    def get_event(self, timeout=None) -> BleEventBase:
+        return self._ble_manager.mgr_event_queue_get(timeout)
 
     def numeric_reply(self, conn_idx: int, accept: bool):
         return self._ble_gap.numeric_reply(conn_idx, accept)
