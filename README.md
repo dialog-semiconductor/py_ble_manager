@@ -120,7 +120,7 @@ handle the event however it sees fit. If your application does not handle the ev
 # This call will block until an event is available
 evt = central.get_event()
     
-    # Determine which event occurred. It will be a BLE_EVT_GAP, BLE_EVT_GATTC, or BLE_EVT_GATTS
+    # Determine which event occurred. It will be of type BLE_EVT_GAP, BLE_EVT_GATTC, or BLE_EVT_GATTS
     match evt.evt_code:
 
         # Handle the event
