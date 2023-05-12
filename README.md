@@ -56,7 +56,7 @@ import python_gtl_thread as ble
 
 central = ble.BleCentral("COM54")
 
-# Initialize the Pytohn BLE Framework
+# Initialize the Python BLE Framework
 central.init()
 
 # Start operating as a BLE Central 
@@ -66,7 +66,7 @@ central.start()
 central.set_io_cap(ble.GAP_IO_CAPABILITIES.GAP_IO_CAP_KEYBOARD_DISP)
 ```
 
-### Initiate a BLE Operation. 
+### Initiate a BLE Operation
 
 Some examples include:
 
@@ -87,12 +87,12 @@ connection_params = ble.GapConnParams(interval_min_ms=50, interval_max_ms=70, sl
 central.connect(peripheral_addr, connection_params)
 ```
 
-Read characteristic value
+Read a characteristic value
 ```
 central.read(conn_idx=0, handle=24, offset=0) 
 ```
 
-Write characteristic value
+Write a characteristic value
 ```
 central.write(conn_idx=0, handle=24, offset=0, value=1234) 
 ```
@@ -102,9 +102,9 @@ Disconnect
 central.disconnect(conn_idx=0) 
 ```
 
-### Handle any asynchronus events.
+### Handle asynchronus events
 
-The framework returns asynchronous events through an event queue. Calling `BleCentral.get_event()` will get an event from the queue. All of the events returned by `BleCentral.get_event()` are a subclass of `BleEventBase`. 
+The framework returns asynchronous events to the application through an event queue. Calling `BleCentral.get_event()` will get an event from the queue. All of the events returned by `BleCentral.get_event()` are a subclass of `BleEventBase`. 
 A variety of different events occur throughout the life a BLE application. Some example events include `BleEventGapConnectionCompleted`, `BleEventGapDisconnected`, `BleEventGattcReadCompleted`, `BleEventGattcWriteCompleted`. 
 Each event has an `evt_code` to identify the type of event.  
 
