@@ -84,7 +84,7 @@ central.scan_start(type=ble.GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
 Connecting:
 
 ```Python
-peripheral_addr = ble.BleUtils.str_to_bd_addr("48:23:35:00:1b:53,P") 
+peripheral_addr: ble.BdAddress = ble.BleUtils.str_to_bd_addr("48:23:35:00:1b:53,P") 
 connection_params = ble.GapConnParams(interval_min_ms=50, interval_max_ms=70, slave_latency=0, sup_timeout_ms=420)
 central.connect(peripheral_addr, connection_params)
 ```
