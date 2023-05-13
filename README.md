@@ -117,7 +117,7 @@ For example, after you initiate a write you will receive a `BleEventGattcWriteCo
 handle the event however it sees fit. If your application does not handle the event, call the `BleCentral.handle_event_default()` to have the BLE framework process the event for you.
 
 ```Python
-# This call will block until an event is available
+# This call will block until an event is available. Use the timeout parameter to block for a specified period of time
 evt = central.get_event()
     
     # Determine which event occurred. It will be of type BLE_EVT_GAP, BLE_EVT_GATTC, or BLE_EVT_GATTS
