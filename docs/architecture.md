@@ -38,14 +38,14 @@ ble_error_t ble_gap_scan_start(gap_scan_type_t type, gap_scan_mode_t mode, uint1
 The scan start function in python is defined as:
 
 ```Python
-    def scan_start(self,
-                   type: GAP_SCAN_TYPE = GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
-                   mode: GAP_SCAN_MODE = GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
-                   interval: int = 0,
-                   window: int = 0,
-                   filt_wlist: bool = False,
-                   filt_dupl: bool = False
-                   ) -> BLE_ERROR:
+def scan_start(self,
+                type: GAP_SCAN_TYPE = GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
+                mode: GAP_SCAN_MODE = GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
+                interval: int = 0,
+                window: int = 0,
+                filt_wlist: bool = False,
+                filt_dupl: bool = False
+                ) -> BLE_ERROR:
 ```
 
 The methods exposed by these classes are wrappers for class methods defined in the [ble_api](#ble_api). The intent is to provide a single object that encapsulates all the functionality for implementing a BLE central (or peripheral) device.  
