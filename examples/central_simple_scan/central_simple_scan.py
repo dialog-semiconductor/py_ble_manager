@@ -21,26 +21,27 @@ def main(com_port):
                        filt_dupl=True)
 
     while True:
-        # Wait for asynchronus events to arrive
-        evt = central.get_event()
+        # Wait for asynchronus events to arrive. A timeout is set to allow for Keyboard interrupts
+        evt = central.get_event(timeout=1)
+        if evt:
+            match evt.evt_code:
 
-        # Print out data for each advertisement received
-        if evt.evt_code == ble.BLE_EVT_GAP.BLE_EVT_GAP_ADV_REPORT:
-            # Print out received advertisement data
-            evt: ble.BleEventGapAdvReport
-            print(f"Advertisment: address={ble.BleUtils.bd_addr_to_str(evt.address)} "
-                  + f"rssi={evt.rssi}, data={evt.data.hex()}")
+                # Print out data for each advertisement received
+                case ble.BLE_EVT_GAP.BLE_EVT_GAP_ADV_REPORT:
+                    evt: ble.BleEventGapAdvReport
+                    print(f"Advertisment: address={ble.BleUtils.bd_addr_to_str(evt.address)} "
+                          + f"rssi={evt.rssi}, data={evt.data.hex()}")
 
-        # When the scan is complete, exit
-        elif evt.evt_code == ble.BLE_EVT_GAP.BLE_EVT_GAP_SCAN_COMPLETED:
-            evt: ble.BleEventGapScanCompleted
-            print("Scan completed")
-            sys.exit()
+                # When the scan is complete, exit
+                case ble.BLE_EVT_GAP.BLE_EVT_GAP_SCAN_COMPLETED:
+                    evt: ble.BleEventGapScanCompleted
+                    print("Scan completed")
+                    sys.exit()
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog='main_central',
-                                     description='BLE Central Simple Scan')
+    parser = argparse.ArgumentParser(prog='BLE Central Simple Scan ',
+                                     description='A simple example demonstrating scanning for peripherals')
 
     parser.add_argument("com_port", type=str, help='COM port for your development kit')
 
