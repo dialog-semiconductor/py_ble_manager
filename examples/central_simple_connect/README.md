@@ -11,8 +11,8 @@ where `<com_port>` is the COM port associated with your development kit. Note, i
 And `<peripheral_addr>` is the address of the peripheral you want to connect to. \
 The address should be of the form 48:23:35:00:1b:53,P: \
 &emsp; where 48:23:35:00:1b:53 is the BLE device address and last letter indicates the address type: \
-&emsp;&emsp; P indiactes a BLE_ADDR_TYPE.PUBLIC_ADDRESS \
-&emsp;&emsp; R indicates a BLE_ADDR_TYPE.PRIVATE_ADDRESS
+&emsp;&emsp; P indiactes a public address \
+&emsp;&emsp; R indicates a random address
 
 Once running, you should see messages indicating you have connected to your peripheral:
 
