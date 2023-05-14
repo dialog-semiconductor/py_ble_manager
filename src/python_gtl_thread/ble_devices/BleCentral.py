@@ -22,12 +22,12 @@ class BleCentral(BleDeviceBase):
         ::BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_SVC will be sent for each service found. Once completed
         ::BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED will be sent.
 
-        Args:
-            conn_idx (int): connection index
-            uuid (AttUuid): optional service UUID
-
-        Returns:
-            BLE_ERROR: result code
+        :param conn_idx: connection index
+        :type conn_idx: int
+        :param uuid: optional service UUID
+        :type uuid: AttUuid
+        :return: result code
+        :rtype: BLE_ERROR
         """
         return self._ble_gattc.browse(conn_idx, uuid)
 
@@ -37,13 +37,14 @@ class BleCentral(BleDeviceBase):
         This call can be used to initiate a connection parameter update. The new connection 
         parameters will be applied immediately.
 
-        Args:
-            conn_idx (int): connection index
-            conn_params (GapConnParams): connection parameters
-
-        Returns:
-            BLE_ERROR: result code
+        :param conn_idx: connection index
+        :type conn_idx: int
+        :param conn_params: connection parameters
+        :type conn_params: GapConnParams
+        :return: result code
+        :rtype: BLE_ERROR
         """
+
         return self._ble_gap.conn_param_update(conn_idx, conn_params)
 
     def connect(self, peer_addr: BdAddress, conn_params: GapConnParams) -> BLE_ERROR:
@@ -54,12 +55,12 @@ class BleCentral(BleDeviceBase):
         ::BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED event when the connection procedure is completed either
         successfully or with error (in the second case, ::BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED will not be received).
 
-        Args:
-            peer_addr (BdAddress): BD address of the peer device
-            conn_params (GapConnParams): connection parameters to be used
-
-        Returns:
-            BLE_ERROR: result code
+        :param peer_addr: BD address of the peer device
+        :type peer_addr: BdAddress
+        :param conn_params: connection parameters to be used
+        :type conn_params: GapConnParams
+        :return: result code
+        :rtype: BLE_ERROR
         """
         return self._ble_gap.connect(peer_addr, conn_params)
 
@@ -70,8 +71,8 @@ class BleCentral(BleDeviceBase):
         application will receive a ::BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED event with status set to
         ::BLE_ERROR.BLE_ERROR_CANCELED if the connection procedure is successfully canceled.
 
-        Returns:
-            BLE_ERROR: result code
+        :return: result code
+        :rtype: BLE_ERROR
         """
         return self._ble_gap.connect_cancel()
 
