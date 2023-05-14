@@ -14,15 +14,65 @@ class BleCentral(BleDeviceBase):
         super().__init__(com_port, ble_config, gtl_debug)
 
     def browse(self, conn_idx: int, uuid: AttUuid) -> BLE_ERROR:
+        """Browse services on remote GATT server in a given range
+
+        This will automatically discover all characteristics and descriptors of a service. To discover
+        services only, use ble_gattc_discover_svc() instead.
+
+        ::BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_SVC will be sent for each service found. Once completed
+        ::BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED will be sent.
+
+        Args:
+            conn_idx (int): connection index
+            uuid (AttUuid): optional service UUID
+
+        Returns:
+            BLE_ERROR: result code
+        """
         return self._ble_gattc.browse(conn_idx, uuid)
 
-    def conn_param_update(self, conn_idx: int, conn_params: GapConnParams):
+    def conn_param_update(self, conn_idx: int, conn_params: GapConnParams) -> BLE_ERROR:
+        """Initiate a connection parameter update
+
+        This call can be used to initiate a connection parameter update. The new connection 
+        parameters will be applied immediately.
+
+        Args:
+            conn_idx (int): connection index
+            conn_params (GapConnParams): connection parameters
+
+        Returns:
+            BLE_ERROR: result code
+        """
         return self._ble_gap.conn_param_update(conn_idx, conn_params)
 
-    def connect(self, peer_addr: BdAddress, conn_params: GapConnParams) -> None:
+    def connect(self, peer_addr: BdAddress, conn_params: GapConnParams) -> BLE_ERROR:
+        """Connect to a device
+
+        This call initiates a direct connection procedure to a specified device. The application will get
+        a ::BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED event when the connection is established and a
+        ::BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED event when the connection procedure is completed either
+        successfully or with error (in the second case, ::BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED will not be received).
+
+        Args:
+            peer_addr (BdAddress): BD address of the peer device
+            conn_params (GapConnParams): connection parameters to be used
+
+        Returns:
+            BLE_ERROR: result code
+        """
         return self._ble_gap.connect(peer_addr, conn_params)
 
-    def connect_cancel(self) -> None:
+    def connect_cancel(self) -> BLE_ERROR:
+        """Cancel an initiated connection
+
+        This call cancels a previously started connection procedure using connect(). The
+        application will receive a ::BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED event with status set to
+        ::BLE_ERROR.BLE_ERROR_CANCELED if the connection procedure is successfully canceled.
+
+        Returns:
+            BLE_ERROR: result code
+        """
         return self._ble_gap.connect_cancel()
 
     def disconect(self, conn_idx: int, reason: BLE_HCI_ERROR = BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON) -> BLE_ERROR:
@@ -31,7 +81,8 @@ class BleCentral(BleDeviceBase):
     def discover_descriptors(self,
                              conn_idx: int,
                              start_h: int,
-                             end_h: int) -> BLE_ERROR:
+                             end_h: int
+                             ) -> BLE_ERROR:
         return self._ble_gattc.discover_descriptors(conn_idx, start_h, end_h)
 
     def discover_characteristics(self,
@@ -42,7 +93,7 @@ class BleCentral(BleDeviceBase):
                                  ) -> BLE_ERROR:
         return self._ble_gattc.discover_characteristics(conn_idx, start_h, end_h, uuid)
 
-    def discover_services(self, conn_idx: int, uuid: AttUuid):
+    def discover_services(self, conn_idx: int, uuid: AttUuid) -> BLE_ERROR:
         return self._ble_gattc.discover_services(conn_idx, uuid)
 
     def handle_event_default(self, evt: BleEventBase):
@@ -54,7 +105,7 @@ class BleCentral(BleDeviceBase):
     def pair(self, conn_idx: int, bond: bool) -> BLE_ERROR:
         return self._ble_gap.pair(conn_idx, bond)
 
-    def passkey_reply(self, conn_idx: int, accept: bool, passkey: int):
+    def passkey_reply(self, conn_idx: int, accept: bool, passkey: int) -> BLE_ERROR:
         return self._ble_gap.passkey_reply(conn_idx, accept, passkey)
 
     def read(self, conn_idx: int, handle: int, offset: int) -> BLE_ERROR:
