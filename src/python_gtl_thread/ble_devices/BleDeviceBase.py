@@ -45,8 +45,13 @@ class BleDeviceBase():
     def conn_param_update(self, conn_idx: int, conn_params: GapConnParams) -> BLE_ERROR:
         """Initiate a connection parameter update
 
-        This call can be used to initiate a connection parameter update. The new connection 
-        parameters will be applied immediately.
+        This call can be used by both the master and the slave of the connection to initiate a connection
+        parameter update. For the master of the connection, the new connection parameters will be applied
+        immediately. For the slave of the connection, a connection parameter update request will be send
+        to the master. If the master accepts the connection parameters, it will be in charge of applying
+        them (which will result in a :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATED`
+        event message to the slave that initiated the connection parameter update process). If 40s elapse without a response from the
+        master, the connection will be terminated.
 
         :param conn_idx: connection index
         :type conn_idx: int
