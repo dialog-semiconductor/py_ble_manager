@@ -308,7 +308,7 @@ uint8_t gapc_con_cleanup(uint8_t conidx);
  *
  ****************************************************************************************
  */
-void gapc_send_disconect_ind(uint8_t conidx,  uint8_t reason, uint8_t conhdl,
+void gapc_send_disconnect_ind(uint8_t conidx,  uint8_t reason, uint8_t conhdl,
                               ke_task_id_t dest_id);
 
 

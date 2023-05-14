@@ -40,7 +40,7 @@ def main(com_port, peripheral_addr):
 
                     # Sleep for 3 seconds before disconnecting
                     time.sleep(3)
-                    central.disconect(conn_idx=conn_idx)
+                    central.disconnect(conn_idx=conn_idx)
 
                 # Disconnected from peripheral
                 case ble.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED:
