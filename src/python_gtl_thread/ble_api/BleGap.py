@@ -3,7 +3,7 @@ from ..ble_api.BleCommon import BleEventBase, BdAddress, BLE_ERROR, BLE_EVT_GAP,
 
 
 BLE_CONN_IDX_INVALID = 0xFFFF
-BLE_GAP_MAX_BONDED = 8      # (defaultBLE_MAX_BONDED) TODO defaultBLE_MAX_BONDED defined in ble_config.h
+BLE_GAP_MAX_BONDED = 8      # (defaultBLE_MAX_BONDED) TODO defaultBLE_MAX_BONDED defined in ble_config.h # TODO this will be different for 531 vs 695
 BLE_ENC_KEY_SIZE_MAX = 16
 ADV_DATA_LEN = 31  # TODO get this from co_bt.h
 BLE_ADV_DATA_LEN_MAX = ADV_DATA_LEN - 3

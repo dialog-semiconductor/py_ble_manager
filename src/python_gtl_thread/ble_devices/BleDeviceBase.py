@@ -43,6 +43,18 @@ class BleDeviceBase():
         return response.status
 
     def conn_param_update(self, conn_idx: int, conn_params: GapConnParams) -> BLE_ERROR:
+        """Initiate a connection parameter update
+
+        This call can be used to initiate a connection parameter update. The new connection 
+        parameters will be applied immediately.
+
+        :param conn_idx: connection index
+        :type conn_idx: int
+        :param conn_params: connection parameters
+        :type conn_params: GapConnParams
+        :return: result code
+        :rtype: BLE_ERROR
+        """
         return self._ble_gap.conn_param_update(conn_idx, conn_params)
 
     def conn_param_update_reply(self, conn_idx: int, accept: bool) -> BLE_ERROR:
