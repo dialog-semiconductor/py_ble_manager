@@ -1,6 +1,6 @@
 import queue
 from ..adapter.BleAdapter import BleAdapter
-from ..ble_api.BleCommon import BleEventBase, BLE_ERROR
+from ..ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_HCI_ERROR
 from ..ble_api.BleConfig import BleConfigDefault
 from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_IO_CAPABILITIES
 from ..ble_api.BleGapApi import BleGapApi, GapConnParams
@@ -47,6 +47,9 @@ class BleDeviceBase():
 
     def conn_param_update_reply(self, conn_idx: int, accept: bool) -> BLE_ERROR:
         return self._ble_gap.conn_param_update_reply(conn_idx, accept)
+
+    def disconnect(self, conn_idx: int, reason: BLE_HCI_ERROR = BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON) -> BLE_ERROR:
+        return self._ble_gap.disconnect(conn_idx, reason)
 
     def init(self) -> None:
         # try:
