@@ -153,7 +153,7 @@ class BleController():
                                 reason = ble.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON
                         else:
                             reason = ble.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON
-                        error = self.central.disconect(conn_idx, reason)
+                        error = self.central.disconnect(conn_idx, reason)
 
                 case "GATTWRITE":
                     if len(args) == 4:

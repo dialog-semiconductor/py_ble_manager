@@ -473,7 +473,7 @@ class BleController():
                             self.parse_reset_data(self.response.data)
                             self.log_reset_data()
                             self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_DISCONNECT
-                            self.central.disconect(0, ble.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON)
+                            self.central.disconnect(0, ble.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON)
 
             case FETCH_DATA_STATE.FETCH_DATA_DISCONNECT:
                 if (evt.evt_code == ble.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED):
