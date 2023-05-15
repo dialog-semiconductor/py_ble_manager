@@ -245,15 +245,26 @@ class GAP_SEC_LEVEL(IntEnum):
 
 
 class GapChnlMap():
+    # TODO description of map
     """Link Layer channel map
+
+    :ivar map: channel map
     """
+
     def __init__(self, map: bytes = None) -> None:
         self.map = map if map else bytes()
 
 
 class GapConnParams():
+    # TODO description of BLE slots
     """ GAP connection parameters
+
+    :ivar interval_min: connection interval minimum, in slots
+    :ivar interval_max: connection interval minimum, in slots
+    :ivar slave_latency: slave latency, in number of events
+    :ivar sup_timeout: supervision timeout, in slots
     """
+
     def __init__(self, interval_min_ms: int = 0, interval_max_ms: int = 0, slave_latency: int = 0, sup_timeout_ms: int = 0) -> None:
         self.interval_min = interval_min_ms * 100 // 125  # Minimum connection interval
         self.interval_max = interval_max_ms * 100 // 125  # Maximum connection interval
@@ -268,7 +279,11 @@ class GapConnParams():
 
 class GapScanParams():
     """GAP scan parameters
+
+    :ivar interval: scan interval in steps of 0.625ms
+    :ivar window: scan window in steps of 0.625ms
     """
+
     def __init__(self, interval: int = 0, window: int = 0) -> None:
         self.interval = interval  # Scan interval
         self.window = window  # Scan window
@@ -276,14 +291,19 @@ class GapScanParams():
 
 class BleAdvData():
     """Advertising AD Structure
+
+    :ivar len: length of AD structure, AD type byte + length of data
+    :ivar type: AD Type
+    :ivar data: data for AD structure
     """
+
     def __init__(self,
                  len: int = 0,
                  type: GAP_DATA_TYPE = GAP_DATA_TYPE.GAP_DATA_TYPE_FLAGS,
                  data: bytes = None,
                  ) -> None:
-        self.type = type
         self.len = len
+        self.type = type
         self.data = data
 
     def __repr__(self):
@@ -302,6 +322,10 @@ class BleAdvData():
 
 class BleEventGapAdvCompleted(BleEventBase):
     """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_ADV_COMPLETED` event
+
+    :ivar evt_code: event code
+    :ivar adv_type: advertising type
+    :ivar status: event status
     """
     def __init__(self,
                  adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED,
@@ -314,19 +338,24 @@ class BleEventGapAdvCompleted(BleEventBase):
 
 class BleEventGapAdvReport(BleEventBase):
     """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_ADV_REPORT` event
+
+    :ivar evt_code: event code
+    :ivar type: type of advertising packet
+    :ivar address: BD address of advertising device
+    :ivar rssi: received signal strength
+    :ivar data: advertising data or scan response data
     """
+
     def __init__(self,
                  type: int = 0,  # TODO is there an enum for this?
                  address: BdAddress = None,
                  rssi: int = 0,
-                 length: int = 0,
                  data: bytes = None
                  ) -> None:
         super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_ADV_REPORT)
         self.type = type
         self.address = address if address else BdAddress()
         self.rssi = rssi
-        self.length = length
         self.data = data if data else bytes()
 
 
@@ -353,7 +382,13 @@ class BleEventGapConnected(BleEventBase):
 
 class BleEventGapAddressResolved(BleEventBase):
     """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_ADDRESS_RESOLVED` event
+
+    :ivar evt_code: event code
+    :ivar conn_idx: connection index
+    :ivar resolved_address: static address
+    :ivar address: random address
     """
+
     def __init__(self,
                  conn_idx: int = 0,
                  resolved_address: BdAddress = None,
@@ -367,7 +402,11 @@ class BleEventGapAddressResolved(BleEventBase):
 
 class BleEventGapConnectionCompleted(BleEventBase):
     """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED` event
+
+    :ivar evt_code: event code
+    :ivar status: completion status
     """
+
     def __init__(self,
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED
                  ) -> None:
@@ -377,7 +416,12 @@ class BleEventGapConnectionCompleted(BleEventBase):
 
 class BleEventGapConnParamUpdateCompleted(BleEventBase):
     """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATE_COMPLETED` event
+
+    :ivar evt_code: event code
+    :ivar conn_idx: connection index
+    :ivar status: completion status
     """
+
     def __init__(self,
                  conn_idx: int = 0,
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED
@@ -389,7 +433,12 @@ class BleEventGapConnParamUpdateCompleted(BleEventBase):
 
 class BleEventGapConnParamUpdateReq(BleEventBase):
     """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATE_REQ` event
+
+    :ivar evt_code: event code
+    :ivar conn_idx: connection index
+    :ivar conn_params: connection parameters
     """
+
     def __init__(self,
                  conn_idx: int = 0,
                  conn_params: GapConnParams = None
@@ -401,7 +450,12 @@ class BleEventGapConnParamUpdateReq(BleEventBase):
 
 class BleEventGapConnParamUpdated(BleEventBase):
     """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATED` event
+
+    :ivar evt_code: event code
+    :ivar conn_idx: connection index
+    :ivar conn_params: connection parameters
     """
+
     def __init__(self,
                  conn_idx: int = 0,
                  conn_params: GapConnParams = None
@@ -413,7 +467,11 @@ class BleEventGapConnParamUpdated(BleEventBase):
 
 class BleEventGapLtkMissing(BleEventBase):
     """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_LTK_MISSING` event
+
+    :ivar evt_code: event code
+    :ivar conn_idx: connection index
     """
+
     def __init__(self,
                  conn_idx: int = 0,
                  ) -> None:
@@ -423,7 +481,12 @@ class BleEventGapLtkMissing(BleEventBase):
 
 class BleEventGapPeerFeatures(BleEventBase):
     """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_PEER_FEATURES` event
+
+    :ivar evt_code: event code
+    :ivar conn_idx: connection index
+    :ivar le_features: 8-byte array for LE features
     """
+
     def __init__(self,
                  conn_idx: int = 0,
                  le_features: bytes = None
@@ -435,7 +498,14 @@ class BleEventGapPeerFeatures(BleEventBase):
 
 class BleEventGapPeerVersion(BleEventBase):
     """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_PEER_VERSION` event
+
+    :ivar evt_code: event code
+    :ivar conn_idx: connection index
+    :ivar lmp_version: supported Bluetooth LMP Specification
+    :ivar company_id: company ID
+    :ivar lmp_subversion: implementation subversion
     """
+
     def __init__(self,
                  conn_idx: int = 0,
                  lmp_version: int = 0,
@@ -451,7 +521,13 @@ class BleEventGapPeerVersion(BleEventBase):
 
 class BleEventGapDisconnected(BleEventBase):
     """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED` event
+
+    :ivar evt_code: event code
+    :ivar conn_idx: connection index
+    :ivar address: BD address of disconnected device
+    :ivar reason: reason of disconnection
     """
+
     def __init__(self,
                  conn_idx: int = 0,
                  address: BdAddress = None,
@@ -465,7 +541,12 @@ class BleEventGapDisconnected(BleEventBase):
 
 class BleEventGapDisconnectFailed(BleEventBase):
     """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECT_FAILED` event
+
+    :ivar evt_code: event code
+    :ivar conn_idx: connection index
+    :ivar status: error status
     """
+
     def __init__(self,
                  conn_idx: int = 0,
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
@@ -477,7 +558,12 @@ class BleEventGapDisconnectFailed(BleEventBase):
 
 class BleEventGapNumericRequest(BleEventBase):
     """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_NUMERIC_REQUEST` event
+
+    :ivar evt_code: event code
+    :ivar conn_idx: connection index
+    :ivar num_key: numeric comparison key
     """
+
     def __init__(self,
                  conn_idx: int = 0,
                  num_key: int = 0,
@@ -489,7 +575,14 @@ class BleEventGapNumericRequest(BleEventBase):
 
 class BleEventGapPairCompleted(BleEventBase):
     """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_PAIR_COMPLETED` event
+
+    :ivar evt_code: event code
+    :ivar conn_idx: connection index
+    :ivar status: completion status
+    :ivar bond: bond enabled flag
+    :ivar mitm: man in the middle (MITM) protection enabled flag
     """
+
     def __init__(self,
                  conn_idx: int = 0,
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
@@ -505,7 +598,12 @@ class BleEventGapPairCompleted(BleEventBase):
 
 class BleEventGapPairReq(BleEventBase):
     """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_PAIR_REQ` event
+
+    :ivar evt_code: event code
+    :ivar conn_idx: connection index
+    :ivar bond: enable bond
     """
+
     def __init__(self,
                  conn_idx: int = 0,
                  bond: bool = False,
@@ -517,7 +615,12 @@ class BleEventGapPairReq(BleEventBase):
 
 class BleEventGapPasskeyNotify(BleEventBase):
     """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_PASSKEY_NOTIFY` event
+
+    :ivar evt_code: event code
+    :ivar conn_idx: connection index
+    :ivar passkey: passkey
     """
+
     def __init__(self,
                  conn_idx: int = 0,
                  passkey: int = 0,
@@ -529,7 +632,12 @@ class BleEventGapPasskeyNotify(BleEventBase):
 
 class BleEventGapScanCompleted(BleEventBase):
     """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_SCAN_COMPLETED` event
+
+    :ivar evt_code: event code
+    :ivar scan_type: scan type
+    :ivar status: completion status
     """
+
     def __init__(self,
                  scan_type: GAP_SCAN_TYPE = GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
@@ -541,7 +649,12 @@ class BleEventGapScanCompleted(BleEventBase):
 
 class BleEventGapSecLevelChanged(BleEventBase):
     """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_SEC_LEVEL_CHANGED` event
+
+    :ivar evt_code: event code
+    :ivar conn_idx: connection index
+    :ivar level: security level
     """
+
     def __init__(self,
                  conn_idx: int = 0,
                  level: GAP_SEC_LEVEL = GAP_SEC_LEVEL.GAP_SEC_LEVEL_1,
