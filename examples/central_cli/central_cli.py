@@ -293,12 +293,7 @@ class BleController():
 
         print(f"Advertisment: address={ble.BleUtils.bd_addr_to_str(evt.address)} "
               + f"rssi={evt.rssi}, data={evt.data.hex()}")
-        # adv_structs = self.parse_adv_data(evt)
-        # print("AD Structs:")
-        # for struct in adv_structs:
-        #    print(f"\t{struct}")
-        # print("")
-
+        
     def handle_evt_gap_connected(self, evt: ble.BleEventGapConnected):
         print(f"Connected to: addr={ble.BleUtils.bd_addr_to_str(evt.peer_address)}, conn_idx={evt.conn_idx}")
 
