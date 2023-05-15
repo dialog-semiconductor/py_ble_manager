@@ -384,24 +384,6 @@ class BleController():
     def handle_evt_gattc_write_completed(self, evt: ble.BleEventGattcWriteCompleted):
         print(f"Write Complete: conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status.name}")
 
-    def parse_adv_data(self, evt: ble.BleEventGapAdvReport) -> list[ble.BleAdvData]:
-        data_ptr = 0
-        adv_data_structs: ble.BleAdvData = []
-        data_len = len(evt.data)
-        if data_len > 0:
-            while data_ptr < 31 and data_ptr < data_len:
-                struct = ble.BleAdvData(len=evt.data[data_ptr], type=evt.data[data_ptr + 1])
-
-                if struct.len == 0 or struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_NONE:
-                    break
-
-                data_ptr += 2
-                struct.data = evt.data[data_ptr:(data_ptr + struct.len - 1)]  # -1 as calc includes AD Type
-                data_ptr += struct.len - 1  # -1 as calc includes AD Type
-                adv_data_structs.append(struct)
-
-        return adv_data_structs
-
     def shutdown(self):
         self._exit.set()
 

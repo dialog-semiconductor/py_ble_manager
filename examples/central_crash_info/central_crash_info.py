@@ -237,7 +237,7 @@ class BleController():
         adv_packet = False  # used to separate adv packets from scan responses
 
         # Parse the advertising structures
-        ad_structs = self.parse_adv_data(evt)
+        ad_structs = ble.BleUtils.parse_adv_data(evt)
         for ad_struct in ad_structs:
             if ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_FLAGS:
                 # This is an advertising packet (vs scan response)  # TODO How to initiate scan request from Central?
@@ -286,7 +286,7 @@ class BleController():
             name, adv_packet, scan_rsp = self.scan_dict[key]
             device_info += f"Device name: {name}, addr: {ble.BleUtils.bd_addr_to_str(adv_packet.address)}"
 
-            ad_structs = self.parse_adv_data(adv_packet)
+            ad_structs = ble.BleUtils.parse_adv_data(adv_packet)
             for ad_struct in ad_structs:
                 if ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_UUID128_SVC_DATA:
                     num_resets = ad_struct.data[-1]
@@ -362,24 +362,6 @@ class BleController():
                     self.log(f"\t\t Call address {j}: 0x{self.reset_data.fault_data[i].call_trace[j]:08x}")
 
         self.log("*****************Debug Crash Info End*****************")
-
-    def parse_adv_data(self, evt: ble.BleEventGapAdvReport) -> list[ble.BleAdvData]:
-        data_ptr = 0
-        adv_data_structs: ble.BleAdvData = []
-        data_len = len(evt.data)
-        if data_len > 0:
-            while data_ptr < 31 and data_ptr < data_len:
-                struct = ble.BleAdvData(len=evt.data[data_ptr], type=evt.data[data_ptr + 1])
-
-                if struct.len == 0 or struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_NONE:
-                    break
-
-                data_ptr += 2
-                struct.data = evt.data[data_ptr:(data_ptr + struct.len - 1)]  # -1 as calc includes AD Type
-                data_ptr += struct.len - 1  # -1 as calc includes AD Type
-                adv_data_structs.append(struct)
-
-        return adv_data_structs
 
     def parse_reset_data(self, data: bytes):
 

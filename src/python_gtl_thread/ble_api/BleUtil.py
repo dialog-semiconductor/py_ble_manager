@@ -1,5 +1,6 @@
 from ..ble_api.BleAtt import AttUuid, ATT_UUID_TYPE
 from ..ble_api.BleCommon import BdAddress, BLE_ADDR_TYPE
+from ..ble_api.BleGap import BleAdvData, BleEventGapAdvReport, GAP_DATA_TYPE
 
 
 class BleUtils():
@@ -25,6 +26,33 @@ class BleUtils():
         return_string = return_string[:-1]
         return_string += ",P" if bd.addr_type == BLE_ADDR_TYPE.PUBLIC_ADDRESS else ",R"
         return return_string
+
+    @staticmethod
+    def parse_adv_data(evt: BleEventGapAdvReport) -> list[BleAdvData]:
+        """Generate AD structures from data in `BleEventGapAdvReport` event
+
+        :param evt: advertising report
+        :type evt: BleEventGapAdvReport
+        :return: list of AD structures
+        :rtype: list[BleAdvData]
+        """
+
+        data_ptr = 0
+        adv_data_structs: BleAdvData = []
+        data_len = len(evt.data)
+        if data_len > 0:
+            while data_ptr < 31 and data_ptr < data_len:
+                struct = BleAdvData(len=evt.data[data_ptr], type=evt.data[data_ptr + 1])
+
+                if struct.len == 0 or struct.type == GAP_DATA_TYPE.GAP_DATA_TYPE_NONE:
+                    break
+
+                data_ptr += 2
+                struct.data = evt.data[data_ptr:(data_ptr + struct.len - 1)]  # -1 as calc includes AD Type
+                data_ptr += struct.len - 1  # -1 as calc includes AD Type
+                adv_data_structs.append(struct)
+
+        return adv_data_structs
 
     @staticmethod
     def str_to_bd_addr(bd_addr_str: str) -> BdAddress:
