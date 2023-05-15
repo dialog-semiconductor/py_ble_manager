@@ -181,7 +181,7 @@ class BleCentral(BleDeviceBase):
     def passkey_reply(self, conn_idx: int, accept: bool, passkey: int) -> BLE_ERROR:
         """Respond to a passkey request
 
-        Respond to a ::BLE_EVT_GAP_PASSKEY_REQUEST event.
+        Respond to a :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_PASSKEY_REQUEST` event.
 
         :param conn_idx: connection index
         :type conn_idx: int

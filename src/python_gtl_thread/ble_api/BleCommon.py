@@ -1,14 +1,16 @@
 from enum import IntEnum, auto
 
 
-# Bluetooth Address type
 class BLE_ADDR_TYPE(IntEnum):
+    """Bluetooth address type
+    """
     PUBLIC_ADDRESS = 0x00  # Public Static Address
     PRIVATE_ADDRESS = 0x01  # Private Random Address
 
 
-# BLE error code
 class BLE_ERROR(IntEnum):
+    """BLE error code
+    """
     BLE_STATUS_OK = 0x00,    # Success
     BLE_ERROR_FAILED = 0x01,    # Generic failure
     BLE_ERROR_ALREADY_DONE = 0x02,    # Already done
@@ -32,8 +34,9 @@ class BLE_ERROR(IntEnum):
     BLE_ERROR_DIFF_TRANS_COLLISION = 0x14,    # Different transaction collision
 
 
-# BLE event categories
 class BLE_EVT_CAT(IntEnum):
+    """BLE event categories
+    """
     BLE_EVT_CAT_COMMON = auto()
     BLE_EVT_CAT_GAP = auto()
     BLE_EVT_CAT_GATTS = auto()
@@ -42,6 +45,8 @@ class BLE_EVT_CAT(IntEnum):
 
 
 class BLE_EVT_GAP(IntEnum):
+    """BLE GAP events
+    """
     # Connection established
     BLE_EVT_GAP_CONNECTED = BLE_EVT_CAT.BLE_EVT_CAT_GAP << 8
     # Advertising report
@@ -113,6 +118,8 @@ class BLE_EVT_GAP(IntEnum):
 
 
 class BLE_EVT_GATTC(IntEnum):
+    """BLE GATTC events
+    """
     # Service found during browsing procedure
     BLE_EVT_GATTC_BROWSE_SVC = BLE_EVT_CAT.BLE_EVT_CAT_GATTC << 8
     # Browsing procedure completed
@@ -140,6 +147,8 @@ class BLE_EVT_GATTC(IntEnum):
 
 
 class BLE_EVT_GATTS(IntEnum):
+    """BLE GATTS events
+    """
     # Read request from peer
     BLE_EVT_GATTS_READ_REQ = BLE_EVT_CAT.BLE_EVT_CAT_GATTS << 8
     # Write request from peer
@@ -150,8 +159,9 @@ class BLE_EVT_GATTS(IntEnum):
     BLE_EVT_GATTS_EVENT_SENT = auto()
 
 
-# BLE HCI error code
 class BLE_HCI_ERROR(IntEnum):
+    """BLE HCI error code
+    """
     BLE_HCI_ERROR_NO_ERROR = 0x00  # Success
     BLE_HCI_ERROR_UNKNOWN_HCI_COMMAND = 0x01  # Unknown HCI command
     BLE_HCI_ERROR_UNKNOWN_CONNECTION_ID = 0x02  # Unknown connection identifier
@@ -216,8 +226,9 @@ class BLE_HCI_ERROR(IntEnum):
     BLE_HCI_ERROR_COARSE_CLK_ADJUST_REJECTED = 0x40  # Coarse clock adjustment rejected but will try to adjust using clock dragging
 
 
-# Own Device Address type
 class BLE_OWN_ADDR_TYPE(IntEnum):
+    """Own device address type
+    """
     PUBLIC_STATIC_ADDRESS = auto()  # Public Static Address
     PRIVATE_STATIC_ADDRESS = auto()  # Private Static Address
     PRIVATE_RANDOM_RESOLVABLE_ADDRESS = auto()  # Private Random Resolvable Address
@@ -228,14 +239,17 @@ class BLE_OWN_ADDR_TYPE(IntEnum):
 
 
 class BLE_STATUS(IntEnum):
+    """BLE status
+    """
     BLE_IS_DISABLED = 0x00
     BLE_IS_ENABLED = 0x01
     BLE_IS_BUSY = 0x02
     BLE_IS_RESET = 0x03
 
 
-# Bluetooth Device address
 class BdAddress():
+    """ Bluetooth Device address
+    """
     def __init__(self, addr_type: BLE_ADDR_TYPE = BLE_ADDR_TYPE.PUBLIC_ADDRESS, addr: bytes = None) -> None:
         self.addr_type = addr_type
         self.addr = addr if addr else bytes()
@@ -246,6 +260,8 @@ class BdAddress():
 
 
 class BleEventBase():
+    """Base class for BLE events
+    """
     def __init__(self, evt_code) -> None:
         self.evt_code = evt_code
 
@@ -275,11 +291,15 @@ class BleEventBase():
 
 
 class Irk():
+    """Identity Resolving Key
+    """
     def __init__(self, key: bytes = None) -> None:
         self.key = key if key else bytes()
 
 
 class OwnAddress():
+    """Own address
+    """
     def __init__(self, addr_type: BLE_OWN_ADDR_TYPE = BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS, addr: bytes = None) -> None:
         self.addr_type = addr_type
         self.addr = addr if addr else bytes()

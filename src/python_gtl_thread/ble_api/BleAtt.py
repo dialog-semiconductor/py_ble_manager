@@ -1,8 +1,9 @@
 from enum import IntEnum
 
 
-# Error code for ATT operation (as defined by Core 4.2 specification)
 class ATT_ERROR(IntEnum):
+    """Error code for ATT operation (as defined by Core 4.2 specification)
+    """
     ATT_ERROR_OK = 0x00
     ATT_ERROR_INVALID_HANDLE = 0x01
     ATT_ERROR_READ_NOT_PERMITTED = 0x02
@@ -344,8 +345,9 @@ class ATT_ERROR(IntEnum):
     LL_ERR_CONN_FAILED_TO_BE_EST = 0xCE
 
 
-# ATT attribute permission
 class ATT_PERM(IntEnum):
+    """Attribute permission
+    """
     ATT_PERM_NONE = 0
     ATT_PERM_READ = 0x01
     ATT_PERM_WRITE = 0x02
@@ -361,11 +363,15 @@ class ATT_PERM(IntEnum):
 
 
 class ATT_UUID_TYPE(IntEnum):
+    """Attribute UUID Type, 16 bit or 128 bit
+    """
     ATT_UUID_16 = 0
     ATT_UUID_128 = 1
 
 
 class AttUuid:
+    """Attribute UUID
+    """
     def __init__(self, uuid: bytes = None) -> None:
         self.uuid = uuid if uuid else bytes([0, 0])
 
