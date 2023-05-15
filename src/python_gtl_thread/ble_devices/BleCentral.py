@@ -16,6 +16,7 @@ class BleCentral(BleDeviceBase):
     :param gtl_debug: enable or disable GTL debugging, defaults to False
     :type gtl_debug: bool, optional
     """
+
     def __init__(self,
                  com_port: str,
                  ble_config: BleConfigDefault = BleConfigDefault(BLE_DEVICE_TYPE.CENTRAL),
@@ -174,7 +175,7 @@ class BleCentral(BleDeviceBase):
             :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_ERROR.BLE_ERROR_FAILED` if request hasn't been send successfully
             :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_ERROR.BLE_ERROR_ALREADY_DONE` if device is already paired or bonded respectively
             :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_ERROR.BLE_ERROR_INS_RESOURCES` if there is
-              :py:const:`~python_gtl_thread.ble_api.BleGap.BLE_GAP_MAX_BONDED` number of bonded devices
+            :py:const:`~python_gtl_thread.ble_api.BleGap.BLE_GAP_MAX_BONDED` number of bonded devices
         :rtype: BLE_ERROR
         """
 
