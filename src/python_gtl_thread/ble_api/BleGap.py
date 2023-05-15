@@ -332,6 +332,11 @@ class BleEventGapAdvReport(BleEventBase):
 
 class BleEventGapConnected(BleEventBase):
     """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED` event
+
+    :ivar conn_idx: connection index
+    :ivar own_addr: own address
+    :ivar peer_address: peer address
+    :ivar conn_params: connection parameters
     """
     def __init__(self,
                  conn_idx: int = 0,

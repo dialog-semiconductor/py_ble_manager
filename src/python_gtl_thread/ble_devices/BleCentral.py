@@ -7,7 +7,7 @@ from ..ble_api.BleGap import BLE_GAP_ROLE, GapConnParams, GAP_SCAN_TYPE, GAP_SCA
 
 
 class BleCentral(BleDeviceBase):
-    """A BLE Central device
+    """A BLE central device
 
     :param com_port: COM port of the development kit
     :type com_port: str
