@@ -263,8 +263,8 @@ class BleAdvData():
                  type: GAP_DATA_TYPE = GAP_DATA_TYPE.GAP_DATA_TYPE_FLAGS,
                  data: bytes = None,
                  ) -> None:
-        self.type = type
         self.len = len
+        self.type = type
         self.data = data
 
     def __repr__(self):
@@ -296,14 +296,12 @@ class BleEventGapAdvReport(BleEventBase):
                  type: int = 0,  # TODO is there an enum for this?
                  address: BdAddress = None,
                  rssi: int = 0,
-                 length: int = 0,
                  data: bytes = None
                  ) -> None:
         super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_ADV_REPORT)
         self.type = type
         self.address = address if address else BdAddress()
         self.rssi = rssi
-        self.length = length
         self.data = data if data else bytes()
 
 

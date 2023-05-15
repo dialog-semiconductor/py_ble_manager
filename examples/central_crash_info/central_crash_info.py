@@ -366,8 +366,9 @@ class BleController():
     def parse_adv_data(self, evt: ble.BleEventGapAdvReport) -> list[ble.BleAdvData]:
         data_ptr = 0
         adv_data_structs: ble.BleAdvData = []
-        if evt.length > 0:
-            while data_ptr < 31 and data_ptr < evt.length:
+        data_len = len(evt.data)
+        if data_len > 0:
+            while data_ptr < 31 and data_ptr < data_len:
                 struct = ble.BleAdvData(len=evt.data[data_ptr], type=evt.data[data_ptr + 1])
 
                 if struct.len == 0 or struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_NONE:
