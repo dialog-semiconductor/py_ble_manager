@@ -3,9 +3,19 @@ from ..ble_api.BleCommon import BdAddress, BLE_ADDR_TYPE
 
 
 class BleUtils():
+    """Utility class providing convenience methods for often used operations
+    """
 
     @staticmethod
     def bd_addr_to_str(bd: BdAddress) -> str:
+        """Convert BD address to string of form "48:23:35:00:1b:53,P", where P is a public address and R is a random address
+
+        :param bd: BD address to convert to string
+        :type bd: BdAddress
+        :return: string of the form "48:23:35:00:1b:53,P"
+        :rtype: str
+        """
+
         return_string = ""
         for byte in bd.addr:
             byte_string = str(hex(byte))[2:]
@@ -18,13 +28,21 @@ class BleUtils():
 
     @staticmethod
     def str_to_bd_addr(bd_addr_str: str) -> BdAddress:
-        '''
+        """Convert a string to a BD address
+
+    .. note:
         Expect string of form "48:23:35:00:1b:53,P"
         where 48:23:35:00:1b:53 is the address
         and last letter indiactes the address type:
-            P indiactes a BLE_ADDR_TYPE.PUBLIC_ADDRESS
-            R indicates a BLE_ADDR_TYPE.PRIVATE_ADDRESS
-        '''
+            P indiactes a public address
+            R indicates a random address
+
+        :param bd_addr_str: string to convert
+        :type bd_addr_str: str
+        :return: BD address corresponding to the input string
+        :rtype: BdAddress
+        """
+
         periph_addr_str, addr_type_str = bd_addr_str.split(',')
         addr_type = BLE_ADDR_TYPE.PUBLIC_ADDRESS if addr_type_str == 'P' else BLE_ADDR_TYPE.PRIVATE_ADDRESS
         periph_addr_str_stripped = periph_addr_str.replace(":", "")
@@ -34,9 +52,16 @@ class BleUtils():
 
     @staticmethod
     def uuid_from_str(uuid_str: str) -> AttUuid:
-        '''
+        """Convert a string to a AttUuid
+
+    ..note:
         Expect UUID of form: 21ce31fc-da27-11ed-afa1-0242ac120002
-        '''
+
+        :param uuid_str: string to convert
+        :type uuid_str: str
+        :return: AttUuid corresponding to the input string
+        :rtype: AttUuid
+        """
         uuid_str = uuid_str.replace("-", "")
         uuid_list = [int(uuid_str[idx:idx + 2], 16) for idx in range(0, len(uuid_str), 2)]
         uuid_list.reverse()  # mcu is little endian
@@ -44,6 +69,13 @@ class BleUtils():
 
     @staticmethod
     def uuid_to_str(uuid: AttUuid) -> str:
+        """Convert a AttUuid to a string
+
+        :param uuid: uuid to convert
+        :type uuid: AttUuid
+        :return: string corresponding to the input AttUuid
+        :rtype: str
+        """
         data = uuid.uuid
         return_string = ""
         if uuid.type == ATT_UUID_TYPE.ATT_UUID_128:
