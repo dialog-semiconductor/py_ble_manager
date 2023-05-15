@@ -4,7 +4,6 @@ from ..ble_api.BleAtt import AttUuid, ATT_ERROR
 from ..ble_api.BleCommon import BleEventBase, BLE_EVT_GATTC, BLE_ERROR
 
 
-# 
 class GATTC_DISCOVERY_TYPE(IntEnum):
     """GATT Discovery type
     """
