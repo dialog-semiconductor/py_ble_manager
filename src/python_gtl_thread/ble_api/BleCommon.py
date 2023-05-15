@@ -249,6 +249,9 @@ class BLE_STATUS(IntEnum):
 
 class BdAddress():
     """ Bluetooth Device address
+
+    :ivar addr_type: address type
+    :ivar addr: 6 byte address
     """
     def __init__(self, addr_type: BLE_ADDR_TYPE = BLE_ADDR_TYPE.PUBLIC_ADDRESS, addr: bytes = None) -> None:
         self.addr_type = addr_type
@@ -261,6 +264,8 @@ class BdAddress():
 
 class BleEventBase():
     """Base class for BLE events
+
+    :ivar evt_code: event code
     """
     def __init__(self, evt_code) -> None:
         self.evt_code = evt_code
@@ -292,6 +297,8 @@ class BleEventBase():
 
 class Irk():
     """Identity Resolving Key
+
+    :ivar key: 16 byte key
     """
     def __init__(self, key: bytes = None) -> None:
         self.key = key if key else bytes()
@@ -299,6 +306,9 @@ class Irk():
 
 class OwnAddress():
     """Own address
+
+    :ivar addr_type: address type
+    :ivar addr: 6 byte address
     """
     def __init__(self, addr_type: BLE_OWN_ADDR_TYPE = BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS, addr: bytes = None) -> None:
         self.addr_type = addr_type

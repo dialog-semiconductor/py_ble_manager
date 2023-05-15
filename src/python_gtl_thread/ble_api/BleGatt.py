@@ -2,12 +2,15 @@ from enum import IntEnum, auto
 
 
 class GATT_EVENT(IntEnum):
+    """GATT event type
+    """
     GATT_EVENT_NOTIFICATION = 0
     GATT_EVENT_INDICATION = 1
 
 
-# GATT characteristic properties
 class GATT_PROP(IntEnum):  # TODO need a ctypes bitfield? Cannot easily do bit manipulation with IntEnum
+    """GATT characteristic properties
+    """
     GATT_PROP_NONE = 0
     GATT_PROP_BROADCAST = 0x0001
     GATT_PROP_READ = 0x0002
@@ -22,5 +25,7 @@ class GATT_PROP(IntEnum):  # TODO need a ctypes bitfield? Cannot easily do bit m
 
 
 class GATT_SERVICE(IntEnum):
+    """GATT service type
+    """
     GATT_SERVICE_PRIMARY = 0
     GATT_SERVICE_SECONDARY = auto()
