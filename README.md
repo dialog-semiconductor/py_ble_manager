@@ -114,7 +114,7 @@ A variety of different events occur throughout the life a BLE application. Some 
 Each event has an `evt_code` to identify the type of event.  
 
 For example, after you initiate a write you will receive a `BleEventGattcWriteCompleted` event which has an `evt_code` of `BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED`. Your application can
-handle the event however it sees fit. If your application does not handle the event, call the `BleCentral.handle_event_default()` to have the BLE framework process the event for you.
+handle the event however it sees fit. If your application does not handle the event, call `BleCentral.handle_event_default()` to have the BLE framework process the event for you.
 
 ```Python
 # This call will block until an event is available. Use the timeout parameter to block for a specified period of time
@@ -125,6 +125,7 @@ evt = central.get_event()
 
         # Handle the event
         case ble.BLE_EVT_GAP.BLE_EVT_GAP_ADV_REPORT:
+            # Define your own handling function to process the event
             handle_evt_gap_adv_report(evt)
         case ble.BLE_EVT_GAP.BLE_EVT_GAP_SCAN_COMPLETED:
             handle_evt_gap_scan_completed(evt)

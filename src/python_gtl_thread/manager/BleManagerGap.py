@@ -674,8 +674,8 @@ class BleManagerGap(BleManagerBase):
         evt.address.addr_type = BLE_ADDR_TYPE(gtl.parameters.report.adv_addr_type)
         # endif /* (dg_configBLE_PRIVACY_1_2 == 1) */
         evt.address.addr = bytes(gtl.parameters.report.adv_addr.addr)
-        evt.length = gtl.parameters.report.data_len
-        evt.data = bytes(gtl.parameters.report.data[:evt.length])
+        length = gtl.parameters.report.data_len
+        evt.data = bytes(gtl.parameters.report.data[:length])
 
         # evt.data = gtl.parameters.report.data[:gtl.parameters.report.data_len]
 

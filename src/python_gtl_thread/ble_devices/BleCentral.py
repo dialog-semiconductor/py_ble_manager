@@ -1,7 +1,7 @@
 from ..ble_api.BleAtt import AttUuid
 from ..ble_api.BleConfig import BleConfigDefault, BLE_DEVICE_TYPE
 from ..ble_devices.BleDeviceBase import BleDeviceBase
-from ..ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR, BleEventBase, BLE_EVT_GAP
+from ..ble_api.BleCommon import BLE_ERROR, BdAddress, BleEventBase, BLE_EVT_GAP
 from ..ble_api.BleGap import BLE_GAP_ROLE, GapConnParams, GAP_SCAN_TYPE, GAP_SCAN_MODE, \
     BleEventGapConnParamUpdateReq
 

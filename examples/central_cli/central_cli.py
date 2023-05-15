@@ -293,12 +293,7 @@ class BleController():
 
         print(f"Advertisment: address={ble.BleUtils.bd_addr_to_str(evt.address)} "
               + f"rssi={evt.rssi}, data={evt.data.hex()}")
-        # adv_structs = self.parse_adv_data(evt)
-        # print("AD Structs:")
-        # for struct in adv_structs:
-        #    print(f"\t{struct}")
-        # print("")
-
+        
     def handle_evt_gap_connected(self, evt: ble.BleEventGapConnected):
         print(f"Connected to: addr={ble.BleUtils.bd_addr_to_str(evt.peer_address)}, conn_idx={evt.conn_idx}")
 
@@ -392,8 +387,9 @@ class BleController():
     def parse_adv_data(self, evt: ble.BleEventGapAdvReport) -> list[ble.BleAdvData]:
         data_ptr = 0
         adv_data_structs: ble.BleAdvData = []
-        if evt.length > 0:
-            while data_ptr < 31 and data_ptr < evt.length:
+        data_len = len(evt.data)
+        if data_len > 0:
+            while data_ptr < 31 and data_ptr < data_len:
                 struct = ble.BleAdvData(len=evt.data[data_ptr], type=evt.data[data_ptr + 1])
 
                 if struct.len == 0 or struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_NONE:
