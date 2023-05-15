@@ -123,7 +123,8 @@ class BleDeviceBase():
 
     .. note:: After calling this function, the application will receive one of the following messages:
             :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED` when the disconnection procedure was successful.
-            :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECT_FAILED` with error status when the disconnection procedure failed.
+            :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECT_FAILED` with error status when the disconnection procedure
+            failed.
         """
 
         return self._ble_gap.disconnect(conn_idx, reason)

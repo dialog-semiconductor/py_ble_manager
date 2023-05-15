@@ -50,7 +50,8 @@ class BleCentral(BleDeviceBase):
         This call initiates a direct connection procedure to a specified device. The application will get
         a :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED` event when the connection is established and a
         :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED` event when the connection procedure is completed either
-        successfully or with error (in the second case, :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED` will not be received).
+        successfully or with error (in the second case,
+        :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED` will not be received).
 
         :param peer_addr: BD address of the peer device
         :type peer_addr: BdAddress
@@ -66,8 +67,9 @@ class BleCentral(BleDeviceBase):
         """Cancel an initiated connection
 
         This call cancels a previously started connection procedure using connect(). The
-        application will receive a :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED` event with status set to
-        :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_ERROR.BLE_ERROR_CANCELED` if the connection procedure is successfully canceled.
+        application will receive a :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED` event
+        with status set to :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_ERROR.BLE_ERROR_CANCELED`
+        if the connection procedure is successfully canceled.
 
         :return: result code
         :rtype: BLE_ERROR
