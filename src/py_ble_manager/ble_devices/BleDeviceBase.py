@@ -66,7 +66,7 @@ class BleDeviceBase():
         parameter update. For the master of the connection, the new connection parameters will be applied
         immediately. For the slave of the connection, a connection parameter update request will be send
         to the master. If the master accepts the connection parameters, it will be in charge of applying
-        them (which will result in a :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATED`
+        them (which will result in a :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATED`
         event message to the slave that initiated the connection parameter update process). If 40s elapse without a response from the
         master, the connection will be terminated.
 
@@ -84,7 +84,7 @@ class BleDeviceBase():
         """Reply to a connection parameter update request
 
         This call should be used to reply to a connection parameter update request event
-        (:py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATE_REQ`) message.
+        (:py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATE_REQ`) message.
 
         :param conn_idx: connection index
         :type conn_idx: int
@@ -110,20 +110,20 @@ class BleDeviceBase():
 
     .. note::
         Valid reasons for initiating a disconnection are:
-            * :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_AUTH_FAILURE`
-            * :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON`
-            * :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_DEV_TERM_LOW_RESOURCES`
-            * :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_DEV_POWER_OFF`
-            * :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_UNSUPPORTED_REMOTE_FEATURE`
-            * :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_PAIRING_WITH_UNIT_KEY_NOT_SUP`
-            * :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_UNACCEPTABLE_CONN_INT`
+            * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_AUTH_FAILURE`
+            * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON`
+            * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_DEV_TERM_LOW_RESOURCES`
+            * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_DEV_POWER_OFF`
+            * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_UNSUPPORTED_REMOTE_FEATURE`
+            * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_PAIRING_WITH_UNIT_KEY_NOT_SUP`
+            * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_UNACCEPTABLE_CONN_INT`
 
         If API is called with a different reason, disconnection will fail with return status
-            :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_ERROR.BLE_ERROR_INVALID_PARAM`.
+            :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_ERROR.BLE_ERROR_INVALID_PARAM`.
 
     .. note:: After calling this function, the application will receive one of the following messages:
-            :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED` when the disconnection procedure was successful.
-            :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECT_FAILED` with error status when the disconnection procedure
+            :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED` when the disconnection procedure was successful.
+            :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECT_FAILED` with error status when the disconnection procedure
             failed.
         """
 
@@ -151,7 +151,7 @@ class BleDeviceBase():
     def numeric_reply(self, conn_idx: int, accept: bool) -> BLE_ERROR:
         """Respond to a numeric comparison request
 
-        Respond to a :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_NUMERIC_REQUEST` event.
+        Respond to a :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_NUMERIC_REQUEST` event.
 
         :param conn_idx: connection index
         :type conn_idx: int

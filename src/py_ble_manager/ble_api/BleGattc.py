@@ -76,7 +76,7 @@ class GattcItem():
 
 
 class BleEventGattcBrowseSvc(BleEventBase):
-    """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_SVC` event
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_SVC` event
 
     :ivar evt_code: event code
     :ivar conn_idx: connection index
@@ -105,7 +105,7 @@ class BleEventGattcBrowseSvc(BleEventBase):
 
 
 class BleEventGattcBrowseCompleted(BleEventBase):
-    """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED` event
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED` event
 
     :ivar evt_code: event code
     :ivar conn_idx: connection index
@@ -122,7 +122,7 @@ class BleEventGattcBrowseCompleted(BleEventBase):
 
 
 class BleEventGattcDiscoverChar(BleEventBase):
-    """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_CHAR` event
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_CHAR` event
 
     :ivar evt_code: event code
     :ivar conn_idx: connection index
@@ -148,7 +148,7 @@ class BleEventGattcDiscoverChar(BleEventBase):
 
 
 class BleEventGattcDiscoverCompleted(BleEventBase):
-    """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_COMPLETED` event
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_COMPLETED` event
 
     :ivar evt_code: event code
     :ivar conn_idx: connection index
@@ -168,7 +168,7 @@ class BleEventGattcDiscoverCompleted(BleEventBase):
 
 
 class BleEventGattcDiscoverDesc(BleEventBase):
-    """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_DESC` event
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_DESC` event
 
     :ivar evt_code: event code
     :ivar conn_idx: connection index
@@ -188,7 +188,7 @@ class BleEventGattcDiscoverDesc(BleEventBase):
 
 
 class BleEventGattcDiscoverSvc(BleEventBase):
-    """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_SVC` event
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_SVC` event
 
     :ivar evt_code: event code
     :ivar conn_idx: connection index
@@ -211,7 +211,7 @@ class BleEventGattcDiscoverSvc(BleEventBase):
 
 
 class BleEventGattcNotification(BleEventBase):
-    """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_NOTIFICATION` event
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_NOTIFICATION` event
 
     :ivar evt_code: event code
     :ivar conn_idx: connection index
@@ -231,7 +231,7 @@ class BleEventGattcNotification(BleEventBase):
 
 
 class BleEventGattcIndication(BleEventBase):
-    """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_INDICATION` event
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_INDICATION` event
 
     :ivar evt_code: event code
     :ivar conn_idx: connection index
@@ -251,7 +251,7 @@ class BleEventGattcIndication(BleEventBase):
 
 
 class BleEventGattcReadCompleted(BleEventBase):
-    """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_READ_COMPLETED` event
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_READ_COMPLETED` event
 
     :ivar evt_code: event code
     :ivar conn_idx: connection index
@@ -277,7 +277,7 @@ class BleEventGattcReadCompleted(BleEventBase):
 
 
 class BleEventGattcWriteCompleted(BleEventBase):
-    """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED` event
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED` event
 
     :ivar evt_code: event code
     :ivar conn_idx: connection index

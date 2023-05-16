@@ -13,7 +13,7 @@ class GATTS_FLAG(IntEnum):
 
 
 class BleEventGattsEventSent(BleEventBase):
-    """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTS.BLE_EVT_GATTS_EVENT_SENT` event
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTS.BLE_EVT_GATTS_EVENT_SENT` event
 
     :ivar evt_code: event code
     :ivar conn_idx: connection index
@@ -36,7 +36,7 @@ class BleEventGattsEventSent(BleEventBase):
 
 
 class BleEventGattsPrepareWriteReq(BleEventBase):
-    """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTS.BLE_EVT_GATTS_PREPARE_WRITE_REQ` event
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTS.BLE_EVT_GATTS_PREPARE_WRITE_REQ` event
 
     :ivar evt_code: event code
     :ivar conn_idx: connection index
@@ -53,7 +53,7 @@ class BleEventGattsPrepareWriteReq(BleEventBase):
 
 
 class BleEventGattsReadReq(BleEventBase):
-    """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTS.BLE_EVT_GATTS_READ_REQ` event
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTS.BLE_EVT_GATTS_READ_REQ` event
 
     :ivar evt_code: event code
     :ivar conn_idx: connection index
@@ -73,7 +73,7 @@ class BleEventGattsReadReq(BleEventBase):
 
 
 class BleEventGattsWriteReq(BleEventBase):
-    """Class for :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTS.BLE_EVT_GATTS_WRITE_REQ` event
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTS.BLE_EVT_GATTS_WRITE_REQ` event
 
     :ivar evt_code: event code
     :ivar conn_idx: connection index

@@ -1,6 +1,6 @@
 import argparse
 import sys
-import python_gtl_thread as ble
+import py_ble_manager as ble
 
 
 def main(com_port):

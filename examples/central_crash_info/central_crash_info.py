@@ -11,7 +11,7 @@ from prompt_toolkit.patch_stdout import patch_stdout
 import time
 
 from debug_crash_info import DciData, DciFaultInfo, CortexM0StackFrame, DciSvcResponse, DCI_LAST_FAULT_HANDLER, DCI_REST_REASON, DCI_SVC_COMMAND
-import python_gtl_thread as ble
+import py_ble_manager as ble
 
 
 FILE_PATH = Path(__file__).parent

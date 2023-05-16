@@ -5,7 +5,7 @@ import queue
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.patch_stdout import patch_stdout
-import python_gtl_thread as ble
+import py_ble_manager as ble
 
 
 class CLIHandler():

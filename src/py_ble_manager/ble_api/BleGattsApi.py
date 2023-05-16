@@ -12,7 +12,7 @@ from ..manager.BleManagerGattsMsgs import BleMgrGattsServiceAddCmd, BleMgrGattsS
     BleMgrGattsSendEventCmd, BleMgrGattsSendEventRsp, BleMgrGattsGetValueCmd, BleMgrGattsGetValueRsp, \
     BleMgrGattsServiceAddIncludeCmd, BleMgrGattsServiceAddIncludeRsp, BleMgrGattsPrepareWriteCfmCmd, BleMgrGattsPrepareWriteCfmRsp
 
-from python_gtl_thread.services.BleService import BleServiceBase
+from py_ble_manager.services.BleService import BleServiceBase
 
 
 class BleGattsApi(BleApiBase):

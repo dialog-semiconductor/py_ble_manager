@@ -32,8 +32,8 @@ class BleCentral(BleDeviceBase):
         This will automatically discover all characteristics and descriptors of a service. To discover
         services only, use ble_gattc_discover_svc() instead.
 
-        :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_SVC` will be sent for each service found. Once completed
-        :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED` will be sent.
+        :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_SVC` will be sent for each service found. Once completed
+        :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED` will be sent.
 
         :param conn_idx: connection index
         :type conn_idx: int
@@ -49,10 +49,10 @@ class BleCentral(BleDeviceBase):
         """Connect to a device
 
         This call initiates a direct connection procedure to a specified device. The application will get
-        a :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED` event when the connection is established and a
-        :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED` event when the connection procedure is completed either
+        a :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED` event when the connection is established and a
+        :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED` event when the connection procedure is completed either
         successfully or with error (in the second case,
-        :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED` will not be received).
+        :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED` will not be received).
 
         :param peer_addr: BD address of the peer device
         :type peer_addr: BdAddress
@@ -68,8 +68,8 @@ class BleCentral(BleDeviceBase):
         """Cancel an initiated connection
 
         This call cancels a previously started connection procedure using connect(). The
-        application will receive a :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED` event
-        with status set to :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_ERROR.BLE_ERROR_CANCELED`
+        application will receive a :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED` event
+        with status set to :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_ERROR.BLE_ERROR_CANCELED`
         if the connection procedure is successfully canceled.
 
         :return: result code
@@ -86,8 +86,8 @@ class BleCentral(BleDeviceBase):
                                  ) -> BLE_ERROR:
         """Discover characteristics on remote GATT server
 
-        :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_CHAR` will be sent for each characteristic found. Once completed
-        :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_COMPLETED` will be sent.
+        :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_CHAR` will be sent for each characteristic found. Once completed
+        :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_COMPLETED` will be sent.
 
         If `uuid` is `None`, all characteristics are returned.
 
@@ -112,8 +112,8 @@ class BleCentral(BleDeviceBase):
                              ) -> BLE_ERROR:
         """Discover descriptors on remote GATT server
 
-        :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_DESC` will be sent for each descriptor found. Once completed
-        :py:class:`~python_gtl_thread.ble_api.BleCommon..BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_COMPLETED` will be sent.
+        :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_DESC` will be sent for each descriptor found. Once completed
+        :py:class:`~py_ble_manager.ble_api.BleCommon..BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_COMPLETED` will be sent.
 
         :param conn_idx: connection index
         :type conn_idx: int
@@ -130,8 +130,8 @@ class BleCentral(BleDeviceBase):
     def discover_services(self, conn_idx: int, uuid: AttUuid) -> BLE_ERROR:
         """Discover services on remote GATT server
 
-        :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_SVC` will be sent for each service found. Once completed
-        :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_COMPLETED` will be sent.
+        :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_SVC` will be sent for each service found. Once completed
+        :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_COMPLETED` will be sent.
 
         If `uuid` is None, all services are returned.
 
@@ -171,11 +171,11 @@ class BleCentral(BleDeviceBase):
         :param bond: whether it starts pairing or bonding procedure
         :type bond: bool
         :return:
-            :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_ERROR.BLE_STATUS_OK` if request has been send successfully.
-            :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_ERROR.BLE_ERROR_FAILED` if request hasn't been send successfully
-            :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_ERROR.BLE_ERROR_ALREADY_DONE` if device is already paired or bonded respectively
-            :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_ERROR.BLE_ERROR_INS_RESOURCES` if there is
-            :py:const:`~python_gtl_thread.ble_api.BleGap.BLE_GAP_MAX_BONDED` number of bonded devices
+            :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_ERROR.BLE_STATUS_OK` if request has been send successfully.
+            :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_ERROR.BLE_ERROR_FAILED` if request hasn't been send successfully
+            :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_ERROR.BLE_ERROR_ALREADY_DONE` if device is already paired or bonded respectively
+            :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_ERROR.BLE_ERROR_INS_RESOURCES` if there is
+            :py:const:`~py_ble_manager.ble_api.BleGap.BLE_GAP_MAX_BONDED` number of bonded devices
         :rtype: BLE_ERROR
         """
 
@@ -184,7 +184,7 @@ class BleCentral(BleDeviceBase):
     def passkey_reply(self, conn_idx: int, accept: bool, passkey: int) -> BLE_ERROR:
         """Respond to a passkey request
 
-        Respond to a :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_PASSKEY_REQUEST` event.
+        Respond to a :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_PASSKEY_REQUEST` event.
 
         :param conn_idx: connection index
         :type conn_idx: int
@@ -205,7 +205,7 @@ class BleCentral(BleDeviceBase):
         procedure, depending on the attribute `handle`. If `offset` is non-zero or the
         attribute length is larger than the MTU, the "Read Long Characteristic Value" procedure or the
         "Read Long Characteristic Descriptor" procedure will be used respectively. The complete attribute
-        value will be returned in the :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_READ_COMPLETED` event.
+        value will be returned in the :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_READ_COMPLETED` event.
 
         :param conn_idx: connection index
         :type conn_idx: int
@@ -268,7 +268,7 @@ class BleCentral(BleDeviceBase):
         or the attribute length is larger than the MTU, the "Write Long Characteristic Value" procedure
         or the "Write Long Characteristic Descriptor" procedure will be used respectively.
 
-        The application will receive a :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED`
+        The application will receive a :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED`
         event when the write operation is completed.
 
         :param conn_idx: connection index
@@ -293,7 +293,7 @@ class BleCentral(BleDeviceBase):
         a link which is not encrypted or will fall back to the "Write Without Response" procedure on a
         link that is already encrypted.
 
-        The application will receive a :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED` event
+        The application will receive a :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED` event
         when the write operation is performed.
 
         :param conn_idx: connection index
@@ -312,7 +312,7 @@ class BleCentral(BleDeviceBase):
     def write_prepare(self, conn_idx: int, handle: int, offset: int, value: bytes) -> BLE_ERROR:
         """Prepare long/reliable write to remote GATT server
 
-        The application will receive a :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED` event when
+        The application will receive a :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED` event when
         the write operation is queued.
 
         :param conn_idx: connection index
@@ -333,7 +333,7 @@ class BleCentral(BleDeviceBase):
 
         In order to cancel prepared requests, `commit` shall be set to `False`.
 
-        The application will receive a :py:class:`~python_gtl_thread.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED`
+        The application will receive a :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED`
         event when write queue is executed. The `handle` parameter of this event will be set to 0.
 
         :param conn_idx: connection index

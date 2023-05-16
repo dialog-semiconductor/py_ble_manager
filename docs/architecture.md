@@ -99,7 +99,7 @@ When the `SerialStreamManager` is initialized, two daemon threads are created. O
 
 The [gtl_messages](#gtl_messages) directory contains classes implementing various GTL messages defined in the [GTL User Manual](https://www.renesas.com/us/en/document/mat/um-b-143-renesas-external-processor-interface-gtl-interface?language=en&r=1564826)  
 
-A generic base class for every message is defined in [gtl_message_base.py](../src/python_gtl_thread/gtl_messages/gtl_message_base.py):
+A generic base class for every message is defined in [gtl_message_base.py](../src/py_ble_manager/gtl_messages/gtl_message_base.py):
 
 ```python
 class GtlMessageBase():
@@ -122,11 +122,11 @@ This message definition is consistent with the the GTL message format from the u
 
 ![GTL message format](../assets/gtl_message_format.png)
 
-Separate python files exist for messages related to different BLE layers. For example, [gtl_message_gapm.py](../src/python_gtl_thread/gtl_messages/gtl_message_gapm.py) defines GAP Manager related GTL messages.
+Separate python files exist for messages related to different BLE layers. For example, [gtl_message_gapm.py](../src/py_ble_manager/gtl_messages/gtl_message_gapm.py) defines GAP Manager related GTL messages.
 
 Each message takes care of setting the appropriate MSG_ID, DST_ID, SRC_ID, and PAR_LEN for its specific message type. A user only needs to provide the appropriate `parameters` to create a valid message. The `parameters` are one of the `LittleEndianStructure`'s defind in [gtl_port](gtl_port).
 
-For example, below demonstrates creating a [GapmResetCmd](https://github.com/Renesas-US-Connectivity/python_gtl_thread/blob/4d2c118afd886daabd73dd39d6d1d3fe650dbebc/src/python_gtl_thread/gtl_messages/gtl_message_gapm.py#L19-L29) using the [gapm_reset_cmd](https://github.com/Renesas-US-Connectivity/python_gtl_thread/blob/4d2c118afd886daabd73dd39d6d1d3fe650dbebc/src/python_gtl_thread/gtl_port/gapm_task.py#L451-L458) parameters:
+For example, below demonstrates creating a [GapmResetCmd](https://github.com/Renesas-US-Connectivity/py_ble_manager/blob/4d2c118afd886daabd73dd39d6d1d3fe650dbebc/src/py_ble_manager/gtl_messages/gtl_message_gapm.py#L19-L29) using the [gapm_reset_cmd](https://github.com/Renesas-US-Connectivity/py_ble_manager/blob/4d2c118afd886daabd73dd39d6d1d3fe650dbebc/src/py_ble_manager/gtl_port/gapm_task.py#L451-L458) parameters:
 
 ```python
 reset_cmd = GapmResetCmd(parameters = gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
@@ -144,7 +144,7 @@ set_dev_cmd.parameters.max_txoctets = 251
 set_dev_cmd.parameters.max_txtime = 2120
 ```
 
-In addition, the [gtl_messages](#gtl_messages) directory contains factory classes for creating GTL messages from byte streams. For example, the [GattcMessageFactory](../src/python_gtl_thread/gtl_messages/gattc_message_factory.py) class coverts byte streams into the appropriate GATT client related GTL message. These are leveraged by the `BleAdapter` to create valid GTL messages from byte streams received over the serial port.
+In addition, the [gtl_messages](#gtl_messages) directory contains factory classes for creating GTL messages from byte streams. For example, the [GattcMessageFactory](../src/py_ble_manager/gtl_messages/gattc_message_factory.py) class coverts byte streams into the appropriate GATT client related GTL message. These are leveraged by the `BleAdapter` to create valid GTL messages from byte streams received over the serial port.
 
 ### gtl_port
 

@@ -1,4 +1,4 @@
-# python_gtl_thread
+# py_ble_manager
 
 A python library for controlling Renesas BLE devices (DA14xxx) using the Generic Transport Layer (GTL)
 
@@ -24,11 +24,11 @@ The primary intent is for use as a central device for benchtop testing, continuo
 
 4. Open a command prompt or terminal and navigate to the repository on your PC.
 
-5. Setup a virtual envirornment by calling: `<path_to/python_gtl_thread>$ python -m venv ./venv`. Note this library has been tested with Python v3.10.5. To create a virtual enviornment that uses Python 3.10.5, you must already have Python 3.10.5 downloaded on your computer. To use the above command to create a Python 3.10.5 enviornment, Python 3.10.5 must be configured in your PATH. You can download it from the [python website](https://www.python.org/downloads/release/python-3105/).
+5. Setup a virtual envirornment by calling: `<path_to/py_ble_manager>$ python -m venv ./venv`. Note this library has been tested with Python v3.10.5. To create a virtual enviornment that uses Python 3.10.5, you must already have Python 3.10.5 downloaded on your computer. To use the above command to create a Python 3.10.5 enviornment, Python 3.10.5 must be configured in your PATH. You can download it from the [python website](https://www.python.org/downloads/release/python-3105/).
 
 6. Activate the virtual enviornment. The specific command depends on your operating system. From a windows command prompt call: `<path_to_venv>\Scripts\activate.bat`
 
-7. Call: `pip install .` to install the python_gtl_thread package and its dependencies.
+7. Call: `pip install .` to install the py_ble_manager package and its dependencies.
 
 8. The pacakge is now installed ang you are ready to run one of the [examples](examples)
 
@@ -36,14 +36,14 @@ The primary intent is for use as a central device for benchtop testing, continuo
 
 1. Follow steps 1-3 in the [Quickstart](#quickstart) section.
 
-2. Open the `python_gtl_thread` repository directory in VS Code.
+2. Open the `py_ble_manager` repository directory in VS Code.
 
 3. Setup a virtual envirornment by calling: `$ python -m venv ./venv` from the VS Code terminal. Note this library has been tested with Python v3.10.5. To create a virtual enviornment that uses Python 3.10.5, you must already have Python 3.10.5 downloaded on your computer. To use the above command to create a Python 3.10.5 enviornment, Python 3.10.5 must be configured in your PATH. You can download it from the [python website](https://www.python.org/downloads/release/python-3105/).
 
 4. Activate the virtual enviornment. Hold CTRL+shift+P to open the command palette. Select `Python: Select Interpreter`. Select the interpreter in the virtual enviorment you just created (labeled venv).
 Open a new terminal in VS Code and the virtual enviornment will be activated.
 
-5. Call: `pip install .` to install the python_gtl_thread package and its dependencies.
+5. Call: `pip install .` to install the py_ble_manager package and its dependencies.
 
 6. The pacakge is now installed ang you are ready to run one of the [examples](examples)
 
@@ -52,7 +52,7 @@ Open a new terminal in VS Code and the virtual enviornment will be activated.
 ### Create a BLE Central object and perform initilization
 
 ```Python
-import python_gtl_thread as ble
+import py_ble_manager as ble
 
 central = ble.BleCentral("COM54")
 

@@ -4,7 +4,7 @@ from ..ble_api.BleGatt import GATT_SERVICE, GATT_PROP
 from ..ble_api.BleGatts import GATTS_FLAG, BleEventGattsReadReq, BleEventGattsEventSent, BleEventGattsPrepareWriteReq
 from ..ble_api.BleCommon import BleEventBase
 # TODO need to handle circular import
-# from python_gtl_thread.ble_devices.BleCentralPeripheral import BlePeripheral
+# from py_ble_manager.ble_devices.BleCentralPeripheral import BlePeripheral
 
 # TODO Bleperipheral and BleService tightly coupled. Consider using a mediator
 
