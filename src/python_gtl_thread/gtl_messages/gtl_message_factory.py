@@ -39,6 +39,6 @@ class GtlMessageFactory():
             else:
                 raise AssertionError(f"GtlMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")
         except AssertionError as e:
-            # raise e
             print(e)
-            pass
+            raise e
+
