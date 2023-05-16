@@ -35,9 +35,6 @@ class BleManagerCommon(BleManagerBase):
             BLE_MGR_COMMON_CMD_OPCODE.BLE_MGR_COMMON_RESET_CMD: self.reset_cmd_handler,
         }
 
-    def _create_reset_command(self):
-        return GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
-
     def _reset_rsp_handler(self, message: GtlMessageBase, param: None):
         # TODO see ble_adapter_cmp_evt_reset
         # TODO set dev_params status to BLE_IS_ENABLE
@@ -48,7 +45,8 @@ class BleManagerCommon(BleManagerBase):
     def reset_cmd_handler(self, command: BleMgrCommonResetCmd):
         # TODO set dev_params status to BLE_IS_RESET
         self._wait_queue_add(BLE_CONN_IDX_INVALID, GAPM_MSG_ID.GAPM_CMP_EVT, GAPM_OPERATION.GAPM_RESET, self._reset_rsp_handler, None)
-        self._adapter_command_queue_send(self._create_reset_command())
+        gtl = GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
+        self._adapter_command_queue_send(gtl)
 
 
 '''
