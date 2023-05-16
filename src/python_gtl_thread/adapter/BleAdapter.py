@@ -31,22 +31,19 @@ class BleAdapter():
             command = self._command_queue_get()
             self._process_command_queue(command)
 
-    def _create_reset_command(self):
-        return GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
-
     def _process_command_queue(self, command: GtlMessageBase):
         self._send_serial_message(command)
 
     def _process_serial_rx_q(self, byte_string: bytes):
-        msg = GtlMessageFactory().create_message(byte_string)  # TODO catch error
+        msg = GtlMessageFactory().create_message(byte_string)  
         if self.gtl_debug:
             print(f"<-- Rx: {msg}\n")
 
         if msg:
             if msg.msg_id == GAPM_MSG_ID.GAPM_DEVICE_READY_IND:
                 # Reset the BLE Stacks
-                command = self._create_reset_command()  # TODO send to mgr instead to give it a chance to clean up?
-                self._send_serial_message(command)
+                gtl = GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))  # TODO send to mgr instead to give it a chance to clean up?
+                self._send_serial_message(gtl)
 
             elif msg.msg_id == GAPM_MSG_ID.GAPM_CMP_EVT:
                 self.ble_stack_initialized = True
