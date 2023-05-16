@@ -41,4 +41,3 @@ class GtlMessageFactory():
         except AssertionError as e:
             print(e)
             raise e
-
