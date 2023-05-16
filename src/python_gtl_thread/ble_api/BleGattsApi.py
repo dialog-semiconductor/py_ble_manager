@@ -1,4 +1,3 @@
-from ..adapter.BleAdapter import BleAdapter
 from ..ble_api.BleApiBase import BleApiBase
 from ..ble_api.BleAtt import AttUuid, ATT_PERM, ATT_ERROR
 from ..ble_api.BleCommon import BLE_ERROR
@@ -18,8 +17,8 @@ from python_gtl_thread.services.BleService import BleServiceBase
 
 class BleGattsApi(BleApiBase):
 
-    def __init__(self, ble_manager: BleManager, ble_adapter: BleAdapter):
-        super().__init__(ble_manager, ble_adapter)
+    def __init__(self, ble_manager: BleManager):
+        super().__init__(ble_manager)
 
     def add_characteristic(self,
                            uuid: AttUuid = None,

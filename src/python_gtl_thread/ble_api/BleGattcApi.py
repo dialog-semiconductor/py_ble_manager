@@ -1,4 +1,3 @@
-from ..adapter.BleAdapter import BleAdapter
 from ..ble_api.BleApiBase import BleApiBase
 from ..ble_api.BleAtt import AttUuid
 from ..ble_api.BleCommon import BLE_ERROR
@@ -11,8 +10,8 @@ from ..manager.BleManagerGattcMsgs import BleMgrGattcDiscoverSvcCmd, BleMgrGattc
 
 class BleGattcApi(BleApiBase):
 
-    def __init__(self, ble_manager: BleManager, ble_adapter: BleAdapter):
-        super().__init__(ble_manager, ble_adapter)
+    def __init__(self, ble_manager: BleManager):
+        super().__init__(ble_manager)
 
     def browse(self,
                conn_idx: int,

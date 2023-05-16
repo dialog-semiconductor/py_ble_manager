@@ -1,4 +1,3 @@
-from ..adapter.BleAdapter import BleAdapter
 from ..ble_api.BleApiBase import BleApiBase
 from ..ble_api.BleCommon import BLE_ERROR
 from ..manager.BleManager import BleManager
@@ -6,8 +5,8 @@ from ..manager.BleManager import BleManager
 
 class BleStorageApi(BleApiBase):
 
-    def __init__(self, ble_manager: BleManager, ble_adapter: BleAdapter):
-        super().__init__(ble_manager, ble_adapter)
+    def __init__(self, ble_manager: BleManager):
+        super().__init__(ble_manager)
 
     def put_int(self, conn_idx: int, key: int, value: int, persistent: bool) -> BLE_ERROR:
 

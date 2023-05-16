@@ -15,8 +15,8 @@ from ..manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp
 
 class BleGapApi(BleApiBase):
 
-    def __init__(self, ble_manager: BleManager, ble_adapter: BleAdapter):
-        super().__init__(ble_manager, ble_adapter)
+    def __init__(self, ble_manager: BleManager):
+        super().__init__(ble_manager)
 
     def conn_param_update(self, conn_idx: int, conn_params: GapConnParams):
 

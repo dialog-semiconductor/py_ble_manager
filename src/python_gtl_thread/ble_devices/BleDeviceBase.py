@@ -41,10 +41,10 @@ class BleDeviceBase():
         self._serial_stream_manager = SerialStreamManager(com_port, serial_tx_q, serial_rx_q)
 
         # Dialog API
-        self._ble_gap = BleGapApi(self._ble_manager, self._ble_adapter)
-        self._ble_gattc = BleGattcApi(self._ble_manager, self._ble_adapter)
-        self._ble_gatts = BleGattsApi(self._ble_manager, self._ble_adapter)
-        self._ble_storage = BleStorageApi(self._ble_manager, self._ble_adapter)
+        self._ble_gap = BleGapApi(self._ble_manager)
+        self._ble_gattc = BleGattcApi(self._ble_manager)
+        self._ble_gatts = BleGattsApi(self._ble_manager)
+        self._ble_storage = BleStorageApi(self._ble_manager)
 
         self._services: list[BleServiceBase] = []
 
