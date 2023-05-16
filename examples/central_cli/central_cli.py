@@ -51,8 +51,6 @@ class CLIHandler():
                     print("Session Keyboard Interrupt")
                     return
 
-                # TODO wait for event from ble_task before accepting additional input (eg scan done)?
-
     def shutdown(self):
         try:
             if self.session and self.session.app.is_running:
@@ -159,7 +157,7 @@ class BleController():
                     if len(args) == 4:
                         conn_idx = int(args[1])
                         handle = int(args[2])
-                        value = bytes.fromhex(args[3])  # TODO requires leading 0 for 0x0-0xF
+                        value = bytes.fromhex(args[3])  # Note: requires leading 0 for 0x0-0xF
                         error = self.central.write(conn_idx, handle, 0, value)
 
                 case "GATTWRITENORESP":
@@ -167,7 +165,7 @@ class BleController():
                         conn_idx = int(args[1])
                         handle = int(args[2])
                         signed = bool(int(args[3]))
-                        value = bytes.fromhex(args[4])  # TODO requires leading 0 for 0x0-0xF
+                        value = bytes.fromhex(args[4])  # Note: requires leading 0 for 0x0-0xF
                         error = self.central.write_no_resp(conn_idx, handle, signed, value)
 
                 case "GATTWRITEPREPARE":
@@ -184,7 +182,7 @@ class BleController():
                         execute = bool(int(args[2]))
                         error = self.central.write_execute(conn_idx, execute)
 
-                case "GATTREAD":  # TODO char handle displayed by browse is acutally the declaration. The value is +1
+                case "GATTREAD":  # Note: char handle displayed by browse is actually the declaration. The value is +1
                     if len(args) == 3:
                         conn_idx = int(args[1])
                         handle = int(args[2])
@@ -329,7 +327,6 @@ class BleController():
               + f"company_id={evt.company_id}, lmp_subversion={evt.lmp_subversion}")
 
     def handle_evt_gap_scan_completed(central: ble.BleCentral, evt: ble.BleEventGapScanCompleted):
-        # TODO status is always coming back BLE_ERROR_TIMEOUT. Is that correct?
         print(f"Scan completed: status={evt.status.name}")
 
     def handle_evt_gap_sec_level_changed(self, evt: ble.BleEventGapSecLevelChanged):
