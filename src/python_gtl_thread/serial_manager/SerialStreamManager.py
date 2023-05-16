@@ -59,9 +59,4 @@ class SerialStreamManager():
         self._rx_task.start()
 
     def open_serial_port(self):
-        # try:
-        # TODO timeout opening port
         self._serial_port = serial.Serial(self._com_port, baudrate=115200)
-
-        # except :
-        #    print(f"{type(self)} failed to open {self._com_port}")

@@ -130,18 +130,12 @@ class BleDeviceBase():
         return self._ble_gap.disconnect(conn_idx, reason)
 
     def init(self) -> None:
-        # try:
-        # Open the serial port the the 531
-        self._serial_stream_manager.open_serial_port()  # TODO implement a timeout for opening the serial port
+        self._serial_stream_manager.open_serial_port()
 
         # Start always running BLE tasks
         self._ble_manager.init()
         self._ble_adapter.init()
         self._serial_stream_manager.init()
-
-        # TODO timeout on opening serial port
-        # except concurrent.futures.TimeoutError as e:
-        #    raise e
 
     def get_event(self, timeout: int = None) -> BleEventBase:
         """Get event from BLE event queue

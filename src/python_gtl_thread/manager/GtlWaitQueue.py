@@ -9,10 +9,10 @@ from ..gtl_port.gapm_task import GAPM_MSG_ID
 
 class GtlWaitQueueElement():
     def __init__(self,
-                 conn_idx: c_uint16 = 0,  # TODO do these really need to be c_uint16 instead of uint?
+                 conn_idx: c_uint16 = 0,
                  msg_id: c_uint16 = 0,
                  ext_id: c_uint16 = 0,
-                 cb: Callable = None,  # TODO add args, return type
+                 cb: Callable = None,
                  param: object = None) -> None:
         self.conn_idx = conn_idx
         self.msg_id = msg_id
