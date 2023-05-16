@@ -144,7 +144,7 @@ class GAP_DATA_TYPE(IntEnum):
     # Slave Connection Interval Range
     GAP_DATA_TYPE_SLAVE_CONN_INTV = 0x12
 
-    GAP_DATA_TYPE_RESERVED1 = 0x13  # TODO Is this used for something?
+    GAP_DATA_TYPE_RESERVED1 = 0x13
 
     # List of 16-bit Service Solicitation UUIDs
     GAP_DATA_TYPE_UUID16_SOLIC = 0x14
@@ -245,7 +245,6 @@ class GAP_SEC_LEVEL(IntEnum):
 
 
 class GapChnlMap():
-    # TODO description of map
     """Link Layer channel map
 
     :ivar map: channel map
