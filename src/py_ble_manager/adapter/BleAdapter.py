@@ -35,7 +35,7 @@ class BleAdapter():
         self._send_serial_message(command)
 
     def _process_serial_rx_q(self, byte_string: bytes):
-        msg = GtlMessageFactory().create_message(byte_string)  
+        msg = GtlMessageFactory().create_message(byte_string)
         if self.gtl_debug:
             print(f"<-- Rx: {msg}\n")
 
