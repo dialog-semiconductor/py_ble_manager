@@ -28,7 +28,7 @@ class GattcMessageFactory():
                 return GattcReadReqInd(conidx=conidx, parameters=gattc_read_req_ind.from_buffer_copy(params_buf))
 
             elif msg_id == GATTC_MSG_ID.GATTC_WRITE_REQ_IND:
-                # TODO issue using from_buffer_copy due to POINTER, is there a better way to convert?
+                # note from_buffer_copy fails due to POINTER in gattc_write_req_ind
                 parameters = gattc_write_req_ind()
                 parameters.handle = int.from_bytes(params_buf[0:2], "little", signed=False)
                 parameters.offset = int.from_bytes(params_buf[2:4], "little", signed=False)
