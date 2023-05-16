@@ -1,4 +1,3 @@
-from ..adapter.BleAdapter import BleAdapter
 from ..ble_api.BleApiBase import BleApiBase
 from ..ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR
 from ..ble_api.BleGap import BLE_GAP_ROLE, GapConnParams, BLE_GAP_CONN_MODE, GAP_SCAN_TYPE, GAP_SCAN_MODE, \
