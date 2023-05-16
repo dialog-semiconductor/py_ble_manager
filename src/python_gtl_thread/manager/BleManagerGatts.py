@@ -252,7 +252,6 @@ class BleManagerGatts(BleManagerBase):
 
     def send_event_cmd_handler(self, command: BleMgrGattsSendEventCmd):
         response = BleMgrGattsSendEventRsp(BLE_ERROR.BLE_ERROR_FAILED)
-            # TODO need to check if sending event pending on this char
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
 
@@ -290,7 +289,6 @@ class BleManagerGatts(BleManagerBase):
 
                 self._extended_prop = command.prop & (GATT_PROP.GATT_PROP_EXTENDED_RELIABLE_WRITE | GATT_PROP.GATT_PROP_EXTENDED_WRITABLE_AUXILIARIES)
 
-                # TODO simplify calls into nested structures
                 # Characteristic Attribute
                 att = gattm_att_desc()
                 att.uuid[:2] = [0x03, 0x28]
@@ -300,7 +298,7 @@ class BleManagerGatts(BleManagerBase):
                 self._attr_idx += 1
                 h_offset = self._attr_idx
 
-                # Characteristic value attribute  # TODO align assigning uuid with gattc_sdp_svc_ind or vice versa
+                # Characteristic value attribute
                 att = gattm_att_desc()
                 att.uuid[:len(command.uuid.uuid)] = command.uuid.uuid
                 att.perm = self._api_to_rwperm(command.prop, command.perm, command.uuid.type)
@@ -356,7 +354,7 @@ class BleManagerGatts(BleManagerBase):
             # Check if there are enough free attributes left
             if (self._add_svc_msg.parameters.svc_desc.nb_att - self._attr_idx) >= 1:
                 # Check if it is Extended properties descriptor and set it's value
-                if command.uuid.uuid == UUID_GATT_CHAR_EXT_PROPERTIES:  # TODO be carefule with endianess here
+                if command.uuid.uuid == UUID_GATT_CHAR_EXT_PROPERTIES:
                     max_len = 0
                     if self._extended_prop & GATT_PROP.GATT_PROP_EXTENDED_RELIABLE_WRITE:
                         max_len |= 1
@@ -373,7 +371,6 @@ class BleManagerGatts(BleManagerBase):
 
                 att.max_len_read_ind.max_len = max_len
                 self._add_svc_msg.parameters.svc_desc.atts[self._attr_idx] = att
-                # TODO would this ever have a read indication?
                 self._attr_idx += 1
                 h_offset = self._attr_idx
 

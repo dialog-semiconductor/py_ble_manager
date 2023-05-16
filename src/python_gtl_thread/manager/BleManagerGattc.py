@@ -170,8 +170,7 @@ class BleManagerGattc(BleManagerBase):
                 self._cmp_discovery_evt_handler(gtl)
 
             case GATTC_OPERATION.GATTC_READ:
-                # TODO should not return value
-                return self._cmp_read_evt_handler(gtl)
+                self._cmp_read_evt_handler(gtl)
 
             case (GATTC_OPERATION.GATTC_WRITE
                     | GATTC_OPERATION.GATTC_WRITE_NO_RESPONSE
@@ -237,7 +236,6 @@ class BleManagerGattc(BleManagerBase):
         self.storage_release()
         self._mgr_response_queue_send(response)
 
-    # TODO discovering descriptors needs to be tested
     def discover_desc_cmd_handler(self, command: BleMgrGattcDiscoverDescCmd):
         response = BleMgrGattcDiscoverDescRsp(BLE_ERROR.BLE_ERROR_FAILED)
 
@@ -309,7 +307,7 @@ class BleManagerGattc(BleManagerBase):
             evt.value = bytes(gtl.parameters.value)
             self._mgr_event_queue_send(evt)
 
-    def read_ind_evt_handler(self, gtl: GattcReadInd):  # TODO need to test
+    def read_ind_evt_handler(self, gtl: GattcReadInd):
         evt = BleEventGattcReadCompleted()
         evt.conn_idx = self._task_to_connidx(gtl.src_id)
         evt.handle = gtl.parameters.handle
@@ -318,7 +316,7 @@ class BleManagerGattc(BleManagerBase):
         evt.value = bytes(gtl.parameters.value)
         self._mgr_event_queue_send(evt)
 
-    def read_cmd_handler(self, command: BleMgrGattcReadCmd):  # TODO need to test
+    def read_cmd_handler(self, command: BleMgrGattcReadCmd):
         response = BleMgrGattcReadRsp(BLE_ERROR.BLE_ERROR_FAILED)
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
@@ -364,7 +362,6 @@ class BleManagerGattc(BleManagerBase):
 
                 match info.att_type:
                     case GATTC_SDP_ATT_TYPE.GATTC_SDP_INC_SVC:
-                        # TODO  TYPE DOES NOT SEEM TO BE RECOGNIZED
                         item.type = GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_INCLUDE
                         item.service_data = GattcServiceData()
                         item.service_data.start_h = info.inc_svc.start_hdl

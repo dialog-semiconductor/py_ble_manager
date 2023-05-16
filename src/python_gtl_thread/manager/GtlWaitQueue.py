@@ -72,7 +72,7 @@ class GtlWaitQueue():
                 if is_match:
                     self.remove(elem)
                     if elem.cb:
-                        # Fire associated callback with None gtl message # TODO seems like it could cause issue, verify for two cases where match is true
+                        # Fire associated callback with None gtl message
                         elem.cb(None, elem.param)
         self._wait_queue_lock.release()
 
@@ -102,7 +102,7 @@ class GtlWaitQueue():
             if match:
                 callback = item.cb
                 self.remove(item)
-                callback(message, item.param)  # TODO use **kwargs for functions that dont use params?
+                callback(message, item.param)
                 ret = True
                 break
 

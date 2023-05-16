@@ -165,8 +165,8 @@ class BleManagerGap(BleManagerBase):
             case HOST_STACK_ERROR_CODE.GAP_ERR_TIMEOUT:
                 evt.status = BLE_ERROR.BLE_ERROR_TIMEOUT
             case _:
-                # evt.status = gtl.parameters.status  # TODO this throws a ValueError if not a valid BLE_ERROR
-                # need to be able to set a BLE_ERROR that is not defined
+                # evt.status = gtl.parameters.status, throws a ValueError if not a valid BLE_ERROR
+                # assign the failed status code
                 evt.status = BLE_ERROR.BLE_ERROR_FAILED
 
         self._mgr_event_queue_send(evt)
@@ -224,7 +224,6 @@ class BleManagerGap(BleManagerBase):
         else:
             evt = BleEventGapPairCompleted()
             evt.conn_idx = self._task_to_connidx(gtl.src_id)
-            # evt.status = gtl.parameters.status  # TODO would prefer BLE_ERROR(gtl.parameters.status)
             # Below needs to be refactored to not depend on internal __members__ of IntEnum class
             evt.status = gtl.parameters.status if gtl.parameters.status in BLE_ERROR.__members__.values() else BLE_ERROR.BLE_ERROR_FAILED
             evt.bond = False
@@ -374,8 +373,8 @@ class BleManagerGap(BleManagerBase):
             case HOST_STACK_ERROR_CODE.LL_ERR_UNSPECIFIED_ERROR:
                 evt.status = BLE_ERROR.BLE_ERROR_INS_BANDWIDTH
             case _:
-                # evt.status = gtl.parameters.status  # TODO this throws a ValueError if not a valid BLE_ERROR
-                # need to be able to set a BLE_ERROR that is not defined. Could make a LittleEndianStructure
+                # evt.status = gtl.parameters.status, throws a ValueError if not a valid BLE_ERROR
+                # assign the failed status code
                 evt.status = BLE_ERROR.BLE_ERROR_FAILED
 
         self._mgr_event_queue_send(evt)
@@ -550,8 +549,8 @@ class BleManagerGap(BleManagerBase):
             case HOST_STACK_ERROR_CODE.GAP_ERR_COMMAND_DISALLOWED:
                 evt.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
             case _:
-                # evt.status = gtl.parameters.status  # TODO this throws a ValueError if not a valid BLE_ERROR
-                # need to be able to set a BLE_ERROR that is not defined
+                # evt.status = gtl.parameters.status, throws a ValueError if not a valid BLE_ERROR
+                # assign the failed status code
                 evt.status = BLE_ERROR.BLE_ERROR_FAILED
 
         self._mgr_event_queue_send(evt)
@@ -1131,7 +1130,7 @@ class BleManagerGap(BleManagerBase):
                     gtl.parameters.con_latency = command.conn_params.slave_latency
                     gtl.parameters.superv_to = command.conn_params.sup_timeout
                     gtl.parameters.con_latency = command.conn_params.slave_latency
-                    gtl.parameters.ce_len_min = command.ce_len_min if command.ce_len_min else 8  # TODO implement ifdef
+                    gtl.parameters.ce_len_min = command.ce_len_min if command.ce_len_min else 8
                     gtl.parameters.ce_len_max = command.ce_len_max if command.ce_len_max else 8
                     gtl.parameters.nb_peers = 1
                     gtl.parameters.peers = (gap_bdaddr * gtl.parameters.nb_peers)()
@@ -1333,7 +1332,6 @@ class BleManagerGap(BleManagerBase):
 
     def gapm_cmp_evt_handler(self, gtl: GapmCmpEvt) -> bool:
 
-        # TODO replace this with another dictionary??
         match gtl.parameters.operation:
             case GAPM_OPERATION.GAPM_ADV_NON_CONN \
                     | GAPM_OPERATION.GAPM_ADV_UNDIRECT \
