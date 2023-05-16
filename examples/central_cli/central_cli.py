@@ -239,17 +239,6 @@ class BleController():
                 self.handle_evt_gap_connection_compelted(evt)
             case ble.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED:
                 self.handle_evt_gap_disconnected(evt)
-            case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_SVC:
-                self.handle_evt_gattc_discover_svc(evt)
-            case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_COMPLETED:
-                if evt.type == ble.GATTC_DISCOVERY_TYPE.GATTC_DISCOVERY_TYPE_SVC:
-                    self.handle_evt_gattc_discover_completed(evt)
-            case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_CHAR:
-                self.handle_evt_gattc_discover_char(evt)
-            case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_CHAR:
-                self.handle_evt_gattc_discover_char(evt)
-            case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_DESC:
-                self.handle_evt_gattc_discover_desc(evt)
             case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_SVC:
                 self.handle_evt_gattc_browse_svc(evt)
             case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED:
@@ -346,31 +335,6 @@ class BleController():
                       + f"{self.format_properties(item.char_data.properties)}")
             elif item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_DESCRIPTOR:
                 print(f"\t\tDescriptor discovered: handle={item.handle}, uuid={ble.BleUtils.uuid_to_str(item.uuid)}")
-
-    def handle_evt_gattc_discover_char(self, evt: ble.BleEventGattcDiscoverChar):
-        print(f"main_central handle_evt_gattc_discover_char unimplemented. evt={evt}")
-
-    def handle_evt_gattc_discover_desc(self, evt: ble.BleEventGattcDiscoverDesc):
-        print(f"main_central handle_evt_gattc_discover_desc unimplemented. evt={evt}")
-
-    def handle_evt_gattc_discover_completed(self, evt: ble.BleEventGattcDiscoverCompleted):
-        print(f"main_central handle_evt_gattc_discover_completed unimplemented. evt={evt}")
-
-        if evt.type == ble.GATTC_DISCOVERY_TYPE.GATTC_DISCOVERY_TYPE_SVC:
-            service: ble.BleServiceBase = self.services.peek_back()
-            self.central.discover_characteristics(evt.conn_idx, service.start_h, service.end_h, None)
-
-        # TODO discover included services
-
-        elif evt.type == ble.GATTC_DISCOVERY_TYPE.GATTC_DISCOVERY_TYPE_CHARACTERISTICS:
-            # self.central.discover_descriptors(evt.conn_idx. )
-            pass
-
-    def handle_evt_gattc_discover_svc(self, evt: ble.BleEventGattcDiscoverSvc):
-        service = ble.BleServiceBase()
-        service.start_h = evt.start_h
-        service.end_h = evt.end_h
-        self.services.push(service)
 
     def handle_evt_gattc_notification(self, evt: ble.BleEventGattcNotification):
         print(f"Received Notification: conn_idx={evt.conn_idx}, handle={evt.handle}, value={evt.value.hex()}")
