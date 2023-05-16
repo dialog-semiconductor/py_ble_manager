@@ -25,5 +25,5 @@ from .ble_api.BleUtil import BleUtils
 from .ble_devices.BleCentral import BleCentral
 from .ble_devices.BlePeripheral import BlePeripheral
 from .manager.BleManagerStorage import SearchableQueue
-from .services.BleService import BleServiceBase
+from .services.BleService import BleServiceBase, AttributeHandle, GattServiceDef, CharacteristicDef, DescriptorDef, GattCharacteristicDef
 
