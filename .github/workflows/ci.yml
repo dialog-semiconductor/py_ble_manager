@@ -30,7 +30,7 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Lint with flake8
       run: |
-        # Ignore Unexpected indentation (comment) (E116). Idents used for gtl_port files
+        # Ignore Unexpected indentation (comment) (E116). Indents used for gtl_port files
         flake8 . --count --max-line-length=160 --statistics --ignore=E116,W503,E402 --exclude=sandbox.py,test_*.py,sandbox2.py,__init__.py 
     - name: Test with unittest
       run: |
