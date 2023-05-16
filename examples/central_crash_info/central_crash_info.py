@@ -1,6 +1,6 @@
 import argparse
-# import logging
 import threading
+from io import TextIOWrapper
 import queue
 from enum import IntEnum, auto
 import os
@@ -88,8 +88,6 @@ class CLIHandler():
                     print("Session Keyboard Interrupt")
                     return
 
-                # TODO wait for event from ble_task before accepting additional input (eg scan done)?
-
     def shutdown(self):
         try:
             if self.session and self.session.app.is_running:
@@ -104,7 +102,7 @@ class BleController():
                  com_port: str,
                  command_q: queue.Queue,
                  response_q: queue.Queue,
-                 log: object = None):  # TODO correct type hint for file handle
+                 log: object = TextIOWrapper):
 
         self.com_port = com_port
         self.command_q = command_q
@@ -240,7 +238,7 @@ class BleController():
         ad_structs = ble.BleUtils.parse_adv_data(evt)
         for ad_struct in ad_structs:
             if ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_FLAGS:
-                # This is an advertising packet (vs scan response)  # TODO How to initiate scan request from Central?
+                # This is an advertising packet (vs scan response)
                 adv_packet = True
 
             if (ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_LOCAL_NAME
