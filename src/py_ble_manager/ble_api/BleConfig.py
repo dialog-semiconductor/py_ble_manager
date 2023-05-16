@@ -30,12 +30,6 @@ class BleConfigDefault():
         assert ((self.dg_configBLE_DATA_LENGTH_TX_MAX < 251) or (self.dg_configBLE_DATA_LENGTH_TX_MAX > 27))
 
 
-# TODO move to a Util class
-# define BLE_DATA_LENGTH_TO_TIME(OCTETS)  ( ( (OCTETS) + 11 + 3 ) * 8 )
-def ble_data_length_to_time(OCTETS):
-    return (OCTETS + 11 + 3) * 8
-
-
 # define dg_configBLE_OBSERVER                (1)
 # define dg_configBLE_BROADCASTER             (1)
 # define dg_configBLE_CENTRAL                 (1)

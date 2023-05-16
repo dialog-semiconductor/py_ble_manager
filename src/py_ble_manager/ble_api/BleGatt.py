@@ -8,7 +8,7 @@ class GATT_EVENT(IntEnum):
     GATT_EVENT_INDICATION = 1
 
 
-class GATT_PROP(IntEnum):  # TODO need a ctypes bitfield? Cannot easily do bit manipulation with IntEnum
+class GATT_PROP(IntEnum):
     """GATT characteristic properties
     """
     GATT_PROP_NONE = 0

@@ -47,11 +47,11 @@ class GATT_EVENT(IntEnum):
 class DebugCrashInfoSvc():
     def __init__(self):
         self.svc_handle = 0
-        self.rx = ble.GattcItem()
-        self.rx_user_desc = ble.GattcItem()
-        self.tx = ble.GattcItem()
-        self.tx_user_desc = ble.GattcItem()
-        self.tx_ccc = ble.GattcItem()
+        self.rx = ble.GattcItem()  # Rx Characteristic for service. Central writes to this characteristic
+        self.rx_user_desc = ble.GattcItem()  # Rx Char User Description
+        self.tx = ble.GattcItem()  # Tx Characteristic for service. Central recieves notifications on this characteristic
+        self.tx_user_desc = ble.GattcItem()  # Tx Char User Description
+        self.tx_ccc = ble.GattcItem()  # Tx Client Charactieristic Configuration Descriptor
 
 
 class CLIHandler():
@@ -429,7 +429,6 @@ class BleController():
                         evt: ble.BleEventGattcWriteCompleted
                         self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_RESPONSE
                         # +1 as handle is for char declaration
-                        # TODO rx/tx named from perspective of periph. Change to perspective of central
                         self.central.write(0,
                                            (self.dci_svc.rx.handle + 1),  # saved handle is the char declaration, +1 to write to the char value
                                            0,
