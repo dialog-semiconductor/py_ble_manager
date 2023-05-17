@@ -4,7 +4,7 @@
 
 The intent of this library is to provide a python interface similar to [SDK10](http://lpccs-docs.renesas.com/um-b-092-da1469x_software_platform_reference/User_guides/User_guides.html#the-ble-framework) for controlling BLE of DA14xxx devices.
 
-The BLE Framework implemented in SDK10 is depecited below:
+The BLE Framework implemented in SDK10 is depicted below:
 
 ![BLE_Framework](../assets/BLE_Framework.png)
 
@@ -12,7 +12,7 @@ In SDK10, FreeRTOS is used as an operating system. FreeRTOS provides prioritized
 
 This library provides a python implementation for several layers of the SDK10 BLE Framework (e.g. the BLE Service Framework, Dialog BLE API Library, BLE Manager, and BLE Adapter). The python [threading](https://docs.python.org/3/library/threading.html) library is used to achieve concurrency between tasks as well as provide communication primitives such as the `Lock` and `Event` objects. The python [queue](https://docs.python.org/3/library/queue.html) library provides thread safe queues.
 
-The architecture implemented in python is depecited below:
+The architecture implemented in python is depicted below:
 
 ![PythonGtl](../assets/PythonGtl.png)
 
@@ -22,13 +22,13 @@ The implementation closely parallels the SDK10 architecture, with the addition o
 
 ### ble_devices
 
-The [ble_devices]( #ble_devices) directory contains the primary classes enabling a user to interact with the python BLE framework, namely the `BleCentral` and `BlePeripheral` classes. These classes provide methods to exercise BLE functionality for a central or peripheral application respectively.
+The [ble_devices](#ble_devices) directory contains the primary classes enabling a user to interact with the python BLE framework, namely the `BleCentral` and `BlePeripheral` classes. These classes provide methods to exercise BLE functionality for a central or peripheral application respectively.
 
 For example, the `BleCentral` class implements methods for scanning, connecting, browsing, pairing, reading, writing, etc.
 
 `BleCentral` and `BlePeripheral` both inherit from the `BleDeviceBase` class, which implements functionality common to both central and peripheral devices.
 
-The method signatures of these classes are anagolous to their SDK10 counterparts. For example, the scan start function in SDK10 is defined as:
+The method signatures of these classes are analogous to their SDK10 counterparts. For example, the scan start function in SDK10 is defined as:
 
 ```C
 ble_error_t ble_gap_scan_start(gap_scan_type_t type, gap_scan_mode_t mode, uint16_t interval,
@@ -56,7 +56,7 @@ The [ble_api](#ble_api) directory contains classes that implement the functional
 
 The `BleGapApi` class implements GAP related functionality. The `BleGattcApi` class implements GATT client related functionality. The `BleGattsApi` class implements GATT service related functionality.  
 
-In addition, a number of classes and enums are defined for passing parameters / receiving responses and events back from the BLE Framework. Some example include `BLE_ERROR`, `BdAddress`, `GapScanParams`, `GAP_SCAN_TYPE`,  various BLE event defintions (`BleEventGapAdvCompleted`, `BleEventGapConnected`, etc.). Again, these classes and enums are anaglous to their SDK10 counterparts.  
+In addition, a number of classes and enums are defined for passing parameters / receiving responses and events back from the BLE Framework. Some example include `BLE_ERROR`, `BdAddress`, `GapScanParams`, `GAP_SCAN_TYPE`,  various BLE event definitions (`BleEventGapAdvCompleted`, `BleEventGapConnected`, etc.). Again, these classes and enums are analogous to their SDK10 counterparts.  
 
 ### manager
 
@@ -65,7 +65,7 @@ The [manager](#manager) directory contains classes that implement the functional
 The `BLE Manager` layer is concerned with:
 
 - Processing commands from the [ble_api](#ble_api) and converting them to GTL messages that are passed to the [BleAdapter](#adapter).
-- Prococessing events (in the form of GTL messages) from the [BleAdapter](#adapter) and converting them into events understood by the [ble_api](#ble_api).
+- Processing events (in the form of GTL messages) from the [BleAdapter](#adapter) and converting them into events understood by the [ble_api](#ble_api).
 
 Functionality of the `BLE Manager` layer is broken into 5 main classes:
 
@@ -124,7 +124,7 @@ This message definition is consistent with the the GTL message format from the u
 
 Separate python files exist for messages related to different BLE layers. For example, [gtl_message_gapm.py](../src/py_ble_manager/gtl_messages/gtl_message_gapm.py) defines GAP Manager related GTL messages.
 
-Each message takes care of setting the appropriate MSG_ID, DST_ID, SRC_ID, and PAR_LEN for its specific message type. A user only needs to provide the appropriate `parameters` to create a valid message. The `parameters` are one of the `LittleEndianStructure`'s defind in [gtl_port](gtl_port).
+Each message takes care of setting the appropriate MSG_ID, DST_ID, SRC_ID, and PAR_LEN for its specific message type. A user only needs to provide the appropriate `parameters` to create a valid message. The `parameters` are one of the `LittleEndianStructure`'s defined in [gtl_port](gtl_port).
 
 For example, below demonstrates creating a [GapmResetCmd](https://github.com/Renesas-US-Connectivity/py_ble_manager/blob/4d2c118afd886daabd73dd39d6d1d3fe650dbebc/src/py_ble_manager/gtl_messages/gtl_message_gapm.py#L19-L29) using the [gapm_reset_cmd](https://github.com/Renesas-US-Connectivity/py_ble_manager/blob/4d2c118afd886daabd73dd39d6d1d3fe650dbebc/src/py_ble_manager/gtl_port/gapm_task.py#L451-L458) parameters:
 
@@ -225,7 +225,7 @@ Note a constructor has been added to the class definition, though this is not re
 
 1. To aid in [type hinting](https://docs.python.org/3/library/typing.html)
 
-    It is difficult to know from the type of each Structure field alone what values are appropriate for the field, as the fields are often generic types such as uint8_t, uint16_t, etc. Using a constructor allows us to utilize type hinting to aid a developer in passing in appropriate arguments when creating these strucutres. For example when creating a `gapm_operation_cmd` the `operation` field, which is defined as a `c_uint8`, is hinted as a `GAPM_OPERATION` enum:
+    It is difficult to know from the type of each Structure field alone what values are appropriate for the field, as the fields are often generic types such as uint8_t, uint16_t, etc. Using a constructor allows us to utilize type hinting to aid a developer in passing in appropriate arguments when creating these structures. For example when creating a `gapm_operation_cmd` the `operation` field, which is defined as a `c_uint8`, is hinted as a `GAPM_OPERATION` enum:
 
     ![type_hint](../assets/type_hint.png)
 
