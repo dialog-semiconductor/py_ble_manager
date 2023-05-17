@@ -124,7 +124,7 @@ class BlePeripheral(BleDeviceBase):
             for i in range(0, len(svc.gatt_char_defs)):
                 gatt_char_def = svc.gatt_char_defs[i]
                 char_def = gatt_char_def.char_def
-                # TODO is there a case where you need the char declartion handle offset (h_offset)?
+                # TODO is there a case where you need the char declaration handle offset (h_offset)?
                 error, _, char_def.handle.value = self._ble_gatts.add_characteristic(char_def.uuid,
                                                                                      char_def.prop,
                                                                                      char_def.perm,

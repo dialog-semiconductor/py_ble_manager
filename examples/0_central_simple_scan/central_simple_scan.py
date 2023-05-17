@@ -6,7 +6,7 @@ import py_ble_manager as ble
 def main(com_port):
     central = ble.BleCentral(com_port)
 
-    # Initialize the Pytohn BLE Framework
+    # Initialize the Python BLE Framework
     central.init()
 
     # Start operating as a BLE Central
@@ -21,7 +21,7 @@ def main(com_port):
                        filt_dupl=True)
 
     while True:
-        # Wait for asynchronus events to arrive. A timeout is set to allow for Keyboard interrupts
+        # Wait for asynchronous events to arrive. A timeout is set to allow for Keyboard interrupts
         evt = central.get_event(timeout=1)
         if evt:
             match evt.evt_code:
@@ -29,7 +29,7 @@ def main(com_port):
                 # Print out data for each advertisement received
                 case ble.BLE_EVT_GAP.BLE_EVT_GAP_ADV_REPORT:
                     evt: ble.BleEventGapAdvReport
-                    print(f"Advertisment: address={ble.BleUtils.bd_addr_to_str(evt.address)} "
+                    print(f"Advertisement: address={ble.BleUtils.bd_addr_to_str(evt.address)} "
                           + f"rssi={evt.rssi}, data={evt.data.hex()}")
 
                 # When the scan is complete, exit
