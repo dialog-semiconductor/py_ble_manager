@@ -11,6 +11,8 @@ class BLE_DEVICE_TYPE(IntEnum):
 
 
 class BleConfigDefault():
+    """Default configuration for various BLE parameters
+    """
     def __init__(self, ble_device_type: BLE_DEVICE_TYPE = BLE_DEVICE_TYPE.CENTRAL):
 
         self.dg_configBLE_SECURE_CONNECTIONS = (1)
