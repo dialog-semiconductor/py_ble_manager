@@ -72,11 +72,15 @@ Disconnect
 Handle asynchronous events
 --------------------------
 
-The framework returns asynchronous events to the application through an event queue. Calling ``BleCentral.get_event()`` will get an event from the queue. All of the events returned by ``BleCentral.get_event()`` are a subclass of `BleEventBase`.
-A variety of different events occur throughout the life a BLE application. Some example events include ``BleEventGapConnectionCompleted``, ``BleEventGapDisconnected``, ``BleEventGattcReadCompleted``, ``BleEventGattcWriteCompleted``.
+The framework returns asynchronous events to the application through an event queue. Calling ``BleCentral.get_event()`` will get an event from the queue. 
+All of the events returned by ``BleCentral.get_event()`` are a subclass of :py:class:`~py_ble_manager.ble_api.BleCommon.BleEventBase`.
+A variety of different events occur throughout the life a BLE application. Some example events include 
+:py:class:`~py_ble_manager.ble_api.BleGap.BleEventGapConnectionCompleted`, :py:class:`~py_ble_manager.ble_api.BleGap.BleEventGapDisconnected`, 
+:py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcReadCompleted`, :py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcWriteCompleted`.
 Each event has an ``evt_code`` to identify the type of event.  
 
-For example, after you initiate a write you will receive a ``BleEventGattcWriteCompleted`` event which has an ``evt_code`` of ``BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED``. Your application can
+For example, after you initiate a write you will receive a :py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcWriteCompleted` event which has an ``evt_code`` of 
+:py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED`. Your application can
 handle the event however it sees fit. If your application does not handle the event, call ``BleCentral.handle_event_default()`` to have the BLE framework process the event for you.
 
 .. code-block:: python
