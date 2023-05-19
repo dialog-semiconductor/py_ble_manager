@@ -14,6 +14,7 @@ The BLE Framework implemented in SDK10 is depicted below:
     :align: center
 
 |
+
 In SDK10, FreeRTOS is used as an operating system. FreeRTOS provides prioritized scheduling of tasks as well as primitives for communication between tasks such as queues, mutexes, semaphores, etc.
 
 This library provides a python implementation for several layers of the SDK10 BLE Framework (e.g. the BLE Service Framework, Dialog BLE API Library, BLE Manager, and BLE Adapter). 
@@ -27,6 +28,7 @@ The architecture implemented in python is depicted below:
     :align: center
 
 |
+
 The implementation closely parallels the SDK10 architecture, with the addition of the ``Serial Manager`` layer, whose responsibility it is to communicate serialized GTL messages with the development kit 
 over the serial port.
 
