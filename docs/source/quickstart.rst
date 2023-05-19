@@ -10,7 +10,7 @@ Quick Start (terminal)
 
 #. Connect the jumpers on the DA14531 Pro Development kit as depicted below:
 
-.. image:: ../../assets/da14531_pro_kit_jumpers.png
+   .. image:: ../../assets/da14531_pro_kit_jumpers.png
 
 #. Download the GTL enabled :download:`firmware binary <../../firmware/da14531mod_pro_kit.bin>` to the DA14531 Pro Development kit.
 
