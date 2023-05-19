@@ -13,6 +13,7 @@ jobs:
       run: |
           python -m pip install --upgrade pip
           pip install sphinx sphinx_rtd_theme
+          pip install .
           sphinx-apidoc -o docs/source src/py_ble_manager /*adapter /*gtl_messages /*gtl_port /*manager /*serial_manager /*services
           cd docs
           make html

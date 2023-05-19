@@ -73,7 +73,7 @@ Handle asynchronous events
 --------------------------
 
 The framework returns asynchronous events to the application through an event queue. Calling ``BleCentral.get_event()`` will get an event from the queue. All of the events returned by ``BleCentral.get_event()`` are a subclass of `BleEventBase`.
-A variety of different events occur throughout the life a BLE application. Some example events include ``BleEventGapConnectionCompleted`, ``BleEventGapDisconnected`, ```BleEventGattcReadCompleted``, ``BleEventGattcWriteCompleted``.
+A variety of different events occur throughout the life a BLE application. Some example events include ``BleEventGapConnectionCompleted``, ``BleEventGapDisconnected``, ``BleEventGattcReadCompleted``, ``BleEventGattcWriteCompleted``.
 Each event has an ``evt_code`` to identify the type of event.  
 
 For example, after you initiate a write you will receive a ``BleEventGattcWriteCompleted`` event which has an ``evt_code`` of ``BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED``. Your application can

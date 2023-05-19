@@ -90,13 +90,13 @@ The `manager`_  directory contains classes that implement the functionality of t
 
 The ``BLE Manager`` layer is concerned with:
 
-- Processing commands from the `ble_api`_ and converting them to GTL messages that are passed to the [BleAdapter](#adapter).
-- Processing events (in the form of GTL messages) from the [BleAdapter](#adapter) and converting them into events understood by the `ble_api`_.
+- Processing commands from the `ble_api`_ and converting them to GTL messages that are passed to the ``BleAdapter``.
+- Processing events (in the form of GTL messages) from the ``BleAdapter`` and converting them into events understood by the `ble_api`_.
 
 Functionality of the ``BLE Manager`` layer is broken into 5 main classes:
 
 The ``BleManager`` class orchestrates command and event processing. When the ``BleManager`` is initialized, two daemon threads are created. One to receive and process commands from the `ble_api`_, 
-and a second to receive and process events from the [BleAdapter](#adapter). 
+and a second to receive and process events from the ``BleAdapter``. 
 When a command or event is received, the ``BleManager`` forwards it to the appropriate handler implemented in one of the processing classes: ``BleManagerGap``, ``BleManagerGattc``, ``BleManagerGatts``, or ``BleManagerCommon``
 
 The ``BleManagerGap`` class processes GAP related commands and events. The ``BleManagerGattc`` class processes GATT client related commands and events. 
@@ -257,7 +257,7 @@ For example, the c structure ``struct gapm_operation_cmd`` in ``gapm_task.h``:
     };
 
 
-is now  ``class gapm_operation_cmd(LittleEndianStructure)`` in ``gapm_task.h``:
+is now  ``class gapm_operation_cmd(LittleEndianStructure)`` in ``gapm_task.py``:
 
 .. code-block:: python
 

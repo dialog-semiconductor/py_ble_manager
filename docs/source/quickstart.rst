@@ -24,7 +24,7 @@ Quick Start (terminal)
 
 #. Call: ``pip install .`` to install the py_ble_manager package and its dependencies.
 
-#. The package is now installed ang you are ready to run one of the [examples](examples)
+#. The package is now installed and you are ready to run one of the [examples](examples)
 
 
 Quick Start (VS Code)
@@ -43,4 +43,4 @@ Quick Start (VS Code)
 
 #. Call: ``pip install .`` to install the py_ble_manager package and its dependencies.
 
-#. The package is now installed ang you are ready to run one of the `examples <https://github.com/Renesas-US-Connectivity/py_ble_manager/tree/main/examples>`_
+#. The package is now installed and you are ready to run one of the `examples <https://github.com/Renesas-US-Connectivity/py_ble_manager/tree/main/examples>`_
