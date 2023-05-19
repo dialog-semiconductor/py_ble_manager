@@ -1,0 +1,1 @@
+sphinx_rtx_theme==1.2.0
