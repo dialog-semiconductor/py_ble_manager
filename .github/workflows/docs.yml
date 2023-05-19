@@ -9,10 +9,13 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Build HTML
-      uses: ammaraskar/sphinx-action@master
-      with:
-        docs-folder: "docs/"
-        pre-build-command: "sphinx-apidoc -o docs/source src/py_ble_manager /*adapter /*gtl_messages /*gtl_port /*manager /*serial_manager /*services"
+
+      run: |
+          python -m pip install --upgrade pip
+          pip install sphinx sphinx_rtd_theme
+          sphinx-apidoc -o docs/source src/py_ble_manager /*adapter /*gtl_messages /*gtl_port /*manager /*serial_manager /*services
+          cd docs
+          make html
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
