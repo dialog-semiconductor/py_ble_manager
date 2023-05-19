@@ -108,7 +108,7 @@ class BLE_GAP_ROLE(IntEnum):
 
 class GAP_ADV_CHANNEL(IntEnum):
     """_summary_
-    Channels used for advertising 
+    Channels used for advertising
     """
     GAP_ADV_CHANNEL_37 = 0x01     # Advertising Channel 37 (2402MHz)
     GAP_ADV_CHANNEL_38 = 0x02     # Advertising Channel 38 (2426MHz)
