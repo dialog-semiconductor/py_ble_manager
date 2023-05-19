@@ -3,6 +3,8 @@ from ctypes import c_uint8
 from ..ble_api.BleCommon import BLE_OWN_ADDR_TYPE, BdAddress, OwnAddress, Irk, BLE_STATUS
 from ..ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_GAP_APPEARANCE, GapChnlMap, GAP_DISC_MODE, ADV_FILT_POL, \
     GapScanParams, GapConnParams, GAP_IO_CAPABILITIES, GAP_DATA_TYPE, ADV_DATA_LEN, SCAN_RSP_DATA_LEN, GAP_ADV_CHANNEL
+# TODO remove dependency on gtl_port. This value is assigned to a gtl parameter in BleManagerGap._dev_params_to_gtl
+from ..gtl_port.gapm_task import gapm_att_cfg_flag
 
 
 class BleDevParams():
@@ -29,7 +31,7 @@ class BleDevParams():
         self.addr_resolv_req_pending = 0  # Pending address resolve requests
         # Attribute database configuration
 
-        self.att_db_cfg = 0x10  # Peripheral Pref. Conn. Param. attribute  # TODO corresponds to gapm_att_cfg_flag. Is there an api class / Enum that applies?
+        self.att_db_cfg = gapm_att_cfg_flag()
         self.mtu_size = 0  # MTU size
         # Channel map (central only)
         self.channel_map = GapChnlMap()  # Channel map #
