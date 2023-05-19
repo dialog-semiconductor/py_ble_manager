@@ -166,8 +166,7 @@ defines GAP Manager related GTL messages.
 Each message takes care of setting the appropriate MSG_ID, DST_ID, SRC_ID, and PAR_LEN for its specific message type. A user only needs to provide the appropriate ``parameters`` to create a valid message. The ``parameters`` are 
 one of the ``LittleEndianStructure``'s defined in `gtl_port`_.
 
-For example, below demonstrates creating a `GapmResetCmd <https://github.com/Renesas-US-Connectivity/py_ble_manager/blob/main/src/py_ble_manager/gtl_messages/gtl_message_gapm.py#L19>`_ 
-using the `gapm_reset_cmd <https://github.com/Renesas-US-Connectivity/py_ble_manager/blob/main/src/py_ble_manager/gtl_port/gapm_task.py#L451>`_ parameters:
+For example, below demonstrates creating a ``GapmResetCmd`` using the ``gapm_reset_cmd`` parameters:
 
 .. code-block:: python
 
