@@ -320,7 +320,7 @@ class BleController():
         print(f"Security level changed: sec_level={evt.level.name}")
 
     def handle_evt_gattc_browse_completed(self, evt: ble.BleEventGattcBrowseCompleted):
-        print(f"Browsing complete: conn_idx={evt.conn_idx}, evt={evt.status}")
+        print(f"Browsing complete: conn_idx={evt.conn_idx}, evt={evt.status.name}")
 
     def handle_evt_gattc_browse_svc(self, evt: ble.BleEventGattcBrowseSvc):
 
