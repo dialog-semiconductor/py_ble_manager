@@ -9,7 +9,7 @@ from .ble_api.BleGap import ADV_FILT_POL, BLE_GAP_APPEARANCE, BLE_GAP_CONN_MODE,
     BleEventGapConnParamUpdated, BleEventGapDisconnected, BleEventGapDisconnectFailed, BleEventGapScanCompleted, \
     BleAdvData, BleEventGapPairReq, BleEventGapPairCompleted, BleEventGapSecLevelChanged, BleEventGapPeerFeatures, \
     BleEventGapPeerVersion, BleEventGapPasskeyNotify, BLE_EVT_GAP, BleEventGapAddressResolved, BleEventGapNumericRequest, \
-    ADV_DATA_LEN, BLE_ADV_DATA_LEN_MAX, BLE_NON_CONN_ADV_DATA_LEN_MAX
+    ADV_DATA_LEN, BLE_ADV_DATA_LEN_MAX, BLE_NON_CONN_ADV_DATA_LEN_MAX, GAP_ADV_CHANNEL
 
 from .ble_api.BleGatt import GATT_EVENT, GATT_PROP, GATT_SERVICE
 
@@ -24,6 +24,6 @@ from .ble_api.BleUtil import BleUtils
 
 from .ble_devices.BleCentral import BleCentral
 from .ble_devices.BlePeripheral import BlePeripheral
-from .manager.BleManagerStorage import SearchableQueue
+from .manager.BleDevParams import BleDevParams, BleDevParamsDefault  #  TODO move dev params to ble_api?
 from .services.BleService import BleServiceBase
 

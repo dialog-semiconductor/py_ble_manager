@@ -89,8 +89,6 @@ class BleController():
 
     def ble_task(self):
 
-        self.services = ble.SearchableQueue()
-
         # initialize central device
         self.central = ble.BleCentral(self.com_port, gtl_debug=False)
         self.central.init()

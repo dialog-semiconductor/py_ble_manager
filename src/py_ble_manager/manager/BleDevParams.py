@@ -2,9 +2,7 @@ from ctypes import c_uint8
 
 from ..ble_api.BleCommon import BLE_OWN_ADDR_TYPE, BdAddress, OwnAddress, Irk, BLE_STATUS
 from ..ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_GAP_APPEARANCE, GapChnlMap, GAP_DISC_MODE, ADV_FILT_POL, \
-    GapScanParams, GapConnParams, GAP_IO_CAPABILITIES, GAP_DATA_TYPE
-from ..gtl_port.co_bt import ADV_DATA_LEN, SCAN_RSP_DATA_LEN, ADV_CHANNEL_MAP
-from ..gtl_port.gapm_task import gapm_att_cfg_flag
+    GapScanParams, GapConnParams, GAP_IO_CAPABILITIES, GAP_DATA_TYPE, ADV_DATA_LEN, SCAN_RSP_DATA_LEN, GAP_ADV_CHANNEL
 
 
 class BleDevParams():
@@ -31,13 +29,15 @@ class BleDevParams():
         self.addr_resolv_req_pending = 0  # Pending address resolve requests
         # Attribute database configuration
 
-        self.att_db_cfg = gapm_att_cfg_flag()  # Attribute DB Configuration bitmask
+        self.att_db_cfg = 0x10  # Peripheral Pref. Conn. Param. attribute  # TODO corresponds to gapm_att_cfg_flag. Is there an api class / Enum that applies?
         self.mtu_size = 0  # MTU size
         # Channel map (central only)
         self.channel_map = GapChnlMap()  # Channel map #
         self.adv_type = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED  # Advertising type
         self.adv_mode = GAP_DISC_MODE.GAP_DISC_MODE_GEN_DISCOVERABLE  # Discoverability mode for adv.=
-        self.adv_channel_map = ADV_CHANNEL_MAP.ADV_ALL_CHNLS_EN  # Channel map used for advertising
+        self.adv_channel_map = (GAP_ADV_CHANNEL.GAP_ADV_CHANNEL_37
+                                | GAP_ADV_CHANNEL.GAP_ADV_CHANNEL_38
+                                | GAP_ADV_CHANNEL.GAP_ADV_CHANNEL_39)  # Channel map used for advertising
         self.adv_intv_min = 0  # Minimum advertising interval
         self.adv_intv_max = 0  # Maximum advertising interval
         self.adv_filter_policy = ADV_FILT_POL.ADV_ALLOW_SCAN_ANY_CONN_ANY  # Advertising filter policy
@@ -93,7 +93,9 @@ class BleDevParamsDefault(BleDevParams):
 
         self.adv_type = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
         self.adv_mode = GAP_DISC_MODE.GAP_DISC_MODE_GEN_DISCOVERABLE
-        self.adv_channel_map = ADV_CHANNEL_MAP.ADV_CHNL_37_EN
+        self.adv_channel_map = (GAP_ADV_CHANNEL.GAP_ADV_CHANNEL_37
+                                | GAP_ADV_CHANNEL.GAP_ADV_CHANNEL_38
+                                | GAP_ADV_CHANNEL.GAP_ADV_CHANNEL_39)
         self.adv_intv_min = int(((687.5) * 1000 // 625))  # TODO function for this
         self.adv_intv_max = int(((687.5) * 1000 // 625))  # TODO same as above
         self.adv_filter_policy = ADV_FILT_POL.ADV_ALLOW_SCAN_ANY_CONN_ANY

@@ -6,6 +6,7 @@ BLE_CONN_IDX_INVALID = 0xFFFF
 BLE_GAP_MAX_BONDED = 8      # (defaultBLE_MAX_BONDED) TODO defaultBLE_MAX_BONDED defined in ble_config.h # TODO this will be different for 531 vs 695
 BLE_ENC_KEY_SIZE_MAX = 16
 ADV_DATA_LEN = 31  # TODO get this from co_bt.h
+SCAN_RSP_DATA_LEN = 31
 BLE_ADV_DATA_LEN_MAX = ADV_DATA_LEN - 3
 BLE_NON_CONN_ADV_DATA_LEN_MAX = ADV_DATA_LEN
 
@@ -103,6 +104,15 @@ class BLE_GAP_ROLE(IntEnum):
                      | GAP_BROADCASTER_ROLE
                      | GAP_CENTRAL_ROLE
                      | GAP_PERIPHERAL_ROLE)
+
+
+class GAP_ADV_CHANNEL(IntEnum):
+    """_summary_
+    Channels used for advertising 
+    """
+    GAP_ADV_CHANNEL_37 = 0x01     # Advertising Channel 37 (2402MHz)
+    GAP_ADV_CHANNEL_38 = 0x02     # Advertising Channel 38 (2426MHz)
+    GAP_ADV_CHANNEL_39 = 0x04     # Advertising Channel 39 (2480MHz)
 
 
 class GAP_DATA_TYPE(IntEnum):
