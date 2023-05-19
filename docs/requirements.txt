@@ -1,1 +1,1 @@
-sphinx_rtx_theme==1.2.0
+furo==2021.11.16
