@@ -1198,7 +1198,7 @@ class gattc_att_info_cfm(LittleEndianStructure):
     def __init__(self,
                  handle: c_uint16 = 0,
                  length: c_uint16 = 0,
-                 status: c_uint16 = 0,  # TODO is there an enum for this?
+                 status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR,
                  ) -> None:
 
         self.handle = handle
@@ -1481,7 +1481,7 @@ class gattc_sdp_svc_ind(LittleEndianStructure):
         return self._uuid  # TODO could return self._uuid[:self.uuid_len]
 
     def set_uuid(self, uuid: Array[c_uint8]):
-        if len(uuid) == 2 or len(uuid) == 4 or len(uuid) == 16:
+        if len(uuid) == 2 or len(uuid) == 4 or len(uuid) == 16:  # TODO raise error
             self._uuid = (c_uint8 * ATT_UUID_128_LEN)()
             self._uuid[:len(uuid)] = uuid
             self.uuid_len = len(uuid)
