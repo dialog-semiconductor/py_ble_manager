@@ -1,14 +1,13 @@
 from enum import IntEnum, auto
 from ..ble_api.BleCommon import BleEventBase, BdAddress, BLE_ERROR, BLE_EVT_GAP, BLE_HCI_ERROR
-
+from ..gtl_port.co_bt import ADV_DATA_LEN
 
 BLE_CONN_IDX_INVALID = 0xFFFF
 BLE_GAP_MAX_BONDED = 8      # (defaultBLE_MAX_BONDED) TODO defaultBLE_MAX_BONDED defined in ble_config.h # TODO this will be different for 531 vs 695
 BLE_ENC_KEY_SIZE_MAX = 16
-ADV_DATA_LEN = 31  # TODO get this from co_bt.h
-SCAN_RSP_DATA_LEN = 31
 BLE_ADV_DATA_LEN_MAX = ADV_DATA_LEN - 3
 BLE_NON_CONN_ADV_DATA_LEN_MAX = ADV_DATA_LEN
+SCAN_RSP_DATA_LEN = ADV_DATA_LEN
 
 
 class ADV_FILT_POL():
@@ -75,7 +74,7 @@ class BLE_GAP_APPEARANCE(IntEnum):
     BLE_GAP_APPEARANCE_LAST = auto()
 
 
-class BLE_GAP_CONN_MODE(IntEnum):  # TODO remove BLE_ prefix?
+class GAP_CONN_MODE(IntEnum):  # TODO remove BLE_ prefix?
     """GAP connectivity modes
     """
     GAP_CONN_MODE_NON_CONN = 0  # Non-connectable mode
@@ -371,7 +370,7 @@ class BleEventGapAdvCompleted(BleEventBase):
     :ivar status: event status
     """
     def __init__(self,
-                 adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED,
+                 adv_type: GAP_CONN_MODE = GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED,
                  status: BLE_ERROR = BLE_ERROR.BLE_STATUS_OK
                  ) -> None:
         super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_ADV_COMPLETED)

@@ -1,8 +1,8 @@
 from ctypes import c_uint8
 
 from ..ble_api.BleCommon import BLE_OWN_ADDR_TYPE, BdAddress, OwnAddress, Irk, BLE_STATUS
-from ..ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_GAP_APPEARANCE, GapChnlMap, GAP_DISC_MODE, ADV_FILT_POL, \
-    GapScanParams, GapConnParams, GAP_IO_CAPABILITIES, GAP_DATA_TYPE, ADV_DATA_LEN, SCAN_RSP_DATA_LEN, GAP_ADV_CHANNEL, BLE_GAP_PHY
+from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_CONN_MODE, BLE_GAP_APPEARANCE, GapChnlMap, GAP_DISC_MODE, ADV_FILT_POL, \
+    GapScanParams, GapConnParams, GAP_IO_CAPABILITIES, GAP_DATA_TYPE, BLE_NON_CONN_ADV_DATA_LEN_MAX, SCAN_RSP_DATA_LEN, GAP_ADV_CHANNEL, BLE_GAP_PHY
 # TODO remove dependency on gtl_port. This value is assigned to a gtl parameter in BleManagerGap._dev_params_to_gtl
 from ..gtl_port.gapm_task import gapm_att_cfg_flag
 from ..manager.BleManagerGapMsgs import BLE_MGR_RAL_OP
@@ -34,7 +34,7 @@ class BleDevParams():
         self.mtu_size = 0  # MTU size
         # Channel map (central only)
         self.channel_map = GapChnlMap()  # Channel map #
-        self.adv_type = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED  # Advertising type
+        self.adv_type = GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED  # Advertising type
         self.adv_mode = GAP_DISC_MODE.GAP_DISC_MODE_GEN_DISCOVERABLE  # Discoverability mode for adv.=
         self.adv_channel_map = (GAP_ADV_CHANNEL.GAP_ADV_CHANNEL_37
                                 | GAP_ADV_CHANNEL.GAP_ADV_CHANNEL_38
@@ -44,7 +44,7 @@ class BleDevParams():
         self.adv_filter_policy = ADV_FILT_POL.ADV_ALLOW_SCAN_ANY_CONN_ANY  # Advertising filter policy
         self.adv_direct_address = BdAddress()  # Address used for directed advertising
         self.adv_data_length = 0  # Length of advertising data
-        self.adv_data = (c_uint8 * ADV_DATA_LEN)()  # Advertising data
+        self.adv_data = (c_uint8 * BLE_NON_CONN_ADV_DATA_LEN_MAX)()  # Advertising data
         self.scan_rsp_data_length = 0  # Length of scan response
         self.scan_rsp_data = (c_uint8 * SCAN_RSP_DATA_LEN)()  # Scan response data
         # Scan parameters used for connection procedures
@@ -91,7 +91,7 @@ class BleDevParamsDefault(BleDevParams):
         self.mtu_size = 65  # 23  # 65 for secure connections, 23 otherwise
         self.channel_map.map = bytes([0xFF, 0xFF, 0xFF, 0xFF, 0x1F])
 
-        self.adv_type = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
+        self.adv_type = GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
         self.adv_mode = GAP_DISC_MODE.GAP_DISC_MODE_GEN_DISCOVERABLE
         self.adv_channel_map = (GAP_ADV_CHANNEL.GAP_ADV_CHANNEL_37
                                 | GAP_ADV_CHANNEL.GAP_ADV_CHANNEL_38

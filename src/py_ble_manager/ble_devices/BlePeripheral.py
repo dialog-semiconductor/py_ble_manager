@@ -1,7 +1,7 @@
 from ..ble_api.BleAtt import ATT_ERROR
 from ..ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_EVT_GAP, BLE_EVT_GATTS
 from ..ble_api.BleConfig import BleConfigDefault, BLE_DEVICE_TYPE
-from ..ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BleEventGapConnected, \
+from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_CONN_MODE, BleEventGapConnected, \
     BleEventGapDisconnected, BleEventGapConnParamUpdateReq, BleEventGapPairReq
 from ..ble_api.BleGatt import GATT_EVENT
 from ..ble_api.BleGatts import BleEventGattsReadReq, BleEventGattsWriteReq, \
@@ -202,7 +202,7 @@ class BlePeripheral(BleDeviceBase):
         return super().start(BLE_GAP_ROLE.GAP_PERIPHERAL_ROLE)
 
     def start_advertising(self,
-                          adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
+                          adv_type: GAP_CONN_MODE = GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
                           ) -> BLE_ERROR:
 
         return self._ble_gap.start_advertising(adv_type)

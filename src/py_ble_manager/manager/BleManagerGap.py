@@ -8,7 +8,7 @@ from ..ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_OWN_ADDR_TYPE, BLE_
 from ..ble_api.BleConfig import BleConfigDefault
 from ..ble_api.BleConvert import BleConvert
 
-from ..ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BleEventGapConnected, BleEventGapDisconnected,  \
+from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_CONN_MODE, BleEventGapConnected, BleEventGapDisconnected,  \
     BleEventGapAdvCompleted, BLE_CONN_IDX_INVALID, GAP_SEC_LEVEL, GAP_SCAN_TYPE, BleEventGapAdvReport, \
     BleEventGapScanCompleted, BleEventGapConnectionCompleted, BleEventGapDisconnectFailed,  \
     BleEventGapConnParamUpdateCompleted, BleEventGapConnParamUpdated, BleEventGapConnParamUpdateReq, \
@@ -50,8 +50,8 @@ from ..manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp,
 from ..manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from ..manager.GtlWaitQueue import GtlWaitQueue
 
-# TODO this is from ..stack
-ATT_DEFAULT_MTU = (23)
+
+ATT_DEFAULT_MTU = (23)  # This is from attm_cfg.h
 
 
 class BleManagerGap(BleManagerBase):
@@ -135,13 +135,13 @@ class BleManagerGap(BleManagerBase):
 
         match gtl.parameters.operation:
             case GAPM_OPERATION.GAPM_ADV_NON_CONN:
-                evt.adv_type = BLE_GAP_CONN_MODE.GAP_CONN_MODE_NON_CONN
+                evt.adv_type = GAP_CONN_MODE.GAP_CONN_MODE_NON_CONN
             case GAPM_OPERATION.GAPM_ADV_UNDIRECT:
-                evt.adv_type = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
+                evt.adv_type = GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
             case GAPM_OPERATION.GAPM_ADV_DIRECT:
-                evt.adv_type = BLE_GAP_CONN_MODE.GAP_CONN_MODE_DIRECTED
+                evt.adv_type = GAP_CONN_MODE.GAP_CONN_MODE_DIRECTED
             case GAPM_OPERATION.GAPM_ADV_DIRECT_LDC:
-                evt.adv_type = BLE_GAP_CONN_MODE.GAP_CONN_MODE_DIRECTED_LDC
+                evt.adv_type = GAP_CONN_MODE.GAP_CONN_MODE_DIRECTED_LDC
 
         match gtl.parameters.status:
             case HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
@@ -345,7 +345,7 @@ class BleManagerGap(BleManagerBase):
             case HOST_STACK_ERROR_CODE.LL_ERR_DIFF_TRANSACTION_COLLISION:
                 evt.status = BLE_ERROR.BLE_ERROR_DIFF_TRANS_COLLISION
             case _:
-                # evt->status = gevt->status;  # TODO error if gtl.parameters.status not a valid BLE_ERROR
+                # evt.status = gtl.parameters.status  # this throws ValueError if gtl.parameters.status not a valid BLE_ERROR
                 evt.status = BLE_ERROR.BLE_ERROR_FAILED
 
         self._mgr_event_queue_send(evt)
@@ -794,9 +794,9 @@ class BleManagerGap(BleManagerBase):
 
         else:
 
-            if ((command.adv_type == BLE_GAP_CONN_MODE.GAP_CONN_MODE_NON_CONN
+            if ((command.adv_type == GAP_CONN_MODE.GAP_CONN_MODE_NON_CONN
                     and dev_params.adv_data_length > BLE_NON_CONN_ADV_DATA_LEN_MAX)
-                or (command.adv_type == BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
+                or (command.adv_type == GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
                     and dev_params.adv_data_length > BLE_ADV_DATA_LEN_MAX)):
 
                 pass
@@ -807,16 +807,16 @@ class BleManagerGap(BleManagerBase):
                 gtl = GapmStartAdvertiseCmd()
 
                 match command.adv_type:
-                    case BLE_GAP_CONN_MODE.GAP_CONN_MODE_NON_CONN:
+                    case GAP_CONN_MODE.GAP_CONN_MODE_NON_CONN:
                         gtl.parameters.op.code = GAPM_OPERATION.GAPM_ADV_NON_CONN
                         pass
-                    case BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED:
+                    case GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED:
                         gtl.parameters.op.code = GAPM_OPERATION.GAPM_ADV_UNDIRECT
                         pass
-                    case BLE_GAP_CONN_MODE.GAP_CONN_MODE_DIRECTED:
+                    case GAP_CONN_MODE.GAP_CONN_MODE_DIRECTED:
                         gtl.parameters.op.code = GAPM_OPERATION.GAPM_ADV_DIRECT
                         pass
-                    case BLE_GAP_CONN_MODE.GAP_CONN_MODE_DIRECTED_LDC:
+                    case GAP_CONN_MODE.GAP_CONN_MODE_DIRECTED_LDC:
                         gtl.parameters.op.code = GAPM_OPERATION.GAPM_ADV_DIRECT_LDC
                         pass
                     case _:
@@ -849,7 +849,7 @@ class BleManagerGap(BleManagerBase):
                 gtl.parameters.intv_max = BleConvert.adv_interval_from_ms(dev_params.adv_intv_max_ms)
                 gtl.parameters.channel_map = dev_params.adv_channel_map
 
-                if command.adv_type < BLE_GAP_CONN_MODE.GAP_CONN_MODE_DIRECTED:
+                if command.adv_type < GAP_CONN_MODE.GAP_CONN_MODE_DIRECTED:
                     gtl.parameters.info.host.mode = dev_params.adv_mode
                     gtl.parameters.info.host.adv_filt_policy = dev_params.adv_filter_policy
                     gtl.parameters.info.host.adv_data_len = dev_params.adv_data_length

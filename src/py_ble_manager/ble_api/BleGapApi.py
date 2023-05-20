@@ -1,6 +1,6 @@
 from ..ble_api.BleApiBase import BleApiBase
 from ..ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR
-from ..ble_api.BleGap import BLE_GAP_ROLE, GapConnParams, BLE_GAP_CONN_MODE, GAP_SCAN_TYPE, GAP_SCAN_MODE, \
+from ..ble_api.BleGap import BLE_GAP_ROLE, GapConnParams, GAP_CONN_MODE, GAP_SCAN_TYPE, GAP_SCAN_MODE, \
     GAP_IO_CAPABILITIES
 from ..manager.BleManager import BleManager
 from ..manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, BleMgrGapConnectCmd, \
@@ -114,7 +114,7 @@ class BleGapApi(BleApiBase):
         return BLE_ERROR.BLE_STATUS_OK
 
     def start_advertising(self,
-                          adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
+                          adv_type: GAP_CONN_MODE = GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
                           ) -> BLE_ERROR:
 
         command = BleMgrGapAdvStartCmd(adv_type)
