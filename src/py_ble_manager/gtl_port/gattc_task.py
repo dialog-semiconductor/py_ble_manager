@@ -691,17 +691,27 @@ class gattc_read_by_uuid(LittleEndianStructure):
 class gattc_read_multiple(LittleEndianStructure):
     def __init__(self,
                  handle: c_uint16 = 0,
-                 len: c_uint16 = 0):
+                 len: c_uint16 = 1):
 
         self.handle = handle
         self.len = len
         super().__init__(handle=self.handle,
-                         len=self.len)
+                         _len=self._len)
 
                 # attribute handle
     _fields_ = [("handle", c_uint16),
-                # Known Handle length (shall be != 0) #TODO check this with property
-                ("len", c_uint16)]
+                # Known Handle length (shall be != 0)
+                ("_len", c_uint16)]
+
+    def get_len(self):
+        return self._len
+
+    def set_len(self, new_len: c_uint16):
+        if new_len == 0:
+            raise ValueError("Length cannot be 0")
+        self._len = new_len
+
+    len = property(get_len, set_len)
 
 
 # request union according to read type
@@ -922,7 +932,6 @@ class gattc_event_ind(LittleEndianStructure):
         return cast(self._value, POINTER(c_uint8 * self.length)).contents
 
     def set_value(self, new_value: Array[c_uint8]):
-        # TODO raise error if length > 512?
         self._value = new_value if new_value else pointer(c_uint8(0))
         self.length = len(new_value) if new_value else 1
 
@@ -959,7 +968,6 @@ class gattc_event_req_ind(LittleEndianStructure):
         return cast(self._value, POINTER(c_uint8 * self.length)).contents
 
     def set_value(self, new_value: Array[c_uint8]):
-        # TODO raise error if length > 512?
         self._value = new_value if new_value else pointer(c_uint8(0))
         self.length = len(new_value) if new_value else 1
 
@@ -1031,7 +1039,6 @@ class gattc_send_evt_cmd(LittleEndianStructure):
         return cast(self._value, POINTER(c_uint8 * self.length)).contents
 
     def set_value(self, new_value: Array[c_uint8]):
-        # TODO raise error if length > 512?
         self._value = new_value if new_value else pointer(c_uint8(0))
         self.length = len(new_value) if new_value else 1
 
@@ -1082,7 +1089,6 @@ class gattc_read_cfm(LittleEndianStructure):
         return cast(self._value, POINTER(c_uint8 * self.length)).contents
 
     def set_value(self, new_value: Array[c_uint8]):
-        # TODO raise error if length > 512
         self._value = new_value if new_value else pointer(c_uint8(0))
         self.length = len(new_value) if new_value else 1
 
@@ -1119,7 +1125,6 @@ class gattc_write_req_ind(LittleEndianStructure):
         return cast(self._value, POINTER(c_uint8 * self.length)).contents
 
     def set_value(self, new_value: Array[c_uint8]):
-        # TODO raise error if length > 512
         self._value = new_value if new_value else pointer(c_uint8(0))
         self.length = len(new_value) if new_value else 1
 
