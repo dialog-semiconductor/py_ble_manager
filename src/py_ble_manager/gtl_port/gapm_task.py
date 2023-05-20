@@ -1080,8 +1080,8 @@ class gapm_start_connection_cmd(LittleEndianStructure):
         # 2. return the contents, providing the underlying array
         return cast(self._peers, POINTER(gap_bdaddr * self.nb_peers)).contents
 
-    def set_peers(self, value: Array[gap_bdaddr]):  # TODO User should pass array, how to type hint?
-        self._peers = value if value else pointer(gap_bdaddr())  # TODO Should create array of one?
+    def set_peers(self, value: Array[gap_bdaddr]):
+        self._peers = value if value else pointer(gap_bdaddr())
         self.nb_peers = len(value) if value else 1
 
     peers = property(get_peers, set_peers)
