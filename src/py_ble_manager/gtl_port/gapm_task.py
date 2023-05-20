@@ -812,7 +812,6 @@ class gapm_adv_host(LittleEndianStructure):
                  adv_filt_policy: ADV_FILTER_POLICY = ADV_FILTER_POLICY.ADV_ALLOW_SCAN_ANY_CON_ANY,
                  adv_data_len: c_uint8 = 0,  # TODO max adv_data_len is 28 bytes (stack adds flags AD Type = 3 bytes, but is this true for non connectable)
                  adv_data: (c_uint8 * ADV_DATA_LEN) = (c_uint8 * ADV_DATA_LEN)(),
-                 # TODO custom type for this array for type hinting
                  # adv_data: adv_data_array = adv_data_array( *([0]*ADV_DATA_LEN) ),
                  scan_rsp_data_len: c_uint8 = 0,  # TODO max scan_rsp_data_len is 31 bytes. TODO scan rsp len and adv data len can be inferred from adv_data and scan_rsp_data
                  scan_rsp_data: (c_uint8 * SCAN_RSP_DATA_LEN) = (c_uint8 * SCAN_RSP_DATA_LEN)(),
@@ -1216,7 +1215,7 @@ class gapm_profile_task_add_cmd(LittleEndianStructure):
 
     def __init__(self,
                  op: gapm_air_operation = gapm_air_operation(),
-                 sec_lvl: c_uint8 = 0,  # TODO enums for these three?
+                 sec_lvl: c_uint8 = 0,  # enums for these three?
                  prf_task_id: c_uint16 = 0,
                  app_task: c_uint16 = 0,
                  start_hdl: c_uint16 = 0,
