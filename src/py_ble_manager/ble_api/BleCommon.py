@@ -44,6 +44,13 @@ class BLE_EVT_CAT(IntEnum):
     BLE_EVT_CAT_L2CAP = auto()
 
 
+class BLE_EVT_COMMON(IntEnum):
+    """BLE Common events
+    """
+    # Connection established
+    BLE_EVT_RESET_COMPLETED = BLE_EVT_CAT.BLE_EVT_CAT_COMMON << 8
+
+
 class BLE_EVT_GAP(IntEnum):
     """BLE GAP events
     """
@@ -293,6 +300,20 @@ class BleEventBase():
         return_string += ")"
 
         return return_string
+
+
+class BleEventResetCompleted(BleEventBase):
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_COMMON.BLE_EVT_RESET_COMPLETED` event
+
+    :ivar evt_code: event code
+    :ivar status: event status
+    """
+
+    def __init__(self,
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_COMMON.BLE_EVT_RESET_COMPLETED)
+        self.status = status
 
 
 class Irk():
