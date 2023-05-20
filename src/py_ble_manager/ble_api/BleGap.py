@@ -330,6 +330,39 @@ class BleAdvData():
         return return_string
 
 
+class BleEventGapAddressResolutionFailed(BleEventBase):
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_ADDRESS_RESOLUTION_FAILED` event
+
+    :ivar evt_code: event code
+    :ivar status: event status
+    """
+    def __init__(self,
+                 status: BLE_ERROR = BLE_ERROR.BLE_STATUS_OK
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_ADDRESS_RESOLUTION_FAILED)
+        self.status = status  # Completion status
+
+
+class BleEventGapAddressResolved(BleEventBase):
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_ADDRESS_RESOLVED` event
+
+    :ivar evt_code: event code
+    :ivar conn_idx: connection index
+    :ivar resolved_address: static address
+    :ivar address: random address
+    """
+
+    def __init__(self,
+                 conn_idx: int = 0,
+                 resolved_address: BdAddress = None,
+                 address: BdAddress = None,
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_ADDRESS_RESOLVED)
+        self.conn_idx = conn_idx
+        self.resolved_address = resolved_address if resolved_address else BdAddress()
+        self.address = address if address else BdAddress()
+
+
 class BleEventGapAdvCompleted(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_ADV_COMPLETED` event
 
@@ -388,26 +421,6 @@ class BleEventGapConnected(BleEventBase):
         self.own_addr = own_addr if own_addr else BdAddress()
         self.peer_address = peer_address if peer_address else BdAddress()
         self.conn_params = conn_params if conn_params else GapConnParams()
-
-
-class BleEventGapAddressResolved(BleEventBase):
-    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_ADDRESS_RESOLVED` event
-
-    :ivar evt_code: event code
-    :ivar conn_idx: connection index
-    :ivar resolved_address: static address
-    :ivar address: random address
-    """
-
-    def __init__(self,
-                 conn_idx: int = 0,
-                 resolved_address: BdAddress = None,
-                 address: BdAddress = None,
-                 ) -> None:
-        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_ADDRESS_RESOLVED)
-        self.conn_idx = conn_idx
-        self.resolved_address = resolved_address if resolved_address else BdAddress()
-        self.address = address if address else BdAddress()
 
 
 class BleEventGapConnectionCompleted(BleEventBase):
@@ -473,6 +486,22 @@ class BleEventGapConnParamUpdated(BleEventBase):
         super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATED)
         self.conn_idx = conn_idx
         self.conn_params = conn_params if conn_params else GapConnParams()
+
+
+class BleEventGapDataLengthSetFailed(BleEventBase):
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DATA_LENGTH_SET_FAILED` event
+
+    :ivar evt_code: event code
+    :ivar conn_idx: connection index
+    :ivar status: event status
+    """
+    def __init__(self,
+                 conn_idx: int = 0,
+                 status: BLE_ERROR = BLE_ERROR.BLE_STATUS_OK
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_DATA_LENGTH_SET_FAILED)
+        self.conn_idx = conn_idx  # Connection index
+        self.status = status  # Completion status
 
 
 class BleEventGapLtkMissing(BleEventBase):
