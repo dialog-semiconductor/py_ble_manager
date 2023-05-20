@@ -16,7 +16,7 @@ from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_CONN_MODE, BleEventGapConnected, 
     BleEventGapPasskeyNotify, BleEventGapNumericRequest, BleEventGapPairCompleted, BleEventGapSecLevelChanged, \
     BleEventGapAddressResolved, BleEventGapPeerVersion, BleEventGapPeerFeatures, BleEventGapLtkMissing, \
     BLE_ADV_DATA_LEN_MAX, BLE_NON_CONN_ADV_DATA_LEN_MAX, BleEventGapAddressResolutionFailed, \
-    BleEventGapDataLengthSetFailed
+    BleEventGapDataLengthSetFailed, GAP_ADV_TYPE
 
 from ..gtl_messages.gtl_message_base import GtlMessageBase
 from ..gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd, GapcGetDevInfoReqInd, GapcGetDevInfoCfm, \
@@ -760,7 +760,7 @@ class BleManagerGap(BleManagerBase):
     def adv_report_evt_handler(self, gtl: GapmAdvReportInd) -> None:
         evt = BleEventGapAdvReport()
         # TODO is there an enum BleEventGapAdvReport.type?
-        evt.type = gtl.parameters.report.evt_type
+        evt.type = GAP_ADV_TYPE(gtl.parameters.report.evt_type)
         evt.rssi = (gtl.parameters.report.rssi & 0x7F)
         evt.rssi = (-1 * evt.rssi) if (gtl.parameters.report.rssi & 0x80) else evt.rssi
         # if (dg_configBLE_PRIVACY_1_2 == 1)

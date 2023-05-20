@@ -74,7 +74,7 @@ class BLE_GAP_APPEARANCE(IntEnum):
     BLE_GAP_APPEARANCE_LAST = auto()
 
 
-class GAP_CONN_MODE(IntEnum):  # TODO remove BLE_ prefix?
+class GAP_CONN_MODE(IntEnum):
     """GAP connectivity modes
     """
     GAP_CONN_MODE_NON_CONN = 0  # Non-connectable mode
@@ -113,6 +113,23 @@ class GAP_ADV_CHANNEL(IntEnum):
     GAP_ADV_CHANNEL_37 = 0x01     # Advertising Channel 37 (2402MHz)
     GAP_ADV_CHANNEL_38 = 0x02     # Advertising Channel 38 (2426MHz)
     GAP_ADV_CHANNEL_39 = 0x04     # Advertising Channel 39 (2480MHz)
+
+
+# Designed for 1:1 with ADV_HCI_TYPE
+class GAP_ADV_TYPE(IntEnum):
+    """GAP Advertising Type
+    """
+
+    # Connectable Undirected advertising
+    CONN_UNDIR = 0x00
+    # Connectable high duty cycle directed advertising
+    CONN_DIR = auto()
+    # Discoverable undirected advertising
+    DISC_UNDIR = auto()
+    # Non-connectable undirected advertising
+    NONCONN_UNDIR = auto()
+    # Connectable low duty cycle directed advertising
+    CONN_DIR_LDC = auto()
 
 
 class GAP_DATA_TYPE(IntEnum):
@@ -265,7 +282,6 @@ class GapChnlMap():
 
 
 class GapConnParams():
-    # TODO description of BLE slots
     """ GAP connection parameters
 
     :ivar interval_min_ms: connection interval minimum in milliseconds
@@ -389,7 +405,7 @@ class BleEventGapAdvReport(BleEventBase):
     """
 
     def __init__(self,
-                 type: int = 0,  # TODO is there an enum for this?
+                 type: GAP_ADV_TYPE = GAP_ADV_TYPE.CONN_UNDIR,
                  address: BdAddress = None,
                  rssi: int = 0,
                  data: bytes = None
