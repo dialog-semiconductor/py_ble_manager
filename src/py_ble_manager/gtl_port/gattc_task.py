@@ -1258,18 +1258,19 @@ class gattc_sdp_svc_disc_cmd(LittleEndianStructure):
                 # Service UUID
                 ("_uuid", (c_uint8 * ATT_UUID_128_LEN))]
 
-    def get_value(self):
+    def get_uuid(self):
         return self._uuid
 
-    def set_value(self, new_value: Array[c_uint8]):
+    def set_uuid(self, new_uuid: Array[c_uint8]):
         if not self._uuid:
             self._uuid = (c_uint8 * ATT_UUID_128_LEN)()
-        set_value = new_value if new_value else (c_uint8 * ATT_UUID_128_LEN)()
-        # TODO raise error if not 2, 4, or 16
+        set_value = new_uuid if new_uuid else (c_uint8 * ATT_UUID_128_LEN)()
+        if len(set_value) != 2 and len(set_value) != 4 and len(set_value) != 16:
+            raise ValueError("UUID length must be 2, 4, or 16")
         self.uuid_len = len(set_value)
         memmove(self._uuid, set_value, self.uuid_len)
 
-    uuid = property(get_value, set_value)
+    uuid = property(get_uuid, set_uuid)
 
 
 # Information about included service
