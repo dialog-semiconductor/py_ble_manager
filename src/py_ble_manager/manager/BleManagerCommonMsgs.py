@@ -49,7 +49,7 @@ class BLE_CMD_GAP_OPCODE(IntEnum):
     BLE_MGR_GAP_PASSKEY_REPLY_CMD = auto()
     BLE_MGR_GAP_UNPAIR_CMD = auto()
     BLE_MGR_GAP_SET_SEC_LEVEL_CMD = auto()
-# if (dg_configBLE_SKIP_LATENCY_API == 1) # TODO need to handle these defines
+# if (dg_configBLE_SKIP_LATENCY_API == 1) # leave all commands defined, only affects Python code
     BLE_MGR_GAP_SKIP_LATENCY_CMD = auto()
 # endif /* (dg_configBLE_SKIP_LATENCY_API == 1)
     BLE_MGR_GAP_DATA_LENGTH_SET_CMD = auto()
