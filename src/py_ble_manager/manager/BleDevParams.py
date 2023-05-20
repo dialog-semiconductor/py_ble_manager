@@ -113,10 +113,10 @@ class BleDevParamsDefault(BleDevParams):
         self.scan_params.window = (50) * 1000 // 625  # TODO make function
         # Peripheral preferred connection parameters
 
-        self.gap_ppcp.interval_min = ((500) * 100 // 125)
-        self.gap_ppcp.interval_max = ((750) * 100 // 125)
+        self.gap_ppcp.interval_min_ms = 500
+        self.gap_ppcp.interval_max_ms = 750
         self.gap_ppcp.slave_latency = 0
-        self.gap_ppcp.sup_timeout = 6000 // 10
+        self.gap_ppcp.sup_timeout_ms = 6000
         # IO Capabilities configuration
         self.io_capabilities = GAP_IO_CAPABILITIES.GAP_IO_CAP_NO_INPUT_OUTPUT
 # if (dg_configBLE_PRIVACY_1_2 == 1) # TODO add privacy

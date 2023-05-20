@@ -190,10 +190,10 @@ class BleController():
                     if len(args) == 6:
                         conn_idx = int(args[1])
                         conn_params = ble.GapConnParams()
-                        conn_params.interval_min = int(args[2])
-                        conn_params.interval_max = int(args[3])
+                        conn_params.interval_min_ms = int(args[2])
+                        conn_params.interval_max_ms = int(args[3])
                         conn_params.slave_latency = int(args[4])
-                        conn_params.sup_timeout = int(args[5])
+                        conn_params.sup_timeout_ms = int(args[5])
                         error = self.central.conn_param_update(conn_idx, conn_params)
 
                 case 'GAPPAIR':

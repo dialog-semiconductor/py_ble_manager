@@ -7,12 +7,12 @@ class BleConvert():
 
     @staticmethod
     def adv_interval_from_ms(intv_ms: int = 0):
-        # Convert time in milliseconds to advertising interval value 
+        # Convert time in milliseconds to advertising interval value
         return intv_ms * 1000 // 625
 
     @staticmethod
     def adv_interval_to_ms(intv: int = 0):
-        # Convert advertising interval value to time in milliseconds 
+        # Convert advertising interval value to time in milliseconds
         return intv * 625 // 1000
 
     @staticmethod

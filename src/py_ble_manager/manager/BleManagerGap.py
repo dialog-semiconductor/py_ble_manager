@@ -6,6 +6,7 @@ import threading
 from ..ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_OWN_ADDR_TYPE, BLE_ADDR_TYPE, BLE_HCI_ERROR, \
     BdAddress
 from ..ble_api.BleConfig import BleConfigDefault
+from ..ble_api.BleConvert import BleConvert
 
 from ..ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BleEventGapConnected, BleEventGapDisconnected,  \
     BleEventGapAdvCompleted, BLE_CONN_IDX_INVALID, GAP_SEC_LEVEL, GAP_SCAN_TYPE, BleEventGapAdvReport, \
@@ -1010,10 +1011,10 @@ class BleManagerGap(BleManagerBase):
         else:
             gtl = GapcParamUpdateCmd(conidx=command.conn_idx)
             gtl.parameters.operation = GAPC_OPERATION.GAPC_UPDATE_PARAMS
-            gtl.parameters.intv_min = command.conn_params.interval_min
-            gtl.parameters.intv_max = command.conn_params.interval_max
+            gtl.parameters.intv_min = BleConvert.conn_interval_from_ms(command.conn_params.interval_min_ms)
+            gtl.parameters.intv_max = BleConvert.conn_interval_from_ms(command.conn_params.interval_max_ms)
             gtl.parameters.latency = command.conn_params.slave_latency
-            gtl.parameters.time_out = command.conn_params.sup_timeout
+            gtl.parameters.time_out = BleConvert.supervision_timeout_from_ms(command.conn_params.sup_timeout_ms)
 
             if dev.master:
                 gtl.parameters.ce_len_min = dev.ce_len_min
@@ -1048,10 +1049,10 @@ class BleManagerGap(BleManagerBase):
     def conn_param_updated_evt_handler(self, gtl: GapcParamUpdatedInd):
         evt = BleEventGapConnParamUpdated()
         evt.conn_idx = self._task_to_connidx(gtl.src_id)
-        evt.conn_params.interval_min = gtl.parameters.con_interval
-        evt.conn_params.interval_max = gtl.parameters.con_interval
+        evt.conn_params.interval_min_ms = BleConvert.conn_interval_to_ms(gtl.parameters.con_interval)
+        evt.conn_params.interval_max_ms = BleConvert.conn_interval_to_ms(gtl.parameters.con_interval)
         evt.conn_params.slave_latency = gtl.parameters.con_latency
-        evt.conn_params.sup_timeout = gtl.parameters.sup_to
+        evt.conn_params.sup_timeout_ms = BleConvert.supervision_timeout_to_ms(gtl.parameters.sup_to)
         self._mgr_event_queue_send(evt)
 
     def conn_param_update_req_evt_handler(self, gtl: GapcParamUpdateReqInd):
@@ -1066,10 +1067,10 @@ class BleManagerGap(BleManagerBase):
         self.storage_release()
 
         evt.conn_idx = conn_idx
-        evt.conn_params.interval_min = gtl.parameters.intv_min
-        evt.conn_params.interval_max = gtl.parameters.intv_max
+        evt.conn_params.interval_min_ms = BleConvert.conn_interval_to_ms(gtl.parameters.intv_min)
+        evt.conn_params.interval_max_ms = BleConvert.conn_interval_to_ms(gtl.parameters.intv_max)
         evt.conn_params.slave_latency = gtl.parameters.latency
-        evt.conn_params.sup_timeout = gtl.parameters.time_out
+        evt.conn_params.sup_timeout_ms = BleConvert.supervision_timeout_to_ms(gtl.parameters.time_out)
 
         self._mgr_event_queue_send(evt)
 
@@ -1125,10 +1126,10 @@ class BleManagerGap(BleManagerBase):
 
                     gtl.parameters.scan_interval = self._dev_params.scan_params.interval
                     gtl.parameters.scan_window = self._dev_params.scan_params.window
-                    gtl.parameters.con_intv_min = command.conn_params.interval_min
-                    gtl.parameters.con_intv_max = command.conn_params.interval_max
+                    gtl.parameters.con_intv_min = BleConvert.conn_interval_from_ms(command.conn_params.interval_min_ms)
+                    gtl.parameters.con_intv_max = BleConvert.conn_interval_from_ms(command.conn_params.interval_max_ms)
                     gtl.parameters.con_latency = command.conn_params.slave_latency
-                    gtl.parameters.superv_to = command.conn_params.sup_timeout
+                    gtl.parameters.superv_to = BleConvert.supervision_timeout_from_ms(command.conn_params.sup_timeout_ms)
                     gtl.parameters.con_latency = command.conn_params.slave_latency
                     gtl.parameters.ce_len_min = command.ce_len_min if command.ce_len_min else 8
                     gtl.parameters.ce_len_max = command.ce_len_max if command.ce_len_max else 8
@@ -1160,10 +1161,10 @@ class BleManagerGap(BleManagerBase):
         evt.peer_address.addr_type = BLE_ADDR_TYPE(gtl.parameters.peer_addr_type)
         # endif
         evt.peer_address.addr = bytes(gtl.parameters.peer_addr.addr)
-        evt.conn_params.interval_min = gtl.parameters.con_interval
-        evt.conn_params.interval_max = gtl.parameters.con_interval
+        evt.conn_params.interval_min_ms = BleConvert.conn_interval_to_ms(gtl.parameters.con_interval)
+        evt.conn_params.interval_max_ms = BleConvert.conn_interval_to_ms(gtl.parameters.con_interval)
         evt.conn_params.slave_latency = gtl.parameters.con_latency
-        evt.conn_params.sup_timeout = gtl.parameters.sup_to
+        evt.conn_params.sup_timeout_ms = BleConvert.supervision_timeout_to_ms(gtl.parameters.sup_to)
 
         # if (dg_configBLE_SKIP_LATENCY_API == 1)
         # ble_mgr_skip_latency_set(evt->conn_idx, false);
@@ -1391,10 +1392,10 @@ class BleManagerGap(BleManagerBase):
             case GAPC_DEV_INFO.GAPC_DEV_APPEARANCE:
                 cfm.parameters.info.appearance = self._dev_params.appearance
             case GAPC_DEV_INFO.GAPC_DEV_SLV_PREF_PARAMS:
-                cfm.parameters.info.slv_params.con_intv_min = self._dev_params.gap_ppcp.interval_min
-                cfm.parameters.info.slv_params.con_intv_max = self._dev_params.gap_ppcp.interval_max
+                cfm.parameters.info.slv_params.con_intv_min = BleConvert.conn_interval_from_ms(self._dev_params.gap_ppcp.interval_min_ms)
+                cfm.parameters.info.slv_params.con_intv_max = BleConvert.conn_interval_from_ms(self._dev_params.gap_ppcp.interval_max_ms)
                 cfm.parameters.info.slv_params.slave_latency = self._dev_params.gap_ppcp.slave_latency
-                cfm.parameters.info.slv_params.conn_timeout = self._dev_params.gap_ppcp.sup_timeout
+                cfm.parameters.info.slv_params.conn_timeout = BleConvert.supervision_timeout_from_ms(self._dev_params.gap_ppcp.sup_timeout_ms)
             case _:
                 pass
 
