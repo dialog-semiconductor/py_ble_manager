@@ -15,7 +15,8 @@ from ..ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BleEventGapConnect
     BLE_GAP_MAX_BONDED, GAP_IO_CAPABILITIES, BLE_ENC_KEY_SIZE_MAX, BleEventGapPairReq, \
     BleEventGapPasskeyNotify, BleEventGapNumericRequest, BleEventGapPairCompleted, BleEventGapSecLevelChanged, \
     BleEventGapAddressResolved, BleEventGapPeerVersion, BleEventGapPeerFeatures, BleEventGapLtkMissing, \
-    BLE_ADV_DATA_LEN_MAX, BLE_NON_CONN_ADV_DATA_LEN_MAX
+    BLE_ADV_DATA_LEN_MAX, BLE_NON_CONN_ADV_DATA_LEN_MAX, BleEventGapAddressResolutionFailed, \
+    BleEventGapDataLengthSetFailed
 
 from ..gtl_messages.gtl_message_base import GtlMessageBase
 from ..gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd, GapcGetDevInfoReqInd, GapcGetDevInfoCfm, \
@@ -44,7 +45,7 @@ from ..manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp,
     BleMgrGapDisconnectCmd, BleMgrGapDisconnectRsp, BleMgrGapConnectCancelCmd, BleMgrGapConnectCancelRsp, \
     BleMgrGapConnParamUpdateCmd, BleMgrGapConnParamUpdateRsp, BleMgrGapConnParamUpdateReplyCmd, \
     BleMgrGapConnParamUpdateReplyRsp, BleMgrGapPairCmd, BleMgrGapPairRsp, BleMgrGapPairReplyCmd, BleMgrGapPairReplyRsp, \
-    BleMgrGapPasskeyReplyCmd, BleMgrGapPasskeyReplyRsp, BleMgrGapNumericReplyCmd, BleMgrGapNumericReplyRsp
+    BleMgrGapPasskeyReplyCmd, BleMgrGapPasskeyReplyRsp, BleMgrGapNumericReplyCmd, BleMgrGapNumericReplyRsp, BLE_MGR_RAL_OP
 
 from ..manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from ..manager.GtlWaitQueue import GtlWaitQueue
@@ -192,22 +193,21 @@ class BleManagerGap(BleManagerBase):
     def _ble_role_to_gtl_role(self, role: BLE_GAP_ROLE):
 
         gtl_role = GAP_ROLE.GAP_ROLE_NONE
-# if (self._ble_config.dg_configBLE_CENTRAL == 1)  # TODO handle if defs
-        if (role & BLE_GAP_ROLE.GAP_CENTRAL_ROLE):
-            gtl_role |= GAP_ROLE.GAP_ROLE_CENTRAL
-# endif /* (self._ble_config.dg_configBLE_CENTRAL == 1)
-# if (self._ble_config.dg_configBLE_PERIPHERAL == 1)
-        if (role & BLE_GAP_ROLE.GAP_PERIPHERAL_ROLE):
-            gtl_role |= GAP_ROLE.GAP_ROLE_PERIPHERAL
-# endif /* (self._ble_config.dg_configBLE_PERIPHERAL == 1)
-# if (dg_configBLE_BROADCASTER == 1)
-        if (role & BLE_GAP_ROLE.GAP_BROADCASTER_ROLE):
-            gtl_role |= GAP_ROLE.GAP_ROLE_BROADCASTER
-# endif /* (dg_configBLE_BROADCASTER == 1) */
-# if (dg_configBLE_OBSERVER == 1)
-        if (role & BLE_GAP_ROLE.GAP_OBSERVER_ROLE):
-            gtl_role |= GAP_ROLE.GAP_ROLE_OBSERVER
-# endif /* (dg_configBLE_OBSERVER == 1) */
+        if self._ble_config.dg_configBLE_CENTRAL:
+            if (role & BLE_GAP_ROLE.GAP_CENTRAL_ROLE):
+                gtl_role |= GAP_ROLE.GAP_ROLE_CENTRAL
+
+        if self._ble_config.dg_configBLE_PERIPHERAL:
+            if (role & BLE_GAP_ROLE.GAP_PERIPHERAL_ROLE):
+                gtl_role |= GAP_ROLE.GAP_ROLE_PERIPHERAL
+        if self._ble_config.dg_configBLE_BROADCASTER:
+            if (role & BLE_GAP_ROLE.GAP_BROADCASTER_ROLE):
+                gtl_role |= GAP_ROLE.GAP_ROLE_BROADCASTER
+
+        if self._ble_config.dg_configBLE_OBSERVER:
+            if (role & BLE_GAP_ROLE.GAP_OBSERVER_ROLE):
+                gtl_role |= GAP_ROLE.GAP_ROLE_OBSERVER
+
         return gtl_role
 
     def _change_conn_data_length(self, conn_idx: int, tx_length: int, tx_time: int):
@@ -215,7 +215,28 @@ class BleManagerGap(BleManagerBase):
         pass
 
     def _cmp_address_resolve_evt_handler(self, gtl: GapmCmpEvt):
-        return False
+        dev_params = self.dev_params_acquire()
+        # Decrement request count
+        dev_params.addr_resolv_req_pending -= 1
+        self.dev_params_release()
+
+        if gtl.parameters.status == HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
+            # Nothing to do, event should be sent only when error occurred
+            return
+
+        evt = BleEventGapAddressResolutionFailed()
+        match gtl.parameters.status:
+            case HOST_STACK_ERROR_CODE.GAP_ERR_COMMAND_DISALLOWED:
+                evt.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
+            case HOST_STACK_ERROR_CODE.GAP_ERR_INVALID_PARAM:
+                evt.status = BLE_ERROR.BLE_ERROR_INVALID_PARAM
+            case HOST_STACK_ERROR_CODE.GAP_ERR_NOT_FOUND:
+                evt.status = BLE_ERROR.BLE_ERROR_NOT_FOUND
+            case _:
+                # evt.status = gtl.parameters.status  # cannot directly assign, will throw ValueError is gtl error not in BLE_ERROR
+                evt.status = BLE_ERROR.BLE_ERROR_FAILED
+
+        self._mgr_event_queue_send(evt)
 
     def _cmp_bond_evt_handler(self, gtl: GapcCmpEvt):
 
@@ -231,8 +252,32 @@ class BleManagerGap(BleManagerBase):
             evt.mitm = False
             self._mgr_event_queue_send(evt)
 
-    def _cmp_data_length_set_evt_handler(self, gtl):  # TODO called from ..GAPM and GAPC
-        return False
+    def _cmp_data_length_set_evt_handler(self, gtl: GapmCmpEvt):
+        # This handler will handle both GAPM_CMP_EVT and GAPC_CMP_EVT events. These event
+        # structures are identical so there is no need to differentiate. gtl type hinted to GapmCmpEvt for convenience
+
+        if gtl.parameters.status == HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
+            # Nothing to do, event should be sent only when error occurred
+            return
+
+        evt = BleEventGapDataLengthSetFailed()
+        if gtl.parameters.operation == GAPM_OPERATION.GAPM_SET_SUGGESTED_DFLT_LE_DATA_LEN:
+            evt.conn_idx = BLE_CONN_IDX_INVALID
+        else:
+            evt.conn_idx = self._task_to_connidx(gtl.src_id)
+
+        match gtl.parameters.status:
+            case HOST_STACK_ERROR_CODE.LL_ERR_COMMAND_DISALLOWED:
+                evt.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
+            case HOST_STACK_ERROR_CODE.LL_ERR_UNSUPPORTED_REMOTE_FEATURE:
+                evt.status = BLE_ERROR.BLE_ERROR_NOT_SUPPORTED
+            case HOST_STACK_ERROR_CODE.LL_ERR_INVALID_HCI_PARAM:
+                evt.status = BLE_ERROR.BLE_ERROR_INVALID_PARAM
+            case _:
+                # evt.status = gtl.parameters.operation  # this will throw a ValueError if HOST_STACK_ERROR_CODE not a valide BLE_ERROR
+                evt.status = BLE_ERROR.BLE_ERROR_FAILED
+
+        self._mgr_event_queue_send(evt)
 
     def _cmp_disconnect_evt_handler(self, gtl: GapcCmpEvt):
         # ignore if no error
@@ -248,7 +293,7 @@ class BleManagerGap(BleManagerBase):
                 case HOST_STACK_ERROR_CODE.LL_ERR_COMMAND_DISALLOWED:
                     evt.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
                 case _:
-                    # evt.status = gtl.parameters.status  # TODO this throws a ValueError if not a valid BLE_ERROR
+                    # evt.status = gtl.parameters.status  # this throws a ValueError if not a valid BLE_ERROR
                     # need to be able to set a BLE_ERROR that is not defined
                     evt.status = BLE_ERROR.BLE_ERROR_FAILED
 
@@ -342,6 +387,60 @@ class BleManagerGap(BleManagerBase):
             self._mgr_event_queue_send(evt)
         self.storage_release()
 
+    def _connect_cmd_exec(self, command: BleMgrGapConnectCmd):
+        response = BleMgrGapConnectRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        dev_params = self.dev_params_acquire()
+        self.storage_acquire()
+        dev = self._stored_device_list.find_device_by_connenting()
+        if dev:
+            response.status = BLE_ERROR.BLE_ERROR_BUSY
+        else:
+            dev = self._stored_device_list.find_device_by_address(command.peer_addr, True)
+            if dev:
+                if dev.connected:
+                    response.status = BLE_ERROR.BLE_ERROR_ALREADY_DONE
+                else:
+                    gtl = GapmStartConnectionCmd()
+                    gtl.parameters.op.code = GAPM_OPERATION.GAPM_CONNECTION_DIRECT
+                    match dev_params.own_addr.addr_type:
+                        case BLE_OWN_ADDR_TYPE.PRIVATE_STATIC_ADDRESS \
+                                | BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS:
+
+                            gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_STATIC_ADDR
+
+                        case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_RESOLVABLE_ADDRESS \
+                                | BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
+
+                            gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_GEN_RSLV_ADDR
+
+                        case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_NONRESOLVABLE_ADDRESS:
+                            gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_GEN_NON_RSLV_ADDR
+
+                    gtl.parameters.scan_interval = BleConvert.scan_interval_from_ms(dev_params.scan_params.interval_ms)
+                    gtl.parameters.scan_window = BleConvert.scan_window_from_ms(dev_params.scan_params.window_ms)
+                    gtl.parameters.con_intv_min = BleConvert.conn_interval_from_ms(command.conn_params.interval_min_ms)
+                    gtl.parameters.con_intv_max = BleConvert.conn_interval_from_ms(command.conn_params.interval_max_ms)
+                    gtl.parameters.con_latency = command.conn_params.slave_latency
+                    gtl.parameters.superv_to = BleConvert.supervision_timeout_from_ms(command.conn_params.sup_timeout_ms)
+                    gtl.parameters.con_latency = command.conn_params.slave_latency
+                    gtl.parameters.ce_len_min = command.ce_len_min if command.ce_len_min else 8
+                    gtl.parameters.ce_len_max = command.ce_len_max if command.ce_len_max else 8
+                    gtl.parameters.nb_peers = 1
+                    gtl.parameters.peers = (gap_bdaddr * gtl.parameters.nb_peers)()
+                    gtl.parameters.peers[0].addr_type = command.peer_addr.addr_type
+                    gtl.parameters.peers[0].addr.addr[:] = command.peer_addr.addr
+
+                    dev.connecting = True
+                    dev.ce_len_min = gtl.parameters.ce_len_min
+                    dev.ce_len_max = gtl.parameters.ce_len_max
+
+                    self._adapter_command_queue_send(gtl)
+                    response.status = BLE_ERROR.BLE_STATUS_OK
+
+        self.storage_release()
+        self._mgr_response_queue_send(response)
+        self.dev_params_release()
+
     def _connect_cmp_evt_handler(self, gtl: GapmCmpEvt):
 
         dev_params = self.dev_params_acquire()
@@ -380,7 +479,7 @@ class BleManagerGap(BleManagerBase):
 
         self._mgr_event_queue_send(evt)
 
-    def _dev_params_to_gtl(self) -> GapmSetDevConfigCmd:  # TODO SDK passes in dev params and locks outside this function
+    def _dev_params_to_gtl(self) -> GapmSetDevConfigCmd:
         gtl = GapmSetDevConfigCmd()
         dev_params = self.dev_params_acquire()
         gtl.parameters.role = self._ble_role_to_gtl_role(dev_params.role)
@@ -389,7 +488,7 @@ class BleManagerGap(BleManagerBase):
         gtl.parameters.max_mtu = dev_params.mtu_size
         gtl.parameters.max_mps = dev_params.mtu_size
         gtl.parameters.addr.addr[:] = dev_params.own_addr.addr
-        # TODO function for this conversion?
+
         match dev_params.own_addr.addr_type:
             case BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS:
                 gtl.parameters.addr_type = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PUBLIC
@@ -399,10 +498,9 @@ class BleManagerGap(BleManagerBase):
                 gtl.parameters.addr_type = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PRIVACY
             case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_NONRESOLVABLE_ADDRESS:
                 gtl.parameters.addr_type = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PRIVACY
-        # if (dg_configBLE_PRIVACY_1_2 == 1)
             case BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
-                gtl.parameters.addr_type = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PRIVACY_CNTL
-        # endif /* (dg_configBLE_PRIVACY_1_2 == 1) */
+                if self._ble_config.dg_configBLE_PRIVACY_1_2:
+                    gtl.parameters.addr_type = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PRIVACY_CNTL
             case _:
                 gtl.parameters.addr_type = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PUBLIC
 
@@ -497,7 +595,6 @@ class BleManagerGap(BleManagerBase):
         if gtl.parameters.peer_addr.addr[5] & 0xC0 != 0x40:
             return False
 
-        # TODO SDK does not lock here ?
         self.storage_acquire()
         irk_count = self._stored_device_list.get_irk_count()
         self.storage_release()
@@ -801,10 +898,11 @@ class BleManagerGap(BleManagerBase):
                     if dev.bonded:
                         self._stored_device_list.move_to_front(dev)
 
-                # TODO Privacy
-                # if (dg_configBLE_PRIVACY_1_2 == 1):
-                #    if self.dev_params.own_addr.addr_type == BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
-                #        self.dev_params.prev_privacy_operation = BLE_MGR_RAL_OP_NONE
+                dev_params = self.dev_params_acquire()
+                if self._ble_config.dg_configBLE_PRIVACY_1_2:
+                    if dev_params.own_addr.addr_type == BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
+                        dev_params.prev_privacy_operation = BLE_MGR_RAL_OP.BLE_MGR_RAL_OP_NONE
+                self.dev_params_release()
 
                 # storage_mark_dirty(true); # TODO storage handling
                 self.storage_release()
@@ -1091,63 +1189,11 @@ class BleManagerGap(BleManagerBase):
 
     def connect_cmd_handler(self, command: BleMgrGapConnectCmd):
         # TODO handle privacy
-        # if (dg_configBLE_PRIVACY_1_2 == 1)
-        # ble_mgr_gap_ral_sync(ble_mgr_gap_connect_cmd_exec, param);
-        # else
-        # ble_mgr_gap_connect_cmd_exec(param); # TODO This function implemented below. Separate func?
-        # endif
-        response = BleMgrGapConnectRsp(BLE_ERROR.BLE_ERROR_FAILED)
-        dev_params = self.dev_params_acquire()
-        self.storage_acquire()
-        dev = self._stored_device_list.find_device_by_connenting()
-        if dev:
-            response.status = BLE_ERROR.BLE_ERROR_BUSY
+        if self._ble_config.dg_configBLE_PRIVACY_1_2:
+            pass
+            # ble_mgr_gap_ral_sync(ble_mgr_gap_connect_cmd_exec, param);
         else:
-            dev = self._stored_device_list.find_device_by_address(command.peer_addr, True)
-            if dev:
-                if dev.connected:
-                    response.status = BLE_ERROR.BLE_ERROR_ALREADY_DONE
-                else:
-                    gtl = GapmStartConnectionCmd()
-                    gtl.parameters.op.code = GAPM_OPERATION.GAPM_CONNECTION_DIRECT
-                    match dev_params.own_addr.addr_type:
-                        case BLE_OWN_ADDR_TYPE.PRIVATE_STATIC_ADDRESS \
-                                | BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS:
-
-                            gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_STATIC_ADDR
-
-                        case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_RESOLVABLE_ADDRESS \
-                                | BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
-
-                            gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_GEN_RSLV_ADDR
-
-                        case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_NONRESOLVABLE_ADDRESS:
-                            gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_GEN_NON_RSLV_ADDR
-
-                    gtl.parameters.scan_interval = BleConvert.scan_interval_from_ms(dev_params.scan_params.interval_ms)
-                    gtl.parameters.scan_window = BleConvert.scan_window_from_ms(dev_params.scan_params.window_ms)
-                    gtl.parameters.con_intv_min = BleConvert.conn_interval_from_ms(command.conn_params.interval_min_ms)
-                    gtl.parameters.con_intv_max = BleConvert.conn_interval_from_ms(command.conn_params.interval_max_ms)
-                    gtl.parameters.con_latency = command.conn_params.slave_latency
-                    gtl.parameters.superv_to = BleConvert.supervision_timeout_from_ms(command.conn_params.sup_timeout_ms)
-                    gtl.parameters.con_latency = command.conn_params.slave_latency
-                    gtl.parameters.ce_len_min = command.ce_len_min if command.ce_len_min else 8
-                    gtl.parameters.ce_len_max = command.ce_len_max if command.ce_len_max else 8
-                    gtl.parameters.nb_peers = 1
-                    gtl.parameters.peers = (gap_bdaddr * gtl.parameters.nb_peers)()
-                    gtl.parameters.peers[0].addr_type = command.peer_addr.addr_type
-                    gtl.parameters.peers[0].addr.addr[:] = command.peer_addr.addr
-
-                    dev.connecting = True
-                    dev.ce_len_min = gtl.parameters.ce_len_min
-                    dev.ce_len_max = gtl.parameters.ce_len_max
-
-                    self._adapter_command_queue_send(gtl)
-                    response.status = BLE_ERROR.BLE_STATUS_OK
-
-        self.storage_release()
-        self._mgr_response_queue_send(response)
-        self.dev_params_release()
+            self._connect_cmd_exec(command)
 
     def connected_evt_handler(self, gtl: GapcConnectionReqInd):
         evt = BleEventGapConnected()
@@ -1302,8 +1348,7 @@ class BleManagerGap(BleManagerBase):
             case GAPC_OPERATION.GAPC_UPDATE_PARAMS:
                 self._cmp_update_params_evt_handler(gtl)
             case GAPC_OPERATION.GAPC_SET_LE_PKT_SIZE:
-                # TODO should not return value
-                return self._cmp_data_length_set_evt_handler(gtl)
+                self._cmp_data_length_set_evt_handler(gtl)
             case (GAPC_OPERATION.GAPC_GET_PEER_VERSION
                     | GAPC_OPERATION.GAPC_GET_PEER_FEATURES
                     | GAPC_OPERATION.GAPC_GET_CON_RSSI
@@ -1360,11 +1405,9 @@ class BleManagerGap(BleManagerBase):
             case GAPM_OPERATION.GAPM_SET_CHANNEL_MAP:
                 pass
             case GAPM_OPERATION.GAPM_SET_SUGGESTED_DFLT_LE_DATA_LEN:
-                # TODO should not return value
-                return self._cmp_data_length_set_evt_handler(gtl)
+                self._cmp_data_length_set_evt_handler(gtl)
             case GAPM_OPERATION.GAPM_RESOLV_ADDR:
-                # TODO should not return value
-                return self._cmp_address_resolve_evt_handler(gtl)
+                self._cmp_address_resolve_evt_handler(gtl)
             case (GAPM_OPERATION.GAPM_RESET
                     | GAPM_OPERATION.GAPM_CANCEL
                     | GAPM_OPERATION.GAPM_SET_DEV_CONFIG
@@ -1602,7 +1645,7 @@ class BleManagerGap(BleManagerBase):
 
             gtl.parameters.interval = command.interval  # Interval and window have already been converted from milliseconds
             gtl.parameters.window = command.window
-            gtl.parameters.mode = command.mode  # TODO GAP_SCAP_MODE enum redfine
+            gtl.parameters.mode = command.mode
 
             gtl.parameters.filt_policy = (SCAN_FILTER_POLICY.SCAN_ALLOW_ADV_WLST
                                           if command.filt_wlist
