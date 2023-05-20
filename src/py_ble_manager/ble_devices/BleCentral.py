@@ -240,7 +240,7 @@ class BleCentral(BleDeviceBase):
         :type mode: GAP_SCAN_MODE
         :param interval_ms: scan interval in milliseconds
         :type interval_ms: int
-        :param window_ms: Scan window in milliseconds
+        :param window_ms: scan window in milliseconds
         :type window_ms: int
         :param filt_wlist: enable or disable white list filtering, defaults to False
         :type filt_wlist: bool
