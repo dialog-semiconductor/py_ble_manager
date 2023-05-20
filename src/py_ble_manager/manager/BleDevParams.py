@@ -11,7 +11,7 @@ class BleDevParams():
 
     def __init__(self) -> None:
         # GAP device information
-        self.dev_name = b""  # GAP device name plus NULL char # TODO F8 seems realy long
+        self.dev_name = b""  # GAP device name
 
         self.appearance = BLE_GAP_APPEARANCE.BLE_GAP_APPEARANCE_UNKNOWN  # GAP device appearance
         # BLE state
@@ -71,9 +71,7 @@ class BleDevParamsDefault(BleDevParams):
     def __init__(self) -> None:
         super().__init__()
         # GAP device information
-        name = b"Dialog BLE"
-        # self.dev_name[:len(name)] = name
-        self.dev_name = name
+        self.dev_name = b"Dialog BLE"
         self.appearance = BLE_GAP_APPEARANCE.BLE_GAP_APPEARANCE_UNKNOWN
         # BLE state
         self.status = BLE_STATUS.BLE_IS_DISABLED
@@ -90,7 +88,7 @@ class BleDevParamsDefault(BleDevParams):
         self.att_db_cfg.slv_perf_conn_params_present = True
 
         # TODO Need to handle dg_configBLE_SECURE_CONNECTIONS
-        self.mtu_size = 65  # 23  # TODO 65 for secure connections, 23 otherwise. need to handle
+        self.mtu_size = 65  # 23  # 65 for secure connections, 23 otherwise
         self.channel_map.map = bytes([0xFF, 0xFF, 0xFF, 0xFF, 0x1F])
 
         self.adv_type = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
@@ -103,9 +101,9 @@ class BleDevParamsDefault(BleDevParams):
         self.adv_filter_policy = ADV_FILT_POL.ADV_ALLOW_SCAN_ANY_CONN_ANY
         self.adv_data_length = 28
 
-        self.adv_data[0] = len(name) + 1  # SDK has 0x0C? Should be 0x0B??
+        self.adv_data[0] = len(self.dev_name) + 1  # SDK has 0x0C? Should be 0x0B??
         self.adv_data[1] = GAP_DATA_TYPE.GAP_DATA_TYPE_LOCAL_NAME
-        self.adv_data[2: (2 + len(name))] = name
+        self.adv_data[2:(2 + len(self.dev_name))] = self.dev_name
         self.scan_rsp_data_length = 0  # Length of scan response
         self.scan_rsp_data = (c_uint8 * SCAN_RSP_DATA_LEN)()
 
