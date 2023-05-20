@@ -441,7 +441,6 @@ class BleController():
                 if (evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_NOTIFICATION
                         and evt.handle == self.dci_svc.tx.handle + 1):
 
-                    # TODO need to know what response waiting for
                     evt: ble.BleEventGattcNotification
                     if self.response.command == DCI_SVC_COMMAND.NONE and len(evt.value) > 2:
                         self.response.command = evt.value[0]
@@ -461,8 +460,7 @@ class BleController():
                     self.shutdown()
 
         if self.fetch_state == FETCH_DATA_STATE.FETCH_DATA_ERROR:
-            # TODO disconnect if connected
-            pass
+            self.central.disconnect(0, ble.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON)
 
     def shutdown(self):
         self.log_file_handle.close()
@@ -480,13 +478,6 @@ def create_log():
     log_file = open(f"{logs_directory}\\DCI_log_{time.strftime('%Y%m%d-%H%M%S')}.txt", 'w')
 
     return log_file
-
-    # TODO logging is preventing prompt_toolkit from patching stdout
-    # open a file for writing
-    # logging.basicConfig(level=logging.INFO,
-    #                    format='%(asctime)s - %(message)s',
-    #                    handlers=[logging.FileHandler(f"{logs_directory}\\DCI_log_{time.strftime('%Y%m%d-%H%M%S')}.txt"),
-    #                              logging.StreamHandler()],)
 
 
 def main(com_port: str):
