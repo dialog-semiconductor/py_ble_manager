@@ -322,7 +322,7 @@ class GAP_KDIST(IntFlag):
     GAP_KDIST_IDKEY = (1 << 1)
     # CSRK(Signature key) in distribution
     GAP_KDIST_SIGNKEY = (1 << 2)
-    # TODO add missing comment (This is from the original file, what does it mean???)
+
     GAP_KDIST_BR_EDR = (1 << 3)
 
     GAP_KDIST_LAST = (1 << 4)
