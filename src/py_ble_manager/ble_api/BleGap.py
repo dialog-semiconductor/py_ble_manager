@@ -268,11 +268,10 @@ class GapConnParams():
     # TODO description of BLE slots
     """ GAP connection parameters
 
-    # TODO change to milliseconds
-    :ivar interval_min: connection interval minimum, in slots
-    :ivar interval_max: connection interval minimum, in slots
+    :ivar interval_min_ms: connection interval minimum in milliseconds
+    :ivar interval_max_ms: connection interval minimum in milliseconds
     :ivar slave_latency: slave latency, in number of events
-    :ivar sup_timeout: supervision timeout, in slots
+    :ivar sup_timeout_ms: supervision timeout in milliseconds
     """
 
     def __init__(self, interval_min_ms: int = 0, interval_max_ms: int = 0, slave_latency: int = 0, sup_timeout_ms: int = 0) -> None:
@@ -290,13 +289,13 @@ class GapConnParams():
 class GapScanParams():
     """GAP scan parameters
 
-    :ivar interval: scan interval in steps of 0.625ms
-    :ivar window: scan window in steps of 0.625ms
+    :ivar interval_ms: scan interval in milliseconds
+    :ivar window: scan window in milliseconds
     """
 
-    def __init__(self, interval: int = 0, window: int = 0) -> None:
-        self.interval = interval  # Scan interval
-        self.window = window  # Scan window
+    def __init__(self, interval_ms: int = 0, window_ms: int = 0) -> None:
+        self.interval_ms = interval_ms  # Scan interval
+        self.window_ms = window_ms  # Scan window
 
 
 class BleAdvData():

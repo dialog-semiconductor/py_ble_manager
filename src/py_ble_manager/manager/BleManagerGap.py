@@ -748,8 +748,8 @@ class BleManagerGap(BleManagerBase):
                     case _:
                         gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_STATIC_ADDR
 
-                gtl.parameters.intv_min = self._dev_params.adv_intv_min
-                gtl.parameters.intv_max = self._dev_params.adv_intv_max
+                gtl.parameters.intv_min = BleConvert.adv_interval_from_ms(self._dev_params.adv_intv_min_ms)
+                gtl.parameters.intv_max = BleConvert.adv_interval_from_ms(self._dev_params.adv_intv_max_ms)
                 gtl.parameters.channel_map = self._dev_params.adv_channel_map
 
                 if command.adv_type < BLE_GAP_CONN_MODE.GAP_CONN_MODE_DIRECTED:
@@ -1124,8 +1124,8 @@ class BleManagerGap(BleManagerBase):
                         case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_NONRESOLVABLE_ADDRESS:
                             gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_GEN_NON_RSLV_ADDR
 
-                    gtl.parameters.scan_interval = self._dev_params.scan_params.interval
-                    gtl.parameters.scan_window = self._dev_params.scan_params.window
+                    gtl.parameters.scan_interval = BleConvert.scan_interval_from_ms(self._dev_params.scan_params.interval_ms)
+                    gtl.parameters.scan_window = BleConvert.scan_window_from_ms(self._dev_params.scan_params.window_ms)
                     gtl.parameters.con_intv_min = BleConvert.conn_interval_from_ms(command.conn_params.interval_min_ms)
                     gtl.parameters.con_intv_max = BleConvert.conn_interval_from_ms(command.conn_params.interval_max_ms)
                     gtl.parameters.con_latency = command.conn_params.slave_latency
@@ -1600,7 +1600,7 @@ class BleManagerGap(BleManagerBase):
                 case _:
                     gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_STATIC_ADDR
 
-            gtl.parameters.interval = command.interval
+            gtl.parameters.interval = command.interval  # Interval and window have already been converted from milliseconds
             gtl.parameters.window = command.window
             gtl.parameters.mode = command.mode  # TODO GAP_SCAP_MODE enum redfine
 

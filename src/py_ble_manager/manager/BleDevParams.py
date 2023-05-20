@@ -40,8 +40,8 @@ class BleDevParams():
         self.adv_channel_map = (GAP_ADV_CHANNEL.GAP_ADV_CHANNEL_37
                                 | GAP_ADV_CHANNEL.GAP_ADV_CHANNEL_38
                                 | GAP_ADV_CHANNEL.GAP_ADV_CHANNEL_39)  # Channel map used for advertising
-        self.adv_intv_min = 0  # Minimum advertising interval
-        self.adv_intv_max = 0  # Maximum advertising interval
+        self.adv_intv_min_ms = 0  # Minimum advertising interval
+        self.adv_intv_max_ms = 0  # Maximum advertising interval
         self.adv_filter_policy = ADV_FILT_POL.ADV_ALLOW_SCAN_ANY_CONN_ANY  # Advertising filter policy
         self.adv_direct_address = BdAddress()  # Address used for directed advertising
         self.adv_data_length = 0  # Length of advertising data
@@ -98,8 +98,8 @@ class BleDevParamsDefault(BleDevParams):
         self.adv_channel_map = (GAP_ADV_CHANNEL.GAP_ADV_CHANNEL_37
                                 | GAP_ADV_CHANNEL.GAP_ADV_CHANNEL_38
                                 | GAP_ADV_CHANNEL.GAP_ADV_CHANNEL_39)
-        self.adv_intv_min = int(((687.5) * 1000 // 625))  # TODO function for this
-        self.adv_intv_max = int(((687.5) * 1000 // 625))  # TODO same as above
+        self.adv_intv_min_ms = 687.5
+        self.adv_intv_max_ms = 687.5
         self.adv_filter_policy = ADV_FILT_POL.ADV_ALLOW_SCAN_ANY_CONN_ANY
         self.adv_data_length = 28
 
@@ -108,11 +108,12 @@ class BleDevParamsDefault(BleDevParams):
         self.adv_data[2: (2 + len(name))] = name
         self.scan_rsp_data_length = 0  # Length of scan response
         self.scan_rsp_data = (c_uint8 * SCAN_RSP_DATA_LEN)()
-        # Scan parameters used for connection procedures
-        self.scan_params.interval = (100) * 1000 // 625  # TODO make function
-        self.scan_params.window = (50) * 1000 // 625  # TODO make function
-        # Peripheral preferred connection parameters
 
+        # Scan parameters used for connection procedures
+        self.scan_params.interval_ms = 100
+        self.scan_params.window_ms = 50
+
+        # Peripheral preferred connection parameters
         self.gap_ppcp.interval_min_ms = 500
         self.gap_ppcp.interval_max_ms = 750
         self.gap_ppcp.slave_latency = 0

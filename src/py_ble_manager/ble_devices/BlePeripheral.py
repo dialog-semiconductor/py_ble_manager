@@ -60,9 +60,6 @@ class BlePeripheral(BleDeviceBase):
 
         return False
 
-    def _ms_to_adv_slots(self, time_ms) -> int:
-        return int((time_ms) * 1000 // 625)
-
     def get_value(self, handle: int, max_len: int) -> BLE_ERROR:
         error = BLE_ERROR.BLE_ERROR_FAILED
         service = self._find_service_by_handle(handle)
@@ -192,9 +189,7 @@ class BlePeripheral(BleDeviceBase):
         return handled
 
     def set_advertising_interval(self, adv_intv_min_ms, adv_intv_max_ms) -> None:
-        intv_min_slots = self._ms_to_adv_slots(adv_intv_min_ms)
-        intv_max_slots = self._ms_to_adv_slots(adv_intv_max_ms)
-        self._ble_manager.set_advertising_interval(intv_min_slots, intv_max_slots)
+        self._ble_manager.set_advertising_interval(adv_intv_min_ms, adv_intv_max_ms)
 
     def set_value(self, handle: int, value: bytes) -> BLE_ERROR:
         error = BLE_ERROR.BLE_ERROR_FAILED
