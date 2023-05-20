@@ -31,8 +31,8 @@ Scanning
 
     central.scan_start(type=ble.GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
                        mode=ble.GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
-                       interval=160,
-                       window=80,
+                       interval_ms=100,
+                       window_ms=50,
                        filt_wlist=False,
                        filt_dupl=True)
 

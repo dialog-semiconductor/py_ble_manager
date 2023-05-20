@@ -124,8 +124,8 @@ class BleController():
                 case 'GAPSCAN':
                     error = self.central.scan_start(ble.GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
                                                     ble.GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
-                                                    160,
-                                                    80,
+                                                    100,
+                                                    50,
                                                     False,
                                                     True)
 
