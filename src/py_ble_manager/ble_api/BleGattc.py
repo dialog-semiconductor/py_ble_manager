@@ -64,7 +64,7 @@ class GattcItem():
                  uuid: AttUuid = None,
                  handle: int = 0,
                  type: GATTC_ITEM_TYPE = GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_NONE,
-                 service_data: GattcIncludedServiceData = None,  # TODO sdk uses union for service data / char data. Use a ctype union?
+                 service_data: GattcIncludedServiceData = None,  # note sdk uses union for service data / char data but using two members instead.
                  char_data: GattcCharacteristicData = None):
 
         self.uuid = uuid
