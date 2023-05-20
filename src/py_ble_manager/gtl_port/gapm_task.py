@@ -470,11 +470,11 @@ class gapm_set_dev_config_cmd(LittleEndianStructure):
                  att_cfg: gapm_att_cfg_flag = gapm_att_cfg_flag(),
                  gap_start_hdl: c_uint16 = 0,
                  gatt_start_hdl: c_uint16 = 0,
-                 max_mtu: c_uint16 = 0,
-                 max_mps: c_uint16 = 0,
+                 max_mtu: c_uint16 = 23,
+                 max_mps: c_uint16 = 23,
                  att_cfg_: c_uint16 = 0,  # Not used
-                 max_txoctets: c_uint16 = 0,
-                 max_txtime: c_uint16 = 0,
+                 max_txoctets: c_uint16 = 27,
+                 max_txtime: c_uint16 = 328,
                  priv1_2: c_uint8 = 0
                  ):
 
@@ -502,11 +502,11 @@ class gapm_set_dev_config_cmd(LittleEndianStructure):
                          att_cfg=self.att_cfg,
                          gap_start_hdl=self.gap_start_hdl,
                          gatt_start_hdl=self.gatt_start_hdl,
-                         max_mtu=self.max_mtu,
-                         max_mps=self.max_mps,
+                         _max_mtu=self._max_mtu,
+                         _max_mps=self._max_mps,
                          att_cfg_=self.att_cfg_,
-                         max_txoctets=self.max_txoctets,
-                         max_txtime=self.max_txtime,
+                         _max_txoctets=self._max_txoctets,
+                         _max_txtime=self._max_txtime,
                          priv1_2=self.priv1_2,
                          padding=0)
 
@@ -548,19 +548,59 @@ class gapm_set_dev_config_cmd(LittleEndianStructure):
                 # GATT service start handle
                 ("gatt_start_hdl", c_uint16),
                 # Maximal MTU
-                ("max_mtu", c_uint16),
+                ("_max_mtu", c_uint16),
                 # Maximal MPS
-                ("max_mps", c_uint16),
+                ("_max_mps", c_uint16),
                 # Not used
                 ("att_cfg_", c_uint16),
                 # Maximal Tx octets
-                ("max_txoctets", c_uint16),
+                ("_max_txoctets", c_uint16),
                 # Maximal Tx time
-                ("max_txtime", c_uint16),
+                ("_max_txtime", c_uint16),
                 # Privacy 1.2 Helper
                 ("priv1_2", c_uint8),
                 # Padding
                 ("padding", c_uint8)]
+
+    def get_max_mtu(self):
+        return self._max_mtu
+
+    def set_max_mtu(self, new_mtu: c_uint16):
+        if new_mtu < 23 or new_mtu > 512:
+            raise ValueError("Maximum mtu must be between 23 and 512")
+        self._max_mtu = new_mtu
+
+    max_mtu = property(get_max_mtu, set_max_mtu)
+
+    def get_max_mps(self):
+        return self._max_mps
+
+    def set_max_mps(self, new_max_mps: c_uint16):
+        if new_max_mps < 23 or new_max_mps > 512:
+            raise ValueError("Maximum MPS must be between 23 and 512")
+        self._max_mps = new_max_mps
+
+    max_mps = property(get_max_mps, set_max_mps)
+
+    def get_max_txoctets(self):
+        return self._max_txoctets
+
+    def set_max_txoctets(self, new_txoctets: c_uint16):
+        if new_txoctets < 27 or new_txoctets > 251:
+            raise ValueError("Maximum TX octets must be between 27 and 251")
+        self._max_txoctets = new_txoctets
+
+    max_txoctets = property(get_max_txoctets, set_max_txoctets)
+
+    def get_max_txtime(self):
+        return self._max_txtime
+
+    def set_max_txtime(self, new_txtime: c_uint16):
+        if new_txtime < 328 or new_txtime > 2120:
+            raise ValueError("Maximum TX time must be between 328 and 2120")
+        self._max_txtime = new_txtime
+
+    max_txtime = property(get_max_txtime, set_max_txtime)
 
 
 '''

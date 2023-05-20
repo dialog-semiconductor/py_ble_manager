@@ -395,13 +395,23 @@ class gattc_mtu_changed_ind(LittleEndianStructure):
 
         self.mtu = mtu
         self.seq_num = seq_num
-        super().__init__(mtu=self.mtu,
+        super().__init__(_mtu=self._mtu,
                          seq_num=self.seq_num)
 
                 # Exchanged MTU value
-    _fields_ = [("mtu", c_uint16),
+    _fields_ = [("_mtu", c_uint16),
                 # operation sequence number
                 ("seq_num", c_uint16)]
+
+    def get_mtu(self):
+        return self._mtu
+
+    def set_mtu(self, new_mtu: c_uint16):
+        if new_mtu > 512:
+            raise ValueError("Maximum mtu is 512")
+        self._mtu = new_mtu
+
+    mtu = property(get_mtu, set_mtu)
 
 
 # Service Discovery Command
@@ -418,7 +428,7 @@ class gattc_disc_cmd(LittleEndianStructure):
         self.seq_num = seq_num
         self.start_hdl = start_hdl
         self.end_hdl = end_hdl
-        self.uuid = uuid
+        self.uuid = uuid if uuid else (c_uint8 * 2)(0, 0)
         super().__init__(operation=self.operation,
                          uuid_len=self.uuid_len,
                          seq_num=self.seq_num,
@@ -443,8 +453,11 @@ class gattc_disc_cmd(LittleEndianStructure):
         return cast(self._uuid, POINTER(c_uint8 * self.uuid_len)).contents
 
     def set_uuid(self, new_uuid: Array[c_uint8]):
-        self._uuid = new_uuid if new_uuid else (c_uint8 * 2)(0, 0)
-        self.uuid_len = len(new_uuid) if new_uuid else 2  # TODO check 2 or 16
+        if len(new_uuid) == 2 or len(new_uuid) == 16:
+            self._uuid = new_uuid
+            self.uuid_len = len(new_uuid)
+        else:
+            raise ValueError("UUID length must be 2 or 16")
 
     uuid = property(get_uuid, set_uuid)
 
@@ -459,7 +472,7 @@ class gattc_disc_svc_ind(LittleEndianStructure):
 
         self.start_hdl = start_hdl
         self.end_hdl = end_hdl
-        self.uuid = uuid
+        self.uuid = uuid if uuid else (c_uint8 * 2)(0, 0)
         super().__init__(start_hdl=self.start_hdl,
                          end_hdl=self.end_hdl,
                          uuid_len=self.uuid_len,
@@ -480,8 +493,11 @@ class gattc_disc_svc_ind(LittleEndianStructure):
         return cast(self._uuid, POINTER(c_uint8 * self.uuid_len)).contents
 
     def set_uuid(self, new_uuid: Array[c_uint8]):
-        self._uuid = new_uuid if new_uuid else (c_uint8 * 2)(0, 0)
-        self.uuid_len = len(new_uuid) if new_uuid else 2  # TODO check 2 or 16
+        if len(new_uuid) == 2 or len(new_uuid) == 16:
+            self._uuid = new_uuid
+            self.uuid_len = len(new_uuid)
+        else:
+            raise ValueError("UUID length must be 2 or 16")
 
     uuid = property(get_uuid, set_uuid)
 
@@ -498,7 +514,7 @@ class gattc_disc_svc_incl_ind(LittleEndianStructure):
         self.attr_hdl = attr_hdl
         self.start_hdl = start_hdl
         self.end_hdl = end_hdl
-        self.uuid = uuid
+        self.uuid = uuid if uuid else (c_uint8 * 2)(0, 0)
         super().__init__(attr_hdl=self.attr_hdl,
                          start_hdl=self.start_hdl,
                          end_hdl=self.end_hdl,
@@ -522,8 +538,11 @@ class gattc_disc_svc_incl_ind(LittleEndianStructure):
         return cast(self._uuid, POINTER(c_uint8 * self.uuid_len)).contents
 
     def set_uuid(self, new_uuid: Array[c_uint8]):
-        self._uuid = new_uuid if new_uuid else (c_uint8 * 2)(0, 0)
-        self.uuid_len = len(new_uuid) if new_uuid else 2  # TODO check 2 or 16
+        if len(new_uuid) == 2 or len(new_uuid) == 16:
+            self._uuid = new_uuid
+            self.uuid_len = len(new_uuid)
+        else:
+            raise ValueError("UUID length must be 2 or 16")
 
     uuid = property(get_uuid, set_uuid)
 
@@ -540,7 +559,7 @@ class gattc_disc_char_ind(LittleEndianStructure):
         self.attr_hdl = attr_hdl
         self.pointer_hdl = pointer_hdl
         self.prop = prop
-        self.uuid = uuid
+        self.uuid = uuid if uuid else (c_uint8 * 2)(0, 0)
         super().__init__(attr_hdl=self.attr_hdl,
                          pointer_hdl=self.pointer_hdl,
                          prop=self.prop,
@@ -562,8 +581,11 @@ class gattc_disc_char_ind(LittleEndianStructure):
         return cast(self._uuid, POINTER(c_uint8 * self.uuid_len)).contents
 
     def set_uuid(self, new_uuid: Array[c_uint8]):
-        self._uuid = new_uuid if new_uuid else (c_uint8 * 2)(0, 0)
-        self.uuid_len = len(new_uuid) if new_uuid else 2  # TODO check 2 or 16
+        if len(new_uuid) == 2 or len(new_uuid) == 16:
+            self._uuid = new_uuid
+            self.uuid_len = len(new_uuid)
+        else:
+            raise ValueError("UUID length must be 2 or 16")
 
     uuid = property(get_uuid, set_uuid)
 
@@ -576,7 +598,7 @@ class gattc_disc_char_desc_ind(LittleEndianStructure):
                  uuid: Array[c_uint8] = None):
 
         self.attr_hdl = attr_hdl
-        self.uuid = uuid
+        self.uuid = uuid if uuid else (c_uint8 * 2)(0, 0)
         super().__init__(attr_hdl=self.attr_hdl,
                          uuid_len=self.uuid_len,
                          _uuid=self._uuid,
@@ -594,8 +616,11 @@ class gattc_disc_char_desc_ind(LittleEndianStructure):
         return cast(self._uuid, POINTER(c_uint8 * self.uuid_len)).contents
 
     def set_uuid(self, new_uuid: Array[c_uint8]):
-        self._uuid = new_uuid if new_uuid else (c_uint8 * 2)(0, 0)
-        self.uuid_len = len(new_uuid) if new_uuid else 2  # TODO check 2 or 16
+        if len(new_uuid) == 2 or len(new_uuid) == 16:
+            self._uuid = new_uuid
+            self.uuid_len = len(new_uuid)
+        else:
+            raise ValueError("UUID length must be 2 or 16")
 
     uuid = property(get_uuid, set_uuid)
 
@@ -634,7 +659,7 @@ class gattc_read_by_uuid(LittleEndianStructure):
 
         self.start_hdl = start_hdl
         self.end_hdl = end_hdl
-        self.uuid = uuid
+        self.uuid = uuid if uuid else (c_uint8 * 2)(0, 0)
         super().__init__(start_hdl=self.start_hdl,
                          end_hdl=self.end_hdl,
                          uuid_len=self.uuid_len,
@@ -653,8 +678,11 @@ class gattc_read_by_uuid(LittleEndianStructure):
         return cast(self._uuid, POINTER(c_uint8 * self.uuid_len)).contents
 
     def set_uuid(self, new_uuid: Array[c_uint8]):
-        self._uuid = new_uuid if new_uuid else (c_uint8 * 2)(0, 0)
-        self.uuid_len = len(new_uuid) if new_uuid else 2  # TODO check 2 or 16
+        if len(new_uuid) == 2 or len(new_uuid) == 16:
+            self._uuid = new_uuid
+            self.uuid_len = len(new_uuid)
+        else:
+            raise ValueError("UUID length must be 2 or 16")
 
     uuid = property(get_uuid, set_uuid)
 
@@ -783,7 +811,7 @@ class gattc_read_ind(LittleEndianStructure):
 
     def set_value(self, new_value: Array[c_uint8]):
         self._value = new_value if new_value else pointer(c_uint8(0))
-        self.length = len(new_value) if new_value else 1  # TODO check 2 or 16
+        self.length = len(new_value) if new_value else 1
 
     value = property(get_value, set_value)
 

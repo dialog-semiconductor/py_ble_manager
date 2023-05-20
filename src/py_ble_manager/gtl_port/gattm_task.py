@@ -480,6 +480,8 @@ class gattm_att_get_value_rsp(LittleEndianStructure):
         return cast(self._value, POINTER(c_uint8 * self.length)).contents
 
     def set_value(self, new_value: Array[c_uint8]):
+        if new_value and len(new_value) > 512:
+            raise ValueError("Maximum length is 512")
         self._value = new_value if new_value else pointer(c_uint8(0))
         self.length = len(new_value) if new_value else 1
 
@@ -509,6 +511,8 @@ class gattm_att_set_value_req(LittleEndianStructure):
         return cast(self._value, POINTER(c_uint8 * self.length)).contents
 
     def set_value(self, new_value: Array[c_uint8]):
+        if new_value and len(new_value) > 512:
+            raise ValueError("Maximum length is 512")
         self._value = new_value if new_value else pointer(c_uint8(0))
         self.length = len(new_value) if new_value else 1
 
