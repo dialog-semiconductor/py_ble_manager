@@ -246,7 +246,7 @@ class BleManagerGatts(BleManagerBase):
     def read_value_req_evt_handler(self, gtl: GattcReadReqInd):
         evt = BleEventGattsReadReq(self._task_to_connidx(gtl.src_id))
         evt.handle = gtl.parameters.handle
-        evt.offset = 0 
+        evt.offset = 0
         self._mgr_event_queue_send(evt)
 
     def send_event_cmd_handler(self, command: BleMgrGattsSendEventCmd):
