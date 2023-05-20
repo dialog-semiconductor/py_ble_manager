@@ -42,7 +42,7 @@ class BlePeripheral(BleDeviceBase):
         return False
 
     def _handle_prepare_write_req_evt(self, evt: BleEventGattsPrepareWriteReq) -> bool:
-        service = self.s(evt.handle)
+        service = self._find_service_by_handle(evt.handle)
         if service:
             if service.prepare_write_req:
                 service.prepare_write_req(evt)
