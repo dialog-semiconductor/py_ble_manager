@@ -2,10 +2,10 @@ from ctypes import c_uint8
 
 from ..ble_api.BleCommon import BLE_OWN_ADDR_TYPE, BdAddress, OwnAddress, Irk, BLE_STATUS
 from ..ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_GAP_APPEARANCE, GapChnlMap, GAP_DISC_MODE, ADV_FILT_POL, \
-    GapScanParams, GapConnParams, GAP_IO_CAPABILITIES, GAP_DATA_TYPE, ADV_DATA_LEN, SCAN_RSP_DATA_LEN, GAP_ADV_CHANNEL
+    GapScanParams, GapConnParams, GAP_IO_CAPABILITIES, GAP_DATA_TYPE, ADV_DATA_LEN, SCAN_RSP_DATA_LEN, GAP_ADV_CHANNEL, BLE_GAP_PHY
 # TODO remove dependency on gtl_port. This value is assigned to a gtl parameter in BleManagerGap._dev_params_to_gtl
 from ..gtl_port.gapm_task import gapm_att_cfg_flag
-
+from ..manager.BleManagerGapMsgs import BLE_MGR_RAL_OP
 
 class BleDevParams():
 
@@ -24,9 +24,7 @@ class BleDevParams():
 
         # Privacy parameters
         self.addr_renew_duration = 0  # Random address renew duration
-        # TODO ble_manager seems to redefine own_addr_t
         self.own_addr = OwnAddress()  # Provided own public address
-        # TODO redefines irk_t
         self.irk = Irk()  # IRK for device resolvable address
         self.addr_resolv_req_pending = 0  # Pending address resolve requests
         # Attribute database configuration
@@ -54,15 +52,16 @@ class BleDevParams():
         self.gap_ppcp = GapConnParams()  # Connection parameters structure
         # IO Capabilities configuration
         self.io_capabilities = GAP_IO_CAPABILITIES.GAP_IO_CAP_NO_INPUT_OUTPUT  # GAP IO capabilities
-# if (dg_configBLE_PRIVACY_1_2 == 1) # TODO add privacy
-        # ble_mgr_ral_op_t  prev_privacy_operation;  # TODO add privacy enum
-# endif /* (dg_configBLE_PRIVACY_1_2 == 1)
-# if (dg_configBLE_2MBIT_PHY == 1) # TODO 2M PHY
-        # self.tx_phy_pref_default = 0  # GAP default TX PHY preference
-        # self.rx_phy_pref_default = 0  # GAP default RX PHY preference
-        # self.phy_set_pending = False  # GAP PHY set operation pending
-        # self.phy_change_req = False  # GAP PHY change requested
-# endif /* (dg_configBLE_2MBIT_PHY == 1)
+
+        # Only relevant for dg_configBLE_PRIVACY_1_2 == 1
+        self.prev_privacy_operation = BLE_MGR_RAL_OP.BLE_MGR_RAL_OP_NO_PRIVACY
+        # end (dg_configBLE_PRIVACY_1_2 == 1)
+        # Only relevant for dg_configBLE_2MBIT_PHY == 1
+        self.tx_phy_pref_default = BLE_GAP_PHY.BLE_GAP_PHY_PREF_AUTO  # GAP default TX PHY preference
+        self.rx_phy_pref_default = BLE_GAP_PHY.BLE_GAP_PHY_PREF_AUTO  # GAP default RX PHY preference
+        self.phy_set_pending = False  # GAP PHY set operation pending
+        self.phy_change_req = False  # GAP PHY change requested
+        # end (dg_configBLE_2MBIT_PHY == 1)
         self.conn_rssi = 0  # The RSSI reading reported by GAPC_CON_RSSI_IND
 
 
@@ -87,7 +86,7 @@ class BleDevParamsDefault(BleDevParams):
         self.addr_resolv_req_pending = 0
         self.att_db_cfg.slv_perf_conn_params_present = True
 
-        # TODO Need to handle dg_configBLE_SECURE_CONNECTIONS
+        # TODO Any issue always setting to 65 even if dg_configBLE_SECURE_CONNECTIONS = 0?
         self.mtu_size = 65  # 23  # 65 for secure connections, 23 otherwise
         self.channel_map.map = bytes([0xFF, 0xFF, 0xFF, 0xFF, 0x1F])
 
@@ -118,15 +117,15 @@ class BleDevParamsDefault(BleDevParams):
         self.gap_ppcp.sup_timeout_ms = 6000
         # IO Capabilities configuration
         self.io_capabilities = GAP_IO_CAPABILITIES.GAP_IO_CAP_NO_INPUT_OUTPUT
-# if (dg_configBLE_PRIVACY_1_2 == 1) # TODO add privacy
-        # ble_mgr_ral_op_t  prev_privacy_operation;  # TODO add privacy enum
-# endif /* (dg_configBLE_PRIVACY_1_2 == 1)
-# if (dg_configBLE_2MBIT_PHY == 1) # TODO 2M PHY
-        # self.tx_phy_pref_default = 0  # GAP default TX PHY preference
-        # self.rx_phy_pref_default = 0  # GAP default RX PHY preference
-        # self.phy_set_pending = False  # GAP PHY set operation pending
-        # self.phy_change_req = False  # GAP PHY change requested
-# endif /* (dg_configBLE_2MBIT_PHY == 1)
+        # Only relevant for dg_configBLE_PRIVACY_1_2 == 1
+        self.prev_privacy_operation = BLE_MGR_RAL_OP.BLE_MGR_RAL_OP_NO_PRIVACY
+        # end (dg_configBLE_PRIVACY_1_2 == 1)
+        # Only relevant for dg_configBLE_2MBIT_PHY == 1
+        self.tx_phy_pref_default = BLE_GAP_PHY.BLE_GAP_PHY_PREF_AUTO  # GAP default TX PHY preference
+        self.rx_phy_pref_default = BLE_GAP_PHY.BLE_GAP_PHY_PREF_AUTO  # GAP default RX PHY preference
+        self.phy_set_pending = False  # GAP PHY set operation pending
+        self.phy_change_req = False
+        # end (dg_configBLE_2MBIT_PHY == 1)
         self.conn_rssi = 0
 
 

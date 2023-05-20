@@ -87,6 +87,7 @@ class BLE_GAP_CONN_MODE(IntEnum):  # TODO remove BLE_ prefix?
 class BLE_GAP_PHY(IntEnum):
     """GAP PHY type
     """
+    BLE_GAP_PHY_PREF_AUTO = 0x00  # No PHY preference
     BLE_GAP_PHY_1M = 0x01  # Bit rate of 1 megabit per second (Mb/s)
     BLE_GAP_PHY_2M = 0x02  # Bit rate of 2 megabit per second (Mb/s)
     BLE_GAP_PHY_CODED = 0x03  # LE Coded PHY (bit rate of 125 or 500 Kbit/s)
