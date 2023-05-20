@@ -34,7 +34,7 @@
 
 '''
 
-from ctypes import Array, cast, c_uint8, c_uint16, LittleEndianStructure, pointer, POINTER, Union, c_bool, c_uint32
+from ctypes import Array, cast, c_uint8, c_uint16, LittleEndianStructure, pointer, POINTER, Union, c_bool
 from enum import auto, IntEnum
 
 from .attm import ATTM_PERM
@@ -813,7 +813,8 @@ class gapm_adv_host(LittleEndianStructure):
                  adv_data_len: c_uint8 = 0,  # TODO max adv_data_len is 28 bytes (stack adds flags AD Type = 3 bytes, but is this true for non connectable)
                  adv_data: (c_uint8 * ADV_DATA_LEN) = (c_uint8 * ADV_DATA_LEN)(),
                  # adv_data: adv_data_array = adv_data_array( *([0]*ADV_DATA_LEN) ),
-                 scan_rsp_data_len: c_uint8 = 0,  # TODO max scan_rsp_data_len is 31 bytes. TODO scan rsp len and adv data len can be inferred from adv_data and scan_rsp_data
+                 # TODO scan rsp len and adv data len can be inferred from adv_data and scan_rsp_data
+                 scan_rsp_data_len: c_uint8 = 0,  # TODO max scan_rsp_data_len is 31 bytes.
                  scan_rsp_data: (c_uint8 * SCAN_RSP_DATA_LEN) = (c_uint8 * SCAN_RSP_DATA_LEN)(),
                  peer_info: gap_bdaddr = gap_bdaddr()
                  ):

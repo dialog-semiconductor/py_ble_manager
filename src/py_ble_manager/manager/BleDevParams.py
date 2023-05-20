@@ -7,6 +7,7 @@ from ..ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BLE_GAP_APPEARANCE
 from ..gtl_port.gapm_task import gapm_att_cfg_flag
 from ..manager.BleManagerGapMsgs import BLE_MGR_RAL_OP
 
+
 class BleDevParams():
 
     def __init__(self) -> None:
