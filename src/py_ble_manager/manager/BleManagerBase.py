@@ -2,7 +2,7 @@ import queue
 import threading
 from typing import Callable
 
-from ..ble_api.BleCommon import BLE_ERROR, BleEventBase
+from ..ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_STATUS
 from ..ble_api.BleConfig import BleConfigDefault
 from ..gtl_messages.gtl_message_base import GtlMessageBase
 from ..manager.BleDevParams import BleDevParamsDefault, BleDevParams
@@ -47,6 +47,14 @@ class BleManagerBase():
     def _mgr_response_queue_send(self, response: BleMgrMsgRsp):
         self._mgr_response_q.put_nowait(response)
 
+    def _set_status(self, status: BLE_STATUS):
+        dev_params = self.dev_params_acquire()
+        dev_params.status = status
+        self.dev_params_release()
+
+    def _task_to_connidx(self, task_id: int) -> int:
+        return task_id >> 8
+
     def _wait_queue_add(self, conn_idx: int, msg_id: int, ext_id: int, cb: Callable, param: object) -> None:
         item = GtlWaitQueueElement(conn_idx=conn_idx, msg_id=msg_id, ext_id=ext_id, cb=cb, param=param)
         self._wait_q.add(item)
@@ -54,8 +62,8 @@ class BleManagerBase():
     def _wait_queue_flush(self, conn_idx: int) -> None:
         self._wait_q.flush(conn_idx)
 
-    def _task_to_connidx(self, task_id: int) -> int:
-        return task_id >> 8
+    def _wait_queue_flush_all(self, conn_idx: int) -> None:
+        self._wait_q.flush_all(conn_idx)
 
     def dev_params_acquire(self):
         self._dev_params_lock.acquire()
