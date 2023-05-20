@@ -160,8 +160,8 @@ class BleManager(BleManagerBase):
                 print(f"BleManager._process_event_queue. Unhandled event={event}\n")
 
     def cmd_execute(self, command: BleMgrMsgBase) -> BLE_ERROR:
-        self.dev_params_acquire()
-        ble_status = self._dev_params.status
+        dev_params = self.dev_params_acquire()
+        ble_status = dev_params.status
         self.dev_params_release()
         if ble_status == BLE_STATUS.BLE_IS_BUSY or ble_status == BLE_STATUS.BLE_IS_RESET:
             return BleMgrMsgRsp(opcode=command.opcode, status=BLE_ERROR.BLE_ERROR_BUSY)
