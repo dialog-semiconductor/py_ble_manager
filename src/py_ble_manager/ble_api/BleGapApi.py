@@ -101,8 +101,17 @@ class BleGapApi(BleApiBase):
 
         return response.status
 
+    def set_advertising_interval(self, adv_intv_min_ms, adv_intv_max_ms) -> None:
+        dev_params = self._ble_manager.dev_params_acquire()
+        dev_params.adv_intv_min_ms = adv_intv_min_ms
+        dev_params.adv_intv_max_ms = adv_intv_max_ms
+        self._ble_manager.dev_params_release()
+
     def set_io_cap(self, io_cap: GAP_IO_CAPABILITIES) -> BLE_ERROR:
-        return self._ble_manager.set_io_cap(io_cap)
+        dev_params = self._ble_manager.dev_params_acquire()
+        dev_params.io_capabilities = io_cap
+        self._ble_manager.dev_params_release()
+        return BLE_ERROR.BLE_STATUS_OK
 
     def start_advertising(self,
                           adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED

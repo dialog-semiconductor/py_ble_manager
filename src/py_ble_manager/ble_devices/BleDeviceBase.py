@@ -173,7 +173,7 @@ class BleDeviceBase():
         :return: result code
         :rtype: BLE_ERROR
         """
-        return self._ble_manager.set_io_cap(io_cap)
+        return self._ble_gap.set_io_cap(io_cap)
 
     def start(self, role: BLE_GAP_ROLE) -> BLE_ERROR:
         """Start the BLE module as a central device

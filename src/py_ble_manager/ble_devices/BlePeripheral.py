@@ -189,7 +189,7 @@ class BlePeripheral(BleDeviceBase):
         return handled
 
     def set_advertising_interval(self, adv_intv_min_ms, adv_intv_max_ms) -> None:
-        self._ble_manager.set_advertising_interval(adv_intv_min_ms, adv_intv_max_ms)
+        self._ble_gap.set_advertising_interval(adv_intv_min_ms, adv_intv_max_ms)
 
     def set_value(self, handle: int, value: bytes) -> BLE_ERROR:
         error = BLE_ERROR.BLE_ERROR_FAILED

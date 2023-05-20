@@ -185,16 +185,3 @@ class BleManager(BleManagerBase):
 
     def find_stored_device_by_conn_idx(self, conn_idx: int) -> StoredDevice:
         return self._stored_device_list.find_device_by_conn_idx(conn_idx)
-
-    # TODO should these 2 methods be at ble_api layer
-    def set_advertising_interval(self, adv_intv_min_ms, adv_intv_max_ms) -> None:
-        self.dev_params_acquire()
-        self._dev_params.adv_intv_min_ms = adv_intv_min_ms
-        self._dev_params.adv_intv_max_ms = adv_intv_max_ms
-        self.dev_params_release()
-
-    def set_io_cap(self, io_cap: GAP_IO_CAPABILITIES) -> BLE_ERROR:
-        self.dev_params_acquire()
-        self._dev_params.io_capabilities = io_cap
-        self.dev_params_release()
-        return BLE_ERROR.BLE_STATUS_OK
