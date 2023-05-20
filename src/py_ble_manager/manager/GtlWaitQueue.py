@@ -24,7 +24,7 @@ class GtlWaitQueueElement():
 class GtlWaitQueue():
     def __init__(self) -> None:
         self._wait_queue_lock: threading.Lock = threading.Lock()
-        self.queue = []
+        self._queue = []
 
     def _task_to_connidx(self, task_id):
         return task_id >> 8
@@ -37,7 +37,7 @@ class GtlWaitQueue():
     def flush(self, conn_idx):
         elem: GtlWaitQueueElement
         self._wait_queue_lock.acquire()
-        for elem in self.queue:
+        for elem in self._queue:
             if elem.conn_idx == conn_idx:
                 is_match = False
                 match elem.msg_id:
@@ -76,10 +76,17 @@ class GtlWaitQueue():
                         elem.cb(None, elem.param)
         self._wait_queue_lock.release()
 
+    def flush_all(self, conn_idx):
+        self._wait_queue_lock.acquire()
+        elem: GtlWaitQueueElement
+        for elem in self._queue:
+            self._queue.remove(elem)
+        self._wait_queue_lock.release()
+
     def match(self, message: GtlMessageBase) -> bool:
         ret = False
         self._wait_queue_lock.acquire()
-        for item in self.queue:
+        for item in self._queue:
             item: GtlWaitQueueElement
             if item.conn_idx == BLE_CONN_IDX_INVALID:
                 match = item.msg_id == message.msg_id
@@ -112,7 +119,7 @@ class GtlWaitQueue():
     def push(self, elem: GtlWaitQueueElement) -> None:
         if not isinstance(elem, GtlWaitQueueElement):
             raise TypeError(f"Element must be of type GtlWaitQueueElement, was {type(elem)}")
-        self.queue.append(elem)
+        self._queue.append(elem)
 
     def remove(self, elem: GtlWaitQueueElement) -> None:
-        self.queue.remove(elem)
+        self._queue.remove(elem)
