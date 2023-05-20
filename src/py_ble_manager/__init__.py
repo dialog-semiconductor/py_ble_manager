@@ -26,6 +26,5 @@ from .ble_api.BleUtil import BleUtils
 
 from .ble_devices.BleCentral import BleCentral
 from .ble_devices.BlePeripheral import BlePeripheral
-from .manager.BleDevParams import BleDevParams, BleDevParamsDefault  #  TODO move dev params to ble_api?
 from .services.BleService import BleServiceBase
 
