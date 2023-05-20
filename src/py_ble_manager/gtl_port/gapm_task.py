@@ -362,7 +362,6 @@ class GAPM_WRITE_ATT_PERM(IntEnum):
 # - Bit [5]  : Service change feature present in GATT attribute database.
 # - Bit [6]  : CoC zero credit bahaviour
 # - Bit [7]  : Enable Debug Mode
-# TODO no unit test
 class gapm_att_cfg_flag(LittleEndianStructure):
 
     def __init__(self,
@@ -605,28 +604,19 @@ class gapm_set_dev_config_cmd(LittleEndianStructure):
 
 '''
 # Set device channel map
-@dataclass
-class gapm_set_channel_map_cmd:
-    # TODO remove
-    #def test(self):
-    #   members = self.__dict__.keys()
-    #    for member in members:
-    #        print(type(self.__dataclass_fields__[member].type))
-            #print(sizeof(self.__dataclass_fields__[member].type)) # TODO does not work for chmap
-
-    # GAPM requested operation:
-    #  - GAPM_SET_CHANNEL_MAP: Set device channel map.
-    operation: c_uint8
-    # Channel map
-    chmap: le_chnl_map
-
-class gapm_set_channel_map_cmd_struct(LittleEndianStructure):
-    _fields_ = [("operation", c_uint8),
-                ("chmap", le_chnl_map)]
+/// Set device channel map
+struct gapm_set_channel_map_cmd
+{
+    /// GAPM requested operation:
+    ///  - GAPM_SET_CHANNEL_MAP: Set device channel map.
+    uint8_t operation;
+    /// Channel map
+    struct le_chnl_map chmap;
+};
 
 # Get local device info command
-@dataclass
-class gapm_get_dev_info_cmd:
+struct gapm_get_dev_info_cmd
+{
     # GAPM requested operation:
     #  - GAPM_GET_DEV_VERSION: Get Local device version
     #  - GAPM_GET_DEV_BDADDR: Get Local device BD Address
@@ -634,43 +624,42 @@ class gapm_get_dev_info_cmd:
     #  - GAPM_DBG_GET_MEM_INFO: Get memory usage (debug only)
     #  - GAPM_GET_SUGGESTED_DFLT_LE_DATA_LEN: Get Suggested Default LE Data Length
     #  - GAPM_GET_MAX_LE_DATA_LEN: Get Maximum LE Data Length
-    operation: c_uint8
+    uint8_t operation;
+};
 
-# Local device version indication event
-@dataclass
-class gapm_dev_version_ind:
-    # TODO remove
-    #def test(self):
-    #    members = self.__dict__.keys()
-    #    for member in members:
-    #        print(sizeof(self.__dataclass_fields__[member].type))
+/// Local device version indication event
+struct gapm_dev_version_ind
+{
+    /// HCI version
+    uint8_t hci_ver;
+    /// LMP version
+    uint8_t lmp_ver;
+    /// Host version
+    uint8_t host_ver;
+    /// HCI revision
+    uint16_t hci_subver;
+    /// LMP subversion
+    uint16_t lmp_subver;
+    /// Host revision
+    uint16_t host_subver;
+    /// Manufacturer name
+    uint16_t manuf_name;
+};
 
-    # HCI version
-    hci_ver: c_uint8
-    # LMP version
-    lmp_ver: c_uint8
-    # Host version
-    host_ver: c_uint8
-    # HCI revision
-    hci_subver: c_uint16
-    # LMP subversion
-    lmp_subver: c_uint16
-    # Host revision
-    host_subver: c_uint16
-    # Manufacturer name
-    manuf_name: c_uint16
 
-# Local device BD Address indication event
-@dataclass
-class gapm_dev_bdaddr_ind:
-    # Local device address information
-    addr: gap_bdaddr
+/// Local device BD Address indication event
+struct gapm_dev_bdaddr_ind
+{
+    /// Local device address information
+    struct gap_bdaddr addr;
+};
 
-# Advertising channel Tx power level indication event
-@dataclass
-class gapm_dev_adv_tx_power_ind:
-    # Advertising channel Tx power level
-    power_lvl: c_int8
+/// Advertising channel Tx power level indication event
+struct gapm_dev_adv_tx_power_ind
+{
+    /// Advertising channel Tx power level
+    int8_t     power_lvl;
+};
 '''
 
 
@@ -699,7 +688,6 @@ class gapm_white_list_mgt_cmd:
     nb: c_uint8
     # Device address information that can be used to add or remove element in device list.
 
-    # TODO: this is done to malloc block of memory. How to port for Python in ctypes?
     #struct gap_bdaddr devices[__ARRAY_EMPTY];
 
 # White List Size indication event
@@ -712,17 +700,17 @@ class gapm_white_list_size_ind:
 @dataclass
 class gapm_sugg_dflt_data_len_ind:
     # Host's suggested value for the Controller's maximum transmitted number of payload octets
-    suggted_max_tx_octets: c_uint16
+    suggted_max_tx_octets: c_uint16 # See max_txoctects GapmSetDevConfig?
     # Host's suggested value for the Controller's maximum packet transmission time
-    suggted_max_tx_time: c_uint16
+    suggted_max_tx_time: c_uint16 # See max_txtime GapmSetDevConfig?
 
 # Indicates maximum data length
 @dataclass
 class gapm_max_data_len_ind:
     # Maximum number of payload octets that the local Controller supports for transmission
-    suppted_max_tx_octets: c_uint16
+    suppted_max_tx_octets: c_uint16  # See max_txoctects GapmSetDevConfig?
     # Maximum time, in microseconds, that the local Controller supports for transmission
-    suppted_max_tx_time: c_uint16
+    suppted_max_tx_time: c_uint16  # See max_txtime GapmSetDevConfig?
     # Maximum number of payload octets that the local Controller supports for reception
     suppted_max_rx_octets: c_uint16
     # Maximum time, in microseconds, that the local Controller supports for reception
@@ -745,7 +733,6 @@ class gapm_rslv_list_mgt_cmd:
     nb: c_uint8
     # Device address information that can be used to add or remove element in device list.
 
-    # TODO: this is done to malloc block of memory. How to port for Python in ctypes?
     # struct gap_ral_dev_info devices[__ARRAY_EMPTY];
 
 # Resolving List Size indication event
@@ -823,11 +810,11 @@ class gapm_adv_host(LittleEndianStructure):
     def __init__(self,
                  mode: GAP_ADV_MODE = GAP_ADV_MODE.GAP_NON_DISCOVERABLE,
                  adv_filt_policy: ADV_FILTER_POLICY = ADV_FILTER_POLICY.ADV_ALLOW_SCAN_ANY_CON_ANY,
-                 adv_data_len: c_uint8 = 0,
+                 adv_data_len: c_uint8 = 0,  # TODO max adv_data_len is 28 bytes (stack adds flags AD Type = 3 bytes, but is this true for non connectable)
                  adv_data: (c_uint8 * ADV_DATA_LEN) = (c_uint8 * ADV_DATA_LEN)(),
                  # TODO custom type for this array for type hinting
                  # adv_data: adv_data_array = adv_data_array( *([0]*ADV_DATA_LEN) ),
-                 scan_rsp_data_len: c_uint8 = 0,
+                 scan_rsp_data_len: c_uint8 = 0,  # TODO max scan_rsp_data_len is 31 bytes. TODO scan rsp len and adv data len can be inferred from adv_data and scan_rsp_data
                  scan_rsp_data: (c_uint8 * SCAN_RSP_DATA_LEN) = (c_uint8 * SCAN_RSP_DATA_LEN)(),
                  peer_info: gap_bdaddr = gap_bdaddr()
                  ):
@@ -865,12 +852,8 @@ class gapm_adv_host(LittleEndianStructure):
                 # Advertising data length - maximum 28 bytes, 3 bytes are reserved to set
                 # Advertising AD type flags, shall not be set in advertising data
                 ("adv_data_len", c_uint8),
-
                 # Advertising data
                 ("adv_data", c_uint8 * ADV_DATA_LEN),
-                # TODO custom type for this array for type hinting
-                # ("adv_data", adv_data_array),
-
                 # Scan response data length- maximum 31 bytes.
                 ("scan_rsp_data_len", c_uint8),
                 # Scan response data
@@ -901,8 +884,6 @@ class gapm_air_operation(LittleEndianStructure):
                 ("state", c_uint16)]
 
 
-# TODO could this be defined within gapm_start_advertise_cmd
-# TODO is there way to indicate this is union with autocomplete?
 class gapm_adv_info(Union):
     def __init__(self,
                  host: gapm_adv_host = None,
@@ -1229,26 +1210,29 @@ struct gapm_dbg_mem_info_ind
 #endif // (KE_PROFILING)
 '''
 
-
+'''
 # Create new task for specific profile
 class gapm_profile_task_add_cmd(LittleEndianStructure):
 
     def __init__(self,
                  op: gapm_air_operation = gapm_air_operation(),
-                 intv_min: c_uint16 = 0,
-                 intv_max: c_uint16 = 0,
-                 channel_map: ADV_CHANNEL_MAP = ADV_CHANNEL_MAP.ADV_ALL_CHNLS_EN,
-                 info: gapm_adv_info = gapm_adv_info()):
+                 sec_lvl: c_uint8 = 0,  # TODO enums for these three?
+                 prf_task_id: c_uint16 = 0,
+                 app_task: c_uint16 = 0,
+                 start_hdl: c_uint16 = 0,
+                 param: Array[c_uint32]):
         self.op = op
-        self.intv_min = intv_min
-        self.intv_max = intv_max
-        self.channel_map = channel_map
-        self.info = info
-        super().__init__(operation=self.op,
-                         intv_min=self.intv_min,
-                         intv_max=self.intv_max,
-                         channel_map=self.channel_map,
-                         info=self.info)
+        self.sec_lvl = sec_lvl
+        self.prf_task_id = prf_task_id
+        self.app_task = app_task
+        self.start_hdl = start_hdl
+        self.param = param
+        super().__init__(op=self.op,
+                         sec_lvl=self.sec_lvl,
+                         prf_task_id=self.prf_task_id,
+                         app_task=self.app_task,
+                         start_hdl=self.start_hdl,
+                         _param=self._param)
 
                 # GAPM requested operation:
                 #  - GAPM_PROFILE_TASK_ADD: Add new profile task
@@ -1274,8 +1258,18 @@ class gapm_profile_task_add_cmd(LittleEndianStructure):
                 # Advertising information
                 ("start_hdl", c_uint16),
                 # 32 bits value that contains value to initialize profile (database parameters, etc...)
-                ("param", c_uint32)]  # TODO SDK uses zero len array. Does this need to be pointer?
+                ("_param", POINTER(c_uint32))]
 
+    def get_param(self):
+        return cast(self._param, POINTER(c_uint32 * self.param_len)).contents
+
+    def set_param(self, new_param: Array[c_uint32]):
+        self._param = new_param if new_param else (c_uint32 * 1)()
+        # TODO how to know length of param
+        self.param_len = len(new_param) if new_param else 1  # This wont work as not saved as part of structure
+
+    param = property(get_param, set_param)
+'''
 
 '''
 # Inform that profile task has been added.
