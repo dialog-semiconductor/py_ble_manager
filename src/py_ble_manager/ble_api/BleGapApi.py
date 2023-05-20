@@ -20,44 +20,44 @@ class BleGapApi(BleApiBase):
     def conn_param_update(self, conn_idx: int, conn_params: GapConnParams):
 
         command = BleMgrGapConnParamUpdateCmd(conn_idx, conn_params)
-        resposne: BleMgrGapConnParamUpdateRsp = self._ble_manager.cmd_execute(command)
+        response: BleMgrGapConnParamUpdateRsp = self._ble_manager.cmd_execute(command)
 
-        return resposne.status
+        return response.status
 
     def conn_param_update_reply(self, conn_idx: int, accept: bool):
 
         command = BleMgrGapConnParamUpdateReplyCmd(conn_idx, accept)
-        resposne: BleMgrGapConnParamUpdateReplyRsp = self._ble_manager.cmd_execute(command)
+        response: BleMgrGapConnParamUpdateReplyRsp = self._ble_manager.cmd_execute(command)
 
-        return resposne.status
+        return response.status
 
     def connect(self, peer_addr: BdAddress, conn_params: GapConnParams) -> BLE_ERROR:
 
         command = BleMgrGapConnectCmd(peer_addr, conn_params)
-        resposne: BleMgrGapConnectRsp = self._ble_manager.cmd_execute(command)
+        response: BleMgrGapConnectRsp = self._ble_manager.cmd_execute(command)
 
-        return resposne.status
+        return response.status
 
     def connect_cancel(self) -> BLE_ERROR:
 
         command = BleMgrGapConnectCancelCmd()
-        resposne: BleMgrGapConnectCancelRsp = self._ble_manager.cmd_execute(command)
+        response: BleMgrGapConnectCancelRsp = self._ble_manager.cmd_execute(command)
 
-        return resposne.status
+        return response.status
 
     def disconnect(self, conn_idx: int, reason: BLE_HCI_ERROR) -> BLE_ERROR:
 
         command = BleMgrGapDisconnectCmd(conn_idx, reason)
-        resposne: BleMgrGapDisconnectRsp = self._ble_manager.cmd_execute(command)
+        response: BleMgrGapDisconnectRsp = self._ble_manager.cmd_execute(command)
 
-        return resposne.status
+        return response.status
 
     def numeric_reply(self, conn_idx: int, accept: bool):
 
         command = BleMgrGapNumericReplyCmd(conn_idx, accept)
-        resposne: BleMgrGapNumericReplyRsp = self._ble_manager.cmd_execute(command)
+        response: BleMgrGapNumericReplyRsp = self._ble_manager.cmd_execute(command)
 
-        return resposne.status
+        return response.status
 
     def pair(self, conn_idx: int, bond: bool) -> BLE_ERROR:
 
