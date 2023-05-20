@@ -479,8 +479,7 @@ class gattm_att_get_value_rsp(LittleEndianStructure):
     def get_value(self):
         return cast(self._value, POINTER(c_uint8 * self.length)).contents
 
-    def set_value(self, new_value: Array[c_uint8]):  # TODO User should pass array, how to type hint?
-        # TODO raise error if length > 512
+    def set_value(self, new_value: Array[c_uint8]):
         self._value = new_value if new_value else pointer(c_uint8(0))
         self.length = len(new_value) if new_value else 1
 
@@ -491,7 +490,7 @@ class gattm_att_get_value_rsp(LittleEndianStructure):
 class gattm_att_set_value_req(LittleEndianStructure):
     def __init__(self,
                  handle: c_uint16 = 0,
-                 value: Array[c_uint8] = None  # TODO should be a ctypes array of c_uint8. how to type hint?
+                 value: Array[c_uint8] = None
                  ):
         self.handle = handle
         self.value = value
@@ -509,8 +508,7 @@ class gattm_att_set_value_req(LittleEndianStructure):
     def get_value(self):
         return cast(self._value, POINTER(c_uint8 * self.length)).contents
 
-    def set_value(self, new_value: Array[c_uint8]):  # TODO User should pass array, how to type hint?
-        # TODO raise error if length > 512
+    def set_value(self, new_value: Array[c_uint8]):
         self._value = new_value if new_value else pointer(c_uint8(0))
         self.length = len(new_value) if new_value else 1
 
