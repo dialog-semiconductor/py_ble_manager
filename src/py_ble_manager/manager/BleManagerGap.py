@@ -247,8 +247,8 @@ class BleManagerGap(BleManagerBase):
                     gtl.parameters.info.host.scan_rsp_data[:scan_rsp_len] = dev_params.scan_rsp_data[:scan_rsp_len]
 
                 else:
-                    # TODO fill in for Directed adv more
-                    pass
+                    gtl.parameters.info.direct.addr_type = dev_params.adv_direct_address.addr_type
+                    gtl.parameters.info.direct.addr.addr[:] = dev_params.adv_direct_address.addr
 
                 dev_params.advertising = True
                 self._adapter_command_queue_send(gtl)
@@ -956,7 +956,7 @@ class BleManagerGap(BleManagerBase):
                         dev_params.prev_privacy_operation = BLE_MGR_RAL_OP.BLE_MGR_RAL_OP_NONE
                 self.dev_params_release()
 
-                # storage_mark_dirty(true); # TODO storage handling
+                # storage_mark_dirty(true); # TODO STORAGE
                 self.storage_release()
                 self._mgr_event_queue_send(evt)
 
