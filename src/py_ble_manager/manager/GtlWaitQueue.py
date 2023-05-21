@@ -76,7 +76,7 @@ class GtlWaitQueue():
                         elem.cb(None, elem.param)
         self._wait_queue_lock.release()
 
-    def flush_all(self, conn_idx):
+    def flush_all(self):
         self._wait_queue_lock.acquire()
         elem: GtlWaitQueueElement
         for elem in self._queue:

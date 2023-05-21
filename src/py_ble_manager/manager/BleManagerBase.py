@@ -62,8 +62,8 @@ class BleManagerBase():
     def _wait_queue_flush(self, conn_idx: int) -> None:
         self._wait_q.flush(conn_idx)
 
-    def _wait_queue_flush_all(self, conn_idx: int) -> None:
-        self._wait_q.flush_all(conn_idx)
+    def _wait_queue_flush_all(self) -> None:
+        self._wait_q.flush_all()
 
     def dev_params_acquire(self):
         self._dev_params_lock.acquire()
