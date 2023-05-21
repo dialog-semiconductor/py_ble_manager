@@ -51,6 +51,11 @@ from .attm import attm_svc_perm, att_perm, att_max_len_read_ind
 from .rwble_hl_error import HOST_STACK_ERROR_CODE
 from .rwip_config import KE_API_ID
 
+GAPM_LE_LENGTH_EXT_OCTETS_MIN = 27
+GAPM_LE_LENGTH_EXT_OCTETS_MAX = 251
+GAPM_LE_LENGTH_EXT_TIME_MIN = 328
+GAPM_LE_LENGTH_EXT_TIME_MAX = 2120
+
 '''
 /*
  * DEFINES
