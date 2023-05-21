@@ -27,14 +27,14 @@ from ..gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReq
 from ..gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd, \
     GapmStartScanCmd, GapmAdvReportInd, GapmCancelCmd, GapmResolvAddrCmd
 
-from ..gtl_port.co_bt import RAND_NB_LEN, KEY_LEN
+from ..gtl_port.co_bt import RAND_NB_LEN, KEY_LEN, BLE_LE_LENGTH_FEATURE
 from ..gtl_port.co_error import CO_ERROR
 from ..gtl_port.gap import GAP_ROLE, GAP_AUTH_MASK, gap_bdaddr, GAP_IO_CAP, GAP_OOB, GAP_TK_TYPE, GAP_SEC_REQ
 
 from ..gtl_port.gapc import GAPC_FIELDS_MASK
 from ..gtl_port.gapc_task import GAPC_MSG_ID, GAPC_DEV_INFO, GAPC_OPERATION, GAPC_BOND
 from ..gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, GAPM_ADDR_TYPE, GAPM_OWN_ADDR, SCAN_FILTER_POLICY, \
-    SCAN_DUP_FILTER_POLICY
+    SCAN_DUP_FILTER_POLICY, GAPM_LE_LENGTH_EXT_OCTETS_MIN
 
 from ..gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from ..manager.BleDevParams import BleDevParamsDefault
@@ -656,6 +656,56 @@ class BleManagerGap(BleManagerBase):
         self._mgr_event_queue_send(evt)
         self.dev_params_release()
 
+    def _scan_start_cmd_exec(self, command: BleMgrGapScanStartCmd):
+        response = BleMgrGapScanStartRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        dev_params = self.dev_params_acquire()
+
+        if dev_params.scanning:
+            response.status = BLE_ERROR.BLE_ERROR_IN_PROGRESS
+        else:
+            gtl = GapmStartScanCmd()
+
+            match command.type:
+                case GAP_SCAN_TYPE.GAP_SCAN_ACTIVE:
+                    gtl.parameters.op.code = GAPM_OPERATION.GAPM_SCAN_ACTIVE
+                case GAP_SCAN_TYPE.GAP_SCAN_PASSIVE:
+                    gtl.parameters.op.code = GAPM_OPERATION.GAPM_SCAN_PASSIVE
+
+            match dev_params.own_addr.addr_type:
+                case BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS \
+                        | BLE_OWN_ADDR_TYPE.PRIVATE_STATIC_ADDRESS:
+
+                    gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_STATIC_ADDR
+
+                case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_RESOLVABLE_ADDRESS \
+                        | BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
+
+                    gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_GEN_RSLV_ADDR
+
+                case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_NONRESOLVABLE_ADDRESS:
+                    gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_GEN_NON_RSLV_ADDR
+                case _:
+                    gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_STATIC_ADDR
+
+            gtl.parameters.interval = command.interval  # Interval and window have already been converted from milliseconds
+            gtl.parameters.window = command.window
+            gtl.parameters.mode = command.mode
+
+            gtl.parameters.filt_policy = (SCAN_FILTER_POLICY.SCAN_ALLOW_ADV_WLST
+                                          if command.filt_wlist
+                                          else SCAN_FILTER_POLICY.SCAN_ALLOW_ADV_ALL)
+
+            gtl.parameters.filter_duplic = (SCAN_DUP_FILTER_POLICY.SCAN_FILT_DUPLIC_EN
+                                            if command.filt_dupl
+                                            else SCAN_DUP_FILTER_POLICY.SCAN_FILT_DUPLIC_DIS)
+
+            dev_params.scanning = True
+            self._adapter_command_queue_send(gtl)
+            response.status = BLE_ERROR.BLE_STATUS_OK
+
+        self._mgr_response_queue_send(response)
+        self.dev_params_release()
+
     def _sec_req_to_gtl(self, sec_level: GAP_SEC_LEVEL):
         gtl_sec_req = GAP_SEC_REQ.GAP_NO_SEC
         match sec_level:
@@ -1189,7 +1239,7 @@ class BleManagerGap(BleManagerBase):
         self.dev_params_release()
 
     def connect_cmd_handler(self, command: BleMgrGapConnectCmd):
-        # TODO handle privacy
+        # TODO PRIVACY
         if self._ble_config.dg_configBLE_PRIVACY_1_2:
             pass
             # ble_mgr_gap_ral_sync(ble_mgr_gap_connect_cmd_exec, param);
@@ -1567,20 +1617,18 @@ class BleManagerGap(BleManagerBase):
         evt.le_features = bytes(gtl.parameters.features[:])
         self._mgr_event_queue_send(evt)
 
-        # TODO
-        '''
-        if (dg_configBLE_DATA_LENGTH_RX_MAX > GAPM_LE_LENGTH_EXT_OCTETS_MIN
+        if (self._ble_config.dg_configBLE_DATA_LENGTH_RX_MAX > GAPM_LE_LENGTH_EXT_OCTETS_MIN
                 or self._ble_config.dg_configBLE_DATA_LENGTH_TX_MAX > GAPM_LE_LENGTH_EXT_OCTETS_MIN):
 
-                if gtl.parameters.features[0] & BLE_LE_LENGTH_FEATURE:
-                    self.storage_acquire()
-                    dev = self._stored_device_list.find_device_by_conn_idx(evt.conn_idx)
-                    if dev and dev.master:
-                        self._change_conn_data_length(evt.conn_idx,
-                                                      self._ble_config.dg_configBLE_DATA_LENGTH_TX_MAX,
-                                                      ble_data_length_to_time(self._ble_config.dg_configBLE_DATA_LENGTH_TX_MAX))
-                    self.storage_release()
-        '''
+            if gtl.parameters.features[0] & BLE_LE_LENGTH_FEATURE:
+                self.storage_acquire()
+                dev = self._stored_device_list.find_device_by_conn_idx(evt.conn_idx)
+                if dev and dev.master:
+                    self._change_conn_data_length(evt.conn_idx,
+                                                  self._ble_config.dg_configBLE_DATA_LENGTH_TX_MAX,
+                                                  BleConvert.ble_data_length_to_time(self._ble_config.dg_configBLE_DATA_LENGTH_TX_MAX))
+                self.storage_release()
+
 
     def peer_version_ind_evt_handler(self, gtl: GapcPeerVersionInd):
         evt = BleEventGapPeerVersion()
@@ -1608,60 +1656,12 @@ class BleManagerGap(BleManagerBase):
         self._adapter_command_queue_send(gtl)
 
     def scan_start_cmd_handler(self, command: BleMgrGapScanStartCmd):
-        # TODO handle privacy, just implementing ble_mgr_gap_scan_start_cmd_exec below
-        # if (dg_configBLE_PRIVACY_1_2 == 1)
-        # ble_mgr_gap_ral_sync(ble_mgr_gap_scan_start_cmd_exec, param);
-        # else
-        # ble_mgr_gap_scan_start_cmd_exec(param);
-        # endif /* (dg_configBLE_PRIVACY_1_2 == 1) */
-        response = BleMgrGapScanStartRsp(BLE_ERROR.BLE_ERROR_FAILED)
-        dev_params = self.dev_params_acquire()
-
-        if dev_params.scanning:
-            response.status = BLE_ERROR.BLE_ERROR_IN_PROGRESS
+        # TODO PRIVACY
+        if self._ble_config.dg_configBLE_PRIVACY_1_2:
+            pass
+            # ble_mgr_gap_ral_sync(ble_mgr_gap_scan_start_cmd_exec, param);
         else:
-            gtl = GapmStartScanCmd()
-
-            match command.type:
-                case GAP_SCAN_TYPE.GAP_SCAN_ACTIVE:
-                    gtl.parameters.op.code = GAPM_OPERATION.GAPM_SCAN_ACTIVE
-                case GAP_SCAN_TYPE.GAP_SCAN_PASSIVE:
-                    gtl.parameters.op.code = GAPM_OPERATION.GAPM_SCAN_PASSIVE
-
-            match dev_params.own_addr.addr_type:
-                case BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS \
-                        | BLE_OWN_ADDR_TYPE.PRIVATE_STATIC_ADDRESS:
-
-                    gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_STATIC_ADDR
-
-                case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_RESOLVABLE_ADDRESS \
-                        | BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
-
-                    gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_GEN_RSLV_ADDR
-
-                case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_NONRESOLVABLE_ADDRESS:
-                    gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_GEN_NON_RSLV_ADDR
-                case _:
-                    gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_STATIC_ADDR
-
-            gtl.parameters.interval = command.interval  # Interval and window have already been converted from milliseconds
-            gtl.parameters.window = command.window
-            gtl.parameters.mode = command.mode
-
-            gtl.parameters.filt_policy = (SCAN_FILTER_POLICY.SCAN_ALLOW_ADV_WLST
-                                          if command.filt_wlist
-                                          else SCAN_FILTER_POLICY.SCAN_ALLOW_ADV_ALL)
-
-            gtl.parameters.filter_duplic = (SCAN_DUP_FILTER_POLICY.SCAN_FILT_DUPLIC_EN
-                                            if command.filt_dupl
-                                            else SCAN_DUP_FILTER_POLICY.SCAN_FILT_DUPLIC_DIS)
-
-            dev_params.scanning = True
-            self._adapter_command_queue_send(gtl)
-            response.status = BLE_ERROR.BLE_STATUS_OK
-
-        self._mgr_response_queue_send(response)
-        self.dev_params_release()
+            self._scan_start_cmd_exec(command)
 
 
 '''
