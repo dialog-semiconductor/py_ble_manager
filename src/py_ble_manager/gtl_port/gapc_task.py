@@ -1510,19 +1510,36 @@ class gapc_set_le_pkt_size_cmd(LittleEndianStructure):
                 ("tx_time", c_uint16)]
 
 
-'''
 # Parameters of the @ref GAPC_LE_PKT_SIZE_IND message
-struct gapc_le_pkt_size_ind
-{
-    # The maximum number of payload octets in TX
-    uint16_t max_tx_octets;
-    # The maximum time that the local Controller will take to TX
-    uint16_t max_tx_time;
-    # The maximum number of payload octets in RX
-    uint16_t max_rx_octets;
-    # The maximum time that the local Controller will take to RX
-    uint16_t max_rx_time;
-};
+class gapc_le_pkt_size_ind(LittleEndianStructure):
+
+    def __init__(self,
+                 max_tx_octets: c_uint16 = 0,
+                 max_tx_time: c_uint16 = 0,
+                 max_rx_octets: c_uint16 = 0,
+                 max_rx_time: c_uint16 = 0
+                 ):
+
+        self.max_tx_octets = max_tx_octets
+        self.max_tx_time = max_tx_time
+        self.max_rx_octets = max_rx_octets
+        self.max_rx_time = max_rx_time
+        super().__init__(max_tx_octets=self.max_tx_octets,
+                         max_tx_time=self.max_tx_time,
+                         max_rx_octets=self.max_rx_octets,
+                         max_rx_time=self.max_rx_time)
+
+                # The maximum number of payload octets in TX
+    _fields_ = [("max_tx_octets", c_uint16),
+                # The maximum time that the local Controller will take to TX
+                ("max_tx_time", c_uint16),
+                # The maximum number of payload octets in RX
+                ("max_rx_octets", c_uint16),
+                # The maximum time that the local Controller will take to RX
+                ("max_rx_time", c_uint16)]
+
+
+'''
 
 #
  * MACROS
