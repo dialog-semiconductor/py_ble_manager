@@ -553,7 +553,7 @@ class gattc_disc_char_ind(LittleEndianStructure):
     def __init__(self,
                  attr_hdl: c_uint16 = 0,
                  pointer_hdl: c_uint16 = 0,
-                 prop: ATT_CHAR_PROP = ATT_CHAR_PROP.READ,  # TODO difference between attribute prop and permissons
+                 prop: ATT_CHAR_PROP = ATT_CHAR_PROP.READ,
                  uuid: Array[c_uint8] = None):
 
         self.attr_hdl = attr_hdl
@@ -1227,7 +1227,7 @@ class gattc_sdp_svc_disc_cmd(LittleEndianStructure):
                  seq_num: c_uint16 = 0,
                  start_hdl: c_uint16 = 0,
                  end_hdl: c_uint16 = 0,
-                 uuid: Array[c_uint8] = None
+                 uuid: c_uint8 * ATT_UUID_128_LEN = (c_uint8 * ATT_UUID_128_LEN)()
                  ):
 
         self.operation = operation
@@ -1261,14 +1261,13 @@ class gattc_sdp_svc_disc_cmd(LittleEndianStructure):
     def get_uuid(self):
         return self._uuid
 
-    def set_uuid(self, new_uuid: Array[c_uint8]):
-        if not self._uuid:
+    def set_uuid(self, uuid: Array[c_uint8]):
+        if len(uuid) == 2 or len(uuid) == 4 or len(uuid) == 16:
             self._uuid = (c_uint8 * ATT_UUID_128_LEN)()
-        set_value = new_uuid if new_uuid else (c_uint8 * ATT_UUID_128_LEN)()
-        if len(set_value) != 2 and len(set_value) != 4 and len(set_value) != 16:
-            raise ValueError("UUID length must be 2, 4, or 16")
-        self.uuid_len = len(set_value)
-        memmove(self._uuid, set_value, self.uuid_len)
+            self._uuid[:len(uuid)] = uuid
+            self.uuid_len = len(uuid)
+        else:
+            raise ValueError("uuid length must be 2, 4, or 16")
 
     uuid = property(get_uuid, set_uuid)
 
@@ -1478,16 +1477,15 @@ class gattc_sdp_svc_ind(LittleEndianStructure):
     info = property(get_info, set_info)
 
     def get_uuid(self):
-        return self._uuid  # TODO could return self._uuid[:self.uuid_len]
+        return self._uuid
 
     def set_uuid(self, uuid: Array[c_uint8]):
-        if len(uuid) == 2 or len(uuid) == 4 or len(uuid) == 16:  # TODO raise error
+        if len(uuid) == 2 or len(uuid) == 4 or len(uuid) == 16: 
             self._uuid = (c_uint8 * ATT_UUID_128_LEN)()
             self._uuid[:len(uuid)] = uuid
             self.uuid_len = len(uuid)
-
         else:
-            raise TypeError("uuid length must be 2, 4, or 16")
+            raise ValueError("UUID length must be 2, 4, or 16")
 
     uuid = property(get_uuid, set_uuid)
 
