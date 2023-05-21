@@ -503,6 +503,31 @@ class BleEventGapConnParamUpdated(BleEventBase):
         self.conn_params = conn_params if conn_params else GapConnParams()
 
 
+class BleEventGapDataLengthChanged(BleEventBase):
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DATA_LENGTH_CHANGED` event
+
+    :ivar evt_code: event code
+    :ivar conn_idx: connection index
+    :ivar max_rx_length: maximum number of payload octets in RX
+    :ivar max_rx_time: maximum time used for RX
+    :ivar max_tx_length: maximum number of payload octets in TX
+    :ivar max_tx_time: maximum time used for TX
+    """
+    def __init__(self,
+                 conn_idx: int = 0,
+                 max_rx_length: int = 0,
+                 max_rx_time: int = 0,
+                 max_tx_length: int = 0,
+                 max_tx_time: int = 0,
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_DATA_LENGTH_CHANGED)
+        self.conn_idx = conn_idx
+        self.max_rx_length = max_rx_length
+        self.max_rx_time = max_rx_time
+        self.max_tx_length = max_tx_length
+        self.max_tx_time = max_tx_time
+
+
 class BleEventGapDataLengthSetFailed(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DATA_LENGTH_SET_FAILED` event
 

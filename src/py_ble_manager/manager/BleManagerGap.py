@@ -16,13 +16,13 @@ from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_CONN_MODE, BleEventGapConnected, 
     BleEventGapPasskeyNotify, BleEventGapNumericRequest, BleEventGapPairCompleted, BleEventGapSecLevelChanged, \
     BleEventGapAddressResolved, BleEventGapPeerVersion, BleEventGapPeerFeatures, BleEventGapLtkMissing, \
     BLE_ADV_DATA_LEN_MAX, BLE_NON_CONN_ADV_DATA_LEN_MAX, BleEventGapAddressResolutionFailed, \
-    BleEventGapDataLengthSetFailed, GAP_ADV_TYPE
+    BleEventGapDataLengthSetFailed, GAP_ADV_TYPE, BleEventGapDataLengthChanged
 
 from ..gtl_messages.gtl_message_base import GtlMessageBase
 from ..gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd, GapcGetDevInfoReqInd, GapcGetDevInfoCfm, \
     GapcDisconnectInd, GapcCmpEvt, GapcDisconnectCmd, GapcParamUpdateCmd, GapcParamUpdatedInd, GapcParamUpdateReqInd, \
     GapcParamUpdateCfm, GapcBondCfm, GapcBondCmd, GapcSecurityCmd, GapcBondReqInd, GapcBondInd, GapcGetInfoCmd, \
-    GapcPeerVersionInd, GapcPeerFeaturesInd, GapcEncryptReqInd, GapcEncryptCfm, GapcEncryptInd
+    GapcPeerVersionInd, GapcPeerFeaturesInd, GapcEncryptReqInd, GapcEncryptCfm, GapcEncryptInd, GapcSetLePktSizeCmd, GapcLePktSizeInd
 
 from ..gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd, \
     GapmStartScanCmd, GapmAdvReportInd, GapmCancelCmd, GapmResolvAddrCmd
@@ -123,7 +123,7 @@ class BleManagerGap(BleManagerBase):
             GAPC_MSG_ID.GAPC_ENCRYPT_REQ_IND: self.encrypt_req_ind_evt_handler,
             GAPC_MSG_ID.GAPC_ENCRYPT_IND: self.encrypt_ind_evt_handler,
             GAPM_MSG_ID.GAPM_ADDR_SOLVED_IND: None,
-            GAPC_MSG_ID.GAPC_LE_PKT_SIZE_IND: None,
+            GAPC_MSG_ID.GAPC_LE_PKT_SIZE_IND: self.le_pkt_size_ind_evt_handler,
             GAPM_MSG_ID.GAPM_CMP_EVT: self.gapm_cmp_evt_handler,
             GAPC_MSG_ID.GAPC_CMP_EVT: self.gapc_cmp_evt_handler
         }
@@ -211,8 +211,10 @@ class BleManagerGap(BleManagerBase):
         return gtl_role
 
     def _change_conn_data_length(self, conn_idx: int, tx_length: int, tx_time: int):
-        # TODO
-        pass
+        gtl = GapcSetLePktSizeCmd(conidx=conn_idx)
+        gtl.parameters.tx_octets = tx_length
+        gtl.parameters.tx_time = tx_time
+        self._adapter_command_queue_send(gtl)
 
     def _cmp_address_resolve_evt_handler(self, gtl: GapmCmpEvt):
         dev_params = self.dev_params_acquire()
@@ -1496,6 +1498,15 @@ class BleManagerGap(BleManagerBase):
         self._adapter_command_queue_send(cfm)
         self.dev_params_release()
 
+    def le_pkt_size_ind_evt_handler(self, gtl: GapcLePktSizeInd):
+        evt = BleEventGapDataLengthChanged()
+        evt.conn_idx = self._task_to_connidx(gtl.src_id)
+        evt.max_rx_length = gtl.parameters.max_rx_octets
+        evt.max_rx_time = gtl.parameters.max_rx_time
+        evt.max_tx_length = gtl.parameters.max_tx_octets
+        evt.max_tx_time = gtl.parameters.max_tx_time
+        self._mgr_event_queue_send(evt)
+
     def numeric_reply_cmd_handler(self, command: BleMgrGapNumericReplyCmd):
         response = BleMgrGapNumericReplyRsp(BLE_ERROR.BLE_ERROR_FAILED)
         gtl = GapcBondCfm(conidx=command.conn_idx)
@@ -1628,7 +1639,6 @@ class BleManagerGap(BleManagerBase):
                                                   self._ble_config.dg_configBLE_DATA_LENGTH_TX_MAX,
                                                   BleConvert.ble_data_length_to_time(self._ble_config.dg_configBLE_DATA_LENGTH_TX_MAX))
                 self.storage_release()
-
 
     def peer_version_ind_evt_handler(self, gtl: GapcPeerVersionInd):
         evt = BleEventGapPeerVersion()
