@@ -581,7 +581,7 @@ class gapc_dev_info_val(Union):
 
     def __init__(self,
                  name: gap_dev_name = None,
-                 appearance: c_uint16 = None,  # TODO is there an ENUM for this?
+                 appearance: c_uint16 = None,  # TODO is there an ENUM for this? See app_adv_data.h
                  slv_params: gap_slv_pref = None,
                  central_rpa: c_uint8 = None,
                  rpa_only: c_uint8 = None
@@ -1129,7 +1129,7 @@ class gapc_bond_cfm(LittleEndianStructure):
 
     def __init__(self,
                  request: GAPC_BOND = GAPC_BOND.GAPC_PAIRING_RSP,
-                 accept: c_bool = 0,  # TODO should this be bool
+                 accept: c_bool = 0,
                  data: gapc_bond_cfm_data = gapc_bond_cfm_data()):
 
         self.request = request
@@ -1236,7 +1236,7 @@ class gapc_encrypt_req_ind(LittleEndianStructure):
 class gapc_encrypt_cfm(LittleEndianStructure):
 
     def __init__(self,
-                 found: c_uint8 = 0,
+                 found: c_bool = 0,
                  ltk: gap_sec_key = gap_sec_key(),
                  key_size: c_uint8 = 0):
 
@@ -1247,8 +1247,8 @@ class gapc_encrypt_cfm(LittleEndianStructure):
                          ltk=self.ltk,
                          key_size=self.key_size)
 
-                # Indicate if a LTK has been found for the peer device (0x0 = not found, 0x1 found) TODO make an enum
-    _fields_ = [("found", c_uint8),
+                # Indicate if a LTK has been found for the peer device (0x0 = not found, 0x1 found)
+    _fields_ = [("found", c_bool),
                 # Long Term Key
                 ("ltk", gap_sec_key),
                 # LTK Key Size
