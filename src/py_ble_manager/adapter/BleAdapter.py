@@ -16,53 +16,56 @@ class BleAdapter():
                  gtl_debug: bool = False,
                  ) -> None:
 
-        self.command_q: queue.Queue[GtlMessageBase] = command_q
-        self.event_q: queue.Queue[GtlMessageBase] = event_q
-        self.serial_tx_q: queue.Queue[bytes] = serial_tx_q
-        self.serial_rx_q: queue.Queue[bytes] = serial_rx_q
-        self.gtl_debug = gtl_debug
-        self.ble_stack_initialized = False
+        self._command_q: queue.Queue[GtlMessageBase] = command_q
+        self._event_q: queue.Queue[GtlMessageBase] = event_q
+        self._serial_tx_q: queue.Queue[bytes] = serial_tx_q
+        self._serial_rx_q: queue.Queue[bytes] = serial_rx_q
+        self._gtl_debug = gtl_debug
+        self._ble_stack_initialized = False
 
     def _command_queue_get(self) -> GtlMessageBase:
-        return self.command_q.get()
+        return self._command_q.get()
 
     def _command_queue_task(self):
         while True:
             command = self._command_queue_get()
             self._process_command_queue(command)
 
+    def _event_queue_send(self, gtl: GtlMessageBase):
+        self._event_q.put_nowait(gtl)
+
     def _process_command_queue(self, command: GtlMessageBase):
         self._send_serial_message(command)
 
     def _process_serial_rx_q(self, byte_string: bytes):
         msg = GtlMessageFactory().create_message(byte_string)
-        if self.gtl_debug:
+        if self._gtl_debug:
             print(f"<-- Rx: {msg}\n")
 
         if msg:
             if msg.msg_id == GAPM_MSG_ID.GAPM_DEVICE_READY_IND:
-                # Reset the BLE Stacks
-                gtl = GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))  # TODO send to mgr instead to give it a chance to clean up?
+                # Reset the BLE Stack
+                gtl = GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
                 self._send_serial_message(gtl)
 
             elif msg.msg_id == GAPM_MSG_ID.GAPM_CMP_EVT:
-                self.ble_stack_initialized = True
-                self.event_q.put_nowait(msg)  # Not making an adapter msg, just forwarding to manager
+                self._ble_stack_initialized = True
+                self._event_queue_send(msg)  # Not making an adapter msg, just forwarding to manager
 
             else:
-                if self.ble_stack_initialized:
-                    self.event_q.put_nowait(msg)
+                if self._ble_stack_initialized:
+                    self._event_queue_send(msg)
         else:
             # print(f"BleAdapter unhandled serial message. byte_string={byte_string.hex()}")
             pass
 
     def _send_serial_message(self, message: GtlMessageBase):
-        if self.gtl_debug:
+        if self._gtl_debug:
             print(f"--> Tx: {message}\n")
-        self.serial_tx_q.put_nowait(message.to_bytes())
+        self._serial_tx_q.put_nowait(message.to_bytes())
 
     def _serial_rx_q_get(self) -> bytes:
-        return self.serial_rx_q.get()
+        return self._serial_rx_q.get()
 
     def _serial_rx_queue_task(self):
         while True:
