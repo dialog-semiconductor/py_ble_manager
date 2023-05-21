@@ -1,7 +1,6 @@
 import queue
 import threading
 
-from ..ble_api.BleGap import GAP_IO_CAPABILITIES
 from ..ble_api.BleCommon import BLE_ERROR, BLE_STATUS, BleEventBase
 from ..ble_api.BleConfig import BleConfigDefault
 from ..gtl_messages.gtl_message_base import GtlMessageBase

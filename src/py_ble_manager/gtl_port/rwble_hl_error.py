@@ -107,7 +107,7 @@ class HOST_STACK_ERROR_CODE(IntEnum):
     L2C_ERR_INVALID_MTU_EXCEED = 0x31
 
 # not handling  DA14585, DA14586
-#if !defined (__DA14531__)  // DA14585, DA14586
+# if !defined (__DA14531__)  // DA14585, DA14586
     # Invalid MPS length exceed MTU
 #    L2C_ERR_INVALID_MPS_EXCEED        = 0x32
     # Invalid Channel ID

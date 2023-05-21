@@ -91,7 +91,7 @@ class GtlWaitQueue():
         for elem in self._queue:
             self._queue.remove(elem)
         self._wait_queue_lock_release()
-    
+
     def match(self, message: GtlMessageBase) -> bool:
         ret = False
         self._wait_queue_lock_acquire()

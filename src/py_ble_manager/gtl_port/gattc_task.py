@@ -43,7 +43,7 @@
 #include "co_utils.h"
 '''
 
-from ctypes import Array, cast, c_bool, c_uint8, c_uint16, LittleEndianStructure, memmove, pointer, POINTER, Union
+from ctypes import Array, cast, c_bool, c_uint8, c_uint16, LittleEndianStructure, pointer, POINTER, Union
 from enum import auto, IntEnum
 
 from .att import ATT_CHAR_PROP, ATT_UUID_128_LEN
@@ -1480,7 +1480,7 @@ class gattc_sdp_svc_ind(LittleEndianStructure):
         return self._uuid
 
     def set_uuid(self, uuid: Array[c_uint8]):
-        if len(uuid) == 2 or len(uuid) == 4 or len(uuid) == 16: 
+        if len(uuid) == 2 or len(uuid) == 4 or len(uuid) == 16:
             self._uuid = (c_uint8 * ATT_UUID_128_LEN)()
             self._uuid[:len(uuid)] = uuid
             self.uuid_len = len(uuid)

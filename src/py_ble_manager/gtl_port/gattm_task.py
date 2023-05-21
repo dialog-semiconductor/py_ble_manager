@@ -42,13 +42,11 @@
 # include "gattm.h"
 # include "co_utils.h"
 
-from ctypes import Array, cast, c_uint8, c_uint16, c_uint32, LittleEndianStructure, pointer, POINTER
+from ctypes import Array, cast, c_uint8, c_uint16, LittleEndianStructure, pointer, POINTER
 from enum import auto, IntEnum
 
 from .att import ATT_UUID_128_LEN
-from .attm import ATTM_BROADCAST, ATTM_ENC_KEY_SIZE_16_BYTES, ATTM_EXTENDED_PROPERTIES, ATTM_PERM, \
-    ATTM_TRIGGER_READ_INDICATION, ATTM_WRITE_COMMAND, ATTM_WRITE_REQUEST, \
-    ATTM_WRITE_SIGNED, ATTM_UUID_LEN, attm_svc_perm, att_perm, att_max_len_read_ind
+from .attm import attm_svc_perm, att_perm, att_max_len_read_ind
 
 from .rwble_hl_error import HOST_STACK_ERROR_CODE
 from .rwip_config import KE_API_ID
