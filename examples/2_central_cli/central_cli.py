@@ -18,6 +18,7 @@ class CLIHandler():
         # Accepted commands
         commands = ['GAPSCAN',
                     'GAPCONNECT',
+                    'GAPCONNECTCANCEL',
                     'GAPBROWSE',
                     'GAPDISCONNECT',
                     'GATTWRITE',
@@ -134,6 +135,10 @@ class BleController():
                         periph_bd = ble.BleUtils.str_to_bd_addr(args[1])
                         periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
                         error = self.central.connect(periph_bd, periph_conn_params)
+
+                case "GAPCONNECTCANCEL":
+                    if len(args) == 1:
+                        error = self.central.connect_cancel()
 
                 case "GAPBROWSE":
                     if len(args) == 2:
