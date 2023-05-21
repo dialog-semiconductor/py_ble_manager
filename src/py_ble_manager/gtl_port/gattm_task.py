@@ -42,13 +42,11 @@
 # include "gattm.h"
 # include "co_utils.h"
 
-from ctypes import Array, cast, c_uint8, c_uint16, c_uint32, LittleEndianStructure, pointer, POINTER
+from ctypes import Array, cast, c_uint8, c_uint16, LittleEndianStructure, pointer, POINTER
 from enum import auto, IntEnum
 
 from .att import ATT_UUID_128_LEN
-from .attm import ATTM_BROADCAST, ATTM_ENC_KEY_SIZE_16_BYTES, ATTM_EXTENDED_PROPERTIES, ATTM_PERM, \
-    ATTM_TRIGGER_READ_INDICATION, ATTM_WRITE_COMMAND, ATTM_WRITE_REQUEST, \
-    ATTM_WRITE_SIGNED, ATTM_UUID_LEN, attm_svc_perm  # ATTM_TASK_MULTI_INSTANTIATED, ATTM_SERVICE_TYPE
+from .attm import attm_svc_perm, att_perm, att_max_len_read_ind
 
 from .rwble_hl_error import HOST_STACK_ERROR_CODE
 from .rwip_config import KE_API_ID
@@ -127,92 +125,6 @@ class GATTM_MSG_ID(IntEnum):
     GATTM_ATT_GET_INFO_REQ = auto()
     # DEBUG ONLY: Retrieve information of attribute response
     GATTM_ATT_GET_INFO_RSP = auto()
-
-
-# TODO move to att or attm
-class att_perm(LittleEndianStructure):
-    def __init__(self,
-                 read: ATTM_PERM = ATTM_PERM.DISABLE,
-                 write: ATTM_PERM = ATTM_PERM.DISABLE,
-                 indication: ATTM_PERM = ATTM_PERM.DISABLE,
-                 notification: ATTM_PERM = ATTM_PERM.DISABLE,
-                 extended_properties_present: ATTM_EXTENDED_PROPERTIES = ATTM_EXTENDED_PROPERTIES.NO,
-                 broadcast: ATTM_BROADCAST = ATTM_BROADCAST.NO,
-                 enc_key_size: ATTM_ENC_KEY_SIZE_16_BYTES = ATTM_ENC_KEY_SIZE_16_BYTES.NO,
-                 write_command: ATTM_WRITE_COMMAND = ATTM_WRITE_COMMAND.NOT_ACCEPTED,
-                 write_signed: ATTM_WRITE_SIGNED = ATTM_WRITE_SIGNED.NOT_ACCEPTED,
-                 write_request: ATTM_WRITE_REQUEST = ATTM_WRITE_REQUEST.NOT_ACCEPTED,
-                 uuid_len: ATTM_UUID_LEN = ATTM_UUID_LEN.BITS_16,
-                 ):
-
-        self.read = read
-        self.write = write
-        self.indication = indication
-        self.notification = notification
-        self.extended_properties_present = extended_properties_present
-        self.broadcast = broadcast
-        self.enc_key_size = enc_key_size
-        self.write_command = write_command
-        self.write_signed = write_signed
-        self.write_request = write_request
-        self.uuid_len = uuid_len
-        super().__init__(read=self.read,
-                         write=self.write,
-                         indication=self.indication,
-                         notification=self.notification,
-                         extended_properties_present=self.extended_properties_present,
-                         broadcast=self.broadcast,
-                         write_command=self.write_command,
-                         write_signed=self.write_signed,
-                         write_request=self.write_request,
-                         uuid_len=self.uuid_len,
-                         reserved=0,)
-
-                # Attribute Permission (@see attm_perm_mask)
-    _fields_ = [("read", c_uint32, 3),
-                ("write", c_uint32, 3),
-                ("indication", c_uint32, 3),
-                ("notification", c_uint32, 3),
-                ("extended_properties_present", c_uint32, 1),
-                ("broadcast", c_uint32, 1),
-                ("enc_key_size", c_uint32, 1),
-                ("write_command", c_uint32, 1),
-                ("write_signed", c_uint32, 1),
-                ("write_request", c_uint32, 1),
-                ("uuid_len", c_uint32, 2),
-                ("reserved", c_uint32, 12)]
-
-
-class att_max_len_read_ind(LittleEndianStructure):
-
-    def __init__(self,
-                 max_len: c_uint16 = 0,
-                 trigger_read_indication: ATTM_TRIGGER_READ_INDICATION = ATTM_TRIGGER_READ_INDICATION.NO,
-                 ):
-
-        self.max_len = max_len
-        self.trigger_read_indication = trigger_read_indication
-        super().__init__(max_len=self.max_len,
-                         trigger_read_indication=self.trigger_read_indication)
-
-                #  15   14   13   12   11   10   9    8    7    6    5    4    3    2    1    0
-                # +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
-                # | RI |                               MAX_LEN                                    |
-                # +----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
-                #
-                # Bit [0-14]: Maximum Attribute Length
-                # Bit [15]  : Trigger Read Indication (0 = Value present in Database,
-                #                                      1 = Value not present in Database)
-                #
-                # For Included Services and Characteristic Declarations, this field contains targeted
-                # handle.
-                #
-                # For Characteristic Extended Properties, this field contains 2 byte value
-                #
-                # Not used Client Characteristic Configuration and Server Characteristic Configuration,
-                # this field is not used.
-    _fields_ = [("max_len", c_uint16, 15),
-                ("trigger_read_indication", c_uint16, 1)]
 
 
 # Attribute Description
@@ -479,8 +391,9 @@ class gattm_att_get_value_rsp(LittleEndianStructure):
     def get_value(self):
         return cast(self._value, POINTER(c_uint8 * self.length)).contents
 
-    def set_value(self, new_value: Array[c_uint8]):  # TODO User should pass array, how to type hint?
-        # TODO raise error if length > 512
+    def set_value(self, new_value: Array[c_uint8]):
+        if new_value and len(new_value) > 512:
+            raise ValueError("Maximum length is 512")
         self._value = new_value if new_value else pointer(c_uint8(0))
         self.length = len(new_value) if new_value else 1
 
@@ -491,7 +404,7 @@ class gattm_att_get_value_rsp(LittleEndianStructure):
 class gattm_att_set_value_req(LittleEndianStructure):
     def __init__(self,
                  handle: c_uint16 = 0,
-                 value: Array[c_uint8] = None  # TODO should be a ctypes array of c_uint8. how to type hint?
+                 value: Array[c_uint8] = None
                  ):
         self.handle = handle
         self.value = value
@@ -509,8 +422,9 @@ class gattm_att_set_value_req(LittleEndianStructure):
     def get_value(self):
         return cast(self._value, POINTER(c_uint8 * self.length)).contents
 
-    def set_value(self, new_value: Array[c_uint8]):  # TODO User should pass array, how to type hint?
-        # TODO raise error if length > 512
+    def set_value(self, new_value: Array[c_uint8]):
+        if new_value and len(new_value) > 512:
+            raise ValueError("Maximum length is 512")
         self._value = new_value if new_value else pointer(c_uint8(0))
         self.length = len(new_value) if new_value else 1
 

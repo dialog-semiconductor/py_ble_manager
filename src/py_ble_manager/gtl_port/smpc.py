@@ -475,7 +475,7 @@ struct smpc_env
     uint8_t state;
 
     uint8_t peer_public_key[ECDH_KEY_LEN*2];
-    // TODO add missing comment
+    // add missing comment
     ec_point session_key;
 };
 

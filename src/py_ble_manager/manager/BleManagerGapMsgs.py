@@ -1,10 +1,21 @@
+from enum import IntEnum, auto
 from ..ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR
-from ..ble_api.BleGap import BLE_GAP_CONN_MODE, BLE_GAP_ROLE, GapConnParams, GAP_SCAN_TYPE, GAP_SCAN_MODE
+from ..ble_api.BleGap import GAP_CONN_MODE, BLE_GAP_ROLE, GapConnParams, GAP_SCAN_TYPE, GAP_SCAN_MODE
 from ..manager.BleManagerCommonMsgs import BleMgrMsgBase, BleMgrMsgRsp, BLE_CMD_GAP_OPCODE
 
 
+# This is in ble_mgr.h in SDK. Consider moving to different file
+class BLE_MGR_RAL_OP(IntEnum):
+    BLE_MGR_RAL_OP_NONE = 0,
+    BLE_MGR_RAL_OP_ADV_DIRECTED = auto()
+    BLE_MGR_RAL_OP_ADV_UNDIRECTED = auto()
+    BLE_MGR_RAL_OP_SCAN = auto()
+    BLE_MGR_RAL_OP_CONNECT = auto()
+    BLE_MGR_RAL_OP_NO_PRIVACY = auto()
+
+
 class BleMgrGapAdvStartCmd(BleMgrMsgBase):
-    def __init__(self, adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED) -> None:
+    def __init__(self, adv_type: GAP_CONN_MODE = GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_START_CMD)
         self.adv_type = adv_type
 

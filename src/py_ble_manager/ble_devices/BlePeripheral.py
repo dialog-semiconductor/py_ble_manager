@@ -1,11 +1,11 @@
 from ..ble_api.BleAtt import ATT_ERROR
 from ..ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_EVT_GAP, BLE_EVT_GATTS
 from ..ble_api.BleConfig import BleConfigDefault, BLE_DEVICE_TYPE
-from ..ble_api.BleGap import BLE_GAP_ROLE, BLE_GAP_CONN_MODE, BleEventGapConnected, \
+from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_CONN_MODE, BleEventGapConnected, \
     BleEventGapDisconnected, BleEventGapConnParamUpdateReq, BleEventGapPairReq
 from ..ble_api.BleGatt import GATT_EVENT
 from ..ble_api.BleGatts import BleEventGattsReadReq, BleEventGattsWriteReq, \
-    BleEventGattsPrepareWriteReq
+    BleEventGattsPrepareWriteReq, BleEventGattsEventSent
 from ..ble_devices.BleDeviceBase import BleDeviceBase
 from ..services.BleService import BleServiceBase
 
@@ -33,13 +33,20 @@ class BlePeripheral(BleDeviceBase):
             if service and service.disconnected_evt:
                 service.disconnected_evt(evt)
 
+    def _handle_event_sent_evt(self, evt: BleEventGattsEventSent) -> bool:
+        service = self._find_service_by_handle(evt.handle)
+        if service:
+            if service.event_sent:
+                service.event_sent(evt)
+            return True
+        return False
+
     def _handle_prepare_write_req_evt(self, evt: BleEventGattsPrepareWriteReq) -> bool:
         service = self._find_service_by_handle(evt.handle)
         if service:
             if service.prepare_write_req:
                 service.prepare_write_req(evt)
             return True
-
         return False
 
     def _handle_read_req_evt(self, evt: BleEventGattsReadReq) -> bool:
@@ -48,7 +55,6 @@ class BlePeripheral(BleDeviceBase):
             if service.read_req:
                 service.read_req(evt)
             return True
-
         return False
 
     def _handle_write_req_evt(self, evt: BleEventGattsWriteReq) -> bool:
@@ -57,11 +63,7 @@ class BlePeripheral(BleDeviceBase):
             if service.write_req:
                 service.write_req(evt)
             return True
-
         return False
-
-    def _ms_to_adv_slots(self, time_ms) -> int:
-        return int((time_ms) * 1000 // 625)
 
     def get_value(self, handle: int, max_len: int) -> BLE_ERROR:
         error = BLE_ERROR.BLE_ERROR_FAILED
@@ -114,7 +116,7 @@ class BlePeripheral(BleDeviceBase):
         error = self._ble_gatts.add_service(svc.service_defs.uuid,
                                             svc.service_defs.type,
                                             svc.service_defs.num_attrs)
-        # TODO not sure if included svc handled correctly
+
         if error == BLE_ERROR.BLE_STATUS_OK:
             for i in range(0, len(svc.incl_svc_defs)):
                 error, _ = self._ble_gatts.add_include(svc.incl_svc_defs[i].start_h)
@@ -124,7 +126,7 @@ class BlePeripheral(BleDeviceBase):
             for i in range(0, len(svc.gatt_char_defs)):
                 gatt_char_def = svc.gatt_char_defs[i]
                 char_def = gatt_char_def.char_def
-                # TODO is there a case where you need the char declartion handle offset (h_offset)?
+                # ignoring ( _ ) char declaration handle offset (h_offset)
                 error, _, char_def.handle.value = self._ble_gatts.add_characteristic(char_def.uuid,
                                                                                      char_def.prop,
                                                                                      char_def.perm,
@@ -183,18 +185,13 @@ class BlePeripheral(BleDeviceBase):
                 handled = self._handle_write_req_evt(evt)
             case BLE_EVT_GATTS.BLE_EVT_GATTS_PREPARE_WRITE_REQ:
                 handled = self._handle_prepare_write_req_evt(evt)
+            case BLE_EVT_GATTS.BLE_EVT_GATTS_EVENT_SENT:
+                handled = self._handle_event_sent_evt(evt)
 
-        '''
-        TODO
-        case return.BLE_EVT_GATTS_EVENT_SENT:
-                return event_sent((const ble_evt_gatts_event_sent_t *) evt);
-        '''
         return handled
 
     def set_advertising_interval(self, adv_intv_min_ms, adv_intv_max_ms) -> None:
-        intv_min_slots = self._ms_to_adv_slots(adv_intv_min_ms)
-        intv_max_slots = self._ms_to_adv_slots(adv_intv_max_ms)
-        self._ble_manager.set_advertising_interval(intv_min_slots, intv_max_slots)
+        self._ble_gap.set_advertising_interval(adv_intv_min_ms, adv_intv_max_ms)
 
     def set_value(self, handle: int, value: bytes) -> BLE_ERROR:
         error = BLE_ERROR.BLE_ERROR_FAILED
@@ -207,7 +204,7 @@ class BlePeripheral(BleDeviceBase):
         return super().start(BLE_GAP_ROLE.GAP_PERIPHERAL_ROLE)
 
     def start_advertising(self,
-                          adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
+                          adv_type: GAP_CONN_MODE = GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
                           ) -> BLE_ERROR:
 
         return self._ble_gap.start_advertising(adv_type)

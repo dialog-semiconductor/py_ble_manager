@@ -24,20 +24,28 @@ class GtlWaitQueueElement():
 class GtlWaitQueue():
     def __init__(self) -> None:
         self._wait_queue_lock: threading.Lock = threading.Lock()
-        self.queue = []
+        self._queue = []
 
     def _task_to_connidx(self, task_id):
         return task_id >> 8
 
-    def add(self, elem: GtlWaitQueueElement):
+    def _wait_queue_lock_acquire(self,):
+        # print("WAIT QUEUE LOCK ACQUIRE")
         self._wait_queue_lock.acquire()
-        self.push(elem)
+
+    def _wait_queue_lock_release(self,):
+        # print("WAIT QUEUE LOCK RELEASE")
         self._wait_queue_lock.release()
+
+    def add(self, elem: GtlWaitQueueElement):
+        self._wait_queue_lock_acquire()
+        self.push(elem)
+        self._wait_queue_lock_release()
 
     def flush(self, conn_idx):
         elem: GtlWaitQueueElement
-        self._wait_queue_lock.acquire()
-        for elem in self.queue:
+        self._wait_queue_lock_acquire()
+        for elem in self._queue:
             if elem.conn_idx == conn_idx:
                 is_match = False
                 match elem.msg_id:
@@ -73,13 +81,21 @@ class GtlWaitQueue():
                     self.remove(elem)
                     if elem.cb:
                         # Fire associated callback with None gtl message
+                        print("Firing callback")
                         elem.cb(None, elem.param)
-        self._wait_queue_lock.release()
+        self._wait_queue_lock_release()
+
+    def flush_all(self):
+        self._wait_queue_lock_acquire()
+        elem: GtlWaitQueueElement
+        for elem in self._queue:
+            self._queue.remove(elem)
+        self._wait_queue_lock_release()
 
     def match(self, message: GtlMessageBase) -> bool:
         ret = False
-        self._wait_queue_lock.acquire()
-        for item in self.queue:
+        self._wait_queue_lock_acquire()
+        for item in self._queue:
             item: GtlWaitQueueElement
             if item.conn_idx == BLE_CONN_IDX_INVALID:
                 match = item.msg_id == message.msg_id
@@ -106,13 +122,13 @@ class GtlWaitQueue():
                 ret = True
                 break
 
-        self._wait_queue_lock.release()
+        self._wait_queue_lock_release()
         return ret
 
     def push(self, elem: GtlWaitQueueElement) -> None:
         if not isinstance(elem, GtlWaitQueueElement):
             raise TypeError(f"Element must be of type GtlWaitQueueElement, was {type(elem)}")
-        self.queue.append(elem)
+        self._queue.append(elem)
 
     def remove(self, elem: GtlWaitQueueElement) -> None:
-        self.queue.remove(elem)
+        self._queue.remove(elem)

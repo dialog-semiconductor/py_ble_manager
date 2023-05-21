@@ -4,7 +4,7 @@ from ..ble_api.BleCommon import BdAddress
 from ..ble_api.BleGap import GAP_SEC_LEVEL, BLE_GAP_PHY
 
 
-class SearchableQueue():  # TODO mode to queue files
+class SearchableQueue():  # TODO move to queue files
     def __init__(self) -> None:
         self.queue = []
 

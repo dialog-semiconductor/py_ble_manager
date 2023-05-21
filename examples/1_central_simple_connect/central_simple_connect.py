@@ -22,7 +22,7 @@ def main(com_port, peripheral_addr):
 
     conn_idx = 0
     while True:
-        # Wait for asynchronus events to arrive. A timeout is set to allow for Keyboard interrupts
+        # Wait for asynchronous events to arrive. A timeout is set to allow for Keyboard interrupts
         evt = central.get_event(timeout=1)
         if evt:
             match evt.evt_code:

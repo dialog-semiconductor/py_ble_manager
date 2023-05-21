@@ -22,8 +22,7 @@ class GATTC_ITEM_TYPE(IntEnum):
     GATTC_ITEM_TYPE_DESCRIPTOR = 3  # characteristic description
 
 
-# TODO change to GattcIncludedServiceData
-class GattcServiceData():
+class GattcIncludedServiceData():
     """GATT Service data
 
     :ivar start_h: included service start handle
@@ -65,7 +64,7 @@ class GattcItem():
                  uuid: AttUuid = None,
                  handle: int = 0,
                  type: GATTC_ITEM_TYPE = GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_NONE,
-                 service_data: GattcServiceData = None,  # TODO sdk uses union for service data / char data. Use a ctype union?
+                 service_data: GattcIncludedServiceData = None,  # note sdk uses union for service data / char data but using two members instead.
                  char_data: GattcCharacteristicData = None):
 
         self.uuid = uuid

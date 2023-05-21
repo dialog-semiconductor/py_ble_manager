@@ -49,9 +49,9 @@ class DebugCrashInfoSvc():
         self.svc_handle = 0
         self.rx = ble.GattcItem()  # Rx Characteristic for service. Central writes to this characteristic
         self.rx_user_desc = ble.GattcItem()  # Rx Char User Description
-        self.tx = ble.GattcItem()  # Tx Characteristic for service. Central recieves notifications on this characteristic
+        self.tx = ble.GattcItem()  # Tx Characteristic for service. Central receives notifications on this characteristic
         self.tx_user_desc = ble.GattcItem()  # Tx Char User Description
-        self.tx_ccc = ble.GattcItem()  # Tx Client Charactieristic Configuration Descriptor
+        self.tx_ccc = ble.GattcItem()  # Tx Client Characteristic Configuration Descriptor
 
 
 class CLIHandler():
@@ -143,7 +143,7 @@ class BleController():
         assert self.command_q
         assert self.response_q
 
-        # initalize central device
+        # initialize central device
         self.central = ble.BleCentral(self.com_port, gtl_debug=False)
         self.central.init()
         self.central.start()
@@ -153,9 +153,9 @@ class BleController():
         self._command_task.daemon = True
         self._command_task.start()
 
-        self._evnt_task = threading.Thread(target=self._event_queue_task)
-        self._evnt_task.daemon = True
-        self._evnt_task.start()
+        self._event_task = threading.Thread(target=self._event_queue_task)
+        self._event_task.daemon = True
+        self._event_task.start()
 
         self._exit.wait()
 
@@ -172,7 +172,7 @@ class BleController():
                 case ble.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED:
                     self.handle_evt_gap_connected(evt)
                 case ble.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED:
-                    self.handle_evt_gap_connection_compelted(evt)
+                    self.handle_evt_gap_connection_completed(evt)
                 case ble.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED:
                     self.handle_evt_gap_disconnected(evt)
                 case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_SVC:
@@ -203,8 +203,8 @@ class BleController():
                     self.log("Starting scan...")
                     error = self.central.scan_start(ble.GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
                                                     ble.GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
-                                                    160,
-                                                    80,
+                                                    100,
+                                                    50,
                                                     False,
                                                     True)
 
@@ -270,7 +270,7 @@ class BleController():
         self.connected_addr = evt.peer_address
         self.log(f"Connected to: address={ble.BleUtils.bd_addr_to_str(evt.peer_address)}")
 
-    def handle_evt_gap_connection_compelted(self, evt: ble.BleEventGapConnectionCompleted):
+    def handle_evt_gap_connection_completed(self, evt: ble.BleEventGapConnectionCompleted):
         self.log(f"Connection completed: status={evt.status.name}")
 
     def handle_evt_gap_disconnected(self, evt: ble.BleEventGapDisconnected):
@@ -441,7 +441,6 @@ class BleController():
                 if (evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_NOTIFICATION
                         and evt.handle == self.dci_svc.tx.handle + 1):
 
-                    # TODO need to know what response waiting for
                     evt: ble.BleEventGattcNotification
                     if self.response.command == DCI_SVC_COMMAND.NONE and len(evt.value) > 2:
                         self.response.command = evt.value[0]
@@ -461,8 +460,7 @@ class BleController():
                     self.shutdown()
 
         if self.fetch_state == FETCH_DATA_STATE.FETCH_DATA_ERROR:
-            # TODO disconnect if connected
-            pass
+            self.central.disconnect(0, ble.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON)
 
     def shutdown(self):
         self.log_file_handle.close()
@@ -480,13 +478,6 @@ def create_log():
     log_file = open(f"{logs_directory}\\DCI_log_{time.strftime('%Y%m%d-%H%M%S')}.txt", 'w')
 
     return log_file
-
-    # TODO logging is preventing prompt_toolkit from patching stdout
-    # open a file for writing
-    # logging.basicConfig(level=logging.INFO,
-    #                    format='%(asctime)s - %(message)s',
-    #                    handlers=[logging.FileHandler(f"{logs_directory}\\DCI_log_{time.strftime('%Y%m%d-%H%M%S')}.txt"),
-    #                              logging.StreamHandler()],)
 
 
 def main(com_port: str):
@@ -523,7 +514,7 @@ def main(com_port: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog='BLE Central Crash Info CLI',
-                                     description='A command line interface for retreiving crash information from a peripheral running the Debug Crash Info '
+                                     description='A command line interface for retrieving crash information from a peripheral running the Debug Crash Info '
                                      + 'Service')
 
     parser.add_argument("com_port", type=str, help='COM port for your development kit')
@@ -533,4 +524,4 @@ if __name__ == "__main__":
     try:
         main(args.com_port)
     except KeyboardInterrupt:
-        print("Keyborard")
+        pass

@@ -10,7 +10,7 @@ The intent of this library is to provide a python interface similar to [SDK10](h
 
 The primary intent is for use as a central device for benchtop testing, continuous integration, or as an end-of-line tool. For additional information on the GTL please see the [GTL User Manual](https://www.renesas.com/us/en/document/mat/um-b-143-renesas-external-processor-interface-gtl-interface?language=en&r=1564826).
 
-## Quickstart
+## Quick Start
 
 1. Clone or download this repository
 
@@ -22,32 +22,32 @@ The primary intent is for use as a central device for benchtop testing, continuo
 
 4. Open a command prompt or terminal and navigate to the repository on your PC.
 
-5. Setup a virtual envirornment by calling: `<path_to/py_ble_manager>$ python -m venv ./venv`. Note this library has been tested with Python v3.10.5. To create a virtual enviornment that uses Python 3.10.5, you must already have Python 3.10.5 downloaded on your computer. To use the above command to create a Python 3.10.5 enviornment, Python 3.10.5 must be configured in your PATH. You can download it from the [python website](https://www.python.org/downloads/release/python-3105/).
+5. Setup a virtual environment by calling: `<path_to/py_ble_manager>$ python -m venv ./venv`. Note this library has been tested with Python v3.10.5. To create a virtual environment that uses Python 3.10.5, you must already have Python 3.10.5 downloaded on your computer. To use the above command to create a Python 3.10.5 environment, Python 3.10.5 must be configured in your PATH. You can download it from the [python website](https://www.python.org/downloads/release/python-3105/).
 
-6. Activate the virtual enviornment. The specific command depends on your operating system. From a windows command prompt call: `<path_to_venv>\Scripts\activate.bat`
+6. Activate the virtual environment. The specific command depends on your operating system. From a windows command prompt call: `<path_to_venv>\Scripts\activate.bat`
 
 7. Call: `pip install .` to install the py_ble_manager package and its dependencies.
 
-8. The pacakge is now installed ang you are ready to run one of the [examples](examples)
+8. The package is now installed ang you are ready to run one of the [examples](examples)
 
-## Quickstart (VS Code)
+## Quick Start (VS Code)
 
-1. Follow steps 1-3 in the [Quickstart](#quickstart) section.
+1. Follow steps 1-3 in the [Quick Start](#quick-start) section.
 
 2. Open the `py_ble_manager` repository directory in VS Code.
 
-3. Setup a virtual envirornment by calling: `$ python -m venv ./venv` from the VS Code terminal. Note this library has been tested with Python v3.10.5. To create a virtual enviornment that uses Python 3.10.5, you must already have Python 3.10.5 downloaded on your computer. To use the above command to create a Python 3.10.5 enviornment, Python 3.10.5 must be configured in your PATH. You can download it from the [python website](https://www.python.org/downloads/release/python-3105/).
+3. Setup a virtual environment by calling: `$ python -m venv ./venv` from the VS Code terminal. Note this library has been tested with Python v3.10.5. To create a virtual environment that uses Python 3.10.5, you must already have Python 3.10.5 downloaded on your computer. To use the above command to create a Python 3.10.5 environment, Python 3.10.5 must be configured in your PATH. You can download it from the [python website](https://www.python.org/downloads/release/python-3105/).
 
-4. Activate the virtual enviornment. Hold CTRL+shift+P to open the command palette. Select `Python: Select Interpreter`. Select the interpreter in the virtual enviorment you just created (labeled venv).
-Open a new terminal in VS Code and the virtual enviornment will be activated.
+4. Activate the virtual environment. Hold CTRL+shift+P to open the command palette. Select `Python: Select Interpreter`. Select the interpreter in the virtual environment you just created (labeled venv).
+Open a new terminal in VS Code and the virtual environment will be activated.
 
 5. Call: `pip install .` to install the py_ble_manager package and its dependencies.
 
-6. The pacakge is now installed ang you are ready to run one of the [examples](examples)
+6. The package is now installed ang you are ready to run one of the [examples](examples)
 
 ## Basic Usage
 
-### Create a BLE Central object and perform initilization
+### Create a BLE Central object and perform initialization
 
 ```Python
 import py_ble_manager as ble
@@ -73,8 +73,8 @@ Scanning:
 ```Python
 central.scan_start(type=ble.GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
                    mode=ble.GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
-                   interval=160,
-                   window=80,
+                   interval_ms=100,
+                   window_ms=50,
                    filt_wlist=False,
                    filt_dupl=True)
 ```
@@ -105,7 +105,7 @@ Disconnect
 central.disconnect(conn_idx=0) 
 ```
 
-### Handle asynchronus events
+### Handle asynchronous events
 
 The framework returns asynchronous events to the application through an event queue. Calling `BleCentral.get_event()` will get an event from the queue. All of the events returned by `BleCentral.get_event()` are a subclass of `BleEventBase`.
 A variety of different events occur throughout the life a BLE application. Some example events include `BleEventGapConnectionCompleted`, `BleEventGapDisconnected`, `BleEventGattcReadCompleted`, `BleEventGattcWriteCompleted`.
@@ -130,7 +130,7 @@ evt = central.get_event()
         case ble.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED:
             handle_evt_gap_connected(evt)
         case ble.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED:
-            handle_evt_gap_connection_compelted(evt)
+            handle_evt_gap_connection_completed(evt)
         case ble.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED:
             handle_evt_gap_disconnected(evt)
         case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_SVC:
@@ -151,4 +151,4 @@ evt = central.get_event()
 
 ## Architecture
 
-Refer to the [architecture](docs/architecture.md) desciption.
+Refer to the [architecture](docs/architecture.md) description.

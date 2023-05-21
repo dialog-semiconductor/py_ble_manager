@@ -1,7 +1,6 @@
 import queue
 import threading
 
-from ..ble_api.BleGap import GAP_IO_CAPABILITIES
 from ..ble_api.BleCommon import BLE_ERROR, BLE_STATUS, BleEventBase
 from ..ble_api.BleConfig import BleConfigDefault
 from ..gtl_messages.gtl_message_base import GtlMessageBase
@@ -31,7 +30,7 @@ class BleManager(BleManagerBase):
         self._mgr_command_q: queue.Queue[BleMgrMsgBase] = mgr_command_q
         self._mgr_response_q: queue.Queue[BLE_ERROR] = mgr_response_q
         self._mgr_event_q: queue.Queue = mgr_event_q
-        self._adapter_commnand_q: queue.Queue[GtlMessageBase] = adapter_command_q
+        self._adapter_command_q: queue.Queue[GtlMessageBase] = adapter_command_q
         self._adapter_event_q: queue.Queue[GtlMessageBase] = adapter_event_q
         self._wait_q = GtlWaitQueue()
         self._stored_device_list = StoredDeviceQueue()
@@ -43,7 +42,7 @@ class BleManager(BleManagerBase):
         self._ble_config = config
         self.common_mgr = BleManagerCommon(self._mgr_response_q,
                                            self._mgr_event_q,
-                                           self._adapter_commnand_q,
+                                           self._adapter_command_q,
                                            self._wait_q,
                                            self._stored_device_list,
                                            self._stored_device_lock,
@@ -52,7 +51,7 @@ class BleManager(BleManagerBase):
                                            self._ble_config)
         self.gap_mgr = BleManagerGap(self._mgr_response_q,
                                      self._mgr_event_q,
-                                     self._adapter_commnand_q,
+                                     self._adapter_command_q,
                                      self._wait_q,
                                      self._stored_device_list,
                                      self._stored_device_lock,
@@ -61,7 +60,7 @@ class BleManager(BleManagerBase):
                                      self._ble_config)
         self.gattc_mgr = BleManagerGattc(self._mgr_response_q,
                                          self._mgr_event_q,
-                                         self._adapter_commnand_q,
+                                         self._adapter_command_q,
                                          self._wait_q,
                                          self._stored_device_list,
                                          self._stored_device_lock,
@@ -70,7 +69,7 @@ class BleManager(BleManagerBase):
                                          self._ble_config)
         self.gatts_mgr = BleManagerGatts(self._mgr_response_q,
                                          self._mgr_event_q,
-                                         self._adapter_commnand_q,
+                                         self._adapter_command_q,
                                          self._wait_q,
                                          self._stored_device_list,
                                          self._stored_device_lock,
@@ -160,8 +159,8 @@ class BleManager(BleManagerBase):
                 print(f"BleManager._process_event_queue. Unhandled event={event}\n")
 
     def cmd_execute(self, command: BleMgrMsgBase) -> BLE_ERROR:
-        self.dev_params_acquire()
-        ble_status = self._dev_params.status
+        dev_params = self.dev_params_acquire()
+        ble_status = dev_params.status
         self.dev_params_release()
         if ble_status == BLE_STATUS.BLE_IS_BUSY or ble_status == BLE_STATUS.BLE_IS_RESET:
             return BleMgrMsgRsp(opcode=command.opcode, status=BLE_ERROR.BLE_ERROR_BUSY)
@@ -185,15 +184,3 @@ class BleManager(BleManagerBase):
 
     def find_stored_device_by_conn_idx(self, conn_idx: int) -> StoredDevice:
         return self._stored_device_list.find_device_by_conn_idx(conn_idx)
-
-    def set_advertising_interval(self, adv_intv_min_slots, adv_intv_max_slots) -> None:
-        self.dev_params_acquire()
-        self._dev_params.adv_intv_min = adv_intv_min_slots
-        self._dev_params.adv_intv_max = adv_intv_max_slots
-        self.dev_params_release()
-
-    def set_io_cap(self, io_cap: GAP_IO_CAPABILITIES) -> BLE_ERROR:
-        self.dev_params_acquire()
-        self._dev_params.io_capabilities = io_cap
-        self.dev_params_release()
-        return BLE_ERROR.BLE_STATUS_OK

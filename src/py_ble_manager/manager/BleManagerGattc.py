@@ -7,7 +7,7 @@ from ..ble_api.BleCommon import BleEventBase, BLE_ERROR
 from ..ble_api.BleConfig import BleConfigDefault
 from ..ble_api.BleGattc import BleEventGattcDiscoverSvc, BleEventGattcDiscoverCompleted, GATTC_DISCOVERY_TYPE, \
     BleEventGattcDiscoverChar, BleEventGattcDiscoverDesc, BleEventGattcBrowseSvc, BleEventGattcBrowseCompleted, \
-    GattcItem, GATTC_ITEM_TYPE, GattcServiceData, GattcCharacteristicData, BleEventGattcReadCompleted,\
+    GattcItem, GATTC_ITEM_TYPE, GattcIncludedServiceData, GattcCharacteristicData, BleEventGattcReadCompleted,\
     BleEventGattcWriteCompleted, BleEventGattcNotification, BleEventGattcIndication
 from ..gtl_messages.gtl_message_base import GtlMessageBase
 from ..gtl_messages.gtl_message_gattc import GattcDiscCmd, GattcDiscSvcInd, GattcCmpEvt, GattcDiscCharInd, GattcSdpSvcDiscCmd, \
@@ -363,7 +363,7 @@ class BleManagerGattc(BleManagerBase):
                 match info.att_type:
                     case GATTC_SDP_ATT_TYPE.GATTC_SDP_INC_SVC:
                         item.type = GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_INCLUDE
-                        item.service_data = GattcServiceData()
+                        item.service_data = GattcIncludedServiceData()
                         item.service_data.start_h = info.inc_svc.start_hdl
                         item.service_data.end_h = info.inc_svc.end_hdl
                         item.uuid = AttUuid(bytes(info.inc_svc.uuid))

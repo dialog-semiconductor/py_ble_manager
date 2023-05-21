@@ -69,7 +69,8 @@ class TestGapmCmpEvt_GAPM_RESET(unittest.TestCase):
 # Table 8
 class TestGapmSetDevConfigCmd(unittest.TestCase):
     def setUp(self):
-        self.expected = "05040D0D0010002C00030A000000000000000000000000000000000000000000000000002000000000000200000000FB0048080000"
+        # TODO example in manual has maximum mps as 0x0000, but max mps must be between 23 and 512
+        self.expected = "05040D0D0010002C00030A000000000000000000000000000000000000000000000000002000000000000217000000FB0048080000"
 
     def test_parameters_updated_after_construction(self):
         test_message = GapmSetDevConfigCmd()

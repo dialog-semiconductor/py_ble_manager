@@ -11,7 +11,6 @@ class GapmMessageFactory():
         msg_id = GAPM_MSG_ID(int.from_bytes(msg_bytes[1:3], "little", signed=False))
         params_buf = msg_bytes[9:]
 
-        # TODO for each case add a check to ensure params_buf not too long for parameters variablee
         try:
             if msg_id == GAPM_MSG_ID.GAPM_DEVICE_READY_IND:
                 return GapmDeviceReadyInd()

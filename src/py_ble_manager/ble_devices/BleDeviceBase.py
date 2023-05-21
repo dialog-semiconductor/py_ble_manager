@@ -27,7 +27,7 @@ class BleDeviceBase():
         """Constructor
         """
         app_command_q = queue.Queue()
-        app_resposne_q = queue.Queue()
+        app_response_q = queue.Queue()
         app_event_q = queue.Queue()
 
         adapter_command_q = queue.Queue()
@@ -36,7 +36,7 @@ class BleDeviceBase():
         serial_rx_q = queue.Queue()
         self._config = config
         # Internal BLE framework layers
-        self._ble_manager = BleManager(app_command_q, app_resposne_q, app_event_q, adapter_command_q, adapter_event_q, config)
+        self._ble_manager = BleManager(app_command_q, app_response_q, app_event_q, adapter_command_q, adapter_event_q, config)
         self._ble_adapter = BleAdapter(adapter_command_q, adapter_event_q, serial_tx_q, serial_rx_q, gtl_debug)
         self._serial_stream_manager = SerialStreamManager(com_port, serial_tx_q, serial_rx_q)
 
@@ -173,7 +173,7 @@ class BleDeviceBase():
         :return: result code
         :rtype: BLE_ERROR
         """
-        return self._ble_manager.set_io_cap(io_cap)
+        return self._ble_gap.set_io_cap(io_cap)
 
     def start(self, role: BLE_GAP_ROLE) -> BLE_ERROR:
         """Start the BLE module as a central device

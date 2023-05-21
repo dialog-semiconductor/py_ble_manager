@@ -1,5 +1,6 @@
 from ..ble_api.BleAtt import AttUuid
 from ..ble_api.BleConfig import BleConfigDefault, BLE_DEVICE_TYPE
+from ..ble_api.BleConvert import BleConvert
 from ..ble_devices.BleDeviceBase import BleDeviceBase
 from ..ble_api.BleCommon import BLE_ERROR, BdAddress, BleEventBase, BLE_EVT_GAP
 from ..ble_api.BleGap import BLE_GAP_ROLE, GapConnParams, GAP_SCAN_TYPE, GAP_SCAN_MODE, \
@@ -221,8 +222,8 @@ class BleCentral(BleDeviceBase):
     def scan_start(self,
                    type: GAP_SCAN_TYPE,
                    mode: GAP_SCAN_MODE,
-                   interval: int,
-                   window: int,
+                   interval_ms: int,
+                   window_ms: int,
                    filt_wlist: bool,
                    filt_dupl: bool
                    ) -> BLE_ERROR:
@@ -231,25 +232,25 @@ class BleCentral(BleDeviceBase):
         This call initiates a scan procedure. The scan duration depends on the scan mode selected.
         In General-discoverable and Limited-discoverable modes, the scan will stop after 10s of activity.
         In Observer mode, the scan operation will continue until it is stopped using ble_gap_scan_stop().
-        The scan `interval` and `window` can be set in steps of 0.625ms. Allowed values for `interval`
-        span in the range of 0x4 (2.5ms) to 0x4000 (10.24s).
+        Allowed values for `interval_ms` span in the range of 2.5ms to 10.24s.
 
         :param type: active or passive scanning
         :type type: GAP_SCAN_TYPE
         :param mode: scan for General-discoverable, Limited-discoverable or for all devices
         :type mode: GAP_SCAN_MODE
-        :param interval: scan interval in steps of 0.625ms
-        :type interval: int
-        :param window: _description_
-        :type window: int
+        :param interval_ms: scan interval in milliseconds
+        :type interval_ms: int
+        :param window_ms: scan window in milliseconds
+        :type window_ms: int
         :param filt_wlist: enable or disable white list filtering, defaults to False
         :type filt_wlist: bool
-        :param filt_dupl: nable or disable filtering of duplicates
+        :param filt_dupl: enable or disable filtering of duplicates
         :type filt_dupl: bool
         :return: result code
         :rtype: BLE_ERROR
         """
-
+        interval = BleConvert.scan_interval_from_ms(interval_ms)
+        window = BleConvert.scan_window_from_ms(window_ms)
         return self._ble_gap.scan_start(type, mode, interval, window, filt_wlist, filt_dupl)
 
     def start(self) -> BLE_ERROR:

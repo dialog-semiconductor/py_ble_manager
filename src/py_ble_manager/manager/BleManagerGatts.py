@@ -124,7 +124,7 @@ class BleManagerGatts(BleManagerBase):
             rwperm.enc_key_size |= ATTM_ENC_KEY_SIZE_16_BYTES.YES
 
         if uuid_type == ATT_UUID_TYPE.ATT_UUID_128:
-            rwperm.uuid_len |= ATTM_UUID_LEN.BITS_128  # TODO confusing which ATT/ATTM is coming from ..where. Consider renaming
+            rwperm.uuid_len |= ATTM_UUID_LEN.BITS_128
 
         return rwperm
 
@@ -246,8 +246,7 @@ class BleManagerGatts(BleManagerBase):
     def read_value_req_evt_handler(self, gtl: GattcReadReqInd):
         evt = BleEventGattsReadReq(self._task_to_connidx(gtl.src_id))
         evt.handle = gtl.parameters.handle
-        evt.offset = 0  # // stack always requires full value  # TODO I don't know what this means
-
+        evt.offset = 0
         self._mgr_event_queue_send(evt)
 
     def send_event_cmd_handler(self, command: BleMgrGattsSendEventCmd):

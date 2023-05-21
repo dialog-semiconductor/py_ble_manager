@@ -89,9 +89,7 @@ class BleController():
 
     def ble_task(self):
 
-        self.services = ble.SearchableQueue()
-
-        # initalize central device
+        # initialize central device
         self.central = ble.BleCentral(self.com_port, gtl_debug=False)
         self.central.init()
         self.central.start()
@@ -101,9 +99,9 @@ class BleController():
         self._command_task.daemon = True
         self._command_task.start()
 
-        self._evnt_task = threading.Thread(target=self._event_queue_task)
-        self._evnt_task.daemon = True
-        self._evnt_task.start()
+        self._event_task = threading.Thread(target=self._event_queue_task)
+        self._event_task.daemon = True
+        self._event_task.start()
 
         self._exit.wait()
 
@@ -126,8 +124,8 @@ class BleController():
                 case 'GAPSCAN':
                     error = self.central.scan_start(ble.GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
                                                     ble.GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
-                                                    160,
-                                                    80,
+                                                    100,
+                                                    50,
                                                     False,
                                                     True)
 
@@ -192,10 +190,10 @@ class BleController():
                     if len(args) == 6:
                         conn_idx = int(args[1])
                         conn_params = ble.GapConnParams()
-                        conn_params.interval_min = int(args[2])
-                        conn_params.interval_max = int(args[3])
+                        conn_params.interval_min_ms = int(args[2])
+                        conn_params.interval_max_ms = int(args[3])
                         conn_params.slave_latency = int(args[4])
-                        conn_params.sup_timeout = int(args[5])
+                        conn_params.sup_timeout_ms = int(args[5])
                         error = self.central.conn_param_update(conn_idx, conn_params)
 
                 case 'GAPPAIR':
@@ -236,7 +234,7 @@ class BleController():
             case ble.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED:
                 self.handle_evt_gap_connected(evt)
             case ble.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED:
-                self.handle_evt_gap_connection_compelted(evt)
+                self.handle_evt_gap_connection_completed(evt)
             case ble.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED:
                 self.handle_evt_gap_disconnected(evt)
             case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_SVC:
@@ -252,7 +250,7 @@ class BleController():
             case ble.BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATED:
                 self.handle_evt_gap_conn_param_updated(evt)
             case ble.BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATE_COMPLETED:
-                self.handle_evt_gap_conn_param_update_compelted(evt)
+                self.handle_evt_gap_conn_param_update_completed(evt)
             case ble.BLE_EVT_GAP.BLE_EVT_GAP_PAIR_REQ:
                 self.handle_evt_gap_pair_req(evt)
             case ble.BLE_EVT_GAP.BLE_EVT_GAP_PAIR_COMPLETED:
@@ -270,7 +268,7 @@ class BleController():
             case ble.BLE_EVT_GAP.BLE_EVT_GAP_NUMERIC_REQUEST:
                 self.handle_evt_gap_numeric_request(evt)
             case _:
-                print(f"Ble Task unhandled event: {evt}")
+                # print(f"Ble Task unhandled event: {evt}")
                 self.central.handle_event_default(evt)
 
     def handle_evt_gap_address_resolved(self, evt: ble.BleEventGapAddressResolved):
@@ -278,19 +276,19 @@ class BleController():
 
     def handle_evt_gap_adv_report(self, evt: ble.BleEventGapAdvReport):
 
-        print(f"Advertisment: address={ble.BleUtils.bd_addr_to_str(evt.address)} "
+        print(f"Advertisement: address={ble.BleUtils.bd_addr_to_str(evt.address)} "
               + f"rssi={evt.rssi}, data={evt.data.hex()}")
 
     def handle_evt_gap_connected(self, evt: ble.BleEventGapConnected):
         print(f"Connected to: addr={ble.BleUtils.bd_addr_to_str(evt.peer_address)}, conn_idx={evt.conn_idx}")
 
-    def handle_evt_gap_connection_compelted(self, evt: ble.BleEventGapConnectionCompleted):
+    def handle_evt_gap_connection_completed(self, evt: ble.BleEventGapConnectionCompleted):
         print(f"Connection completed: status={evt.status.name}")
 
     def handle_evt_gap_conn_param_updated(self, evt: ble.BleEventGapConnParamUpdated):
         print(f"Connection Parameters updated: conn_idx={evt.conn_idx}, conn_params={evt.conn_params}")
 
-    def handle_evt_gap_conn_param_update_compelted(self, evt: ble.BleEventGapConnParamUpdateCompleted):
+    def handle_evt_gap_conn_param_update_completed(self, evt: ble.BleEventGapConnParamUpdateCompleted):
         print(f"Connection Parameters update completed: status={evt.status.name}")
 
     def handle_evt_gap_disconnected(self, evt: ble.BleEventGapDisconnected):
@@ -300,7 +298,7 @@ class BleController():
         print(f"Numeric Request: conn_idx={evt.conn_idx}, num_key={evt.num_key}")
 
     def handle_evt_gap_pair_completed(self, evt: ble.BleEventGapPairCompleted):
-        print(f"Pairing compelte: conn_idx={evt.conn_idx}, bond={evt.bond}, mitm={evt.mitm}, status={evt.status.name}")
+        print(f"Pairing complete: conn_idx={evt.conn_idx}, bond={evt.bond}, mitm={evt.mitm}, status={evt.status.name}")
 
     def handle_evt_gap_pair_req(self, evt: ble.BleEventGapPairReq):
         print(f"Pair Request: evt={evt}")
@@ -322,7 +320,7 @@ class BleController():
         print(f"Security level changed: sec_level={evt.level.name}")
 
     def handle_evt_gattc_browse_completed(self, evt: ble.BleEventGattcBrowseCompleted):
-        print(f"Browsing complete: conn_idx={evt.conn_idx}, evt={evt.status}")
+        print(f"Browsing complete: conn_idx={evt.conn_idx}, evt={evt.status.name}")
 
     def handle_evt_gattc_browse_svc(self, evt: ble.BleEventGattcBrowseSvc):
 
@@ -390,4 +388,4 @@ if __name__ == "__main__":
     try:
         main(args.com_port)
     except KeyboardInterrupt:
-        print("Keyborard")
+        pass

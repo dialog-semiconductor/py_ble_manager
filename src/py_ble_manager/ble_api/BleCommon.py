@@ -44,6 +44,13 @@ class BLE_EVT_CAT(IntEnum):
     BLE_EVT_CAT_L2CAP = auto()
 
 
+class BLE_EVT_COMMON(IntEnum):
+    """BLE Common events
+    """
+    # Connection established
+    BLE_EVT_RESET_COMPLETED = BLE_EVT_CAT.BLE_EVT_CAT_COMMON << 8
+
+
 class BLE_EVT_GAP(IntEnum):
     """BLE GAP events
     """
@@ -224,6 +231,7 @@ class BLE_HCI_ERROR(IntEnum):
     BLE_HCI_ERROR_CONN_FAILED_TO_BE_EST = 0x3E  # Connection failed to be established
     BLE_HCI_ERROR_MAC_CONNECTION_FAILED = 0x3F  # MAC connection failed
     BLE_HCI_ERROR_COARSE_CLK_ADJUST_REJECTED = 0x40  # Coarse clock adjustment rejected but will try to adjust using clock dragging
+    BLE_HCI_ERROR_UNKNOWN = auto()
 
 
 class BLE_OWN_ADDR_TYPE(IntEnum):
@@ -293,6 +301,20 @@ class BleEventBase():
         return_string += ")"
 
         return return_string
+
+
+class BleEventResetCompleted(BleEventBase):
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_COMMON.BLE_EVT_RESET_COMPLETED` event
+
+    :ivar evt_code: event code
+    :ivar status: event status
+    """
+
+    def __init__(self,
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_COMMON.BLE_EVT_RESET_COMPLETED)
+        self.status = status
 
 
 class Irk():

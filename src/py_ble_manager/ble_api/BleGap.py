@@ -1,13 +1,13 @@
 from enum import IntEnum, auto
 from ..ble_api.BleCommon import BleEventBase, BdAddress, BLE_ERROR, BLE_EVT_GAP, BLE_HCI_ERROR
-
+from ..gtl_port.co_bt import ADV_DATA_LEN
 
 BLE_CONN_IDX_INVALID = 0xFFFF
 BLE_GAP_MAX_BONDED = 8      # (defaultBLE_MAX_BONDED) TODO defaultBLE_MAX_BONDED defined in ble_config.h # TODO this will be different for 531 vs 695
 BLE_ENC_KEY_SIZE_MAX = 16
-ADV_DATA_LEN = 31  # TODO get this from co_bt.h
 BLE_ADV_DATA_LEN_MAX = ADV_DATA_LEN - 3
 BLE_NON_CONN_ADV_DATA_LEN_MAX = ADV_DATA_LEN
+SCAN_RSP_DATA_LEN = ADV_DATA_LEN
 
 
 class ADV_FILT_POL():
@@ -74,7 +74,7 @@ class BLE_GAP_APPEARANCE(IntEnum):
     BLE_GAP_APPEARANCE_LAST = auto()
 
 
-class BLE_GAP_CONN_MODE(IntEnum):  # TODO remove BLE_ prefix?
+class GAP_CONN_MODE(IntEnum):
     """GAP connectivity modes
     """
     GAP_CONN_MODE_NON_CONN = 0  # Non-connectable mode
@@ -86,6 +86,7 @@ class BLE_GAP_CONN_MODE(IntEnum):  # TODO remove BLE_ prefix?
 class BLE_GAP_PHY(IntEnum):
     """GAP PHY type
     """
+    BLE_GAP_PHY_PREF_AUTO = 0x00  # No PHY preference
     BLE_GAP_PHY_1M = 0x01  # Bit rate of 1 megabit per second (Mb/s)
     BLE_GAP_PHY_2M = 0x02  # Bit rate of 2 megabit per second (Mb/s)
     BLE_GAP_PHY_CODED = 0x03  # LE Coded PHY (bit rate of 125 or 500 Kbit/s)
@@ -103,6 +104,32 @@ class BLE_GAP_ROLE(IntEnum):
                      | GAP_BROADCASTER_ROLE
                      | GAP_CENTRAL_ROLE
                      | GAP_PERIPHERAL_ROLE)
+
+
+class GAP_ADV_CHANNEL(IntEnum):
+    """_summary_
+    Channels used for advertising
+    """
+    GAP_ADV_CHANNEL_37 = 0x01     # Advertising Channel 37 (2402MHz)
+    GAP_ADV_CHANNEL_38 = 0x02     # Advertising Channel 38 (2426MHz)
+    GAP_ADV_CHANNEL_39 = 0x04     # Advertising Channel 39 (2480MHz)
+
+
+# Designed for 1:1 with ADV_HCI_TYPE
+class GAP_ADV_TYPE(IntEnum):
+    """GAP Advertising Type
+    """
+
+    # Connectable Undirected advertising
+    CONN_UNDIR = 0x00
+    # Connectable high duty cycle directed advertising
+    CONN_DIR = auto()
+    # Discoverable undirected advertising
+    DISC_UNDIR = auto()
+    # Non-connectable undirected advertising
+    NONCONN_UNDIR = auto()
+    # Connectable low duty cycle directed advertising
+    CONN_DIR_LDC = auto()
 
 
 class GAP_DATA_TYPE(IntEnum):
@@ -255,37 +282,36 @@ class GapChnlMap():
 
 
 class GapConnParams():
-    # TODO description of BLE slots
     """ GAP connection parameters
 
-    :ivar interval_min: connection interval minimum, in slots
-    :ivar interval_max: connection interval minimum, in slots
+    :ivar interval_min_ms: connection interval minimum in milliseconds
+    :ivar interval_max_ms: connection interval minimum in milliseconds
     :ivar slave_latency: slave latency, in number of events
-    :ivar sup_timeout: supervision timeout, in slots
+    :ivar sup_timeout_ms: supervision timeout in milliseconds
     """
 
     def __init__(self, interval_min_ms: int = 0, interval_max_ms: int = 0, slave_latency: int = 0, sup_timeout_ms: int = 0) -> None:
-        self.interval_min = interval_min_ms * 100 // 125  # Minimum connection interval
-        self.interval_max = interval_max_ms * 100 // 125  # Maximum connection interval
+        self.interval_min_ms = interval_min_ms  # Minimum connection interval
+        self.interval_max_ms = interval_max_ms  # Maximum connection interval
         self.slave_latency = slave_latency  # Slave latency
-        self.sup_timeout = sup_timeout_ms // 10  # Supervision timeout
+        self.sup_timeout_ms = sup_timeout_ms  # Supervision timeout
 
     def __repr__(self) -> str:
 
-        return f"{type(self).__name__}(interval_min={self.interval_min}, interval_max={self.interval_max} " + \
-            f" slave_latency={self.slave_latency}, sup_timeout={self.sup_timeout})"
+        return f"{type(self).__name__}(interval_min_ms={self.interval_min_ms}, interval_max_ms={self.interval_max_ms} " + \
+            f" slave_latency={self.slave_latency}, sup_timeout_ms={self.sup_timeout_ms})"
 
 
 class GapScanParams():
     """GAP scan parameters
 
-    :ivar interval: scan interval in steps of 0.625ms
-    :ivar window: scan window in steps of 0.625ms
+    :ivar interval_ms: scan interval in milliseconds
+    :ivar window: scan window in milliseconds
     """
 
-    def __init__(self, interval: int = 0, window: int = 0) -> None:
-        self.interval = interval  # Scan interval
-        self.window = window  # Scan window
+    def __init__(self, interval_ms: int = 0, window_ms: int = 0) -> None:
+        self.interval_ms = interval_ms  # Scan interval
+        self.window_ms = window_ms  # Scan window
 
 
 class BleAdvData():
@@ -319,6 +345,39 @@ class BleAdvData():
         return return_string
 
 
+class BleEventGapAddressResolutionFailed(BleEventBase):
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_ADDRESS_RESOLUTION_FAILED` event
+
+    :ivar evt_code: event code
+    :ivar status: event status
+    """
+    def __init__(self,
+                 status: BLE_ERROR = BLE_ERROR.BLE_STATUS_OK
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_ADDRESS_RESOLUTION_FAILED)
+        self.status = status  # Completion status
+
+
+class BleEventGapAddressResolved(BleEventBase):
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_ADDRESS_RESOLVED` event
+
+    :ivar evt_code: event code
+    :ivar conn_idx: connection index
+    :ivar resolved_address: static address
+    :ivar address: random address
+    """
+
+    def __init__(self,
+                 conn_idx: int = 0,
+                 resolved_address: BdAddress = None,
+                 address: BdAddress = None,
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_ADDRESS_RESOLVED)
+        self.conn_idx = conn_idx
+        self.resolved_address = resolved_address if resolved_address else BdAddress()
+        self.address = address if address else BdAddress()
+
+
 class BleEventGapAdvCompleted(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_ADV_COMPLETED` event
 
@@ -327,7 +386,7 @@ class BleEventGapAdvCompleted(BleEventBase):
     :ivar status: event status
     """
     def __init__(self,
-                 adv_type: BLE_GAP_CONN_MODE = BLE_GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED,
+                 adv_type: GAP_CONN_MODE = GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED,
                  status: BLE_ERROR = BLE_ERROR.BLE_STATUS_OK
                  ) -> None:
         super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_ADV_COMPLETED)
@@ -346,7 +405,7 @@ class BleEventGapAdvReport(BleEventBase):
     """
 
     def __init__(self,
-                 type: int = 0,  # TODO is there an enum for this?
+                 type: GAP_ADV_TYPE = GAP_ADV_TYPE.CONN_UNDIR,
                  address: BdAddress = None,
                  rssi: int = 0,
                  data: bytes = None
@@ -377,26 +436,6 @@ class BleEventGapConnected(BleEventBase):
         self.own_addr = own_addr if own_addr else BdAddress()
         self.peer_address = peer_address if peer_address else BdAddress()
         self.conn_params = conn_params if conn_params else GapConnParams()
-
-
-class BleEventGapAddressResolved(BleEventBase):
-    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_ADDRESS_RESOLVED` event
-
-    :ivar evt_code: event code
-    :ivar conn_idx: connection index
-    :ivar resolved_address: static address
-    :ivar address: random address
-    """
-
-    def __init__(self,
-                 conn_idx: int = 0,
-                 resolved_address: BdAddress = None,
-                 address: BdAddress = None,
-                 ) -> None:
-        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_ADDRESS_RESOLVED)
-        self.conn_idx = conn_idx
-        self.resolved_address = resolved_address if resolved_address else BdAddress()
-        self.address = address if address else BdAddress()
 
 
 class BleEventGapConnectionCompleted(BleEventBase):
@@ -462,6 +501,22 @@ class BleEventGapConnParamUpdated(BleEventBase):
         super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATED)
         self.conn_idx = conn_idx
         self.conn_params = conn_params if conn_params else GapConnParams()
+
+
+class BleEventGapDataLengthSetFailed(BleEventBase):
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DATA_LENGTH_SET_FAILED` event
+
+    :ivar evt_code: event code
+    :ivar conn_idx: connection index
+    :ivar status: event status
+    """
+    def __init__(self,
+                 conn_idx: int = 0,
+                 status: BLE_ERROR = BLE_ERROR.BLE_STATUS_OK
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_DATA_LENGTH_SET_FAILED)
+        self.conn_idx = conn_idx  # Connection index
+        self.status = status  # Completion status
 
 
 class BleEventGapLtkMissing(BleEventBase):
