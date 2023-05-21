@@ -440,11 +440,10 @@ class gap_slv_pref(LittleEndianStructure):
 class gap_bdaddr(LittleEndianStructure):
     def __init__(self,
                  addr: bd_addr = bd_addr(),
-                 # TODO: NOTE 1 Was below:
+                 # NOTE:
                  # addr_type: GAPM_ADDR_TYPE = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PUBLIC):
-                 # Changed to generic c_types to avoid moving enum into this file or creating circular ref.
-                 # When creating a gap_bdaddr assure it is a GAPM_ADDR_TYPE in the file using it??? Is there a different kind of gap_bdaddr?
-                 addr_type: c_uint8 = 0  # TODO is there an enum for this addr_type? 0 = public, 1 = random
+                 # Changed addr_type to generic c_type to avoid moving enum into this file or creating circular ref.
+                 addr_type: c_uint8 = 0  # 0 = public, 1 = random (private)
                  ):
         self.addr = addr
         self.addr_type = addr_type
@@ -472,9 +471,11 @@ class gap_sec_key(LittleEndianStructure):
 # Resolving list device information
 class gap_ral_dev_info:
 
-    # TODO: See NOTE 1
     def __init__(self,
-                 addr_type: c_uint8 = 0,
+                 # NOTE:
+                 # addr_type: GAPM_ADDR_TYPE = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PUBLIC):
+                 # Changed addr_type to generic c_type to avoid moving enum into this file or creating circular ref.
+                 addr_type: c_uint8 = 0,  # 0 = public, 1 = random (private)
                  addr: Array = (c_uint8 * BD_ADDR_LEN)(),
                  peer_irk: Array = (c_uint8 * KEY_LEN)(),
                  local_irk: Array = (c_uint8 * KEY_LEN)()):
