@@ -268,7 +268,7 @@ class BleController():
             case ble.BLE_EVT_GAP.BLE_EVT_GAP_NUMERIC_REQUEST:
                 self.handle_evt_gap_numeric_request(evt)
             case _:
-                print(f"Ble Task unhandled event: {evt}")
+                # print(f"Ble Task unhandled event: {evt}")
                 self.central.handle_event_default(evt)
 
     def handle_evt_gap_address_resolved(self, evt: ble.BleEventGapAddressResolved):
