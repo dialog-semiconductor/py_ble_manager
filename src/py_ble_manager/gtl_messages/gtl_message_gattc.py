@@ -405,7 +405,6 @@ class GattcSdpSvcInd(GtlMessageBase):
         param_string += '), '
         return param_string
 
-    # TODO Cannot find way to handle gattc_sdp_svc_ind elegantly. Should to str method be created for union as well?
     def _struct_to_bytearray(self, parameters: gattc_sdp_svc_ind):
         message = bytearray()
         message.extend(parameters.uuid_len.to_bytes(length=1, byteorder='little'))
@@ -487,7 +486,6 @@ class GattcReadCmd(GtlMessageBase):
         param_string += '), '  # ,space This will be removed by __repr__ in GtlMessageBase
         return param_string
 
-    # TODO Cannot find way to handle gattc_read_cmd elegantly. Should to str method be created for union as well?
     def _struct_to_bytearray(self, parameters: gattc_read_cmd):
         message = bytearray()
         message.extend(parameters.operation.to_bytes(length=1, byteorder='little'))

@@ -93,7 +93,7 @@ class GapcBondReqInd(GtlMessageBase):
 
     def __init__(self, conidx: c_uint8 = 0, parameters: gapc_bond_req_ind = None):
 
-        self.parameters = parameters if parameters else gapc_bond_req_ind()  # TODO _struct_to_str for Union
+        self.parameters = parameters if parameters else gapc_bond_req_ind()
 
         super().__init__(msg_id=GAPC_MSG_ID.GAPC_BOND_REQ_IND,
                          dst_id=KE_API_ID.TASK_ID_GTL,
@@ -359,7 +359,6 @@ class GapcGetDevInfoReqInd(GtlMessageBase):
 
 class GapcGetDevInfoCfm(GtlMessageBase):
 
-    # TODO struct_to_Str for this class does not work properly because of union
     def __init__(self, conidx: c_uint8 = 0, parameters: gapc_get_dev_info_cfm = None):
 
         self.parameters = parameters if parameters else gapc_get_dev_info_cfm()
@@ -413,7 +412,6 @@ class GapcGetDevInfoCfm(GtlMessageBase):
         param_string += '), '  # ,space This will be removed by __repr__ in GtlMessageBase
         return param_string
 
-    # TODO issue converting Union to bytearray, revisit to see if generalizeable
     def _struct_to_bytearray(self, struct: gapc_get_dev_info_cfm):
 
         return_array = bytearray()
@@ -479,6 +477,3 @@ class GapcPeerVersionInd(GtlMessageBase):
                          src_id=((conidx << 8) | KE_API_ID.TASK_ID_GAPC),
                          par_len=6,
                          parameters=self.parameters)
-
-
-# TODO rest of sdk uses conn_idx instead of conidx

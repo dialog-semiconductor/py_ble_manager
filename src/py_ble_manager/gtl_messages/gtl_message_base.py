@@ -84,8 +84,6 @@ class GtlMessageBase():
         # Expect a ctypes structure
         if struct:
 
-            # TODO how to handle union
-
             # for each field in the structure
             for field in struct._fields_:
                 # get the attribute for that field
@@ -96,7 +94,6 @@ class GtlMessageBase():
                     param_string += f'{field[0]}={type(sub_attr).__name__}'
                     param_string += self._struct_to_str(sub_attr)
 
-                # TODO for next two elif statements, need to handle arrays of objects, not just native ctypes
                 # if sub_attribute is pointer, cast to array and treat the same
                 elif sub_attr and hasattr(sub_attr, 'contents'):
                     public_field_name = field[0].split('_')[1]
@@ -122,22 +119,7 @@ class GtlMessageBase():
         # Expect a ctypes structure
         if struct:
 
-            # TODO workaround for now that need to revisit. this only works if union does not have a pointer with a subfield that is also a pointer
-            '''
-            if issubclass(type(struct), Union):
-                has_pointer = False
-                for field in struct._fields_:
-                    sub_attr = getattr(struct, field[0])
-                    if sub_attr and hasattr(sub_attr, 'contents'):
-                        has_pointer = True
-                        pointer_public_field_name = field[0].split('_')[1]
-
-                if has_pointer:
-                    underlying_array = getattr(struct, pointer_public_field_name)
-                    return bytearray(underlying_array)
-                else:
-                    return bytearray(struct)
-            '''
+            # workaround for now that need to revisit. this only works if union does not have a pointer with a subfield that is also a pointer
             if issubclass(type(struct), Union):
                 return bytearray(struct)
 
