@@ -52,9 +52,10 @@ class BleManagerCommon(BleManagerBase):
             '''
 
             # Clear waitqueue (does not call waitqueue callback functions)
-            self._wait_queue_flush_all()
+            # self._wait_queue_flush_all()  # TODO this causing issue as this function called on wait q match so wait q is locked
 
             # TODO
+            self.dev_params_acquire()
             # Set default device parameters
             # dev_params = self.dev_params_acquire()
             # dev_params = BleDevParamsDefault()
@@ -70,6 +71,7 @@ class BleManagerCommon(BleManagerBase):
 
     def reset_cmd_handler(self, command: BleMgrCommonResetCmd):
         self._set_status(BLE_STATUS.BLE_IS_RESET)
+        # TODO this does not go on GTL wait q, it goes on AD msg wait q
         self._wait_queue_add(BLE_CONN_IDX_INVALID, GAPM_MSG_ID.GAPM_CMP_EVT, GAPM_OPERATION.GAPM_RESET, self._reset_rsp_handler, None)
         gtl = GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
         self._adapter_command_queue_send(gtl)
