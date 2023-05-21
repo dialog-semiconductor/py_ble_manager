@@ -296,16 +296,8 @@ class GAPM_OPERATION(IntEnum):
     # Set Network Privacy Mode for peer in resolving list (ESR10)
     GAPM_DEVICE_MODE_RAL = auto()
 
-# TODO is GAPM_KEY_RENEW different value on 531?
-# if !defined (__DA14531__)
-    # We wanted to add one more opcode (GAPM_KEY_RENEW) and this
-    # should go on all existing platforms. But since 690 already has
-    # added one opcode here, we need some kind of sync
-    GAPM_DUMMY = auto()
-# endif
-
     # Implemented as a subcase of reset. Renews our private/public key.
-    GAPM_KEY_RENEW = auto()
+    GAPM_KEY_RENEW = auto()  # TODO 690 does not have GAPM_KEY_RENEW, has GAPM_SET_DEFAULT_PHY here
 
     # Last GAPM operation flag
     GAPM_LAST = auto()
@@ -318,7 +310,7 @@ class GAPM_ADDR_TYPE(IntEnum):
     GAPM_CFG_ADDR_PUBLIC = 0
     # Device Address is a Random Static address
     GAPM_CFG_ADDR_PRIVATE = auto()
-    GAPM_CFG_ADDR_STATIC = GAPM_CFG_ADDR_PRIVATE  # TODO: this is an alias, will not show as member
+    GAPM_CFG_ADDR_STATIC = GAPM_CFG_ADDR_PRIVATE  # note: this is an alias, will not show as member
     # Device Address generated using Privacy feature in Host
     GAPM_CFG_ADDR_PRIVACY = auto()
     # Device Address generated using Privacy feature in Controller
@@ -347,7 +339,7 @@ class GAPM_WRITE_ATT_PERM(IntEnum):
     # Write access requires authenticated link
     GAPM_WRITE_AUTH = 0x18
     # Write access requires secure connection authenticated link
-    # TODO: not documented in GTL doc
+    # note: secure not documented in GTL doc or in 690 SDK
     # GAPM_WRITE_SECURE   = PERM(WR, SECURE)
 
 
@@ -365,8 +357,8 @@ class GAPM_WRITE_ATT_PERM(IntEnum):
 class gapm_att_cfg_flag(LittleEndianStructure):
 
     def __init__(self,
-                 dev_name_perm: ATTM_PERM = ATTM_PERM.DISABLE,  # TODO manual says GAPM_WRITE_ but does not align with bits
-                 dev_appear_perm: ATTM_PERM = ATTM_PERM.DISABLE,  # TODO manual says GAPM_WRITE_ but does not align with bits
+                 dev_name_perm: ATTM_PERM = ATTM_PERM.DISABLE,
+                 dev_appear_perm: ATTM_PERM = ATTM_PERM.DISABLE,
                  slv_perf_conn_params_present: c_bool = False,
                  svc_chg_present: c_bool = False,
                  enable_debug: c_bool = False):
@@ -665,7 +657,7 @@ struct gapm_dev_adv_tx_power_ind
 
 # Cancel ongoing operation
 class gapm_cancel_cmd(LittleEndianStructure):
-    def __init__(self) -> None:  # TODO RWBLE_SW_VERSION_MAJOR >= 9 supports additional cancel commands
+    def __init__(self) -> None:  # TODO RWBLE_SW_VERSION_MAJOR >= 9 supports additional cancel commands, but could cause issue with GAPM_KEY_RENEW on 531
         self.operation = GAPM_OPERATION.GAPM_CANCEL
         super().__init__(operation=self.operation)
 
@@ -1265,7 +1257,7 @@ class gapm_profile_task_add_cmd(LittleEndianStructure):
 
     def set_param(self, new_param: Array[c_uint32]):
         self._param = new_param if new_param else (c_uint32 * 1)()
-        # TODO how to know length of param
+        # how to know length of param?
         self.param_len = len(new_param) if new_param else 1  # This wont work as not saved as part of structure
 
     param = property(get_param, set_param)
