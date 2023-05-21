@@ -536,7 +536,7 @@ class BleManagerGap(BleManagerBase):
         dev_params.connecting = False
         self.dev_params_release()
 
-        if gtl.parameters.status == HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
+        if gtl.parameters.status != HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
             self.storage_acquire()
             dev = self._stored_device_list.find_device_by_connenting()
             if dev:
@@ -551,6 +551,8 @@ class BleManagerGap(BleManagerBase):
             case HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
                 evt.status = BLE_ERROR.BLE_STATUS_OK
             case HOST_STACK_ERROR_CODE.GAP_ERR_CANCELED:
+                evt.status = BLE_ERROR.BLE_ERROR_CANCELED
+            case HOST_STACK_ERROR_CODE.GAP_ERR_COMMAND_DISALLOWED:
                 evt.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
             case HOST_STACK_ERROR_CODE.GAP_ERR_INVALID_PARAM:
                 evt.status = BLE_ERROR.BLE_ERROR_INVALID_PARAM
@@ -1224,7 +1226,6 @@ class BleManagerGap(BleManagerBase):
 
         self._mgr_event_queue_send(evt)
 
-    # TODO need to test
     def connect_cancel_cmd_handler(self, command: BleMgrGapConnectCancelCmd):
         response = BleMgrGapConnectCancelRsp(BLE_ERROR.BLE_ERROR_FAILED)
         dev_params = self.dev_params_acquire()
