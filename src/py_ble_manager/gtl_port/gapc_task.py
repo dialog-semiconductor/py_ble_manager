@@ -1480,21 +1480,37 @@ struct gapc_set_le_ping_to_cmd
     # Authenticated payload timeout
     uint16_t     timeout;
 };
+'''
 
-# Parameters of the @ref GAPC_SET_LE_PKT_SIZE_CMD message
-struct gapc_set_le_pkt_size_cmd
-{
-    # GAP request type:
-    # - GAPC_SET_LE_PKT_SIZE : Set the LE Data length value
-    uint8_t operation;
-    # Preferred maximum number of payload octets that the local Controller should include
-    # in a single Link Layer Data Channel PDU.
-    uint16_t tx_octets;
-    # Preferred maximum number of microseconds that the local Controller should use to transmit
-    # a single Link Layer Data Channel PDU
-    uint16_t tx_time;
-};
 
+class gapc_set_le_pkt_size_cmd(LittleEndianStructure):
+
+    def __init__(self,
+                 tx_octets: c_uint16 = 0,
+                 tx_time: c_uint16 = 0
+                 ):
+
+        self.operation = GAPC_OPERATION.GAPC_SET_LE_PKT_SIZE
+        self.tx_octets = tx_octets
+        self.tx_time = tx_time
+        super().__init__(operation=self.operation,
+                         padding=0,
+                         tx_octets=self.tx_octets,
+                         tx_time=self.tx_time)
+
+                # GAP request type:
+                # - GAPC_SET_LE_PKT_SIZE : Set the LE Data length value
+    _fields_ = [("operation", c_uint8),
+                ("padding", c_uint8),
+                # Preferred maximum number of payload octets that the local Controller should include
+                # in a single Link Layer Data Channel PDU.
+                ("tx_octets", c_uint16),
+                # Preferred maximum number of microseconds that the local Controller should use to transmit
+                # a single Link Layer Data Channel PDU
+                ("tx_time", c_uint16)]
+
+
+'''
 # Parameters of the @ref GAPC_LE_PKT_SIZE_IND message
 struct gapc_le_pkt_size_ind
 {
