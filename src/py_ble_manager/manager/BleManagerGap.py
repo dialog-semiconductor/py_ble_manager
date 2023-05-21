@@ -466,7 +466,7 @@ class BleManagerGap(BleManagerBase):
             else:
                 self._stored_device_list.remove(dev)
 
-            self._wait_queue_flush(conn_idx)
+            self._gtl_wait_queue_flush(conn_idx)
             # if (dg_configBLE_SKIP_LATENCY_API == 1)
             # Clear skip slave latency setting
             # ble_mgr_skip_latency_set(conn_idx, false);
@@ -701,7 +701,7 @@ class BleManagerGap(BleManagerBase):
         # copy_data.index = 0;
         # device_foreach(irk_copy_cb, &copy_data);
 
-        self._wait_queue_add(BLE_CONN_IDX_INVALID,
+        self._gtl_wait_queue_add(BLE_CONN_IDX_INVALID,
                              GAPM_MSG_ID.GAPM_CMP_EVT,
                              GAPM_OPERATION.GAPM_RESOLV_ADDR,
                              self._gapm_address_resolve_complete,
@@ -1265,7 +1265,7 @@ class BleManagerGap(BleManagerBase):
         evt.conn_params.slave_latency = gtl.parameters.con_latency
         evt.conn_params.sup_timeout_ms = BleConvert.supervision_timeout_to_ms(gtl.parameters.sup_to)
 
-        # TODO if (dg_configBLE_SKIP_LATENCY_API == 1)
+        # TODO  LATENCY if (dg_configBLE_SKIP_LATENCY_API == 1)
         # ble_mgr_skip_latency_set(evt->conn_idx, false);
         # endif /* (dg_configBLE_SKIP_LATENCY_API == 1) */
 
@@ -1274,7 +1274,7 @@ class BleManagerGap(BleManagerBase):
         dev.conn_idx = evt.conn_idx
         dev.connected = True
         dev.mtu = ATT_DEFAULT_MTU
-        # TODO if (dg_configBLE_2MBIT_PHY == 1)
+        # TODO 2M_PHY if (dg_configBLE_2MBIT_PHY == 1)
         # dev.tx_phy = BLE_GAP_PHY.BLE_GAP_PHY_1M
         # dev.rx_phy = BLE_GAP_PHY.BLE_GAP_PHY_1M
         # endif /* (dg_configBLE_2MBIT_PHY == 1) */
@@ -1660,7 +1660,7 @@ class BleManagerGap(BleManagerBase):
     def role_set_cmd_handler(self, command: BleMgrGapRoleSetCmd):
         gtl = self._dev_params_to_gtl()
         gtl.parameters.role = self._ble_role_to_gtl_role(command.role)
-        self._wait_queue_add(BLE_CONN_IDX_INVALID,
+        self._gtl_wait_queue_add(BLE_CONN_IDX_INVALID,
                              GAPM_MSG_ID.GAPM_CMP_EVT,
                              GAPM_OPERATION.GAPM_SET_DEV_CONFIG,
                              self._set_role_rsp,
