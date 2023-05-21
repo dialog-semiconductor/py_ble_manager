@@ -518,6 +518,7 @@ class BleManagerGap(BleManagerBase):
                     gtl.parameters.peers[0].addr_type = command.peer_addr.addr_type
                     gtl.parameters.peers[0].addr.addr[:] = command.peer_addr.addr
 
+                    dev_params.connecting = True
                     dev.connecting = True
                     dev.ce_len_min = gtl.parameters.ce_len_min
                     dev.ce_len_max = gtl.parameters.ce_len_max
@@ -970,7 +971,7 @@ class BleManagerGap(BleManagerBase):
                     dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
                     if dev:
                         dev.secure = False
-                    # storage_mark_dirty(true); # TODO
+                    # storage_mark_dirty(true); # TODO STORAGE
                     self.storage_release()
 
                 evt.conn_idx = conn_idx
@@ -985,8 +986,7 @@ class BleManagerGap(BleManagerBase):
                     # case HOST_STACK_ERROR_CODE.SMP_ERROR_TIMEOUT:  # TODO additional SMP ERROR code sefined in smp_common.h
                     #    evt.status = BLE_ERROR.BLE_ERROR_TIMEOUT
                     case _:
-                        # evt.status = gtl.parameters.data.reason  # TODO this throws a ValueError if not a valid BLE_ERROR
-                        # need to be able to set a BLE_ERROR that is not defined
+                        # evt.status = gtl.parameters.data.reason  # this throws a ValueError if not a valid BLE_ERROR
                         evt.status = BLE_ERROR.BLE_ERROR_FAILED
 
                 evt.bond = False
@@ -1006,7 +1006,7 @@ class BleManagerGap(BleManagerBase):
                     dev.remote_ltk.ediv = gtl.parameters.data.ltk.ediv
                     dev.remote_ltk.key = bytes(gtl.parameters.data.ltk.ltk.key[:])
 
-                    # storage_mark_dirty(false); # TODO
+                    # storage_mark_dirty(false); # TODO STORAGE
                 self.storage_release()
 
             case GAPC_BOND.GAPC_CSRK_EXCH:
@@ -1018,7 +1018,7 @@ class BleManagerGap(BleManagerBase):
                     dev.remote_csrk.key = bytes(gtl.parameters.data.csrk.key[:])
                     dev.remote_csrk.sign_cnt = 0
 
-                    # storage_mark_dirty(false); # TODO
+                    # storage_mark_dirty(false); # TODO STORAGE
                 self.storage_release()
 
             case GAPC_BOND.GAPC_IRK_EXCH:
@@ -1045,7 +1045,7 @@ class BleManagerGap(BleManagerBase):
                     evt.conn_idx = conn_idx
                     self._mgr_event_queue_send(evt)
 
-                    # storage_mark_dirty(false); # TODO
+                    # storage_mark_dirty(false); # TODO STORAGE
                 self.storage_release()
 
     def bond_req_evt_handler(self, gtl: GapcBondReqInd):
@@ -1090,7 +1090,7 @@ class BleManagerGap(BleManagerBase):
 
                     dev.ltk.ediv = cfm.parameters.data.ltk.ediv
                     dev.ltk.key = bytes(cfm.parameters.data.ltk.ltk.key[:])
-                    # TODO storage_mark_dirty(false)
+                    # TODO storage_mark_dirty(false) STORAGE
                 self.storage_release()
                 self._adapter_command_queue_send(cfm)
 
@@ -1108,7 +1108,7 @@ class BleManagerGap(BleManagerBase):
                 if dev:
                     dev.csrk.key = bytes(cfm.parameters.data.csrk.key)
                     dev.csrk.sign_cnt = 0
-                    #  TODO storage_mark_dirty(false)
+                    #  TODO storage_mark_dirty(false) STORAGE
                 self.storage_release()
                 self._adapter_command_queue_send(cfm)
 
