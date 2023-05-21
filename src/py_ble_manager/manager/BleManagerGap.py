@@ -620,6 +620,7 @@ class BleManagerGap(BleManagerBase):
                              self._gapm_address_resolve_complete,
                              evt)
 
+        self._adapter_command_queue_send(cmd)
         return True
 
     def _scan_cmp_evt_handler(self, gtl: GapmCmpEvt) -> None:
@@ -1254,18 +1255,18 @@ class BleManagerGap(BleManagerBase):
         dev_params = self.dev_params_acquire()
         evt.own_addr.addr_type = dev_params.own_addr.addr_type
         evt.own_addr.addr = dev_params.own_addr.addr
-        # if (dg_configBLE_PRIVACY_1_2 == 1)
-        # evt.peer_address.addr_type = gtl.parameters.peer_addr_type & 0x01
-        # else
-        evt.peer_address.addr_type = BLE_ADDR_TYPE(gtl.parameters.peer_addr_type)
-        # endif
+        if self._ble_config.dg_configBLE_PRIVACY_1_2:
+            evt.peer_address.addr_type = BLE_ADDR_TYPE(gtl.parameters.peer_addr_type & 0x01)
+        else:
+            evt.peer_address.addr_type = BLE_ADDR_TYPE(gtl.parameters.peer_addr_type)
+
         evt.peer_address.addr = bytes(gtl.parameters.peer_addr.addr)
         evt.conn_params.interval_min_ms = BleConvert.conn_interval_to_ms(gtl.parameters.con_interval)
         evt.conn_params.interval_max_ms = BleConvert.conn_interval_to_ms(gtl.parameters.con_interval)
         evt.conn_params.slave_latency = gtl.parameters.con_latency
         evt.conn_params.sup_timeout_ms = BleConvert.supervision_timeout_to_ms(gtl.parameters.sup_to)
 
-        # if (dg_configBLE_SKIP_LATENCY_API == 1)
+        # TODO if (dg_configBLE_SKIP_LATENCY_API == 1)
         # ble_mgr_skip_latency_set(evt->conn_idx, false);
         # endif /* (dg_configBLE_SKIP_LATENCY_API == 1) */
 
@@ -1274,7 +1275,7 @@ class BleManagerGap(BleManagerBase):
         dev.conn_idx = evt.conn_idx
         dev.connected = True
         dev.mtu = ATT_DEFAULT_MTU
-        # if (dg_configBLE_2MBIT_PHY == 1)
+        # TODO if (dg_configBLE_2MBIT_PHY == 1)
         # dev.tx_phy = BLE_GAP_PHY.BLE_GAP_PHY_1M
         # dev.rx_phy = BLE_GAP_PHY.BLE_GAP_PHY_1M
         # endif /* (dg_configBLE_2MBIT_PHY == 1) */
@@ -1289,14 +1290,18 @@ class BleManagerGap(BleManagerBase):
                 # Initiate a Version Exchange
                 self._get_peer_version(evt.conn_idx)
 
-        # if (dg_configBLE_PRIVACY_1_2 == 1)
-        if dev_params.own_addr.addr_type != BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
-            # endif /* (dg_configBLE_PRIVACY_1_2 == 1) */
-            pass  # TODO needs to be same as resolve addr here
-
-        if self._resolve_address_from_connected_evt(gtl, evt):
-            dev.resolving = True
+        done = False
+        if self._ble_config.dg_configBLE_PRIVACY_1_2:
+            if dev_params.own_addr.addr_type != BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
+                if self._resolve_address_from_connected_evt(gtl, evt):
+                    dev.resolving = True
+                    done = True
         else:
+            if self._resolve_address_from_connected_evt(gtl, evt):
+                dev.resolving = True
+                done = True
+
+        if not done:
             self._mgr_event_queue_send(evt)
 
             cfm = GapcConnectionCfm(conidx=evt.conn_idx)
@@ -1305,9 +1310,9 @@ class BleManagerGap(BleManagerBase):
             if (self._ble_config.dg_configBLE_SECURE_CONNECTIONS == 1):
                 cfm.parameters.auth |= GAP_AUTH_MASK.GAP_AUTH_SEC if dev.secure else GAP_AUTH_MASK.GAP_AUTH_NONE
 
-            # if (RWBLE_SW_VERSION >= VERSION_8_1) # TODO
+            # if (RWBLE_SW_VERSION >= VERSION_8_1)
             cfm.parameters.auth |= GAPC_FIELDS_MASK.GAPC_LTK_MASK if dev.remote_ltk else GAP_AUTH_MASK.GAP_AUTH_NONE
-            # endif /* (RWBL
+            # endif /* (RWBLE_SW_VERSION >= VERSION_8_1)
             if dev.csrk.key != b'':
                 cfm.parameters.lsign_counter = dev.csrk.sign_cnt
                 cfm.parameters.lcsrk.key = (c_uint8 * KEY_LEN).from_buffer_copy(dev.csrk.key)
@@ -1342,7 +1347,6 @@ class BleManagerGap(BleManagerBase):
                 dev.discon_reason = gtl.parameters.reason
                 self.storage_release()
             else:
-                # TODO all these storage_release are convuluted. Workaround as _conn_cleanup acquires storage. Dont understand how SDK does not have issue here
                 self.storage_release()
                 self._conn_cleanup(conn_idx, gtl.parameters.reason)
         else:
