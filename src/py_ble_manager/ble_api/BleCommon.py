@@ -231,6 +231,7 @@ class BLE_HCI_ERROR(IntEnum):
     BLE_HCI_ERROR_CONN_FAILED_TO_BE_EST = 0x3E  # Connection failed to be established
     BLE_HCI_ERROR_MAC_CONNECTION_FAILED = 0x3F  # MAC connection failed
     BLE_HCI_ERROR_COARSE_CLK_ADJUST_REJECTED = 0x40  # Coarse clock adjustment rejected but will try to adjust using clock dragging
+    BLE_HCI_ERROR_UNKNOWN = auto()
 
 
 class BLE_OWN_ADDR_TYPE(IntEnum):
