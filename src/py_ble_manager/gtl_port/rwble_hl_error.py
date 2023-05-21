@@ -105,8 +105,9 @@ class HOST_STACK_ERROR_CODE(IntEnum):
     L2C_ERR_CONNECTION_LOST = 0x30
     # Invalid PDU length exceed MTU
     L2C_ERR_INVALID_MTU_EXCEED = 0x31
-# TODO need to handle conditional
-# if !defined (__DA14531__)  // DA14585, DA14586
+
+# not handling  DA14585, DA14586
+#if !defined (__DA14531__)  // DA14585, DA14586
     # Invalid MPS length exceed MTU
 #    L2C_ERR_INVALID_MPS_EXCEED        = 0x32
     # Invalid Channel ID
@@ -137,7 +138,7 @@ class HOST_STACK_ERROR_CODE(IntEnum):
 #    L2C_ERR_UNACCEPTABLE_PARAM        = 0x3F
 # else
 
-# TODO handle RWBLE_SW_VERSION_MAJOR
+# need to handle RWBLE_SW_VERSION_MAJOR
 
 # if (RWBLE_SW_VERSION_MAJOR >= 8)
     # Invalid MPS length exceed MTU
