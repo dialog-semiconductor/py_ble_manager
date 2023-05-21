@@ -357,7 +357,9 @@ class BleManagerGap(BleManagerBase):
             dev.pending_events_clear_handles()
             evt = BleEventGapDisconnected()
             evt.conn_idx = conn_idx
-            evt.reason = reason  # TODO BLE_HCI_ERROR and CO_ERROR not one to one. Will throw value error if not valid BLE_HCI_ERROR?
+            # Below needs to be refactored to not depend on internal __members__ of IntEnum class
+            # BLE_HCI_ERROR and CO_ERROR not one to one. Will throw value error CO_ERROR not valid BLE_HCI_ERROR
+            evt.reason = reason if reason in BLE_HCI_ERROR.__members__.values() else BLE_HCI_ERROR.BLE_HCI_ERROR_UNKNOWN
 
             # TODO
             # Need to notify L2CAP handler so it can 'deallocate' all channels for the given conn_idx */
@@ -536,8 +538,8 @@ class BleManagerGap(BleManagerBase):
                 cfm.parameters.auth |= GAP_AUTH_MASK.GAP_AUTH_MITM if dev.mitm else GAP_AUTH_MASK.GAP_AUTH_NONE
                 if self._ble_config.dg_configBLE_SECURE_CONNECTIONS == 1:
                     cfm.parameters.auth |= GAP_AUTH_MASK.GAP_AUTH_SEC if dev.secure else GAP_AUTH_MASK.GAP_AUTH_NONE
-                # TODO #if (RWBLE_SW_VERSION >= VERSION_8_1)
-                # cfm.parameters.auth |= GAPC_FIELDS_MASK.GAPC_LTK_MASK if dev.remote_ltk else GAP_AUTH_MASK.GAP_AUTH_NONE
+                # if (RWBLE_SW_VERSION >= VERSION_8_1)
+                cfm.parameters.auth |= GAPC_FIELDS_MASK.GAPC_LTK_MASK if dev.remote_ltk else GAP_AUTH_MASK.GAP_AUTH_NONE
 
                 if dev.csrk:
                     cfm.parameters.lsign_counter = dev.csrk.sign_cnt
@@ -759,7 +761,6 @@ class BleManagerGap(BleManagerBase):
 
     def adv_report_evt_handler(self, gtl: GapmAdvReportInd) -> None:
         evt = BleEventGapAdvReport()
-        # TODO is there an enum BleEventGapAdvReport.type?
         evt.type = GAP_ADV_TYPE(gtl.parameters.report.evt_type)
         evt.rssi = (gtl.parameters.report.rssi & 0x7F)
         evt.rssi = (-1 * evt.rssi) if (gtl.parameters.report.rssi & 0x80) else evt.rssi
