@@ -9,7 +9,6 @@ class GattmMessageFactory():
         msg_id = GATTM_MSG_ID(int.from_bytes(msg_bytes[1:3], "little", signed=False))
         params_buf = msg_bytes[9:]
 
-        # TODO for each case add a check to ensure params_buf not too long for parameters variable
         try:
             if msg_id == GATTM_MSG_ID.GATTM_ADD_SVC_RSP:
                 return GattmAddSvcRsp(parameters=gattm_add_svc_rsp.from_buffer_copy(params_buf))
