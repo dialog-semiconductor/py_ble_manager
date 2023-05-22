@@ -79,7 +79,7 @@ class BleController():
             if error == ble.BLE_ERROR.BLE_STATUS_OK:
                 response = "OK"
             else:
-                response = f"ERROR {error}"
+                response = f"ERROR: {error.name}"
             self.response_q.put_nowait(str(response))
 
     def _event_queue_task(self):
