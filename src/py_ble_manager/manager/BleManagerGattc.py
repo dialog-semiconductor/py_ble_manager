@@ -8,11 +8,11 @@ from ..ble_api.BleConfig import BleConfigDefault
 from ..ble_api.BleGattc import BleEventGattcDiscoverSvc, BleEventGattcDiscoverCompleted, GATTC_DISCOVERY_TYPE, \
     BleEventGattcDiscoverChar, BleEventGattcDiscoverDesc, BleEventGattcBrowseSvc, BleEventGattcBrowseCompleted, \
     GattcItem, GATTC_ITEM_TYPE, GattcIncludedServiceData, GattcCharacteristicData, BleEventGattcReadCompleted,\
-    BleEventGattcWriteCompleted, BleEventGattcNotification, BleEventGattcIndication
+    BleEventGattcWriteCompleted, BleEventGattcNotification, BleEventGattcIndication, BleEventGattcMtuChanged
 from ..gtl_messages.gtl_message_base import GtlMessageBase
 from ..gtl_messages.gtl_message_gattc import GattcDiscCmd, GattcDiscSvcInd, GattcCmpEvt, GattcDiscCharInd, GattcSdpSvcDiscCmd, \
     GattcSdpSvcInd, GattcReadCmd, GattcReadInd, GattcWriteCmd, GattcEventInd, GattcEventReqInd, GattcEventCfm, \
-    GattcWriteExecuteCmd
+    GattcWriteExecuteCmd, GattcMtuChangedInd
 from ..gtl_port.gattc_task import GATTC_OPERATION, GATTC_MSG_ID, gattc_sdp_att_info, GATTC_SDP_ATT_TYPE, gattc_read_simple
 from ..gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from ..manager.BleManagerBase import BleManagerBase
@@ -58,7 +58,7 @@ class BleManagerGattc(BleManagerBase):
         self.evt_handlers = {
             # Ble Manager calls cmp_evt_handler directly as it determines if gatts or gattc is the appropriate handler
             # GATTC_MSG_ID.GATTC_CMP_EVT: self.cmp_evt_handler,
-            GATTC_MSG_ID.GATTC_MTU_CHANGED_IND: None,
+            GATTC_MSG_ID.GATTC_MTU_CHANGED_IND: self.mtu_changed_ind_evt_handler,
             GATTC_MSG_ID.GATTC_SDP_SVC_IND: self.sdp_svc_ind_evt_handler,
             GATTC_MSG_ID.GATTC_DISC_SVC_IND: self.disc_svc_ind_evt_handler,
             GATTC_MSG_ID.GATTC_DISC_SVC_INCL_IND: None,
@@ -306,6 +306,18 @@ class BleManagerGattc(BleManagerBase):
             evt.handle = gtl.parameters.handle
             evt.value = bytes(gtl.parameters.value)
             self._mgr_event_queue_send(evt)
+
+    def mtu_changed_ind_evt_handler(self, gtl: GattcMtuChangedInd):
+        conn_idx = self._task_to_connidx(gtl.src_id)
+        self.storage_acquire()
+        dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+        if dev:
+            dev.mtu = gtl.parameters.mtu
+        self.storage_release()
+
+        evt = BleEventGattcMtuChanged(conn_idx=conn_idx)
+        evt.mtu = gtl.parameters.mtu
+        self._mgr_event_queue_send(evt)
 
     def read_ind_evt_handler(self, gtl: GattcReadInd):
         evt = BleEventGattcReadCompleted()

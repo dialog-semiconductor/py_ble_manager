@@ -1,10 +1,10 @@
 from ctypes import c_uint8
 
 from ..gtl_messages.gtl_message_gattc import GattcReadReqInd, GattcWriteReqInd, GattcCmpEvt, GattcDiscSvcInd, GattcDiscCharInd, \
-    GattcSdpSvcInd, GattcReadInd, GattcEventInd, GattcEventReqInd, GattcAttInfoReqInd
+    GattcSdpSvcInd, GattcReadInd, GattcEventInd, GattcEventReqInd, GattcAttInfoReqInd, GattcMtuChangedInd
 from ..gtl_port.gattc_task import GATTC_MSG_ID, gattc_read_req_ind, gattc_write_req_ind, gattc_cmp_evt, gattc_disc_svc_ind, \
     gattc_disc_char_ind, gattc_sdp_svc_ind, gattc_sdp_att_info, gattc_read_ind, gattc_event_ind, gattc_event_req_ind, \
-    gattc_att_info_req_ind
+    gattc_att_info_req_ind, gattc_mtu_changed_ind
 from ..gtl_port.rwip_config import KE_API_ID
 
 
@@ -116,6 +116,8 @@ class GattcMessageFactory():
             elif msg_id == GATTC_MSG_ID.GATTC_ATT_INFO_REQ_IND:
                 return GattcAttInfoReqInd(conidx=conidx, parameters=gattc_att_info_req_ind.from_buffer_copy(params_buf))
 
+            elif msg_id == GATTC_MSG_ID.GATTC_MTU_CHANGED_IND:
+                return GattcMtuChangedInd(conidx=conidx, parameters=gattc_mtu_changed_ind.from_buffer_copy(params_buf))
             else:
                 raise AssertionError(f"GattcMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")
         except AssertionError as e:
