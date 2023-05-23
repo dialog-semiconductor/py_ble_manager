@@ -53,12 +53,12 @@ class BleGapApi(BleApiBase):
 
         return response.status
 
-    def mtu_size_get(self) -> Tuple[BLE_ERROR, int]:
+    def mtu_size_get(self) -> Tuple[int, BLE_ERROR]:
 
         dev_params = self._ble_manager.dev_params_acquire()
         mtu_size = dev_params.mtu_size
         self._ble_manager.dev_params_release()
-        return BLE_ERROR.BLE_STATUS_OK, mtu_size
+        return mtu_size, BLE_ERROR.BLE_STATUS_OK
 
     def mtu_size_set(self, mtu_size: int) -> BLE_ERROR:
 

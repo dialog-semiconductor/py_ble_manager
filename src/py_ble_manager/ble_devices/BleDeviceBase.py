@@ -149,7 +149,7 @@ class BleDeviceBase():
 
         return self._ble_manager.mgr_event_queue_get(timeout)
 
-    def mtu_size_get(self) -> Tuple[BLE_ERROR, int]:
+    def mtu_size_get(self) -> Tuple[int, BLE_ERROR]:
         """Get MTU size
 
         This call retrieves the Maximum Protocol Unit size that is used in exchange MTU transactions
