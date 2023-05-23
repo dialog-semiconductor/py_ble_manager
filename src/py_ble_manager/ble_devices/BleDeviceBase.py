@@ -1,4 +1,5 @@
 import queue
+from typing import Tuple
 from ..adapter.BleAdapter import BleAdapter
 from ..ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_HCI_ERROR
 from ..ble_api.BleConfig import BleConfigDefault
@@ -147,6 +148,35 @@ class BleDeviceBase():
         """
 
         return self._ble_manager.mgr_event_queue_get(timeout)
+    
+    def mtu_size_get(self) -> Tuple[BLE_ERROR, int]:
+        """Get MTU size
+
+        This call retrieves the Maximum Protocol Unit size that is used in exchange MTU transactions
+        with peers.
+
+        :return: result code, mtu size
+        :rtype: Tuple[BLE_ERROR, int]
+        """
+        return self._ble_gap.mtu_size_get()
+
+    def mtu_size_set(self, mtu_size: int) -> BLE_ERROR:
+        """Set MTU size
+
+        This call sets the Maximum Protocol Unit size that will be used in exchange MTU transactions
+        with peers.
+
+        .. note::
+            This API function has to be called prior to creating the attribute database of the device. This
+            is because the device configuration is going to be modified, which will result in clearing the
+            current attribute database (if it exists).
+
+        :param mtu_size: MTU size
+        :type mtu_size: int
+        :return: result code
+        :rtype: BLE_ERROR
+        """
+        return self._ble_gap.mtu_size_set(mtu_size)
 
     def numeric_reply(self, conn_idx: int, accept: bool) -> BLE_ERROR:
         """Respond to a numeric comparison request
