@@ -8,7 +8,8 @@ from ..gtl_messages.gtl_message_base import GtlMessageBase
 from ..manager.BleDevParams import BleDevParamsDefault, BleDevParams
 from ..manager.BleManagerCommonMsgs import BleMgrMsgBase, BleMgrMsgRsp
 from ..manager.BleManagerStorage import StoredDeviceQueue
-from ..manager.GtlWaitQueue import GtlWaitQueue, GtlWaitQueueElement
+from ..manager.GtlWaitQueue import GtlWaitQueue
+from .WaitQueue import WaitQueueElement
 
 
 class BleManagerBase():
@@ -61,7 +62,7 @@ class BleManagerBase():
         return task_id >> 8
 
     def _gtl_wait_queue_add(self, conn_idx: int, msg_id: int, ext_id: int, cb: Callable, param: object) -> None:
-        item = GtlWaitQueueElement(conn_idx=conn_idx, msg_id=msg_id, ext_id=ext_id, cb=cb, param=param)
+        item = WaitQueueElement(conn_idx=conn_idx, msg_id=msg_id, ext_id=ext_id, cb=cb, param=param)
         self._gtl_wait_q.add(item)
 
     def _gtl_wait_queue_flush(self, conn_idx: int) -> None:

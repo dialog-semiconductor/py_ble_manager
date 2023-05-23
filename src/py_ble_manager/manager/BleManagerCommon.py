@@ -14,7 +14,8 @@ from ..manager.BleManagerBase import BleManagerBase
 from ..manager.BleManagerCommonMsgs import BleMgrCommonResetCmd, BleMgrCommonResetRsp, BLE_MGR_COMMON_CMD_OPCODE
 from ..manager.BleManagerStorage import StoredDeviceQueue
 from ..manager.GtlWaitQueue import GtlWaitQueue
-from ..manager.ResetWaitQueue import ResetWaitQueue, ResetWaitQueueElement
+from ..manager.ResetWaitQueue import ResetWaitQueue
+from .WaitQueue import WaitQueueElement
 
 
 class BleManagerCommon(BleManagerBase):
@@ -82,7 +83,7 @@ class BleManagerCommon(BleManagerBase):
         self._mgr_event_queue_send(evt)
 
     def _rest_wait_queue_add(self, conn_idx: int, msg_id: int, ext_id: int, cb: Callable, param: object) -> None:
-        item = ResetWaitQueueElement(conn_idx=conn_idx, msg_id=msg_id, ext_id=ext_id, cb=cb, param=param)
+        item = WaitQueueElement(conn_idx=conn_idx, msg_id=msg_id, ext_id=ext_id, cb=cb, param=param)
         self._reset_wait_q.add(item)
 
     def reset_cmd_handler(self, command: BleMgrCommonResetCmd):
