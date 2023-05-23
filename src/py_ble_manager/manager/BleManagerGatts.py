@@ -190,10 +190,10 @@ class BleManagerGatts(BleManagerBase):
         gtl = GattmAttGetValueReq()
         gtl.parameters.handle = command.handle
         self._gtl_wait_queue_add(BLE_CONN_IDX_INVALID,
-                             GATTM_MSG_ID.GATTM_ATT_GET_VALUE_RSP,
-                             0,
-                             self._get_value_rsp,
-                             command.max_len)
+                                 GATTM_MSG_ID.GATTM_ATT_GET_VALUE_RSP,
+                                 0,
+                                 self._get_value_rsp,
+                                 command.max_len)
 
         self._adapter_command_queue_send(gtl)
 
@@ -402,10 +402,10 @@ class BleManagerGatts(BleManagerBase):
 
         if self._add_svc_msg:
             self._gtl_wait_queue_add(BLE_CONN_IDX_INVALID,
-                                 GATTM_MSG_ID.GATTM_ADD_SVC_RSP,
-                                 0,
-                                 self._service_register_rsp,
-                                 None)
+                                     GATTM_MSG_ID.GATTM_ADD_SVC_RSP,
+                                     0,
+                                     self._service_register_rsp,
+                                     None)
 
             self._adapter_command_queue_send(self._add_svc_msg)
             self._add_svc_msg = None
@@ -419,10 +419,10 @@ class BleManagerGatts(BleManagerBase):
         gtl.parameters.handle = command.handle
         gtl.parameters.value = (c_uint8 * len(command.value)).from_buffer_copy(command.value)
         self._gtl_wait_queue_add(BLE_CONN_IDX_INVALID,
-                             GATTM_MSG_ID.GATTM_ATT_SET_VALUE_RSP,
-                             0,
-                             self._set_value_rsp,
-                             None)
+                                 GATTM_MSG_ID.GATTM_ATT_SET_VALUE_RSP,
+                                 0,
+                                 self._set_value_rsp,
+                                 None)
         self._adapter_command_queue_send(gtl)
 
     def write_cfm_cmd_handler(self, command: BleMgrGattsWriteCfmCmd):

@@ -702,10 +702,10 @@ class BleManagerGap(BleManagerBase):
         # device_foreach(irk_copy_cb, &copy_data);
 
         self._gtl_wait_queue_add(BLE_CONN_IDX_INVALID,
-                             GAPM_MSG_ID.GAPM_CMP_EVT,
-                             GAPM_OPERATION.GAPM_RESOLV_ADDR,
-                             self._gapm_address_resolve_complete,
-                             evt)
+                                 GAPM_MSG_ID.GAPM_CMP_EVT,
+                                 GAPM_OPERATION.GAPM_RESOLV_ADDR,
+                                 self._gapm_address_resolve_complete,
+                                 evt)
 
         self._adapter_command_queue_send(cmd)
         return True
@@ -1661,10 +1661,10 @@ class BleManagerGap(BleManagerBase):
         gtl = self._dev_params_to_gtl()
         gtl.parameters.role = self._ble_role_to_gtl_role(command.role)
         self._gtl_wait_queue_add(BLE_CONN_IDX_INVALID,
-                             GAPM_MSG_ID.GAPM_CMP_EVT,
-                             GAPM_OPERATION.GAPM_SET_DEV_CONFIG,
-                             self._set_role_rsp,
-                             command.role)
+                                 GAPM_MSG_ID.GAPM_CMP_EVT,
+                                 GAPM_OPERATION.GAPM_SET_DEV_CONFIG,
+                                 self._set_role_rsp,
+                                 command.role)
 
         self._adapter_command_queue_send(gtl)
 

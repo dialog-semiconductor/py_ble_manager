@@ -39,7 +39,7 @@ class BleManagerBase():
         self._adapter_command_q.put_nowait(command)
 
     def _mgr_event_queue_flush(self) -> None:
-        # TODO Critical section? 
+        # TODO Critical section?
         while self._mgr_event_q.qsize != 0:
             self._mgr_event_q.get_nowait()
 

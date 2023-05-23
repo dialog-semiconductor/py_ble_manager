@@ -265,6 +265,7 @@ class BleEventGattcMtuChanged(BleEventBase):
         self.conn_idx = conn_idx
         self.mtu = mtu
 
+
 class BleEventGattcReadCompleted(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_READ_COMPLETED` event
 
