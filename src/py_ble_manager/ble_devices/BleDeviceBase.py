@@ -24,7 +24,7 @@ class BleDeviceBase():
     :param gtl_debug: enable or disable GTL debugging, defaults to False
     :type gtl_debug: bool, optional
     """
-    def __init__(self, com_port: str, config: BleConfigDefault = BleConfigDefault(), gtl_debug: bool = False):
+    def __init__(self, com_port: str, baud_rate: int = 921600, config: BleConfigDefault = BleConfigDefault(), gtl_debug: bool = False):
         """Constructor
         """
         app_command_q = queue.Queue()
@@ -39,7 +39,7 @@ class BleDeviceBase():
         # Internal BLE framework layers
         self._ble_manager = BleManager(app_command_q, app_response_q, app_event_q, adapter_command_q, adapter_event_q, config)
         self._ble_adapter = BleAdapter(adapter_command_q, adapter_event_q, serial_tx_q, serial_rx_q, gtl_debug)
-        self._serial_stream_manager = SerialStreamManager(com_port, serial_tx_q, serial_rx_q)
+        self._serial_stream_manager = SerialStreamManager(com_port, baud_rate, serial_tx_q, serial_rx_q)
 
         # Dialog API
         self._ble_gap = BleGapApi(self._ble_manager)

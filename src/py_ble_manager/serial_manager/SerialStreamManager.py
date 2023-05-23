@@ -7,10 +7,11 @@ from ..gtl_messages.gtl_message_base import GTL_INITIATOR
 
 class SerialStreamManager():
 
-    def __init__(self, com_port: str, tx_queue: queue.Queue[bytes], rx_queue: queue.Queue[bytes]) -> None:
+    def __init__(self, com_port: str, baud_rate: int, tx_queue: queue.Queue[bytes], rx_queue: queue.Queue[bytes]) -> None:
         self._tx_queue: queue.Queue[bytes] = tx_queue
         self._rx_queue: queue.Queue[bytes] = rx_queue
         self._com_port: str = com_port
+        self._baud_rate: int = baud_rate
 
     def _process_received_data(self, buffer: bytes):
         if buffer:
@@ -59,4 +60,4 @@ class SerialStreamManager():
         self._rx_task.start()
 
     def open_serial_port(self):
-        self._serial_port = serial.Serial(self._com_port, baudrate=115200)
+        self._serial_port = serial.Serial(self._com_port, baudrate=self._baud_rate, rtscts=True)

@@ -20,12 +20,13 @@ class BleCentral(BleDeviceBase):
 
     def __init__(self,
                  com_port: str,
+                 baud_rate: int = 921600,
                  ble_config: BleConfigDefault = BleConfigDefault(BLE_DEVICE_TYPE.CENTRAL),
                  gtl_debug: bool = False
                  ) -> None:
         """Constructor
         """
-        super().__init__(com_port, ble_config, gtl_debug)
+        super().__init__(com_port, baud_rate, ble_config, gtl_debug)
 
     def browse(self, conn_idx: int, uuid: AttUuid) -> BLE_ERROR:
         """Browse services on remote GATT server in a given range

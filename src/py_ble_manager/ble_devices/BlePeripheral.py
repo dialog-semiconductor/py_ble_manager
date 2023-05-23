@@ -13,9 +13,10 @@ from ..services.BleService import BleServiceBase
 class BlePeripheral(BleDeviceBase):
     def __init__(self,
                  com_port: str,
+                 baud_rate: int = 921600,
                  ble_config: BleConfigDefault = BleConfigDefault(BLE_DEVICE_TYPE.PERIPHERAL),
                  gtl_debug: bool = False):
-        super().__init__(com_port, ble_config, gtl_debug)
+        super().__init__(com_port, baud_rate, ble_config, gtl_debug)
 
     def _find_service_by_handle(self, handle: int) -> BleServiceBase:
         for service in self._services:
