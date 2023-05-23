@@ -103,13 +103,13 @@ class BleManager(BleManagerBase):
             command = self._api_commmand_queue_get()
             self._process_command_queue(command)
 
-    def _gattc_cmp_evt_handler(self, evt: GattcCmpEvt):
+    def _gatt_cmp_evt_handler(self, evt: GattcCmpEvt):
         if (evt.parameters.operation == GATTC_OPERATION.GATTC_NOTIFY
                 or evt.parameters.operation == GATTC_OPERATION.GATTC_INDICATE):
 
-            self.gatts_mgr.cmp_evt_handler(evt)
+            return self.gatts_mgr.cmp_evt_handler(evt)
         else:
-            self.gattc_mgr.cmp_evt_handler(evt)
+            return self.gattc_mgr.cmp_evt_handler(evt)
 
     def _handle_evt_or_ind(self, message: GtlMessageBase):
 
@@ -117,20 +117,20 @@ class BleManager(BleManagerBase):
 
         # If this is a GATTC_CMP_EVT need to determine if will be handled by gattc_mgr or gatts_mgr
         if message.msg_id == GATTC_MSG_ID.GATTC_CMP_EVT:
-            response = self._gattc_cmp_evt_handler(message)
-            if response is None:
-                is_handled = True
-            else:
-                is_handled = response
+            is_handled = self._gatt_cmp_evt_handler(message)
         else:
+            # loop thru Gap, Gattc, Gatts handlers to determine if a handler exists for this event
             for handlers in self.evt_handlers:
                 handler = handlers.get(message.msg_id)
                 if handler:
+                    # If the handler exists, call it
                     response = None
                     response = handler(message)
+                    # All handlers except for those that handle CMP_EVTs (e.g. xxx_cmp_evt_handler() ) will return None
                     if response is None:
                         is_handled = True
                     else:
+                        # BleManagerGap.gapm_cmp_evt_handler() and BleManagerGap.gapc_cmp_evt_handler() will return bool to indicate if event has been handled
                         is_handled = response
                     break
         return is_handled
