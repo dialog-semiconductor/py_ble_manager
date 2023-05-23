@@ -45,7 +45,8 @@ from ..manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp,
     BleMgrGapDisconnectCmd, BleMgrGapDisconnectRsp, BleMgrGapConnectCancelCmd, BleMgrGapConnectCancelRsp, \
     BleMgrGapConnParamUpdateCmd, BleMgrGapConnParamUpdateRsp, BleMgrGapConnParamUpdateReplyCmd, \
     BleMgrGapConnParamUpdateReplyRsp, BleMgrGapPairCmd, BleMgrGapPairRsp, BleMgrGapPairReplyCmd, BleMgrGapPairReplyRsp, \
-    BleMgrGapPasskeyReplyCmd, BleMgrGapPasskeyReplyRsp, BleMgrGapNumericReplyCmd, BleMgrGapNumericReplyRsp, BLE_MGR_RAL_OP
+    BleMgrGapPasskeyReplyCmd, BleMgrGapPasskeyReplyRsp, BleMgrGapNumericReplyCmd, BleMgrGapNumericReplyRsp, BLE_MGR_RAL_OP, \
+    BleMgrGapMtuSizeSetCmd, BleMgrGapMtuSizeSetRsp
 
 from ..manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from ..manager.GtlWaitQueue import GtlWaitQueue
@@ -88,7 +89,7 @@ class BleManagerGap(BleManagerBase):
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PEER_FEATURES_GET_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_RSSI_GET_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ROLE_SET_CMD: self.role_set_cmd_handler,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_MTU_SIZE_SET_CMD: None,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_MTU_SIZE_SET_CMD: self.mtu_size_set_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CHANNEL_MAP_SET_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_PARAM_UPDATE_CMD: self.conn_param_update_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_PARAM_UPDATE_REPLY_CMD: self.conn_param_update_reply_cmd_handler,
@@ -175,7 +176,7 @@ class BleManagerGap(BleManagerBase):
         self.dev_params_release()
 
     def _adv_start_cmd_exec(self, command: BleMgrGapAdvStartCmd):
-        response = BleMgrGapAdvStartRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGapAdvStartRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         dev_params = self.dev_params_acquire()
         if dev_params.advertising is True:
             response.status = BLE_ERROR.BLE_ERROR_IN_PROGRESS
@@ -253,7 +254,7 @@ class BleManagerGap(BleManagerBase):
                 dev_params.advertising = True
                 self._adapter_command_queue_send(gtl)
 
-                response = BleMgrGapAdvStartRsp(BLE_ERROR.BLE_STATUS_OK)
+                response.status = BLE_ERROR.BLE_STATUS_OK
 
         self._mgr_response_queue_send(response)
         self.dev_params_release()
@@ -476,7 +477,7 @@ class BleManagerGap(BleManagerBase):
         self.storage_release()
 
     def _connect_cmd_exec(self, command: BleMgrGapConnectCmd):
-        response = BleMgrGapConnectRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGapConnectRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         dev_params = self.dev_params_acquire()
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_connenting()
@@ -747,7 +748,7 @@ class BleManagerGap(BleManagerBase):
         self.dev_params_release()
 
     def _scan_start_cmd_exec(self, command: BleMgrGapScanStartCmd):
-        response = BleMgrGapScanStartRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGapScanStartRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         dev_params = self.dev_params_acquire()
 
         if dev_params.scanning:
@@ -875,26 +876,48 @@ class BleManagerGap(BleManagerBase):
         # @ send_ltk_evt(conn_idx);
         # endif
 
+    def _set_mtu_size_rsp(self, gtl: GapmCmpEvt, new_mtu: int = 0):
+        response = BleMgrGapMtuSizeSetRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
+        dev_params = self.dev_params_acquire()
+        response.previous_mtu_size = dev_params.mtu_size
+        response.new_mtu_size = new_mtu
+
+        match gtl.parameters.status:
+            case HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
+                dev_params.mtu_size = new_mtu
+                response.status = BLE_ERROR.BLE_STATUS_OK
+            case HOST_STACK_ERROR_CODE.GAP_ERR_INVALID_PARAM:
+                response.status = BLE_ERROR.BLE_ERROR_INVALID_PARAM
+            case HOST_STACK_ERROR_CODE.GAP_ERR_NOT_SUPPORTED:
+                response.status = BLE_ERROR.BLE_ERROR_NOT_SUPPORTED
+            case HOST_STACK_ERROR_CODE.GAP_ERR_COMMAND_DISALLOWED:
+                response.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
+            case _:
+                response.status = gtl.parameters.status
+
+        self._mgr_response_queue_send(response)
+        self.dev_params_release()
+
     def _set_role_rsp(self, gtl: GapmCmpEvt, new_role: BLE_GAP_ROLE = BLE_GAP_ROLE.GAP_NO_ROLE):
-        event = gtl.parameters
-        response = BleMgrGapRoleSetRsp()
+        response = BleMgrGapRoleSetRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         dev_params = self.dev_params_acquire()
         response.prev_role = dev_params.role
         response.new_role = new_role
         response.status = BLE_ERROR.BLE_ERROR_FAILED
 
-        match event.status:
+        match gtl.parameters.status:
             case HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
                 dev_params.role = new_role
                 response.status = BLE_ERROR.BLE_STATUS_OK
             case HOST_STACK_ERROR_CODE.GAP_ERR_INVALID_PARAM:
                 response.status = BLE_ERROR.BLE_ERROR_INVALID_PARAM
             case HOST_STACK_ERROR_CODE.GAP_ERR_NOT_SUPPORTED:
-                response.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
+                response.status = BLE_ERROR.BLE_ERROR_NOT_SUPPORTED
             case HOST_STACK_ERROR_CODE.GAP_ERR_COMMAND_DISALLOWED:
                 response.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
             case _:
-                response.status = event.status
+                # response.status = gtl.parameters.status
+                response.status = BLE_ERROR.BLE_ERROR_FAILED
 
         self._mgr_response_queue_send(response)
         self.dev_params_release()
@@ -1153,7 +1176,7 @@ class BleManagerGap(BleManagerBase):
                     self._mgr_event_queue_send(evt)
 
     def conn_param_update_cmd_handler(self, command: BleMgrGapConnParamUpdateCmd):
-        response = BleMgrGapConnParamUpdateRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGapConnParamUpdateRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
         if not dev:
@@ -1180,7 +1203,7 @@ class BleManagerGap(BleManagerBase):
         self._mgr_response_queue_send(response)
 
     def conn_param_update_reply_cmd_handler(self, command: BleMgrGapConnParamUpdateReplyCmd):
-        response = BleMgrGapConnParamUpdateReplyRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGapConnParamUpdateReplyRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
         if not dev:
@@ -1227,7 +1250,7 @@ class BleManagerGap(BleManagerBase):
         self._mgr_event_queue_send(evt)
 
     def connect_cancel_cmd_handler(self, command: BleMgrGapConnectCancelCmd):
-        response = BleMgrGapConnectCancelRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGapConnectCancelRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         dev_params = self.dev_params_acquire()
         if not dev_params.connecting:
             response.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
@@ -1325,7 +1348,7 @@ class BleManagerGap(BleManagerBase):
         self.dev_params_release()
 
     def disconnect_cmd_handler(self, command: BleMgrGapDisconnectCmd) -> None:
-        response = BleMgrGapDisconnectRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGapDisconnectRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
         if not dev:
@@ -1510,8 +1533,21 @@ class BleManagerGap(BleManagerBase):
         evt.max_tx_time = gtl.parameters.max_tx_time
         self._mgr_event_queue_send(evt)
 
+    def mtu_size_set_cmd_handler(self, command: BleMgrGapMtuSizeSetCmd):
+        gtl = self._dev_params_to_gtl()
+        gtl.parameters.max_mtu = command.mtu_size
+        gtl.parameters.max_mps = command.mtu_size
+
+        self._gtl_wait_queue_add(BLE_CONN_IDX_INVALID,
+                                 GAPM_MSG_ID.GAPM_CMP_EVT,
+                                 GAPM_OPERATION.GAPM_SET_DEV_CONFIG,
+                                 self._set_mtu_size_rsp,
+                                 command.mtu_size)
+
+        self._adapter_command_queue_send(gtl)
+
     def numeric_reply_cmd_handler(self, command: BleMgrGapNumericReplyCmd):
-        response = BleMgrGapNumericReplyRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGapNumericReplyRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         gtl = GapcBondCfm(conidx=command.conn_idx)
         gtl.parameters.request = GAPC_BOND.GAPC_TK_EXCH
         gtl.parameters.accept = command.accept
@@ -1520,7 +1556,7 @@ class BleManagerGap(BleManagerBase):
         self._mgr_response_queue_send(response)
 
     def pair_cmd_handler(self, command: BleMgrGapPairCmd):
-        response = BleMgrGapPairRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGapPairRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
 
         secure = True if (self._ble_config.dg_configBLE_SECURE_CONNECTIONS == 1) else False
         self.storage_acquire()
@@ -1570,7 +1606,7 @@ class BleManagerGap(BleManagerBase):
         self._mgr_response_queue_send(response)
 
     def pair_reply_cmd_handler(self, command: BleMgrGapPairReplyCmd):
-        response = BleMgrGapPairReplyRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGapPairReplyRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
         bonded = dev.bonded
@@ -1609,7 +1645,7 @@ class BleManagerGap(BleManagerBase):
         self._mgr_response_queue_send(response)
 
     def passkey_reply_cmd_handler(self, command: BleMgrGapPasskeyReplyCmd):
-        response = BleMgrGapPasskeyReplyRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGapPasskeyReplyRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
 
         gtl = GapcBondCfm(conidx=command.conn_idx)
         gtl.parameters.request = GAPC_BOND.GAPC_TK_EXCH

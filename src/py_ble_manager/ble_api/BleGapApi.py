@@ -1,3 +1,4 @@
+from typing import Tuple
 from ..ble_api.BleApiBase import BleApiBase
 from ..ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR
 from ..ble_api.BleGap import BLE_GAP_ROLE, GapConnParams, GAP_CONN_MODE, GAP_SCAN_TYPE, GAP_SCAN_MODE, \
@@ -9,7 +10,7 @@ from ..manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp
     BleMgrGapConnectCancelRsp, BleMgrGapConnParamUpdateCmd, BleMgrGapConnParamUpdateRsp, \
     BleMgrGapConnParamUpdateReplyCmd, BleMgrGapConnParamUpdateReplyRsp, BleMgrGapPairCmd, BleMgrGapPairRsp, \
     BleMgrGapPairReplyCmd, BleMgrGapPairReplyRsp, BleMgrGapPasskeyReplyCmd, BleMgrGapPasskeyReplyRsp, \
-    BleMgrGapNumericReplyCmd, BleMgrGapNumericReplyRsp
+    BleMgrGapNumericReplyCmd, BleMgrGapNumericReplyRsp, BleMgrGapMtuSizeSetCmd, BleMgrGapMtuSizeSetRsp
 
 
 class BleGapApi(BleApiBase):
@@ -49,6 +50,20 @@ class BleGapApi(BleApiBase):
 
         command = BleMgrGapDisconnectCmd(conn_idx, reason)
         response: BleMgrGapDisconnectRsp = self._ble_manager.cmd_execute(command)
+
+        return response.status
+
+    def mtu_size_get(self) -> Tuple[BLE_ERROR, int]:
+
+        dev_params = self._ble_manager.dev_params_acquire()
+        mtu_size = dev_params.mtu_size
+        self._ble_manager.dev_params_release()
+        return BLE_ERROR.BLE_STATUS_OK, mtu_size
+
+    def mtu_size_set(self, mtu_size: int) -> BLE_ERROR:
+
+        command = BleMgrGapMtuSizeSetCmd(mtu_size)
+        response: BleMgrGapMtuSizeSetRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
 
