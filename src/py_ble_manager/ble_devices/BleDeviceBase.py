@@ -148,7 +148,7 @@ class BleDeviceBase():
         """
 
         return self._ble_manager.mgr_event_queue_get(timeout)
-    
+
     def mtu_size_get(self) -> Tuple[BLE_ERROR, int]:
         """Get MTU size
 
