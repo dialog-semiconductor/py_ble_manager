@@ -19,6 +19,8 @@ class BleDeviceBase():
 
     :param com_port: COM port of the development kit
     :type com_port: str
+    :param baud_rate: Baud rate for serial port of the development kit
+    :type baud_rate: int
     :param ble_config: BLE configuration to use, defaults to BleConfigDefault(BLE_DEVICE_TYPE.CENTRAL)
     :type ble_config: BleConfigDefault, optional
     :param gtl_debug: enable or disable GTL debugging, defaults to False
