@@ -12,7 +12,7 @@ Quick Start (terminal)
 
    .. image:: ../../assets/da14531_pro_kit_jumpers.png
 
-#. Download the GTL enabled :download:`firmware binary <../../firmware/da14531mod_pro_kit.bin>` to the DA14531 Pro Development kit.
+#. Download the GTL enabled :download:`firmware binary <../../firmware/da14531mod_pro_kit_921600.bin>` to the DA14531 Pro Development kit.
 
 #. Open a command prompt or terminal and navigate to the repository on your PC.
 

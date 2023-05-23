@@ -18,7 +18,7 @@ The primary intent is for use as a central device for benchtop testing, continuo
 
     ![da14531_jumpers](assets/da14531_pro_kit_jumpers.png)
 
-3. Download the GTL enabled [firmware binary](firmware/da14531mod_pro_kit.bin) to the DA14531 Pro Development kit.
+3. Download the GTL enabled [firmware binary](firmware/da14531mod_pro_kit_921600.bin) to the DA14531 Pro Development kit.
 
 4. Open a command prompt or terminal and navigate to the repository on your PC.
 
