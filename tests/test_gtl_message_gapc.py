@@ -505,7 +505,54 @@ class TestGapcPeerVersionInd(unittest.TestCase):
         test_message.parameters.lmp_vers = 0x09
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
-                      
+
+
+# Table 290
+class TestGapcSetLePktSizeCmd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "052B0E0E00100006001400FB004808"
+        
+    def test_parameters_updated_after_construction(self):
+        test_message = GapcSetLePktSizeCmd()
+        test_message.parameters.tx_octets = 0x00FB
+        test_message.parameters.tx_time = 0x0848
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_non_zero_conidx(self):
+        test_message = GapcSetLePktSizeCmd(conidx=1)
+        test_message.parameters.tx_octets = 0x00FB
+        test_message.parameters.tx_time = 0x0848
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+
+# Table 292
+class TestGapcLePktSizeInd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "052C0E10000E000800FB004808FB004808"
+        
+    def test_parameters_updated_after_construction(self):
+        test_message = GapcLePktSizeInd()
+        test_message.parameters.max_tx_octets = 251
+        test_message.parameters.max_tx_time = 2120
+        test_message.parameters.max_rx_octets = 251
+        test_message.parameters.max_rx_time = 2120
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_non_zero_conidx(self):
+        test_message = GapcLePktSizeInd(conidx=1)
+        test_message.parameters.max_tx_octets = 251
+        test_message.parameters.max_tx_time = 2120
+        test_message.parameters.max_rx_octets = 251
+        test_message.parameters.max_rx_time = 2120
+
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -5,7 +5,8 @@ from ..manager.BleManager import BleManager
 from ..manager.BleManagerGattcMsgs import BleMgrGattcDiscoverSvcCmd, BleMgrGattcDiscoverSvcRsp, \
     BleMgrGattcDiscoverCharCmd, BleMgrGattcDiscoverCharRsp, BleMgrGattcDiscoverDescCmd, BleMgrGattcDiscoverDescRsp, \
     BleMgrGattcBrowseCmd, BleMgrGattcBrowseRsp, BleMgrGattcReadCmd, BleMgrGattcReadRsp, BleMgrGattcWriteGenericCmd, \
-    BleMgrGattcWriteGenericRsp, BleMgrGattcWriteExecuteCmd, BleMgrGattcWriteExecuteRsp
+    BleMgrGattcWriteGenericRsp, BleMgrGattcWriteExecuteCmd, BleMgrGattcWriteExecuteRsp, BleMgrGattcExchangeMtuCmd, \
+    BleMgrGattcExchangeMtuRsp
 
 
 class BleGattcApi(BleApiBase):
@@ -45,6 +46,12 @@ class BleGattcApi(BleApiBase):
     def discover_services(self, conn_idx: int, uuid: AttUuid):
         command = BleMgrGattcDiscoverSvcCmd(conn_idx, uuid)
         response: BleMgrGattcDiscoverSvcRsp = self._ble_manager.cmd_execute(command)
+
+        return response.status
+
+    def exchange_mtu(self, conn_idx: int):
+        command = BleMgrGattcExchangeMtuCmd(conn_idx)
+        response: BleMgrGattcExchangeMtuRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
 

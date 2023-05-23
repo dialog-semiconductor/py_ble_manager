@@ -32,7 +32,7 @@ class BleManager(BleManagerBase):
         self._mgr_event_q: queue.Queue = mgr_event_q
         self._adapter_command_q: queue.Queue[GtlMessageBase] = adapter_command_q
         self._adapter_event_q: queue.Queue[GtlMessageBase] = adapter_event_q
-        self._wait_q = GtlWaitQueue()
+        self._gtl_wait_q = GtlWaitQueue()
         self._stored_device_list = StoredDeviceQueue()
         self._stored_device_lock = threading.Lock()
         self._ble_stack_initialized = False
@@ -43,7 +43,7 @@ class BleManager(BleManagerBase):
         self.common_mgr = BleManagerCommon(self._mgr_response_q,
                                            self._mgr_event_q,
                                            self._adapter_command_q,
-                                           self._wait_q,
+                                           self._gtl_wait_q,
                                            self._stored_device_list,
                                            self._stored_device_lock,
                                            self._dev_params,
@@ -52,7 +52,7 @@ class BleManager(BleManagerBase):
         self.gap_mgr = BleManagerGap(self._mgr_response_q,
                                      self._mgr_event_q,
                                      self._adapter_command_q,
-                                     self._wait_q,
+                                     self._gtl_wait_q,
                                      self._stored_device_list,
                                      self._stored_device_lock,
                                      self._dev_params,
@@ -61,7 +61,7 @@ class BleManager(BleManagerBase):
         self.gattc_mgr = BleManagerGattc(self._mgr_response_q,
                                          self._mgr_event_q,
                                          self._adapter_command_q,
-                                         self._wait_q,
+                                         self._gtl_wait_q,
                                          self._stored_device_list,
                                          self._stored_device_lock,
                                          self._dev_params,
@@ -70,7 +70,7 @@ class BleManager(BleManagerBase):
         self.gatts_mgr = BleManagerGatts(self._mgr_response_q,
                                          self._mgr_event_q,
                                          self._adapter_command_q,
-                                         self._wait_q,
+                                         self._gtl_wait_q,
                                          self._stored_device_list,
                                          self._stored_device_lock,
                                          self._dev_params,
@@ -154,7 +154,7 @@ class BleManager(BleManagerBase):
 
     def _process_event_queue(self, event: GtlMessageBase):
 
-        if not self._wait_q.match(event):
+        if not self._gtl_wait_q.match(event):
             if not self._handle_evt_or_ind(event):
                 print(f"BleManager._process_event_queue. Unhandled event={event}\n")
 

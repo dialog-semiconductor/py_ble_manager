@@ -26,7 +26,7 @@ class BleManagerBase():
         self._mgr_response_q = mgr_response_q
         self._mgr_event_q = mgr_event_q
         self._adapter_command_q = adapter_command_q
-        self._wait_q = wait_q
+        self._gtl_wait_q = wait_q
         self.cmd_handlers = {}
         self.evt_handlers = {}
         self._stored_device_list: StoredDeviceQueue = stored_device_q
@@ -37,6 +37,11 @@ class BleManagerBase():
 
     def _adapter_command_queue_send(self, command: GtlMessageBase):
         self._adapter_command_q.put_nowait(command)
+
+    def _mgr_event_queue_flush(self) -> None:
+        # TODO Critical section?
+        while self._mgr_event_q.qsize != 0:
+            self._mgr_event_q.get_nowait()
 
     def _mgr_event_queue_send(self, evt: BleEventBase):
         self._mgr_event_q.put_nowait(evt)
@@ -55,15 +60,15 @@ class BleManagerBase():
     def _task_to_connidx(self, task_id: int) -> int:
         return task_id >> 8
 
-    def _wait_queue_add(self, conn_idx: int, msg_id: int, ext_id: int, cb: Callable, param: object) -> None:
+    def _gtl_wait_queue_add(self, conn_idx: int, msg_id: int, ext_id: int, cb: Callable, param: object) -> None:
         item = GtlWaitQueueElement(conn_idx=conn_idx, msg_id=msg_id, ext_id=ext_id, cb=cb, param=param)
-        self._wait_q.add(item)
+        self._gtl_wait_q.add(item)
 
-    def _wait_queue_flush(self, conn_idx: int) -> None:
-        self._wait_q.flush(conn_idx)
+    def _gtl_wait_queue_flush(self, conn_idx: int) -> None:
+        self._gtl_wait_q.flush(conn_idx)
 
-    def _wait_queue_flush_all(self) -> None:
-        self._wait_q.flush_all()
+    def _gtl_wait_queue_flush_all(self) -> None:
+        self._gtl_wait_q.flush_all()
 
     def dev_params_acquire(self):
         self._dev_params_lock.acquire()

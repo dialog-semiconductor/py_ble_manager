@@ -50,6 +50,20 @@ When the procedure is complete, a message indicationg so will be printed to the 
 
 ![gapconnect](assets/gapconnect.png)
 
+### GAPCONNECTCANCEL
+
+Cancel connecting to a peripheral.
+
+`GAPCONNECTCANCEL`
+
+For example:
+
+`GAPCONNECTCANCEL`
+
+When the procedure is complete, a message indicationg so will be printed to the terminal:
+
+![gapconnectcancel](assets/gapconnectcancel.png)
+
 ### GAPBROWSE
 
 Browse a peripheral's attributes.

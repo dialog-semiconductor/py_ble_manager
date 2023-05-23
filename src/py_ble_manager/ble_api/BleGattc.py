@@ -249,6 +249,23 @@ class BleEventGattcIndication(BleEventBase):
         self.value = value if value else bytes()
 
 
+class BleEventGattcMtuChanged(BleEventBase):
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_MTU_CHANGED` event
+
+    :ivar evt_code: event code
+    :ivar conn_idx: connection index
+    :ivar handle: current MTU
+    """
+
+    def __init__(self,
+                 conn_idx: int = 0,
+                 mtu: int = 0,
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GATTC.BLE_EVT_GATTC_MTU_CHANGED)
+        self.conn_idx = conn_idx
+        self.mtu = mtu
+
+
 class BleEventGattcReadCompleted(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_READ_COMPLETED` event
 

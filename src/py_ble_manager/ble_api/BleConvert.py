@@ -16,6 +16,11 @@ class BleConvert():
         return intv * 625 // 1000
 
     @staticmethod
+    def ble_data_length_to_time(octets: int):
+        # Convert Receive/Transmit Data Length to Time
+        return ((octets + 11 + 3) * 8)
+
+    @staticmethod
     def conn_event_length_from_ms(intv_ms: int = 0):
         # Convert time in milliseconds to connection event length value
         return intv_ms * 1000 // 625
