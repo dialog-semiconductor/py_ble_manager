@@ -15,6 +15,7 @@ from ..manager.BleManagerGattc import BleManagerGattc
 from ..manager.BleManagerGatts import BleManagerGatts
 from ..manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from ..manager.GtlWaitQueue import GtlWaitQueue
+from ..manager.ResetWaitQueue import ResetWaitQueue
 
 
 class BleManager(BleManagerBase):
@@ -40,52 +41,54 @@ class BleManager(BleManagerBase):
         self._dev_params_lock = threading.Lock()
         self._mgr_lock = threading.Lock()
         self._ble_config = config
-        self.common_mgr = BleManagerCommon(self._mgr_response_q,
-                                           self._mgr_event_q,
-                                           self._adapter_command_q,
-                                           self._gtl_wait_q,
-                                           self._stored_device_list,
-                                           self._stored_device_lock,
-                                           self._dev_params,
-                                           self._dev_params_lock,
-                                           self._ble_config)
-        self.gap_mgr = BleManagerGap(self._mgr_response_q,
-                                     self._mgr_event_q,
-                                     self._adapter_command_q,
-                                     self._gtl_wait_q,
-                                     self._stored_device_list,
-                                     self._stored_device_lock,
-                                     self._dev_params,
-                                     self._dev_params_lock,
-                                     self._ble_config)
-        self.gattc_mgr = BleManagerGattc(self._mgr_response_q,
-                                         self._mgr_event_q,
-                                         self._adapter_command_q,
-                                         self._gtl_wait_q,
-                                         self._stored_device_list,
-                                         self._stored_device_lock,
-                                         self._dev_params,
-                                         self._dev_params_lock,
-                                         self._ble_config)
-        self.gatts_mgr = BleManagerGatts(self._mgr_response_q,
-                                         self._mgr_event_q,
-                                         self._adapter_command_q,
-                                         self._gtl_wait_q,
-                                         self._stored_device_list,
-                                         self._stored_device_lock,
-                                         self._dev_params,
-                                         self._dev_params_lock,
-                                         self._ble_config)
+        self._reset_wait_q = ResetWaitQueue()
+        self._common_mgr = BleManagerCommon(self._mgr_response_q,
+                                            self._mgr_event_q,
+                                            self._adapter_command_q,
+                                            self._gtl_wait_q,
+                                            self._stored_device_list,
+                                            self._stored_device_lock,
+                                            self._dev_params,
+                                            self._dev_params_lock,
+                                            self._ble_config,
+                                            self._reset_wait_q)
+        self._gap_mgr = BleManagerGap(self._mgr_response_q,
+                                      self._mgr_event_q,
+                                      self._adapter_command_q,
+                                      self._gtl_wait_q,
+                                      self._stored_device_list,
+                                      self._stored_device_lock,
+                                      self._dev_params,
+                                      self._dev_params_lock,
+                                      self._ble_config)
+        self._gattc_mgr = BleManagerGattc(self._mgr_response_q,
+                                          self._mgr_event_q,
+                                          self._adapter_command_q,
+                                          self._gtl_wait_q,
+                                          self._stored_device_list,
+                                          self._stored_device_lock,
+                                          self._dev_params,
+                                          self._dev_params_lock,
+                                          self._ble_config)
+        self._gatts_mgr = BleManagerGatts(self._mgr_response_q,
+                                          self._mgr_event_q,
+                                          self._adapter_command_q,
+                                          self._gtl_wait_q,
+                                          self._stored_device_list,
+                                          self._stored_device_lock,
+                                          self._dev_params,
+                                          self._dev_params_lock,
+                                          self._ble_config)
 
         self.cmd_handlers = {
-            BLE_MGR_CMD_CAT.BLE_MGR_COMMON_CMD_CAT: self.common_mgr,
-            BLE_MGR_CMD_CAT.BLE_MGR_GAP_CMD_CAT: self.gap_mgr,
-            BLE_MGR_CMD_CAT.BLE_MGR_GATTS_CMD_CAT: self.gatts_mgr,
-            BLE_MGR_CMD_CAT.BLE_MGR_GATTC_CMD_CAT: self.gattc_mgr,
+            BLE_MGR_CMD_CAT.BLE_MGR_COMMON_CMD_CAT: self._common_mgr,
+            BLE_MGR_CMD_CAT.BLE_MGR_GAP_CMD_CAT: self._gap_mgr,
+            BLE_MGR_CMD_CAT.BLE_MGR_GATTS_CMD_CAT: self._gatts_mgr,
+            BLE_MGR_CMD_CAT.BLE_MGR_GATTC_CMD_CAT: self._gattc_mgr,
             BLE_MGR_CMD_CAT.BLE_MGR_L2CAP_CMD_CAT: None,
         }
 
-        self.evt_handlers = [self.gap_mgr.evt_handlers, self.gattc_mgr.evt_handlers, self.gatts_mgr.evt_handlers]
+        self.evt_handlers = [self._gap_mgr.evt_handlers, self._gattc_mgr.evt_handlers, self._gatts_mgr.evt_handlers]
 
     def _adapter_event_queue_get(self) -> BleEventBase:
         return self._adapter_event_q.get()
@@ -103,34 +106,34 @@ class BleManager(BleManagerBase):
             command = self._api_commmand_queue_get()
             self._process_command_queue(command)
 
-    def _gattc_cmp_evt_handler(self, evt: GattcCmpEvt):
+    def _gatt_cmp_evt_handler(self, evt: GattcCmpEvt):
         if (evt.parameters.operation == GATTC_OPERATION.GATTC_NOTIFY
                 or evt.parameters.operation == GATTC_OPERATION.GATTC_INDICATE):
 
-            self.gatts_mgr.cmp_evt_handler(evt)
+            return self._gatts_mgr.cmp_evt_handler(evt)
         else:
-            self.gattc_mgr.cmp_evt_handler(evt)
+            return self._gattc_mgr.cmp_evt_handler(evt)
 
-    def _handle_evt_or_ind(self, message: GtlMessageBase):
+    def _handle_evt_or_ind(self, gtl: GtlMessageBase):
 
         is_handled = False
 
-        # If this is a GATTC_CMP_EVT need to determine if will be handled by gattc_mgr or gatts_mgr
-        if message.msg_id == GATTC_MSG_ID.GATTC_CMP_EVT:
-            response = self._gattc_cmp_evt_handler(message)
-            if response is None:
-                is_handled = True
-            else:
-                is_handled = response
+        # If this is a GATTC_CMP_EVT need to determine if will be handled by _gattc_mgr or _gatts_mgr
+        if gtl.msg_id == GATTC_MSG_ID.GATTC_CMP_EVT:
+            is_handled = self._gatt_cmp_evt_handler(gtl)
         else:
+            # loop thru Gap, Gattc, Gatts handlers to determine if a handler exists for this event
             for handlers in self.evt_handlers:
-                handler = handlers.get(message.msg_id)
+                handler = handlers.get(gtl.msg_id)
                 if handler:
+                    # If the handler exists, call it
                     response = None
-                    response = handler(message)
+                    response = handler(gtl)
+                    # All handlers except for those that handle CMP_EVTs (e.g. xxx_cmp_evt_handler() ) will return None
                     if response is None:
                         is_handled = True
                     else:
+                        # BleManagerGap.gapm_cmp_evt_handler() and BleManagerGap.gapc_cmp_evt_handler() will return bool to indicate if event has been handled
                         is_handled = response
                     break
         return is_handled
@@ -145,18 +148,16 @@ class BleManager(BleManagerBase):
         mgr: BleManagerBase = self.cmd_handlers.get(category)
         cmd_handler = mgr.cmd_handlers.get(command.opcode)
 
-        # assert cmd_handler  # Should always have a handler
-
         if cmd_handler:
             cmd_handler(command)
         else:
             print(f"BleManager._process_command_queue. Unhandled command={command}\n")
 
-    def _process_event_queue(self, event: GtlMessageBase):
-
-        if not self._gtl_wait_q.match(event):
-            if not self._handle_evt_or_ind(event):
-                print(f"BleManager._process_event_queue. Unhandled event={event}\n")
+    def _process_event_queue(self, gtl: GtlMessageBase):
+        if not self._reset_wait_q.match(gtl):
+            if not self._gtl_wait_q.match(gtl):
+                if not self._handle_evt_or_ind(gtl):
+                    print(f"BleManager._process_event_queue. Unhandled event={gtl}\n")
 
     def cmd_execute(self, command: BleMgrMsgBase) -> BLE_ERROR:
         dev_params = self.dev_params_acquire()

@@ -1,5 +1,6 @@
 import queue
 import threading
+from typing import Callable
 
 from ..ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_STATUS, BleEventResetCompleted
 from ..ble_api.BleConfig import BleConfigDefault
@@ -13,6 +14,8 @@ from ..manager.BleManagerBase import BleManagerBase
 from ..manager.BleManagerCommonMsgs import BleMgrCommonResetCmd, BleMgrCommonResetRsp, BLE_MGR_COMMON_CMD_OPCODE
 from ..manager.BleManagerStorage import StoredDeviceQueue
 from ..manager.GtlWaitQueue import GtlWaitQueue
+from ..manager.ResetWaitQueue import ResetWaitQueue
+from .WaitQueue import WaitQueueElement
 
 
 class BleManagerCommon(BleManagerBase):
@@ -21,15 +24,25 @@ class BleManagerCommon(BleManagerBase):
                  mgr_response_q: queue.Queue[BLE_ERROR],
                  mgr_event_q: queue.Queue[BleEventBase],
                  adapter_command_q: queue.Queue[GtlMessageBase],
-                 wait_q: GtlWaitQueue,
+                 gtl_wait_q: GtlWaitQueue,
                  stored_device_q: StoredDeviceQueue,
                  stored_device_lock: threading.Lock(),
                  dev_params: BleDevParamsDefault,
                  dev_params_lock: threading.Lock(),
-                 ble_config: BleConfigDefault = BleConfigDefault()
+                 ble_config: BleConfigDefault = BleConfigDefault(),
+                 reset_wait_q: ResetWaitQueue = ResetWaitQueue(),
                  ) -> None:
 
-        super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q, stored_device_q, stored_device_lock, dev_params, dev_params_lock, ble_config)
+        self._reset_wait_q = reset_wait_q
+        super().__init__(mgr_response_q,
+                         mgr_event_q,
+                         adapter_command_q,
+                         gtl_wait_q,
+                         stored_device_q,
+                         stored_device_lock,
+                         dev_params,
+                         dev_params_lock,
+                         ble_config)
 
         self.cmd_handlers = {
             BLE_MGR_COMMON_CMD_OPCODE.BLE_MGR_COMMON_RESET_CMD: self.reset_cmd_handler,
@@ -52,7 +65,7 @@ class BleManagerCommon(BleManagerBase):
             '''
 
             # Clear waitqueue (does not call waitqueue callback functions)
-            # self._wait_queue_flush_all()  # TODO this causing issue as this function called on wait q match so wait q is locked
+            self._gtl_wait_queue_flush_all()
 
             # TODO
             self.dev_params_acquire()
@@ -69,10 +82,13 @@ class BleManagerCommon(BleManagerBase):
         self._mgr_response_queue_send(response)
         self._mgr_event_queue_send(evt)
 
+    def _rest_wait_queue_add(self, conn_idx: int, msg_id: int, ext_id: int, cb: Callable, param: object) -> None:
+        item = WaitQueueElement(conn_idx=conn_idx, msg_id=msg_id, ext_id=ext_id, cb=cb, param=param)
+        self._reset_wait_q.add(item)
+
     def reset_cmd_handler(self, command: BleMgrCommonResetCmd):
         self._set_status(BLE_STATUS.BLE_IS_RESET)
-        # TODO this does not go on GTL wait q, it goes on AD msg wait q
-        self._gtl_wait_queue_add(BLE_CONN_IDX_INVALID, GAPM_MSG_ID.GAPM_CMP_EVT, GAPM_OPERATION.GAPM_RESET, self._reset_rsp_handler, None)
+        self._rest_wait_queue_add(BLE_CONN_IDX_INVALID, GAPM_MSG_ID.GAPM_CMP_EVT, GAPM_OPERATION.GAPM_RESET, self._reset_rsp_handler, None)
         gtl = GapmResetCmd(gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
         self._adapter_command_queue_send(gtl)
 

@@ -1,33 +1,15 @@
 import threading
-from ctypes import c_uint16
-from typing import Callable
 from ..ble_api.BleGap import BLE_CONN_IDX_INVALID
 from ..gtl_messages.gtl_message_base import GtlMessageBase
 from ..gtl_port.gapc_task import GAPC_MSG_ID, GAPC_OPERATION
 from ..gtl_port.gapm_task import GAPM_MSG_ID
+from .WaitQueue import WaitQueueElement, WaitQueue
 
 
-class GtlWaitQueueElement():
-    def __init__(self,
-                 conn_idx: c_uint16 = 0,
-                 msg_id: c_uint16 = 0,
-                 ext_id: c_uint16 = 0,
-                 cb: Callable = None,
-                 param: object = None) -> None:
-        self.conn_idx = conn_idx
-        self.msg_id = msg_id
-        self.ext_id = ext_id
-        self.cb = cb
-        self.param = param
-
-
-class GtlWaitQueue():
+class GtlWaitQueue(WaitQueue):
     def __init__(self) -> None:
         self._wait_queue_lock: threading.Lock = threading.Lock()
-        self._queue = []
-
-    def _task_to_connidx(self, task_id):
-        return task_id >> 8
+        super().__init__()
 
     def _wait_queue_lock_acquire(self,):
         # print("WAIT QUEUE LOCK ACQUIRE")
@@ -37,13 +19,13 @@ class GtlWaitQueue():
         # print("WAIT QUEUE LOCK RELEASE")
         self._wait_queue_lock.release()
 
-    def add(self, elem: GtlWaitQueueElement):
+    def add(self, elem: WaitQueueElement):
         self._wait_queue_lock_acquire()
         self.push(elem)
         self._wait_queue_lock_release()
 
     def flush(self, conn_idx):
-        elem: GtlWaitQueueElement
+        elem: WaitQueueElement
         self._wait_queue_lock_acquire()
         for elem in self._queue:
             if elem.conn_idx == conn_idx:
@@ -87,7 +69,7 @@ class GtlWaitQueue():
 
     def flush_all(self):
         self._wait_queue_lock_acquire()
-        elem: GtlWaitQueueElement
+        elem: WaitQueueElement
         for elem in self._queue:
             self._queue.remove(elem)
         self._wait_queue_lock_release()
@@ -96,7 +78,7 @@ class GtlWaitQueue():
         ret = False
         self._wait_queue_lock_acquire()
         for item in self._queue:
-            item: GtlWaitQueueElement
+            item: WaitQueueElement
             if item.conn_idx == BLE_CONN_IDX_INVALID:
                 match = item.msg_id == message.msg_id
             else:
@@ -124,11 +106,3 @@ class GtlWaitQueue():
 
         self._wait_queue_lock_release()
         return ret
-
-    def push(self, elem: GtlWaitQueueElement) -> None:
-        if not isinstance(elem, GtlWaitQueueElement):
-            raise TypeError(f"Element must be of type GtlWaitQueueElement, was {type(elem)}")
-        self._queue.append(elem)
-
-    def remove(self, elem: GtlWaitQueueElement) -> None:
-        self._queue.remove(elem)
