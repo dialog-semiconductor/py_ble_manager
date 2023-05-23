@@ -13,7 +13,7 @@ Once running the script will:
 
 1. connect to your development kit over J-Link
 2. erase the flash
-3. programm the binary
+3. program the binary
 4. reset the device to start the firmware application
 
 Progress with the above sequence will be printed to the terminal:
@@ -24,4 +24,4 @@ Note, if you have multiple J-Link devices connected to your PC, a prompt will be
 
 ![prompt](assets/prompt.png)
 
-Once the script is complete your development kit is ready to communicate with the py_ble_manager library.
+Once the script is complete, your development kit is ready to communicate with the py_ble_manager library.
