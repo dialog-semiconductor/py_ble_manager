@@ -366,11 +366,11 @@ class gattc_cmp_evt(LittleEndianStructure):
                 ("seq_num", c_uint16)]
 
 
-# Service Discovery Command LittleEndianStructure
+# Exchange MTU command structure
 class gattc_exc_mtu_cmd(LittleEndianStructure):
 
     def __init__(self,
-                 operation: GATTC_OPERATION = GATTC_OPERATION.GATTC_NO_OP,
+                 operation: GATTC_OPERATION = GATTC_OPERATION.GATTC_MTU_EXCH,
                  seq_num: c_uint16 = 0):
 
         self.operation = operation

@@ -68,6 +68,18 @@ class BleMgrGattcDiscoverSvcRsp(BleMgrMsgRsp):
                          status=status)
 
 
+class BleMgrGattcExchangeMtuCmd(BleMgrMsgRsp):
+    def __init__(self, conn_idx: int = 0) -> None:
+        super().__init__(opcode=BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_EXCHANGE_MTU_CMD)
+        self.conn_idx = conn_idx
+
+
+class BleMgrGattcExchangeMtuRsp(BleMgrMsgRsp):
+    def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
+        super().__init__(opcode=BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_EXCHANGE_MTU_CMD,
+                         status=status)
+
+
 class BleMgrGattcReadCmd(BleMgrMsgBase):
     def __init__(self, conn_idx: int = 0, handle: int = 0, offset: int = 0) -> None:
         super().__init__(opcode=BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_READ_CMD)

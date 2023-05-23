@@ -12,14 +12,15 @@ from ..ble_api.BleGattc import BleEventGattcDiscoverSvc, BleEventGattcDiscoverCo
 from ..gtl_messages.gtl_message_base import GtlMessageBase
 from ..gtl_messages.gtl_message_gattc import GattcDiscCmd, GattcDiscSvcInd, GattcCmpEvt, GattcDiscCharInd, GattcSdpSvcDiscCmd, \
     GattcSdpSvcInd, GattcReadCmd, GattcReadInd, GattcWriteCmd, GattcEventInd, GattcEventReqInd, GattcEventCfm, \
-    GattcWriteExecuteCmd, GattcMtuChangedInd
+    GattcWriteExecuteCmd, GattcMtuChangedInd, GattcExcMtuCmd
 from ..gtl_port.gattc_task import GATTC_OPERATION, GATTC_MSG_ID, gattc_sdp_att_info, GATTC_SDP_ATT_TYPE, gattc_read_simple
 from ..gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from ..manager.BleManagerBase import BleManagerBase
 from ..manager.BleManagerGattcMsgs import BLE_CMD_GATTC_OPCODE, BleMgrGattcDiscoverSvcCmd, \
     BleMgrGattcDiscoverSvcRsp, BleMgrGattcDiscoverCharCmd, BleMgrGattcDiscoverCharRsp, BleMgrGattcDiscoverDescCmd, \
     BleMgrGattcDiscoverDescRsp, BleMgrGattcBrowseCmd, BleMgrGattcBrowseRsp, BleMgrGattcReadCmd, BleMgrGattcReadRsp, \
-    BleMgrGattcWriteGenericCmd, BleMgrGattcWriteGenericRsp, BleMgrGattcWriteExecuteCmd, BleMgrGattcWriteExecuteRsp
+    BleMgrGattcWriteGenericCmd, BleMgrGattcWriteGenericRsp, BleMgrGattcWriteExecuteCmd, BleMgrGattcWriteExecuteRsp, \
+    BleMgrGattcExchangeMtuCmd, BleMgrGattcExchangeMtuRsp
 from ..manager.BleDevParams import BleDevParamsDefault
 from ..manager.BleManagerStorage import StoredDeviceQueue
 from ..manager.GtlWaitQueue import GtlWaitQueue
@@ -51,7 +52,7 @@ class BleManagerGattc(BleManagerBase):
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_READ_CMD: self.read_cmd_handler,
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_WRITE_GENERIC_CMD: self.write_generic_cmd_handler,
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_WRITE_EXECUTE_CMD: self.write_execute_cmd_handler,
-            BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_EXCHANGE_MTU_CMD: None,
+            BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_EXCHANGE_MTU_CMD: self.exchange_mtu_cmd_handler,
 
         }
 
@@ -306,6 +307,20 @@ class BleManagerGattc(BleManagerBase):
             evt.handle = gtl.parameters.handle
             evt.value = bytes(gtl.parameters.value)
             self._mgr_event_queue_send(evt)
+
+    def exchange_mtu_cmd_handler(self, command: BleMgrGattcExchangeMtuCmd):
+        response = BleMgrGattcExchangeMtuRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        self.storage_acquire()
+        dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
+        if dev:
+            self.storage_release()
+            gtl = GattcExcMtuCmd(conidx=command.conn_idx)
+            gtl.parameters.seq_num = 0
+            self._adapter_command_queue_send(gtl)
+            response.status = BLE_ERROR.BLE_STATUS_OK
+        else:
+            self.storage_release()
+        self._mgr_response_queue_send(response)
 
     def mtu_changed_ind_evt_handler(self, gtl: GattcMtuChangedInd):
         conn_idx = self._task_to_connidx(gtl.src_id)
