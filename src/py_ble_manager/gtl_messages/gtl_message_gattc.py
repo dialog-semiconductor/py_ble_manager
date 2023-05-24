@@ -369,18 +369,18 @@ class GattcSdpSvcInd(GtlMessageBase):
 
     par_len = property(get_par_len, set_par_len)
 
-    # TODO this method not working properly
     def _struct_to_str(self, struct: gattc_sdp_svc_ind):
 
         param_string = ''
-        param_string += f'({self._array_to_str("uuid", struct.uuid)[:-2]}, '
+        param_string += f'({self._array_to_str("uuid", struct.uuid[:struct.uuid_len])[:-2]}, '
+        param_string += f'padding={[0]*(17-struct.uuid_len)}, '
         param_string += f'start_hdl={struct.start_hdl}, '
         param_string += f'end_hdl={struct.end_hdl}, '
 
         param_string += 'info=('
         item: gattc_sdp_att_info
         for item in struct.info:
-            param_string += f'gattc_sdp_att_info=(att_type={str(GATTC_SDP_ATT_TYPE(item.att_type))}, '
+            param_string += f'\ngattc_sdp_att_info=(att_type={str(GATTC_SDP_ATT_TYPE(item.att_type))}, '
             match item.att_type:
                 case GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_CHAR:
                     param_string += 'att_char=gattc_sdp_att_char=('
@@ -389,16 +389,18 @@ class GattcSdpSvcInd(GtlMessageBase):
                     param_string += ')'
                 case GATTC_SDP_ATT_TYPE.GATTC_SDP_INC_SVC:
                     param_string += 'inc_svc=gattc_sdp_include_svc=('
-                    param_string += f'{self._array_to_str("uuid", item.inc_svc.uuid)[:-2]}, '
-                    param_string += f'prop={item.inc_svc.start_hdl}, '
-                    param_string += f'handle={item.inc_svc.end_hdl}'
+                    param_string += f'{self._array_to_str("uuid", item.inc_svc.uuid[:item.inc_svc.uuid_len])[:-2]}, '
+                    param_string += f'padding={[0]*(20-item.inc_svc.uuid_len)}, '
+                    param_string += f'start_hdl={item.inc_svc.start_hdl}, '
+                    param_string += f'end_hdl={item.inc_svc.end_hdl}'
                     param_string += ')'
                 case (GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_VAL
                       | GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_DESC):
 
                     param_string += 'att=gattc_sdp_att=('
                     param_string += f'uuid_len={item.att.uuid_len}, '
-                    param_string += f'{self._array_to_str("uuid", item.att.uuid)[:-2]}'
+                    param_string += f'{self._array_to_str("uuid", item.att.uuid[:item.att.uuid_len])[:-2]}, '
+                    param_string += f'padding={[0]*(20-item.att.uuid_len)}'
                     param_string += ')'
             param_string += '), '
         param_string = param_string[:-2]
