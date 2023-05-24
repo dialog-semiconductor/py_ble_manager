@@ -547,7 +547,7 @@ class GattcWriteCmd(GtlMessageBase):
                          parameters=self.parameters)
 
     def get_par_len(self):
-        self._par_len = 12 + self.parameters.length + self.parameters.length % 2  # TODO padding added if value is odd length?
+        self._par_len = 12 + self.parameters.length + self.parameters.length % 2
         return self._par_len
 
     def set_par_len(self, value):
@@ -557,7 +557,7 @@ class GattcWriteCmd(GtlMessageBase):
 
     def _struct_to_bytearray(self, parameters: gattc_write_cmd):
         message = super()._struct_to_bytearray(parameters)
-        if parameters.length % 2:  # TODO seems there is a padding byte added for odd length values, need confirm
+        if parameters.length % 2:
             message.extend(c_uint8(0))
         return message
 
