@@ -1288,7 +1288,8 @@ class gattc_sdp_include_svc(LittleEndianStructure):
         super().__init__(att_type=self.att_type,
                          uuid_len=self.uuid_len,
                          _uuid=self._uuid,
-                         # padding=(c_uint8 * 4)(), # TODO manual says there is padding here, but I think it may be wrong
+                         # TODO MANUAL manual says there is padding here, but there is not due to 4 bytes from start_hdl/end_hdl
+                         # padding=(c_uint8 * 4)(),
                          start_hdl=self.start_hdl,
                          end_hdl=self.end_hdl)
 
@@ -1306,7 +1307,7 @@ class gattc_sdp_include_svc(LittleEndianStructure):
                 ("end_hdl", c_uint16)]
 
     def get_uuid(self):
-        return self._uuid  # TODO could return self._uuid[:self.uuid_len]
+        return self._uuid[:self.uuid_len]
 
     def set_uuid(self, uuid: Array[c_uint8]):
         if len(uuid) == 2 or len(uuid) == 4 or len(uuid) == 16:
@@ -1383,7 +1384,7 @@ class gattc_sdp_att(LittleEndianStructure):
     att_type = property(get_att_type, set_att_type)
 
     def get_uuid(self):
-        return self._uuid  # TODO could return self._uuid[:self.uuid_len]
+        return self._uuid[:self.uuid_len]
 
     def set_uuid(self, uuid: Array[c_uint8]):
         if len(uuid) == 2 or len(uuid) == 4 or len(uuid) == 16:
