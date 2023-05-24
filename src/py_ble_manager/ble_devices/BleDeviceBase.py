@@ -1,4 +1,5 @@
 import queue
+from typing import Tuple
 from ..adapter.BleAdapter import BleAdapter
 from ..ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_HCI_ERROR
 from ..ble_api.BleConfig import BleConfigDefault
@@ -18,12 +19,14 @@ class BleDeviceBase():
 
     :param com_port: COM port of the development kit
     :type com_port: str
+    :param baud_rate: Baud rate for serial port of the development kit
+    :type baud_rate: int
     :param ble_config: BLE configuration to use, defaults to BleConfigDefault(BLE_DEVICE_TYPE.CENTRAL)
     :type ble_config: BleConfigDefault, optional
     :param gtl_debug: enable or disable GTL debugging, defaults to False
     :type gtl_debug: bool, optional
     """
-    def __init__(self, com_port: str, config: BleConfigDefault = BleConfigDefault(), gtl_debug: bool = False):
+    def __init__(self, com_port: str, baud_rate: int = 921600, config: BleConfigDefault = BleConfigDefault(), gtl_debug: bool = False):
         """Constructor
         """
         app_command_q = queue.Queue()
@@ -38,7 +41,7 @@ class BleDeviceBase():
         # Internal BLE framework layers
         self._ble_manager = BleManager(app_command_q, app_response_q, app_event_q, adapter_command_q, adapter_event_q, config)
         self._ble_adapter = BleAdapter(adapter_command_q, adapter_event_q, serial_tx_q, serial_rx_q, gtl_debug)
-        self._serial_stream_manager = SerialStreamManager(com_port, serial_tx_q, serial_rx_q)
+        self._serial_stream_manager = SerialStreamManager(com_port, baud_rate, serial_tx_q, serial_rx_q)
 
         # Dialog API
         self._ble_gap = BleGapApi(self._ble_manager)
@@ -147,6 +150,35 @@ class BleDeviceBase():
         """
 
         return self._ble_manager.mgr_event_queue_get(timeout)
+
+    def mtu_size_get(self) -> Tuple[int, BLE_ERROR]:
+        """Get MTU size
+
+        This call retrieves the Maximum Protocol Unit size that is used in exchange MTU transactions
+        with peers.
+
+        :return: result code, mtu size
+        :rtype: Tuple[BLE_ERROR, int]
+        """
+        return self._ble_gap.mtu_size_get()
+
+    def mtu_size_set(self, mtu_size: int) -> BLE_ERROR:
+        """Set MTU size
+
+        This call sets the Maximum Protocol Unit size that will be used in exchange MTU transactions
+        with peers.
+
+        .. note::
+            This API function has to be called prior to creating the attribute database of the device. This
+            is because the device configuration is going to be modified, which will result in clearing the
+            current attribute database (if it exists).
+
+        :param mtu_size: MTU size
+        :type mtu_size: int
+        :return: result code
+        :rtype: BLE_ERROR
+        """
+        return self._ble_gap.mtu_size_set(mtu_size)
 
     def numeric_reply(self, conn_idx: int, accept: bool) -> BLE_ERROR:
         """Respond to a numeric comparison request

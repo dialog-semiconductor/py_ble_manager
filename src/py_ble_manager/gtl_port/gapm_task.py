@@ -802,11 +802,9 @@ class gapm_adv_host(LittleEndianStructure):
     def __init__(self,
                  mode: GAP_ADV_MODE = GAP_ADV_MODE.GAP_NON_DISCOVERABLE,
                  adv_filt_policy: ADV_FILTER_POLICY = ADV_FILTER_POLICY.ADV_ALLOW_SCAN_ANY_CON_ANY,
-                 adv_data_len: c_uint8 = 0,  # TODO max adv_data_len is 28 bytes (stack adds flags AD Type = 3 bytes, but is this true for non connectable)
+                 adv_data_len: c_uint8 = 0,
                  adv_data: (c_uint8 * ADV_DATA_LEN) = (c_uint8 * ADV_DATA_LEN)(),
-                 # adv_data: adv_data_array = adv_data_array( *([0]*ADV_DATA_LEN) ),
-                 # TODO scan rsp len and adv data len can be inferred from adv_data and scan_rsp_data
-                 scan_rsp_data_len: c_uint8 = 0,  # TODO max scan_rsp_data_len is 31 bytes.
+                 scan_rsp_data_len: c_uint8 = 0,
                  scan_rsp_data: (c_uint8 * SCAN_RSP_DATA_LEN) = (c_uint8 * SCAN_RSP_DATA_LEN)(),
                  peer_info: gap_bdaddr = gap_bdaddr()
                  ):

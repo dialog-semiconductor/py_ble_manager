@@ -211,7 +211,7 @@ class GattcEventReqInd(GtlMessageBase):
 
 class GattcEventCfm(GtlMessageBase):
 
-    # TODO conidx not documented for this message but every other GATTC message has one.
+    # TODO MANUAL: conidx not documented for this message but every other GATTC message has one.
     def __init__(self, conidx: c_uint8 = 0, parameters: gattc_event_cfm = None):
 
         self.parameters = parameters if parameters else gattc_event_cfm()
@@ -319,7 +319,7 @@ class GattcDiscCharInd(GtlMessageBase):
 
         super().__init__(msg_id=GATTC_MSG_ID.GATTC_DISC_CHAR_IND,
                          dst_id=KE_API_ID.TASK_ID_GTL,
-                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),  # TODO does not include conidx in manual, but all other GATTC do
+                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),  # TODO MANUAL does not include conidx in manual, but all other GATTC do
                          par_len=self.par_len,
                          parameters=self.parameters)
 
@@ -342,7 +342,8 @@ class GattcSdpSvcDiscCmd(GtlMessageBase):
         super().__init__(msg_id=GATTC_MSG_ID.GATTC_SDP_SVC_DISC_CMD,
                          dst_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
                          src_id=KE_API_ID.TASK_ID_GTL,
-                         par_len=24,  # TODO manual say 26in example, but seems 24 is max. Example string in manual too long
+                         # TODO MANUAL: manual say 26 in example, but 24 is max in message definition in Table 134. Example string in manual too long
+                         par_len=24,
                          parameters=self.parameters)
 
 
@@ -368,18 +369,18 @@ class GattcSdpSvcInd(GtlMessageBase):
 
     par_len = property(get_par_len, set_par_len)
 
-    # TODO this method not working properly
     def _struct_to_str(self, struct: gattc_sdp_svc_ind):
 
         param_string = ''
-        param_string += f'({self._array_to_str("uuid", struct.uuid)[:-2]}, '
+        param_string += f'({self._array_to_str("uuid", struct.uuid[:struct.uuid_len])[:-2]}, '
+        param_string += f'padding={[0]*(17-struct.uuid_len)}, '
         param_string += f'start_hdl={struct.start_hdl}, '
         param_string += f'end_hdl={struct.end_hdl}, '
 
         param_string += 'info=('
         item: gattc_sdp_att_info
         for item in struct.info:
-            param_string += f'gattc_sdp_att_info=(att_type={str(GATTC_SDP_ATT_TYPE(item.att_type))}, '
+            param_string += f'\ngattc_sdp_att_info=(att_type={str(GATTC_SDP_ATT_TYPE(item.att_type))}, '
             match item.att_type:
                 case GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_CHAR:
                     param_string += 'att_char=gattc_sdp_att_char=('
@@ -388,16 +389,18 @@ class GattcSdpSvcInd(GtlMessageBase):
                     param_string += ')'
                 case GATTC_SDP_ATT_TYPE.GATTC_SDP_INC_SVC:
                     param_string += 'inc_svc=gattc_sdp_include_svc=('
-                    param_string += f'{self._array_to_str("uuid", item.inc_svc.uuid)[:-2]}, '
-                    param_string += f'prop={item.inc_svc.start_hdl}, '
-                    param_string += f'handle={item.inc_svc.end_hdl}'
+                    param_string += f'{self._array_to_str("uuid", item.inc_svc.uuid[:item.inc_svc.uuid_len])[:-2]}, '
+                    param_string += f'padding={[0]*(20-item.inc_svc.uuid_len)}, '
+                    param_string += f'start_hdl={item.inc_svc.start_hdl}, '
+                    param_string += f'end_hdl={item.inc_svc.end_hdl}'
                     param_string += ')'
                 case (GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_VAL
                       | GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_DESC):
 
                     param_string += 'att=gattc_sdp_att=('
                     param_string += f'uuid_len={item.att.uuid_len}, '
-                    param_string += f'{self._array_to_str("uuid", item.att.uuid)[:-2]}'
+                    param_string += f'{self._array_to_str("uuid", item.att.uuid[:item.att.uuid_len])[:-2]}, '
+                    param_string += f'padding={[0]*(20-item.att.uuid_len)}'
                     param_string += ')'
             param_string += '), '
         param_string = param_string[:-2]
@@ -443,7 +446,7 @@ class GattcReadCmd(GtlMessageBase):
         elif self.parameters.operation == GATTC_OPERATION.GATTC_READ_BY_UUID:
             self._par_len = 4 + 6 + self.parameters.req.by_uuid.uuid_len
         else:  # self.parameters.operation == GATTC_OPERATION.GATTC_READ_MULTIPLE
-            self._par_len = 4 + 4 * self.parameters.nb  # TODO nb not updated properly as set_req not called when updated multiple
+            self._par_len = 4 + 4 * self.parameters.nb
         return self._par_len
 
     def set_par_len(self, value):
@@ -477,9 +480,10 @@ class GattcReadCmd(GtlMessageBase):
                 multiple_array = struct.req.multiple
                 for item in multiple_array:
                     param_string += 'gattc_read_multiple=('
-                    param_string += f'handle={item.handle}'
+                    param_string += f'handle={item.handle}, '
                     param_string += f'len={item.len}'
-                    param_string += ')'
+                    param_string += '), '
+                param_string = param_string[:-2]
                 param_string += ')'
 
         param_string += ')'
@@ -543,7 +547,7 @@ class GattcWriteCmd(GtlMessageBase):
                          parameters=self.parameters)
 
     def get_par_len(self):
-        self._par_len = 12 + self.parameters.length + self.parameters.length % 2  # TODO padding added if value is odd length?
+        self._par_len = 12 + self.parameters.length + self.parameters.length % 2
         return self._par_len
 
     def set_par_len(self, value):
@@ -553,7 +557,7 @@ class GattcWriteCmd(GtlMessageBase):
 
     def _struct_to_bytearray(self, parameters: gattc_write_cmd):
         message = super()._struct_to_bytearray(parameters)
-        if parameters.length % 2:  # TODO seems there is a padding byte added for odd length values, need confirm
+        if parameters.length % 2:
             message.extend(c_uint8(0))
         return message
 

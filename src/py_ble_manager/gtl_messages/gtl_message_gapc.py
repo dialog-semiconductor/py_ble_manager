@@ -500,6 +500,6 @@ class GapcLePktSizeInd(GtlMessageBase):
 
         super().__init__(msg_id=GAPC_MSG_ID.GAPC_LE_PKT_SIZE_IND,
                          dst_id=KE_API_ID.TASK_ID_GTL,
-                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GAPC),  # TODO manual says GAPM and has no conidx
+                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GAPC),  # TODO MANUAL: manual says GAPM and has no conidx
                          par_len=8,
                          parameters=self.parameters)

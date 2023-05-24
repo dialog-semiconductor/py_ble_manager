@@ -105,6 +105,25 @@ class BleMgrGapDisconnectRsp(BleMgrMsgRsp):
                          status=status)
 
 
+class BleMgrGapMtuSizeSetCmd(BleMgrMsgBase):
+    def __init__(self,
+                 mtu_size: int = 0
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_MTU_SIZE_SET_CMD)
+        self.mtu_size = mtu_size
+
+
+class BleMgrGapMtuSizeSetRsp(BleMgrMsgRsp):
+    def __init__(self,
+                 new_mtu_size: int = 0,
+                 previous_mtu_size: int = 0,
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_MTU_SIZE_SET_CMD,
+                         status=status)
+        self.new_mtu_size = new_mtu_size
+        self.previous_mtu_size = previous_mtu_size
+
+
 class BleMgrGapNumericReplyCmd(BleMgrMsgBase):
     def __init__(self,
                  conn_idx: int = 0,
