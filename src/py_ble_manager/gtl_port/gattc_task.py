@@ -740,7 +740,6 @@ class gattc_read_req(Union):
                 # Read by UUID (GATTC_READ_BY_UUID)
                 ("by_uuid", gattc_read_by_uuid),
                 # Read Multiple short characteristic (GATTC_READ_MULTIPLE)
-                # ("_multiple", POINTER(gattc_read_multiple))]
                 ("_multiple", POINTER(gattc_read_multiple)),
                 ("_multiple_len", c_uint16)]  # This field is not included in original struct, but is required to keep track of _multiple length
 
