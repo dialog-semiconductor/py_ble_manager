@@ -211,7 +211,7 @@ class GattcEventReqInd(GtlMessageBase):
 
 class GattcEventCfm(GtlMessageBase):
 
-    # TODO conidx not documented for this message but every other GATTC message has one.
+    # TODO MANUAL: conidx not documented for this message but every other GATTC message has one.
     def __init__(self, conidx: c_uint8 = 0, parameters: gattc_event_cfm = None):
 
         self.parameters = parameters if parameters else gattc_event_cfm()
@@ -319,7 +319,7 @@ class GattcDiscCharInd(GtlMessageBase):
 
         super().__init__(msg_id=GATTC_MSG_ID.GATTC_DISC_CHAR_IND,
                          dst_id=KE_API_ID.TASK_ID_GTL,
-                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),  # TODO does not include conidx in manual, but all other GATTC do
+                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),  # TODO MANUAL does not include conidx in manual, but all other GATTC do
                          par_len=self.par_len,
                          parameters=self.parameters)
 
@@ -342,7 +342,8 @@ class GattcSdpSvcDiscCmd(GtlMessageBase):
         super().__init__(msg_id=GATTC_MSG_ID.GATTC_SDP_SVC_DISC_CMD,
                          dst_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
                          src_id=KE_API_ID.TASK_ID_GTL,
-                         par_len=24,  # TODO manual say 26in example, but seems 24 is max. Example string in manual too long
+                         # TODO MANUAL: manual say 26 in example, but 24 is max in message definition in Table 134. Example string in manual too long
+                         par_len=24,
                          parameters=self.parameters)
 
 
