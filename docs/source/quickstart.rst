@@ -22,8 +22,13 @@ Quick Start (terminal)
 
 #. Activate the virtual environment. The specific command depends on your operating system. From a windows command prompt call: ``<path_to_venv>\Scripts\activate.bat``
 
-#. Call: ``pip install .`` to install the py_ble_manager package and its dependencies.
+#. Call: ``pip install ".[ezFlashCLI,prompt_toolkit]"`` to install the py_ble_manager package and its dependencies.
 
+   .. note:: 
+      `ezFlashCLI <https://pypi.org/project/ezFlashCLI/>`_ and `prompt_toolkit <https://pypi.org/project/prompt-toolkit/>`_
+      are optional dependencies. ``ezFlashCLI`` can be used to program the development kit with GTL compatible firmware.
+      ``prompt_toolkit`` is used in some of the examples to provide a command line interface.
+    
 #. The package is now installed and you are ready to run one of the [examples](examples)
 
 
@@ -41,6 +46,11 @@ Quick Start (VS Code)
 #. Activate the virtual environment. Hold CTRL+shift+P to open the command palette. Select ``Python: Select Interpreter``. Select the interpreter in the virtual environment you just created (labeled venv).
    Open a new terminal in VS Code and the virtual environment will be activated.
 
-#. Call: ``pip install .`` to install the py_ble_manager package and its dependencies.
+#. Call: ``pip install ".[ezFlashCLI,prompt_toolkit]"`` to install the py_ble_manager package and its dependencies.
+
+   .. note:: 
+      `ezFlashCLI <https://pypi.org/project/ezFlashCLI/>`_ and `prompt_toolkit <https://pypi.org/project/prompt-toolkit/>`_
+      are optional dependencies. ``ezFlashCLI`` can be used to program the development kit with GTL compatible firmware.
+      ``prompt_toolkit`` is used in some of the examples to provide a command line interface.
 
 #. The package is now installed and you are ready to run one of the `examples <https://github.com/Renesas-US-Connectivity/py_ble_manager/tree/main/examples>`_

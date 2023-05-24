@@ -25,3 +25,5 @@ Note, if you have multiple J-Link devices connected to your PC, a prompt will be
 ![prompt](assets/prompt.png)
 
 Once the script is complete, your development kit is ready to communicate with the py_ble_manager library.
+
+> **_NOTE:_** Occasionally the script fails to reset the target to start the firmware. Simply remove and re-apply power to your development kit to reset the device.
