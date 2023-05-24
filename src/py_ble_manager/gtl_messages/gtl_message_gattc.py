@@ -446,7 +446,7 @@ class GattcReadCmd(GtlMessageBase):
         elif self.parameters.operation == GATTC_OPERATION.GATTC_READ_BY_UUID:
             self._par_len = 4 + 6 + self.parameters.req.by_uuid.uuid_len
         else:  # self.parameters.operation == GATTC_OPERATION.GATTC_READ_MULTIPLE
-            self._par_len = 4 + 4 * self.parameters.nb  # TODO nb not updated properly as set_req not called when updated multiple
+            self._par_len = 4 + 4 * self.parameters.nb
         return self._par_len
 
     def set_par_len(self, value):
@@ -480,9 +480,10 @@ class GattcReadCmd(GtlMessageBase):
                 multiple_array = struct.req.multiple
                 for item in multiple_array:
                     param_string += 'gattc_read_multiple=('
-                    param_string += f'handle={item.handle}'
+                    param_string += f'handle={item.handle}, '
                     param_string += f'len={item.len}'
-                    param_string += ')'
+                    param_string += '), '
+                param_string = param_string[:-2]
                 param_string += ')'
 
         param_string += ')'
