@@ -41,8 +41,12 @@ class BleManagerBase():
 
     def _mgr_event_queue_flush(self) -> None:
         # TODO Critical section?
-        while self._mgr_event_q.qsize != 0:
-            self._mgr_event_q.get_nowait()
+        while self._mgr_event_q.qsize() != 0:
+            try:
+                self._mgr_event_q.get_nowait()
+                print(self._mgr_event_q.qsize())
+            except queue.Empty:
+                break
 
     def _mgr_event_queue_send(self, evt: BleEventBase):
         self._mgr_event_q.put_nowait(evt)
