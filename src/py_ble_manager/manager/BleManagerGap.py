@@ -239,8 +239,8 @@ class BleManagerGap(BleManagerBase):
                 if command.adv_type < GAP_CONN_MODE.GAP_CONN_MODE_DIRECTED:
                     gtl.parameters.info.host.mode = dev_params.adv_mode
                     gtl.parameters.info.host.adv_filt_policy = dev_params.adv_filter_policy
-                    gtl.parameters.info.host.adv_data_len = dev_params.adv_data_length
                     adv_len = dev_params.adv_data_length
+                    gtl.parameters.info.host.adv_data_len = adv_len
                     gtl.parameters.info.host.adv_data[:adv_len] = dev_params.adv_data[:adv_len]
 
                     gtl.parameters.info.host.scan_rsp_data_len = dev_params.scan_rsp_data_length
