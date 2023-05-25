@@ -22,7 +22,7 @@ class BleMgrGapAdvDataSetCmd(BleMgrMsgBase):
                  adv_data_len: int = 0,
                  adv_data: (c_uint8 * BLE_NON_CONN_ADV_DATA_LEN_MAX) = (c_uint8 * BLE_NON_CONN_ADV_DATA_LEN_MAX)(),
                  scan_rsp_data_len: int = 0,
-                 scan_rsp_data: (c_uint8 * BLE_NON_CONN_ADV_DATA_LEN_MAX) = (c_uint8 * BLE_NON_CONN_ADV_DATA_LEN_MAX)()    
+                 scan_rsp_data: (c_uint8 * BLE_NON_CONN_ADV_DATA_LEN_MAX) = (c_uint8 * BLE_NON_CONN_ADV_DATA_LEN_MAX)()
                  ) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_DATA_SET_CMD)
         self.adv_data_len = adv_data_len

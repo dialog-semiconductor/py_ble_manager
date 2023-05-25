@@ -28,7 +28,7 @@ from ..gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReq
 from ..gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd, \
     GapmStartScanCmd, GapmAdvReportInd, GapmCancelCmd, GapmResolvAddrCmd, GapmUpdateAdvertiseDataCmd
 
-from ..gtl_port.attm import ATTM_PERM, att_perm
+from ..gtl_port.attm import ATTM_PERM
 from ..gtl_port.co_bt import RAND_NB_LEN, KEY_LEN, BLE_LE_LENGTH_FEATURE
 from ..gtl_port.co_error import CO_ERROR
 from ..gtl_port.gap import GAP_ROLE, GAP_AUTH_MASK, gap_bdaddr, GAP_IO_CAP, GAP_OOB, GAP_TK_TYPE, GAP_SEC_REQ
@@ -36,7 +36,7 @@ from ..gtl_port.gap import GAP_ROLE, GAP_AUTH_MASK, gap_bdaddr, GAP_IO_CAP, GAP_
 from ..gtl_port.gapc import GAPC_FIELDS_MASK
 from ..gtl_port.gapc_task import GAPC_MSG_ID, GAPC_DEV_INFO, GAPC_OPERATION, GAPC_BOND
 from ..gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, GAPM_ADDR_TYPE, GAPM_OWN_ADDR, SCAN_FILTER_POLICY, \
-    SCAN_DUP_FILTER_POLICY, GAPM_LE_LENGTH_EXT_OCTETS_MIN, GAPM_ATT_CFG_FLAG
+    SCAN_DUP_FILTER_POLICY, GAPM_LE_LENGTH_EXT_OCTETS_MIN
 
 from ..gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from ..manager.BleDevParams import BleDevParamsDefault
@@ -1429,14 +1429,13 @@ class BleManagerGap(BleManagerBase):
         self.storage_release()
         self.dev_params_release()
 
-    def device_name_set_cmd_handler(self, command: BleMgrGapDeviceNameSetCmd) -> None: 
+    def device_name_set_cmd_handler(self, command: BleMgrGapDeviceNameSetCmd) -> None:
         response = BleMgrGapDeviceNameSetRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         dev_params = self.dev_params_acquire()
 
         # Check if the provided name is longer than the defined max size
         if len(command.name) <= BLE_GAP_DEVNAME_LEN_MAX:
             # Check if the attribute database configuration bit flag needs updating
-            # if (dev_params.att_db_cfg.dev_name_perm & GAPM_ATT_CFG_FLAG.GAPM_MASK_ATT_NAME_PERM) == self._devname_perm_to_perm(command.perm):
             if dev_params.att_db_cfg.dev_name_perm == self._devname_perm_to_perm(command.perm):
                 dev_params.dev_name = bytes(command.name, 'utf-8')
                 response.status = BLE_ERROR.BLE_STATUS_OK
@@ -1447,15 +1446,14 @@ class BleManagerGap(BleManagerBase):
                     self.dev_params_release()
                     gtl = self._dev_params_to_gtl()
                     dev_params = self.dev_params_acquire()
-                    # gtl.parameters.att_cfg = (dev_params.att_db_cfg & ~GAPM_ATT_CFG_FLAG.GAPM_MASK_ATT_NAME_PERM
-                    #                          | self._devname_perm_to_perm(command.perm))
-
                     gtl.parameters.att_cfg.dev_name_perm = self._devname_perm_to_perm(command.perm)
+
                     self._gtl_wait_queue_add(BLE_CONN_IDX_INVALID,
                                              GAPM_MSG_ID.GAPM_CMP_EVT,
                                              GAPM_OPERATION.GAPM_SET_DEV_CONFIG,
                                              self._att_db_cfg_devname_perm_set_rsp,
                                              command)
+
                     self._adapter_command_queue_send(gtl)
                     self.dev_params_release()
                     return
