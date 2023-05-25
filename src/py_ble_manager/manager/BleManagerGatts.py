@@ -131,7 +131,7 @@ class BleManagerGatts(BleManagerBase):
     def _get_value_rsp(self, gtl: GattmAttGetValueRsp, max_len: int = 0):
 
         length = min(max_len, gtl.parameters.length)
-        response = BleMgrGattsGetValueRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGattsGetValueRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         if gtl.parameters.status == HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR:
             response.status = BLE_ERROR.BLE_STATUS_OK
             response.value = bytes(gtl.parameters.value[:length])
@@ -149,7 +149,7 @@ class BleManagerGatts(BleManagerBase):
         self._mgr_response_queue_send(response)
 
     def _set_value_rsp(self, gtl: GattmAttSetValueRsp, param: object = None):
-        response = BleMgrGattsSetValueRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGattsSetValueRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         if gtl.parameters.status == HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR:
             response.status = BLE_ERROR.BLE_STATUS_OK
 
@@ -198,7 +198,7 @@ class BleManagerGatts(BleManagerBase):
         self._adapter_command_queue_send(gtl)
 
     def prepare_write_cfm_cmd_handler(self, command: BleMgrGattsPrepareWriteCfmCmd):
-        response = BleMgrGattsPrepareWriteCfmRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGattsPrepareWriteCfmRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
 
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
@@ -225,7 +225,7 @@ class BleManagerGatts(BleManagerBase):
 
     def read_cfm_cmd_handler(self, command: BleMgrGattsReadCfmCmd):
 
-        response = BleMgrGattsReadCfmRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGattsReadCfmRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
 
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
@@ -250,7 +250,7 @@ class BleManagerGatts(BleManagerBase):
         self._mgr_event_queue_send(evt)
 
     def send_event_cmd_handler(self, command: BleMgrGattsSendEventCmd):
-        response = BleMgrGattsSendEventRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGattsSendEventRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
 
@@ -280,7 +280,7 @@ class BleManagerGatts(BleManagerBase):
 
     def service_add_characteristic_cmd_handler(self, command: BleMgrGattsServiceAddCharacteristicCmd) -> None:
 
-        response = BleMgrGattsServiceAddCharacteristicRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGattsServiceAddCharacteristicRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
 
         # Check if there is a pending GLT message set, there should be
         if self._add_svc_msg:
@@ -315,7 +315,7 @@ class BleManagerGatts(BleManagerBase):
 
     def service_add_cmd_handler(self, command: BleMgrGattsServiceAddCmd) -> None:
 
-        response = BleMgrGattsServiceAddRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGattsServiceAddRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
 
         # Check if there is a pending GLT message set, there should not be
         if not self._add_svc_msg:
@@ -344,7 +344,7 @@ class BleManagerGatts(BleManagerBase):
 
     def service_add_descriptor_cmd_handler(self, command: BleMgrGattsServiceAddDescriptorCmd):
 
-        response = BleMgrGattsServiceAddDescriptorRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGattsServiceAddDescriptorRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
 
         # Check if there is a pending GLT message set, there should be
         if self._add_svc_msg:
@@ -380,7 +380,7 @@ class BleManagerGatts(BleManagerBase):
 
     def service_add_include_cmd_handler(self, command: BleMgrGattsServiceAddIncludeCmd):
 
-        response = BleMgrGattsServiceAddIncludeRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGattsServiceAddIncludeRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
 
         if self._add_svc_msg:
             if self._add_svc_msg.parameters.svc_desc.nb_att - self._attr_idx >= 1:
@@ -398,7 +398,7 @@ class BleManagerGatts(BleManagerBase):
 
     def service_register_cmd_handler(self, command: BleMgrGattsServiceRegisterCmd) -> None:
 
-        response = BleMgrGattsServiceRegisterRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGattsServiceRegisterRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
 
         if self._add_svc_msg:
             self._gtl_wait_queue_add(BLE_CONN_IDX_INVALID,
@@ -427,7 +427,7 @@ class BleManagerGatts(BleManagerBase):
 
     def write_cfm_cmd_handler(self, command: BleMgrGattsWriteCfmCmd):
 
-        response = BleMgrGattsWriteCfmRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGattsWriteCfmRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
         if not dev:
