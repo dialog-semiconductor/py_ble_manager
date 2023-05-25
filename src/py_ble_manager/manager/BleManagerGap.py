@@ -48,7 +48,8 @@ from ..manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp,
     BleMgrGapConnParamUpdateCmd, BleMgrGapConnParamUpdateRsp, BleMgrGapConnParamUpdateReplyCmd, \
     BleMgrGapConnParamUpdateReplyRsp, BleMgrGapPairCmd, BleMgrGapPairRsp, BleMgrGapPairReplyCmd, BleMgrGapPairReplyRsp, \
     BleMgrGapPasskeyReplyCmd, BleMgrGapPasskeyReplyRsp, BleMgrGapNumericReplyCmd, BleMgrGapNumericReplyRsp, BLE_MGR_RAL_OP, \
-    BleMgrGapMtuSizeSetCmd, BleMgrGapMtuSizeSetRsp, BleMgrGapDeviceNameSetCmd, BleMgrGapDeviceNameSetRsp
+    BleMgrGapMtuSizeSetCmd, BleMgrGapMtuSizeSetRsp, BleMgrGapDeviceNameSetCmd, BleMgrGapDeviceNameSetRsp, BleMgrGapAdvStopCmd, \
+    BleMgrGapAdvStopRsp
 
 from ..manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from ..manager.GtlWaitQueue import GtlWaitQueue
@@ -79,7 +80,7 @@ class BleManagerGap(BleManagerBase):
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_APPEARANCE_SET_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PPCP_SET_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_START_CMD: self.adv_start_cmd_handler,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_STOP_CMD: None,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_STOP_CMD: self.adv_stop_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_DATA_SET_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_SET_PERMUTATION_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SCAN_START_CMD: self.scan_start_cmd_handler,
@@ -888,6 +889,7 @@ class BleManagerGap(BleManagerBase):
     def _send_gapm_cancel_cmd(self, operation: GAPM_OPERATION = GAPM_OPERATION.GAPM_CANCEL) -> None:
 
         gtl = GapmCancelCmd()  # TODO  RWBLE >= 9.0 has additiononal cancel commands
+        gtl.parameters.operation = operation
         self._adapter_command_queue_send(gtl)
 
     def _send_sec_level_changed_evt(self, conn_idx: int, sec_level: GAP_AUTH_MASK):
@@ -974,6 +976,18 @@ class BleManagerGap(BleManagerBase):
             # ble_mgr_gap_ral_sync(ble_mgr_gap_adv_start_cmd_exec, param);
         else:
             self._adv_start_cmd_exec(command)
+
+    def adv_stop_cmd_handler(self, command: BleMgrGapAdvStopCmd):
+        response = BleMgrGapAdvStopRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
+        dev_params = self.dev_params_acquire()
+        if not dev_params.advertising:
+            response.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
+        else:
+            # TODO 69x has specific cancel commands send_gapm_cancel_cmd(GAPM_CANCEL_ADVERTISE);
+            self._send_gapm_cancel_cmd(GAPM_OPERATION.GAPM_CANCEL)
+            response.status = BLE_ERROR.BLE_STATUS_OK
+        self.dev_params_release()
+        self._mgr_response_queue_send(response)
 
     def bond_ind_evt_handler(self, gtl: GapcBondInd):
         match gtl.parameters.info:
@@ -1282,7 +1296,7 @@ class BleManagerGap(BleManagerBase):
         else:
             # TODO support for additional cancel commands for RWBLE >= 9
             # send_gapm_cancel_cmd(GAPM_CANCEL_CONNECTION)
-            self._send_gapm_cancel_cmd()
+            self._send_gapm_cancel_cmd(GAPM_OPERATION.GAPM_CANCEL)
             response.status = BLE_ERROR.BLE_STATUS_OK
 
         self._mgr_response_queue_send(response)

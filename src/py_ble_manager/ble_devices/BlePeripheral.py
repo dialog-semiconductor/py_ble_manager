@@ -66,6 +66,16 @@ class BlePeripheral(BleDeviceBase):
             return True
         return False
 
+    def advertising_start(self,
+                          adv_type: GAP_CONN_MODE = GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
+                          ) -> BLE_ERROR:
+
+        return self._ble_gap.adv_start(adv_type)
+
+    def advertising_stop(self) -> BLE_ERROR:
+
+        return self._ble_gap.adv_stop()
+
     def get_value(self, handle: int, max_len: int) -> BLE_ERROR:
         error = BLE_ERROR.BLE_ERROR_FAILED
         service = self._find_service_by_handle(handle)
@@ -203,12 +213,6 @@ class BlePeripheral(BleDeviceBase):
 
     def start(self) -> BLE_ERROR:
         return super().start(BLE_GAP_ROLE.GAP_PERIPHERAL_ROLE)
-
-    def start_advertising(self,
-                          adv_type: GAP_CONN_MODE = GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
-                          ) -> BLE_ERROR:
-
-        return self._ble_gap.start_advertising(adv_type)
 
     def storage_get_int(self, conn_idx: int, key: int) -> tuple[BLE_ERROR, int]:
         return self._ble_storage.get_int(conn_idx, key)
