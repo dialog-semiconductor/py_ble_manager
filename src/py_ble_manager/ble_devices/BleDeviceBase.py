@@ -4,7 +4,7 @@ from ..adapter.BleAdapter import BleAdapter
 from ..ble_api.BleAtt import ATT_PERM
 from ..ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_HCI_ERROR, OwnAddress
 from ..ble_api.BleConfig import BleConfigDefault
-from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_IO_CAPABILITIES
+from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_IO_CAPABILITIES, BLE_GAP_APPEARANCE
 from ..ble_api.BleGapApi import BleGapApi, GapConnParams
 from ..ble_api.BleGattcApi import BleGattcApi
 from ..ble_api.BleGattsApi import BleGattsApi
@@ -91,6 +91,24 @@ class BleDeviceBase():
 
         return self._ble_gap.address_set(address, renew_dur)
 
+    def appearance_set(self, appearance: BLE_GAP_APPEARANCE, perm: ATT_PERM) -> BLE_ERROR:
+        """Set the appearance used for GAP service
+
+        ..note:
+            This API function has to be called prior to creating the attribute database of the device. This
+            is because the device configuration is going to be modified, which will result in clearing the
+            current attribute database (if it exists).
+
+        :param appearance: appearance value
+        :type appearance: BLE_GAP_APPEARANCE
+        :param perm: appearance attribute write permission
+        :type perm: ATT_PERM
+        :return: result code
+        :rtype: BLE_ERROR
+        """
+
+        return self._ble_gap.appearance_set(appearance, perm)
+
     def conn_param_update(self, conn_idx: int, conn_params: GapConnParams) -> BLE_ERROR:
         """Initiate a connection parameter update
 
@@ -151,7 +169,7 @@ class BleDeviceBase():
         ..note:
           If data length is not changed (i.e. if it is set by application to a value larger than the
           peer's previously reported RX length) no event will be sent to application. Even though
-          :py:meth:`~py_ble_manager.ble_devices.BleDeviceBase.data_length_set() be successfully completed, 
+          :py:meth:`~py_ble_manager.ble_devices.BleDeviceBase.data_length_set()` be successfully completed,
           the data length has not changed.
 
         :param conn_idx: connection index (if set to :py:data`~py_ble_manager.ble_api.BleGap.BLE_CONN_IDX_INVALID`
@@ -289,6 +307,25 @@ class BleDeviceBase():
         :rtype: BLE_ERROR
         """
         return self._ble_gap.numeric_reply(conn_idx, accept)
+
+    def peer_version_get(self, conn_idx: int) -> BLE_ERROR:
+        """Get peer's features
+
+        This call initiates a Feature Exchange procedure or retrieves the already exchanged peer's
+        features on an established connection. Peer's features will be delivered to the application via
+        :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_PEER_FEATURES` event.
+
+        ..note:
+            For a mapping between bit values and features, see [Vol 6] Part B, Section 4.6 in Bluetooth
+            Core_v5.0.pdf, or look under "BLE supported features" in co_bt.h.
+
+        :param conn_idx: connection index
+        :type conn_idx: int
+        :return: result code
+        :rtype: BLE_ERROR
+        """
+
+        return self._ble_gap.peer_version_get(conn_idx)
 
     def set_io_cap(self, io_cap: GAP_IO_CAPABILITIES) -> BLE_ERROR:
         """Set the I/O capabilities of the device
