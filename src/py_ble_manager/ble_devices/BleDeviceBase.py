@@ -106,9 +106,10 @@ class BleDeviceBase():
         :return: device name, result code
         :rtype: Tuple[str, BLE_ERROR]
         """
+
         return self._ble_gap.device_name_get()
 
-    def device_name_set(self, name: str, perm: ATT_PERM) -> BLE_ERROR:
+    def device_name_set(self, name: str, perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE) -> BLE_ERROR:
         """Set the device name used for GAP service
 
         ..note:
@@ -118,11 +119,12 @@ class BleDeviceBase():
 
         :param name: device name
         :type name: str
-        :param perm: device name attribute write permission
-        :type perm: ATT_PERM
+        :param perm: device name attribute write permission, defaults to ATT_PERM.ATT_PERM_NONE
+        :type perm: ATT_PERM, optional
         :return: result code
         :rtype: BLE_ERROR
         """
+
         return self._ble_gap.device_name_set(name, perm)
 
     def disconnect(self, conn_idx: int, reason: BLE_HCI_ERROR = BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON) -> BLE_ERROR:

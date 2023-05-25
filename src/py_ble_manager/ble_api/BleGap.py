@@ -323,13 +323,23 @@ class BleAdvData():
     """
 
     def __init__(self,
-                 len: int = 0,
                  type: GAP_DATA_TYPE = GAP_DATA_TYPE.GAP_DATA_TYPE_FLAGS,
                  data: bytes = None,
                  ) -> None:
-        self.len = len
         self.type = type
-        self.data = data
+        self.data = data if data else bytes()
+
+    def _get_data(self):
+        return self._data
+
+    def _set_data(self, new_data: bytes):
+        if len(new_data) <= ADV_DATA_LEN - 2:
+            self._data = new_data if new_data else bytes()
+            self.len = len(new_data) + 1  # len includes AD Type
+        else:
+            raise ValueError(f"Data cannot be longer than {ADV_DATA_LEN - 2} bytes. Was {len(new_data)} bytes")
+
+    data = property(_get_data, _set_data)
 
     def __repr__(self):
         try:
@@ -338,8 +348,8 @@ class BleAdvData():
             adv_type = self.type
 
         adv_type = str(adv_type)
-        return_string = f"{type(self).__name__}(type={adv_type}, "
-        return_string += f"len={self.len}, "
+        return_string = f"{type(self).__name__}(len={self.len}, "
+        return_string += f"type={adv_type}, "
         return_string += f"data={list(self.data)})"
 
         return return_string

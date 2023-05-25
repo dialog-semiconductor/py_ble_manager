@@ -26,7 +26,7 @@ from ..gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReq
     GapcPeerVersionInd, GapcPeerFeaturesInd, GapcEncryptReqInd, GapcEncryptCfm, GapcEncryptInd, GapcSetLePktSizeCmd, GapcLePktSizeInd
 
 from ..gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd, \
-    GapmStartScanCmd, GapmAdvReportInd, GapmCancelCmd, GapmResolvAddrCmd
+    GapmStartScanCmd, GapmAdvReportInd, GapmCancelCmd, GapmResolvAddrCmd, GapmUpdateAdvertiseDataCmd
 
 from ..gtl_port.attm import ATTM_PERM, att_perm
 from ..gtl_port.co_bt import RAND_NB_LEN, KEY_LEN, BLE_LE_LENGTH_FEATURE
@@ -49,7 +49,7 @@ from ..manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp,
     BleMgrGapConnParamUpdateReplyRsp, BleMgrGapPairCmd, BleMgrGapPairRsp, BleMgrGapPairReplyCmd, BleMgrGapPairReplyRsp, \
     BleMgrGapPasskeyReplyCmd, BleMgrGapPasskeyReplyRsp, BleMgrGapNumericReplyCmd, BleMgrGapNumericReplyRsp, BLE_MGR_RAL_OP, \
     BleMgrGapMtuSizeSetCmd, BleMgrGapMtuSizeSetRsp, BleMgrGapDeviceNameSetCmd, BleMgrGapDeviceNameSetRsp, BleMgrGapAdvStopCmd, \
-    BleMgrGapAdvStopRsp
+    BleMgrGapAdvStopRsp, BleMgrGapAdvDataSetCmd, BleMgrGapAdvDataRsp
 
 from ..manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from ..manager.GtlWaitQueue import GtlWaitQueue
@@ -81,7 +81,7 @@ class BleManagerGap(BleManagerBase):
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PPCP_SET_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_START_CMD: self.adv_start_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_STOP_CMD: self.adv_stop_cmd_handler,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_DATA_SET_CMD: None,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_DATA_SET_CMD: self.adv_data_set_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_SET_PERMUTATION_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SCAN_START_CMD: self.scan_start_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SCAN_STOP_CMD: None,
@@ -177,6 +177,19 @@ class BleManagerGap(BleManagerBase):
 
         self._mgr_event_queue_send(evt)
         self.dev_params_release()
+
+    def _adv_data_update_cmp_rsp(self, gtl: GapmCmpEvt, command: BleMgrGapAdvDataSetCmd):
+        response = BleMgrGapAdvDataRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
+
+        if gtl.parameters.status == HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
+            dev_params = self.dev_params_acquire()
+            dev_params.adv_data_length = command.adv_data_len
+            dev_params.adv_data[:command.adv_data_len] = command.adv_data[:command.adv_data_len]
+            dev_params.scan_rsp_data_length = command.scan_rsp_data_len
+            dev_params.scan_rsp_data[:command.scan_rsp_data_len] = command.scan_rsp_data[:command.scan_rsp_data_len]
+            self.dev_params_release()
+            response.status = BLE_ERROR.BLE_STATUS_OK
+        self._mgr_response_queue_send(response)
 
     def _adv_start_cmd_exec(self, command: BleMgrGapAdvStartCmd):
         response = BleMgrGapAdvStartRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
@@ -947,6 +960,36 @@ class BleManagerGap(BleManagerBase):
                 response.status = BLE_ERROR.BLE_ERROR_FAILED
 
         self._mgr_response_queue_send(response)
+        self.dev_params_release()
+
+    def adv_data_set_cmd_handler(self, command: BleMgrGapAdvDataSetCmd) -> None:
+
+        dev_params = self.dev_params_acquire()
+        if dev_params.advertising:
+            if ((dev_params.adv_type == GAP_CONN_MODE.GAP_CONN_MODE_NON_CONN and command.adv_data_len > BLE_NON_CONN_ADV_DATA_LEN_MAX)
+               or (dev_params.adv_type == GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED and command.adv_data_len > BLE_ADV_DATA_LEN_MAX)):
+
+                response = BleMgrGapAdvDataRsp(status=BLE_ERROR.BLE_ERROR_INVALID_PARAM)
+                self._mgr_response_queue_send(response)
+            else:
+                gtl = GapmUpdateAdvertiseDataCmd()
+                gtl.parameters.adv_data_len = command.adv_data_len
+                gtl.parameters.adv_data[:command.adv_data_len] = command.adv_data
+                gtl.parameters.scan_rsp_data_len = command.scan_rsp_data_len
+                gtl.parameters.scan_rsp_data[:command.scan_rsp_data_len] = command.scan_rsp_data
+                self._gtl_wait_queue_add(BLE_CONN_IDX_INVALID,
+                                         GAPM_MSG_ID.GAPM_CMP_EVT,
+                                         GAPM_OPERATION.GAPM_UPDATE_ADVERTISE_DATA,
+                                         self._adv_data_update_cmp_rsp,
+                                         command)
+        else:
+            dev_params.adv_data_length = command.adv_data_len
+            dev_params.adv_data[:command.adv_data_len] = command.adv_data[:command.adv_data_len]
+            dev_params.scan_rsp_data_length = command.scan_rsp_data_len
+            dev_params.scan_rsp_data[:command.scan_rsp_data_len] = command.scan_rsp_data[:command.scan_rsp_data_len]
+
+            response = BleMgrGapAdvDataRsp(status=BLE_ERROR.BLE_STATUS_OK)
+            self._mgr_response_queue_send(response)
         self.dev_params_release()
 
     def adv_report_evt_handler(self, gtl: GapmAdvReportInd) -> None:

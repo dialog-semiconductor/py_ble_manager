@@ -928,24 +928,37 @@ class gapm_start_advertise_cmd(LittleEndianStructure):
                 ("info", gapm_adv_info)]
 
 
-'''
 # Update Advertising Data Command - On fly update when device is advertising
-struct gapm_update_advertise_data_cmd
-{
-    # GAPM requested operation:
-    #  - GAPM_UPDATE_ADVERTISE_DATA: Update on the fly advertising data
-    uint8_t  operation;
-    # Advertising data length - maximum 28 bytes, 3 bytes are reserved to set
-    # Advertising AD type flags, shall not be set in advertising data
-    uint8_t              adv_data_len;
-    # Advertising data
-    uint8_t              adv_data[ADV_DATA_LEN];
-    # Scan response data length- maximum 31 bytes
-    uint8_t              scan_rsp_data_len;
-    # Scan response data
-    uint8_t              scan_rsp_data[SCAN_RSP_DATA_LEN];
-};
-'''
+class gapm_update_advertise_data_cmd(LittleEndianStructure):
+    def __init__(self,
+                 adv_data_len: c_uint8 = 0,
+                 adv_data: c_uint8 * ADV_DATA_LEN = (c_uint8 * ADV_DATA_LEN)(),
+                 scan_rsp_data_len: c_uint8 = 0,
+                 scan_rsp_data: c_uint8 * SCAN_RSP_DATA_LEN = (c_uint8 * SCAN_RSP_DATA_LEN)()
+                 ):
+        self.operation = GAPM_OPERATION.GAPM_UPDATE_ADVERTISE_DATA
+        self.adv_data_len = adv_data_len
+        self.adv_data = adv_data
+        self.scan_rsp_data_len = scan_rsp_data_len
+        self.scan_rsp_data = scan_rsp_data
+        super().__init__(operation=self.operation,
+                         adv_data_len=self.adv_data_len,
+                         adv_data=self.adv_data,
+                         scan_rsp_data_len=self.scan_rsp_data_len,
+                         scan_rsp_data=self.scan_rsp_data)
+
+                # GAPM requested operation:
+                #  - GAPM_UPDATE_ADVERTISE_DATA: Update on the fly advertising data
+    _fields_ = [("operation", c_uint8),
+                # Advertising data length - maximum 28 bytes, 3 bytes are reserved to set
+                # Advertising AD type flags, shall not be set in advertising data
+                ("adv_data_len", c_uint8),
+                # Advertising data
+                ("adv_data", c_uint8 * ADV_DATA_LEN),
+                # Scan response data length - maximum 31 bytes
+                ("scan_rsp_data_len", c_uint8),
+                # Scan response data
+                ("scan_rsp_data", c_uint8 * SCAN_RSP_DATA_LEN)]
 
 
 # Set scan mode Command

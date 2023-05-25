@@ -1,9 +1,10 @@
+from ctypes import c_uint8
 from typing import Tuple
 from ..ble_api.BleApiBase import BleApiBase
 from ..ble_api.BleAtt import ATT_PERM
 from ..ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR
 from ..ble_api.BleGap import BLE_GAP_ROLE, GapConnParams, GAP_CONN_MODE, GAP_SCAN_TYPE, GAP_SCAN_MODE, \
-    GAP_IO_CAPABILITIES, BLE_GAP_DEVNAME_LEN_MAX
+    GAP_IO_CAPABILITIES, BLE_NON_CONN_ADV_DATA_LEN_MAX
 from ..manager.BleManager import BleManager
 from ..manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, BleMgrGapConnectCmd, \
     BleMgrGapConnectRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp, BleMgrGapScanStartCmd, \
@@ -12,13 +13,45 @@ from ..manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp
     BleMgrGapConnParamUpdateReplyCmd, BleMgrGapConnParamUpdateReplyRsp, BleMgrGapPairCmd, BleMgrGapPairRsp, \
     BleMgrGapPairReplyCmd, BleMgrGapPairReplyRsp, BleMgrGapPasskeyReplyCmd, BleMgrGapPasskeyReplyRsp, \
     BleMgrGapNumericReplyCmd, BleMgrGapNumericReplyRsp, BleMgrGapMtuSizeSetCmd, BleMgrGapMtuSizeSetRsp, \
-    BleMgrGapDeviceNameSetCmd, BleMgrGapDeviceNameSetRsp
+    BleMgrGapDeviceNameSetCmd, BleMgrGapDeviceNameSetRsp, BleMgrGapAdvStopCmd, BleMgrGapAdvStopRsp, \
+    BleMgrGapAdvDataSetCmd, BleMgrGapAdvDataRsp
 
 
 class BleGapApi(BleApiBase):
 
     def __init__(self, ble_manager: BleManager):
         super().__init__(ble_manager)
+
+    def adv_data_set(self,
+                     adv_data_len: int = 0,
+                     adv_data: (c_uint8 * BLE_NON_CONN_ADV_DATA_LEN_MAX) = (c_uint8 * BLE_NON_CONN_ADV_DATA_LEN_MAX)(),
+                     scan_rsp_data_len: int = 0,
+                     scan_rsp_data: (c_uint8 * BLE_NON_CONN_ADV_DATA_LEN_MAX) = (c_uint8 * BLE_NON_CONN_ADV_DATA_LEN_MAX)()
+                     ) -> BLE_ERROR:
+
+        if adv_data_len > BLE_NON_CONN_ADV_DATA_LEN_MAX or scan_rsp_data_len > BLE_NON_CONN_ADV_DATA_LEN_MAX:
+            return BLE_ERROR.BLE_ERROR_INVALID_PARAM
+
+        command = BleMgrGapAdvDataSetCmd(adv_data_len, adv_data, scan_rsp_data_len, scan_rsp_data)
+        response: BleMgrGapAdvDataRsp = self._ble_manager.cmd_execute(command)
+
+        return response.status
+
+    def adv_start(self,
+                  adv_type: GAP_CONN_MODE = GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
+                  ) -> BLE_ERROR:
+
+        command = BleMgrGapAdvStartCmd(adv_type)
+        response: BleMgrGapAdvStartRsp = self._ble_manager.cmd_execute(command)
+
+        return response.status
+
+    def adv_stop(self) -> BLE_ERROR:
+
+        command = BleMgrGapAdvStopCmd()
+        response: BleMgrGapAdvStopRsp = self._ble_manager.cmd_execute(command)
+
+        return response.status
 
     def conn_param_update(self, conn_idx: int, conn_params: GapConnParams):
 
@@ -143,12 +176,3 @@ class BleGapApi(BleApiBase):
         dev_params.io_capabilities = io_cap
         self._ble_manager.dev_params_release()
         return BLE_ERROR.BLE_STATUS_OK
-
-    def start_advertising(self,
-                          adv_type: GAP_CONN_MODE = GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
-                          ) -> BLE_ERROR:
-
-        command = BleMgrGapAdvStartCmd(adv_type)
-        response: BleMgrGapAdvStartRsp = self._ble_manager.cmd_execute(command)
-
-        return response.status
