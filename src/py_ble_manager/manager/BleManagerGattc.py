@@ -129,7 +129,7 @@ class BleManagerGattc(BleManagerBase):
         self._mgr_event_queue_send(evt)
 
     def browse_cmd_handler(self, command: BleMgrGattcBrowseCmd):
-        response = BleMgrGattcBrowseRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGattcBrowseRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
         if not dev:
@@ -212,7 +212,7 @@ class BleManagerGattc(BleManagerBase):
 
     def discover_char_cmd_handler(self, command: BleMgrGattcDiscoverCharCmd):
 
-        response = BleMgrGattcDiscoverCharRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGattcDiscoverCharRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
 
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
@@ -238,7 +238,7 @@ class BleManagerGattc(BleManagerBase):
         self._mgr_response_queue_send(response)
 
     def discover_desc_cmd_handler(self, command: BleMgrGattcDiscoverDescCmd):
-        response = BleMgrGattcDiscoverDescRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGattcDiscoverDescRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
 
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
@@ -258,7 +258,7 @@ class BleManagerGattc(BleManagerBase):
         self._mgr_response_queue_send(response)
 
     def discover_svc_cmd_handler(self, command: BleMgrGattcDiscoverSvcCmd):
-        response = BleMgrGattcDiscoverSvcRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGattcDiscoverSvcRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
 
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
@@ -309,7 +309,7 @@ class BleManagerGattc(BleManagerBase):
             self._mgr_event_queue_send(evt)
 
     def exchange_mtu_cmd_handler(self, command: BleMgrGattcExchangeMtuCmd):
-        response = BleMgrGattcExchangeMtuRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGattcExchangeMtuRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
         if dev:
@@ -344,7 +344,7 @@ class BleManagerGattc(BleManagerBase):
         self._mgr_event_queue_send(evt)
 
     def read_cmd_handler(self, command: BleMgrGattcReadCmd):
-        response = BleMgrGattcReadRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGattcReadRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
         if not dev:
@@ -422,7 +422,7 @@ class BleManagerGattc(BleManagerBase):
             self._mgr_event_queue_send(evt)
 
     def write_execute_cmd_handler(self, command: BleMgrGattcWriteExecuteCmd):
-        response = BleMgrGattcWriteExecuteRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGattcWriteExecuteRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
         if not dev:
@@ -439,7 +439,7 @@ class BleManagerGattc(BleManagerBase):
         self._mgr_response_queue_send(response)
 
     def write_generic_cmd_handler(self, command: BleMgrGattcWriteGenericCmd):
-        response = BleMgrGattcWriteGenericRsp(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrGattcWriteGenericRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
         if not dev:
