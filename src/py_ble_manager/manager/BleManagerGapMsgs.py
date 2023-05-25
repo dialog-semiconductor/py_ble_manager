@@ -1,4 +1,5 @@
 from enum import IntEnum, auto
+from ..ble_api.BleAtt import ATT_PERM
 from ..ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR
 from ..ble_api.BleGap import GAP_CONN_MODE, BLE_GAP_ROLE, GapConnParams, GAP_SCAN_TYPE, GAP_SCAN_MODE
 from ..manager.BleManagerCommonMsgs import BleMgrMsgBase, BleMgrMsgRsp, BLE_CMD_GAP_OPCODE
@@ -86,6 +87,22 @@ class BleMgrGapConnParamUpdateReplyCmd(BleMgrMsgBase):
 class BleMgrGapConnParamUpdateReplyRsp(BleMgrMsgRsp):
     def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_PARAM_UPDATE_REPLY_CMD,
+                         status=status)
+
+
+class BleMgrGapDeviceNameSetCmd(BleMgrMsgBase):
+    def __init__(self,
+                 name: str = "",
+                 perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DEVICE_NAME_SET_CMD)
+        self.name = name
+        self.perm = perm
+
+
+class BleMgrGapDeviceNameSetRsp(BleMgrMsgRsp):
+    def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DEVICE_NAME_SET_CMD,
                          status=status)
 
 
