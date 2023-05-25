@@ -128,9 +128,9 @@ class BleManagerGatts(BleManagerBase):
 
         return rwperm
 
-    def _get_value_rsp(self, gtl: GattmAttGetValueRsp, max_len: int = 0):
+    def _get_value_rsp(self, gtl: GattmAttGetValueRsp, command: BleMgrGattsGetValueCmd):
 
-        length = min(max_len, gtl.parameters.length)
+        length = min(command.max_len, gtl.parameters.length)
         response = BleMgrGattsGetValueRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         if gtl.parameters.status == HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR:
             response.status = BLE_ERROR.BLE_STATUS_OK
@@ -193,7 +193,7 @@ class BleManagerGatts(BleManagerBase):
                                  GATTM_MSG_ID.GATTM_ATT_GET_VALUE_RSP,
                                  0,
                                  self._get_value_rsp,
-                                 command.max_len)
+                                 command)
 
         self._adapter_command_queue_send(gtl)
 

@@ -983,15 +983,15 @@ class BleManagerGap(BleManagerBase):
         # @ send_ltk_evt(conn_idx);
         # endif
 
-    def _set_mtu_size_rsp(self, gtl: GapmCmpEvt, new_mtu: int = 0):
+    def _set_mtu_size_rsp(self, gtl: GapmCmpEvt, command: BleMgrGapMtuSizeSetCmd):
         response = BleMgrGapMtuSizeSetRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         dev_params = self.dev_params_acquire()
         response.previous_mtu_size = dev_params.mtu_size
-        response.new_mtu_size = new_mtu
+        response.new_mtu_size = command.mtu_size
 
         match gtl.parameters.status:
             case HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
-                dev_params.mtu_size = new_mtu
+                dev_params.mtu_size = command.mtu_size
                 response.status = BLE_ERROR.BLE_STATUS_OK
             case HOST_STACK_ERROR_CODE.GAP_ERR_INVALID_PARAM:
                 response.status = BLE_ERROR.BLE_ERROR_INVALID_PARAM
@@ -1007,16 +1007,16 @@ class BleManagerGap(BleManagerBase):
         self._mgr_response_queue_send(response)
         self.dev_params_release()
 
-    def _set_role_rsp(self, gtl: GapmCmpEvt, new_role: BLE_GAP_ROLE = BLE_GAP_ROLE.GAP_NO_ROLE):
+    def _set_role_rsp(self, gtl: GapmCmpEvt, command: BleMgrGapRoleSetCmd):
         response = BleMgrGapRoleSetRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         dev_params = self.dev_params_acquire()
         response.prev_role = dev_params.role
-        response.new_role = new_role
+        response.new_role = command.role
         response.status = BLE_ERROR.BLE_ERROR_FAILED
 
         match gtl.parameters.status:
             case HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
-                dev_params.role = new_role
+                dev_params.role = command.role
                 response.status = BLE_ERROR.BLE_STATUS_OK
             case HOST_STACK_ERROR_CODE.GAP_ERR_INVALID_PARAM:
                 response.status = BLE_ERROR.BLE_ERROR_INVALID_PARAM
@@ -1824,7 +1824,7 @@ class BleManagerGap(BleManagerBase):
                                  GAPM_MSG_ID.GAPM_CMP_EVT,
                                  GAPM_OPERATION.GAPM_SET_DEV_CONFIG,
                                  self._set_mtu_size_rsp,
-                                 command.mtu_size)
+                                 command)
 
         self._adapter_command_queue_send(gtl)
 
@@ -2038,7 +2038,7 @@ class BleManagerGap(BleManagerBase):
                                  GAPM_MSG_ID.GAPM_CMP_EVT,
                                  GAPM_OPERATION.GAPM_SET_DEV_CONFIG,
                                  self._set_role_rsp,
-                                 command.role)
+                                 command)
 
         self._adapter_command_queue_send(gtl)
 
