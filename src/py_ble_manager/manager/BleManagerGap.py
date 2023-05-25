@@ -321,7 +321,7 @@ class BleManagerGap(BleManagerBase):
             rwperm = ATTM_PERM.ENABLE
 
         return rwperm
-    
+
     def _att_db_cfg_appearance_perm_set_rsp(self, gtl: GapmCmpEvt, command: BleMgrGapAppearanceSetCmd):
         if gtl.parameters.status == HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
             dev_params = self.dev_params_acquire()
@@ -1148,7 +1148,6 @@ class BleManagerGap(BleManagerBase):
                 return
         self._mgr_response_queue_send(response)
         self.dev_params_release()
-
 
     def bond_ind_evt_handler(self, gtl: GapcBondInd):
         match gtl.parameters.info:
