@@ -36,7 +36,7 @@ from ..gtl_port.gap import GAP_ROLE, GAP_AUTH_MASK, gap_bdaddr, GAP_IO_CAP, GAP_
 from ..gtl_port.gapc import GAPC_FIELDS_MASK
 from ..gtl_port.gapc_task import GAPC_MSG_ID, GAPC_DEV_INFO, GAPC_OPERATION, GAPC_BOND
 from ..gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, GAPM_ADDR_TYPE, GAPM_OWN_ADDR, SCAN_FILTER_POLICY, \
-    SCAN_DUP_FILTER_POLICY, GAPM_LE_LENGTH_EXT_OCTETS_MIN
+    SCAN_DUP_FILTER_POLICY, GAPM_LE_LENGTH_EXT_OCTETS_MIN, GAPM_LE_LENGTH_EXT_OCTETS_MAX
 
 from ..gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from ..manager.BleDevParams import BleDevParamsDefault
@@ -49,7 +49,8 @@ from ..manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp,
     BleMgrGapConnParamUpdateReplyRsp, BleMgrGapPairCmd, BleMgrGapPairRsp, BleMgrGapPairReplyCmd, BleMgrGapPairReplyRsp, \
     BleMgrGapPasskeyReplyCmd, BleMgrGapPasskeyReplyRsp, BleMgrGapNumericReplyCmd, BleMgrGapNumericReplyRsp, BLE_MGR_RAL_OP, \
     BleMgrGapMtuSizeSetCmd, BleMgrGapMtuSizeSetRsp, BleMgrGapDeviceNameSetCmd, BleMgrGapDeviceNameSetRsp, BleMgrGapAdvStopCmd, \
-    BleMgrGapAdvStopRsp, BleMgrGapAdvDataSetCmd, BleMgrGapAdvDataRsp, BleMgrGapScanStopCmd, BleMgrGapScanStopRsp
+    BleMgrGapAdvStopRsp, BleMgrGapAdvDataSetCmd, BleMgrGapAdvDataRsp, BleMgrGapScanStopCmd, BleMgrGapScanStopRsp, \
+    BleMgrGapDataLengthSetCmd, BleMgrGapDataLengthSetRsp 
 
 from ..manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from ..manager.GtlWaitQueue import GtlWaitQueue
@@ -102,7 +103,7 @@ class BleManagerGap(BleManagerBase):
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_UNPAIR_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SET_SEC_LEVEL_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SKIP_LATENCY_CMD: None,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DATA_LENGTH_SET_CMD: None,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DATA_LENGTH_SET_CMD: self.data_length_set_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_NUMERIC_REPLY_CMD: self.numeric_reply_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADDRESS_RESOLVE_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PHY_SET_CMD: None
@@ -1428,6 +1429,46 @@ class BleManagerGap(BleManagerBase):
             self._adapter_command_queue_send(cfm)
         self.storage_release()
         self.dev_params_release()
+
+    def data_length_set_cmd_handler(self, command: BleMgrGapDataLengthSetCmd) -> None:
+        response = BleMgrGapDataLengthSetRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
+
+        # this if/else was in api layer, moved to manager layer
+        if (command.tx_length > self._ble_config.dg_configBLE_DATA_LENGTH_TX_MAX
+           or command.tx_time > BleConvert.ble_data_length_to_time(self._ble_config.dg_configBLE_DATA_LENGTH_TX_MAX)):
+            response.status = BLE_ERROR.BLE_ERROR_INVALID_PARAM
+        else:
+            command.tx_time = command.tx_time if command.tx_time else BleConvert.ble_data_length_to_time(command.tx_length)
+
+            if ((command.tx_length < GAPM_LE_LENGTH_EXT_OCTETS_MIN)
+                or (command.tx_length > GAPM_LE_LENGTH_EXT_OCTETS_MAX)
+                    or (command.tx_time and command.tx_time != BleConvert.ble_data_length_to_time(command.tx_length))):
+
+                response.status = BLE_ERROR.BLE_ERROR_INVALID_PARAM
+            else:
+                if command.conn_idx == BLE_CONN_IDX_INVALID:
+                    # Set preferred data length for future connections
+                    gtl = GapmSetDevConfigCmd()
+                    gtl.parameters.operation = GAPM_OPERATION.GAPM_SET_SUGGESTED_DFLT_LE_DATA_LEN
+                    gtl.parameters.max_txoctets = command.tx_length
+                    gtl.parameters.max_txtime = command.tx_time
+                    dev_params = self.dev_params_acquire()
+                    gtl.parameters.max_mps = dev_params.mtu_size
+                    self.dev_params_release()
+                    self._adapter_command_queue_send(gtl)
+                else:
+                    # Set data length for specified connection
+                    self.storage_acquire()
+                    dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
+                    if not dev:
+                        self.storage_release()
+                        response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
+                    else:
+                        self.storage_release()
+                        self._change_conn_data_length(command.conn_idx, command.tx_length, command.tx_time)
+                        response.status = BLE_ERROR.BLE_STATUS_OK
+
+        self._mgr_response_queue_send(response)
 
     def device_name_set_cmd_handler(self, command: BleMgrGapDeviceNameSetCmd) -> None:
         response = BleMgrGapDeviceNameSetRsp(status=BLE_ERROR.BLE_ERROR_FAILED)

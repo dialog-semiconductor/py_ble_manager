@@ -11,7 +11,7 @@ from .ble_api.BleGap import ADV_FILT_POL, BLE_GAP_APPEARANCE, GAP_CONN_MODE, BLE
     BleEventGapConnParamUpdated, BleEventGapDisconnected, BleEventGapDisconnectFailed, BleEventGapScanCompleted, \
     BleAdvData, BleEventGapPairReq, BleEventGapPairCompleted, BleEventGapSecLevelChanged, BleEventGapPeerFeatures, \
     BleEventGapPeerVersion, BleEventGapPasskeyNotify, BLE_EVT_GAP, BleEventGapAddressResolved, BleEventGapNumericRequest, \
-    BLE_ADV_DATA_LEN_MAX, BLE_NON_CONN_ADV_DATA_LEN_MAX, GAP_ADV_CHANNEL
+    BLE_ADV_DATA_LEN_MAX, BLE_NON_CONN_ADV_DATA_LEN_MAX, GAP_ADV_CHANNEL, BLE_CONN_IDX_INVALID
 
 from .ble_api.BleGatt import GATT_EVENT, GATT_PROP, GATT_SERVICE
 

@@ -14,7 +14,8 @@ from ..manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp
     BleMgrGapPairReplyCmd, BleMgrGapPairReplyRsp, BleMgrGapPasskeyReplyCmd, BleMgrGapPasskeyReplyRsp, \
     BleMgrGapNumericReplyCmd, BleMgrGapNumericReplyRsp, BleMgrGapMtuSizeSetCmd, BleMgrGapMtuSizeSetRsp, \
     BleMgrGapDeviceNameSetCmd, BleMgrGapDeviceNameSetRsp, BleMgrGapAdvStopCmd, BleMgrGapAdvStopRsp, \
-    BleMgrGapAdvDataSetCmd, BleMgrGapAdvDataRsp, BleMgrGapScanStopCmd, BleMgrGapScanStopRsp
+    BleMgrGapAdvDataSetCmd, BleMgrGapAdvDataRsp, BleMgrGapScanStopCmd, BleMgrGapScanStopRsp, \
+    BleMgrGapDataLengthSetCmd, BleMgrGapDataLengthSetRsp
 
 
 class BleGapApi(BleApiBase):
@@ -78,6 +79,16 @@ class BleGapApi(BleApiBase):
 
         command = BleMgrGapConnectCancelCmd()
         response: BleMgrGapConnectCancelRsp = self._ble_manager.cmd_execute(command)
+
+        return response.status
+
+    def data_length_set(self,
+                        conn_idx: int,
+                        tx_length: int,
+                        tx_time: int) -> BLE_ERROR:
+
+        command = BleMgrGapDataLengthSetCmd(conn_idx, tx_length, tx_time)
+        response: BleMgrGapDataLengthSetRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
 

@@ -123,6 +123,24 @@ class BleMgrGapConnParamUpdateReplyRsp(BleMgrMsgRsp):
                          status=status)
 
 
+class BleMgrGapDataLengthSetCmd(BleMgrMsgBase):
+    def __init__(self,
+                 conn_idx: int,
+                 tx_length: int,
+                 tx_time: int
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DATA_LENGTH_SET_CMD)
+        self.conn_idx = conn_idx
+        self.tx_length = tx_length
+        self.tx_time = tx_time
+
+
+class BleMgrGapDataLengthSetRsp(BleMgrMsgRsp):
+    def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DATA_LENGTH_SET_CMD,
+                         status=status)
+
+
 class BleMgrGapDeviceNameSetCmd(BleMgrMsgBase):
     def __init__(self,
                  name: str = "",

@@ -100,6 +100,46 @@ class BleDeviceBase():
 
         return self._ble_gap.conn_param_update_reply(conn_idx, accept)
 
+    def data_length_set(self,
+                        conn_idx: int,
+                        tx_length: int,
+                        tx_time: int) -> BLE_ERROR:
+        """Set the data length used for TX
+
+        This function will set the maximum transmit data channel PDU payload length and time depending
+        on the `conn_idx` provided. If `conn_idx` is set to
+        :py:data`~py_ble_manager.ble_api.BleGap.BLE_CONN_IDX_INVALID` then this API sets
+        the preferred TX data length and time for subsequent connections. If `conn_idx` corresponds to
+        an existing connection, it will set the TX data length and time for the specific connection (and
+        possibly will initiate a Data Length Update procedure as defined in Bluetooth Core v_4.2).
+
+        ..note:
+          The application will receive one of the following events as response to this API:
+          :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DATA_LENGTH_CHANGED`
+          if data length has been changed
+          :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DATA_LENGTH_SET_FAILED`
+          with error code if data length could not be set
+
+        ..note:
+          If data length is not changed (i.e. if it is set by application to a value larger than the
+          peer's previously reported RX length) no event will be sent to application. Even though
+          :py:meth:`~py_ble_manager.ble_devices.BleDeviceBase.data_length_set() be successfully completed, 
+          the data length has not changed.
+
+        :param conn_idx: connection index (if set to :py:data`~py_ble_manager.ble_api.BleGap.BLE_CONN_IDX_INVALID`
+                         then the API will set the preferred data length for new connections)
+        :type conn_idx: int
+        :param tx_length: length for TX data channel PDU payload in octets
+        :type tx_length: int
+        :param tx_time: time for TX data channel PDU payload (if set to 0 it will be
+                                calculated based on the tx_length (with regard to Bluetooth Core v_4.2)
+        :type tx_time: int
+        :return: result code
+        :rtype: BLE_ERROR
+        """
+
+        return self._ble_gap.data_length_set(conn_idx, tx_length, tx_time)
+
     def device_name_get(self) -> Tuple[str, BLE_ERROR]:
         """Get the device name used for GAP service
 
@@ -141,13 +181,13 @@ class BleDeviceBase():
 
     .. note::
         Valid reasons for initiating a disconnection are:
-            * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_AUTH_FAILURE`
-            * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON`
-            * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_DEV_TERM_LOW_RESOURCES`
-            * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_DEV_POWER_OFF`
-            * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_UNSUPPORTED_REMOTE_FEATURE`
-            * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_PAIRING_WITH_UNIT_KEY_NOT_SUP`
-            * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_UNACCEPTABLE_CONN_INT`
+            :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_AUTH_FAILURE`
+            :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON`
+            :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_DEV_TERM_LOW_RESOURCES`
+            :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_DEV_POWER_OFF`
+            :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_UNSUPPORTED_REMOTE_FEATURE`
+            :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_PAIRING_WITH_UNIT_KEY_NOT_SUP`
+            :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_HCI_ERROR.BLE_HCI_ERROR_UNACCEPTABLE_CONN_INT`
 
         If API is called with a different reason, disconnection will fail with return status
             :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_ERROR.BLE_ERROR_INVALID_PARAM`.
