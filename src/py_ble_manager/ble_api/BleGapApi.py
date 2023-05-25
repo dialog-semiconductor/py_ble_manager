@@ -2,7 +2,7 @@ from ctypes import c_uint8
 from typing import Tuple
 from ..ble_api.BleApiBase import BleApiBase
 from ..ble_api.BleAtt import ATT_PERM
-from ..ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR
+from ..ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR, OwnAddress
 from ..ble_api.BleGap import BLE_GAP_ROLE, GapConnParams, GAP_CONN_MODE, GAP_SCAN_TYPE, GAP_SCAN_MODE, \
     GAP_IO_CAPABILITIES, BLE_NON_CONN_ADV_DATA_LEN_MAX
 from ..manager.BleManager import BleManager
@@ -15,13 +15,20 @@ from ..manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp
     BleMgrGapNumericReplyCmd, BleMgrGapNumericReplyRsp, BleMgrGapMtuSizeSetCmd, BleMgrGapMtuSizeSetRsp, \
     BleMgrGapDeviceNameSetCmd, BleMgrGapDeviceNameSetRsp, BleMgrGapAdvStopCmd, BleMgrGapAdvStopRsp, \
     BleMgrGapAdvDataSetCmd, BleMgrGapAdvDataRsp, BleMgrGapScanStopCmd, BleMgrGapScanStopRsp, \
-    BleMgrGapDataLengthSetCmd, BleMgrGapDataLengthSetRsp
+    BleMgrGapDataLengthSetCmd, BleMgrGapDataLengthSetRsp, BleMgrGapAddressSetCmd, BleMgrGapAddressSetRsp
 
 
 class BleGapApi(BleApiBase):
 
     def __init__(self, ble_manager: BleManager):
         super().__init__(ble_manager)
+
+    def address_set(self, address: OwnAddress, renew_dur: int) -> BLE_ERROR:
+
+        command = BleMgrGapAddressSetCmd(address, renew_dur)
+        response: BleMgrGapAddressSetRsp = self._ble_manager.cmd_execute(command)
+
+        return response.status
 
     def adv_data_set(self,
                      adv_data_len: int = 0,

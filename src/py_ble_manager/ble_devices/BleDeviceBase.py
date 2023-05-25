@@ -2,7 +2,7 @@ import queue
 from typing import Tuple
 from ..adapter.BleAdapter import BleAdapter
 from ..ble_api.BleAtt import ATT_PERM
-from ..ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_HCI_ERROR
+from ..ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_HCI_ERROR, OwnAddress
 from ..ble_api.BleConfig import BleConfigDefault
 from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_IO_CAPABILITIES
 from ..ble_api.BleGapApi import BleGapApi, GapConnParams
@@ -62,6 +62,10 @@ class BleDeviceBase():
         command = BleMgrCommonResetCmd()
         response: BleMgrCommonResetRsp = self._ble_manager.cmd_execute(command)
         return response.status
+
+    def address_set(self, address: OwnAddress, renew_dur: int) -> BLE_ERROR:
+
+        return self._ble_gap.address_set(address, renew_dur)
 
     def conn_param_update(self, conn_idx: int, conn_params: GapConnParams) -> BLE_ERROR:
         """Initiate a connection parameter update
