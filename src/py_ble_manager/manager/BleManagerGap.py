@@ -135,7 +135,7 @@ class BleManagerGap(BleManagerBase):
             GAPC_MSG_ID.GAPC_CMP_EVT: self.gapc_cmp_evt_handler
         }
 
-    def _adress_set_rsp(self, gtl: GapmCmpEvt, command: BleMgrGapAddressSetCmd) -> None:
+    def _address_set_rsp(self, gtl: GapmCmpEvt, command: BleMgrGapAddressSetCmd) -> None:
         response = BleMgrGapAddressSetRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         # Below needs to be refactored to not depend on internal __members__ of IntEnum class
         response.status = gtl.parameters.status if gtl.parameters.status in BLE_ERROR.__members__.values() else BLE_ERROR.BLE_ERROR_FAILED
@@ -1057,7 +1057,7 @@ class BleManagerGap(BleManagerBase):
             self._gtl_wait_queue_add(BLE_CONN_IDX_INVALID,
                                      GAPM_MSG_ID.GAPM_CMP_EVT,
                                      GAPM_OPERATION.GAPM_SET_DEV_CONFIG,
-                                     self._adress_set_rsp,
+                                     self._address_set_rsp,
                                      command)
 
         self._mgr_response_queue_send(response)
