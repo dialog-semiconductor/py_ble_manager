@@ -1,8 +1,10 @@
+from ctypes import c_uint8
 from ..ble_api.BleAtt import ATT_ERROR
 from ..ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_EVT_GAP, BLE_EVT_GATTS
 from ..ble_api.BleConfig import BleConfigDefault, BLE_DEVICE_TYPE
 from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_CONN_MODE, BleEventGapConnected, \
-    BleEventGapDisconnected, BleEventGapConnParamUpdateReq, BleEventGapPairReq
+    BleEventGapDisconnected, BleEventGapConnParamUpdateReq, BleEventGapPairReq, \
+    BleAdvData, BLE_NON_CONN_ADV_DATA_LEN_MAX
 from ..ble_api.BleGatt import GATT_EVENT
 from ..ble_api.BleGatts import BleEventGattsReadReq, BleEventGattsWriteReq, \
     BleEventGattsPrepareWriteReq, BleEventGattsEventSent
@@ -65,6 +67,40 @@ class BlePeripheral(BleDeviceBase):
                 service.write_req(evt)
             return True
         return False
+
+    def advertising_data_set(self,
+                             adv_data_ad_list: list[BleAdvData] = [],
+                             scan_rsp_ad_list: list[BleAdvData] = []
+                             ) -> BLE_ERROR:
+
+        adv_data_len = 0
+        adv_data = (c_uint8 * BLE_NON_CONN_ADV_DATA_LEN_MAX)()
+        for ad in adv_data_ad_list:
+            adv_data[adv_data_len] = c_uint8(ad.len)
+            adv_data[adv_data_len + 1] = c_uint8(ad.type)
+
+            adv_data[adv_data_len + 2:len(ad.data) + 2] = ad.data
+            adv_data_len += ad.len + 1  # +1 to account for AD len byte
+
+        scan_rsp_data_len = 0
+        scan_rsp_data = (c_uint8 * BLE_NON_CONN_ADV_DATA_LEN_MAX)()
+        for ad in scan_rsp_ad_list:
+            scan_rsp_data[scan_rsp_data_len] = c_uint8(ad.len)
+            scan_rsp_data[scan_rsp_data_len + 1] = c_uint8(ad.type)
+            scan_rsp_data[scan_rsp_data_len + 2:len(ad.data) + 2] = ad.data
+            scan_rsp_data_len += ad.len + 1  # +1 to account for AD len byte
+
+        return self._ble_gap.adv_data_set(adv_data_len, adv_data, scan_rsp_data_len, scan_rsp_data)
+
+    def advertising_start(self,
+                          adv_type: GAP_CONN_MODE = GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
+                          ) -> BLE_ERROR:
+
+        return self._ble_gap.adv_start(adv_type)
+
+    def advertising_stop(self) -> BLE_ERROR:
+
+        return self._ble_gap.adv_stop()
 
     def get_value(self, handle: int, max_len: int) -> BLE_ERROR:
         error = BLE_ERROR.BLE_ERROR_FAILED
@@ -203,12 +239,6 @@ class BlePeripheral(BleDeviceBase):
 
     def start(self) -> BLE_ERROR:
         return super().start(BLE_GAP_ROLE.GAP_PERIPHERAL_ROLE)
-
-    def start_advertising(self,
-                          adv_type: GAP_CONN_MODE = GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
-                          ) -> BLE_ERROR:
-
-        return self._ble_gap.start_advertising(adv_type)
 
     def storage_get_int(self, conn_idx: int, key: int) -> tuple[BLE_ERROR, int]:
         return self._ble_storage.get_int(conn_idx, key)

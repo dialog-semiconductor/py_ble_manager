@@ -384,33 +384,28 @@ class gapm_att_cfg_flag(LittleEndianStructure):
                 ("enable_debug", c_uint8, 1)]
 
 
-'''
-enum gapm_att_cfg_flag
-{
+class GAPM_ATT_CFG_FLAG(IntEnum):
+
     # Device Name write permission requirements for peer device (@see gapm_write_att_perm)
-    GAPM_MASK_ATT_NAME_PERM           = 0x03,
-    GAPM_POS_ATT_NAME_PERM            = 0x00,
+    GAPM_MASK_ATT_NAME_PERM = 0x03
+    GAPM_POS_ATT_NAME_PERM = 0x00
     # Device Appearance write permission requirements for peer device (@see gapm_write_att_perm)
-    GAPM_MASK_ATT_APPEARENCE_PERM     = 0x0C,
-    GAPM_POS_ATT_APPEARENCE_PERM      = 0x02,
+    GAPM_MASK_ATT_APPEARENCE_PERM = 0x0C
+    GAPM_POS_ATT_APPEARENCE_PERM = 0x02
     # Slave Preferred Connection Parameters present in GAP attribute database.
-    GAPM_MASK_ATT_SLV_PREF_CON_PAR_EN = 0x10,
-    GAPM_POS_ATT_SLV_PREF_CON_PAR_EN  = 0x04,
+    GAPM_MASK_ATT_SLV_PREF_CON_PAR_EN = 0x10
+    GAPM_POS_ATT_SLV_PREF_CON_PAR_EN = 0x04
     # Service change feature present in GATT attribute database.
-    GAPM_MASK_ATT_SVC_CHG_EN          = 0x20,
-    GAPM_POS_ATT_SVC_CHG_EN           = 0x05,
+    GAPM_MASK_ATT_SVC_CHG_EN = 0x20
+    GAPM_POS_ATT_SVC_CHG_EN = 0x05
 
     # CoC zero credit bahaviour.
-    GAPM_MASK_ATT_COC_NO_CREDIT_DISCARD   = 0x40,
-    GAPM_POS_ATT_COC_NO_CREDIT_DISCARD    = 0x06,
+    GAPM_MASK_ATT_COC_NO_CREDIT_DISCARD = 0x40
+    GAPM_POS_ATT_COC_NO_CREDIT_DISCARD = 0x06
 
-#if (BLE_DEBUG)
     # Service change feature present in GATT attribute database.
-    GAPM_MASK_ATT_DBG_MODE_EN          = 0x80,
-    GAPM_POS_ATT_DBG_MODE_EN           = 0x07,
-#endif // (BLE_DEBUG)
-};
-'''
+    GAPM_MASK_ATT_DBG_MODE_EN = 0x80
+    GAPM_POS_ATT_DBG_MODE_EN = 0x07
 
 
 # Operation command structure in order to keep requested operation.
@@ -933,24 +928,37 @@ class gapm_start_advertise_cmd(LittleEndianStructure):
                 ("info", gapm_adv_info)]
 
 
-'''
 # Update Advertising Data Command - On fly update when device is advertising
-struct gapm_update_advertise_data_cmd
-{
-    # GAPM requested operation:
-    #  - GAPM_UPDATE_ADVERTISE_DATA: Update on the fly advertising data
-    uint8_t  operation;
-    # Advertising data length - maximum 28 bytes, 3 bytes are reserved to set
-    # Advertising AD type flags, shall not be set in advertising data
-    uint8_t              adv_data_len;
-    # Advertising data
-    uint8_t              adv_data[ADV_DATA_LEN];
-    # Scan response data length- maximum 31 bytes
-    uint8_t              scan_rsp_data_len;
-    # Scan response data
-    uint8_t              scan_rsp_data[SCAN_RSP_DATA_LEN];
-};
-'''
+class gapm_update_advertise_data_cmd(LittleEndianStructure):
+    def __init__(self,
+                 adv_data_len: c_uint8 = 0,
+                 adv_data: c_uint8 * ADV_DATA_LEN = (c_uint8 * ADV_DATA_LEN)(),
+                 scan_rsp_data_len: c_uint8 = 0,
+                 scan_rsp_data: c_uint8 * SCAN_RSP_DATA_LEN = (c_uint8 * SCAN_RSP_DATA_LEN)()
+                 ):
+        self.operation = GAPM_OPERATION.GAPM_UPDATE_ADVERTISE_DATA
+        self.adv_data_len = adv_data_len
+        self.adv_data = adv_data
+        self.scan_rsp_data_len = scan_rsp_data_len
+        self.scan_rsp_data = scan_rsp_data
+        super().__init__(operation=self.operation,
+                         adv_data_len=self.adv_data_len,
+                         adv_data=self.adv_data,
+                         scan_rsp_data_len=self.scan_rsp_data_len,
+                         scan_rsp_data=self.scan_rsp_data)
+
+                # GAPM requested operation:
+                #  - GAPM_UPDATE_ADVERTISE_DATA: Update on the fly advertising data
+    _fields_ = [("operation", c_uint8),
+                # Advertising data length - maximum 28 bytes, 3 bytes are reserved to set
+                # Advertising AD type flags, shall not be set in advertising data
+                ("adv_data_len", c_uint8),
+                # Advertising data
+                ("adv_data", c_uint8 * ADV_DATA_LEN),
+                # Scan response data length - maximum 31 bytes
+                ("scan_rsp_data_len", c_uint8),
+                # Scan response data
+                ("scan_rsp_data", c_uint8 * SCAN_RSP_DATA_LEN)]
 
 
 # Set scan mode Command

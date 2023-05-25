@@ -1,6 +1,6 @@
 from enum import IntEnum, auto
 from ..ble_api.BleCommon import BleEventBase, BdAddress, BLE_ERROR, BLE_EVT_GAP, BLE_HCI_ERROR
-from ..gtl_port.co_bt import ADV_DATA_LEN
+from ..gtl_port.co_bt import ADV_DATA_LEN, BD_NAME_SIZE
 
 BLE_CONN_IDX_INVALID = 0xFFFF
 BLE_GAP_MAX_BONDED = 8      # (defaultBLE_MAX_BONDED) TODO defaultBLE_MAX_BONDED defined in ble_config.h # TODO this will be different for 531 vs 695
@@ -8,7 +8,7 @@ BLE_ENC_KEY_SIZE_MAX = 16
 BLE_ADV_DATA_LEN_MAX = ADV_DATA_LEN - 3
 BLE_NON_CONN_ADV_DATA_LEN_MAX = ADV_DATA_LEN
 SCAN_RSP_DATA_LEN = ADV_DATA_LEN
-
+BLE_GAP_DEVNAME_LEN_MAX = (BD_NAME_SIZE)
 
 class ADV_FILT_POL():
     """Advertising filter policy
@@ -323,13 +323,23 @@ class BleAdvData():
     """
 
     def __init__(self,
-                 len: int = 0,
                  type: GAP_DATA_TYPE = GAP_DATA_TYPE.GAP_DATA_TYPE_FLAGS,
                  data: bytes = None,
                  ) -> None:
-        self.len = len
         self.type = type
-        self.data = data
+        self.data = data if data else bytes()
+
+    def _get_data(self):
+        return self._data
+
+    def _set_data(self, new_data: bytes):
+        if len(new_data) <= ADV_DATA_LEN - 2:
+            self._data = new_data if new_data else bytes()
+            self.len = len(new_data) + 1  # len includes AD Type
+        else:
+            raise ValueError(f"Data cannot be longer than {ADV_DATA_LEN - 2} bytes. Was {len(new_data)} bytes")
+
+    data = property(_get_data, _set_data)
 
     def __repr__(self):
         try:
@@ -338,8 +348,8 @@ class BleAdvData():
             adv_type = self.type
 
         adv_type = str(adv_type)
-        return_string = f"{type(self).__name__}(type={adv_type}, "
-        return_string += f"len={self.len}, "
+        return_string = f"{type(self).__name__}(len={self.len}, "
+        return_string += f"type={adv_type}, "
         return_string += f"data={list(self.data)})"
 
         return return_string
