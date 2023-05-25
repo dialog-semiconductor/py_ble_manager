@@ -51,7 +51,7 @@ from ..manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp,
     BleMgrGapMtuSizeSetCmd, BleMgrGapMtuSizeSetRsp, BleMgrGapDeviceNameSetCmd, BleMgrGapDeviceNameSetRsp, BleMgrGapAdvStopCmd, \
     BleMgrGapAdvStopRsp, BleMgrGapAdvDataSetCmd, BleMgrGapAdvDataRsp, BleMgrGapScanStopCmd, BleMgrGapScanStopRsp, \
     BleMgrGapDataLengthSetCmd, BleMgrGapDataLengthSetRsp, BleMgrGapAddressSetCmd, BleMgrGapAddressSetRsp, \
-    BleMgrGapAppearanceSetCmd, BleMgrGapAppearanceSetRsp
+    BleMgrGapAppearanceSetCmd, BleMgrGapAppearanceSetRsp, BleMgrGapPeerVersionGetCmd, BleMgrGapPeerVersionGetRsp
 
 from ..manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from ..manager.GtlWaitQueue import GtlWaitQueue
@@ -90,7 +90,7 @@ class BleManagerGap(BleManagerBase):
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CMD: self.connect_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CANCEL_CMD: self.connect_cancel_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DISCONNECT_CMD: self.disconnect_cmd_handler,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PEER_VERSION_GET_CMD: None,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PEER_VERSION_GET_CMD: self.peer_version_get_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PEER_FEATURES_GET_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONN_RSSI_GET_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ROLE_SET_CMD: self.role_set_cmd_handler,
@@ -1949,6 +1949,20 @@ class BleManagerGap(BleManagerBase):
                                                   self._ble_config.dg_configBLE_DATA_LENGTH_TX_MAX,
                                                   BleConvert.ble_data_length_to_time(self._ble_config.dg_configBLE_DATA_LENGTH_TX_MAX))
                 self.storage_release()
+
+    def peer_version_get_cmd_handler(self, command: BleMgrGapPeerVersionGetCmd) -> None:
+        response = BleMgrGapPeerVersionGetRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
+
+        self.storage_acquire()
+        dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
+        if not dev:
+            response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
+        else:
+            self._get_peer_version(command.conn_idx)
+            response.status = BLE_ERROR.BLE_STATUS_OK
+        self.storage_release()
+
+        self._mgr_response_queue_send(response)
 
     def peer_version_ind_evt_handler(self, gtl: GapcPeerVersionInd):
         evt = BleEventGapPeerVersion()
