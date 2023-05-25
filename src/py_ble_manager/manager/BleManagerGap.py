@@ -3,6 +3,7 @@ import queue
 import secrets
 import threading
 
+from ..ble_api.BleAtt import ATT_PERM
 from ..ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_OWN_ADDR_TYPE, BLE_ADDR_TYPE, BLE_HCI_ERROR, \
     BdAddress
 from ..ble_api.BleConfig import BleConfigDefault
@@ -16,7 +17,7 @@ from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_CONN_MODE, BleEventGapConnected, 
     BleEventGapPasskeyNotify, BleEventGapNumericRequest, BleEventGapPairCompleted, BleEventGapSecLevelChanged, \
     BleEventGapAddressResolved, BleEventGapPeerVersion, BleEventGapPeerFeatures, BleEventGapLtkMissing, \
     BLE_ADV_DATA_LEN_MAX, BLE_NON_CONN_ADV_DATA_LEN_MAX, BleEventGapAddressResolutionFailed, \
-    BleEventGapDataLengthSetFailed, GAP_ADV_TYPE, BleEventGapDataLengthChanged
+    BleEventGapDataLengthSetFailed, GAP_ADV_TYPE, BleEventGapDataLengthChanged, BLE_GAP_DEVNAME_LEN_MAX
 
 from ..gtl_messages.gtl_message_base import GtlMessageBase
 from ..gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd, GapcGetDevInfoReqInd, GapcGetDevInfoCfm, \
@@ -27,6 +28,7 @@ from ..gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReq
 from ..gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd, \
     GapmStartScanCmd, GapmAdvReportInd, GapmCancelCmd, GapmResolvAddrCmd
 
+from ..gtl_port.attm import ATTM_PERM, att_perm
 from ..gtl_port.co_bt import RAND_NB_LEN, KEY_LEN, BLE_LE_LENGTH_FEATURE
 from ..gtl_port.co_error import CO_ERROR
 from ..gtl_port.gap import GAP_ROLE, GAP_AUTH_MASK, gap_bdaddr, GAP_IO_CAP, GAP_OOB, GAP_TK_TYPE, GAP_SEC_REQ
@@ -34,7 +36,7 @@ from ..gtl_port.gap import GAP_ROLE, GAP_AUTH_MASK, gap_bdaddr, GAP_IO_CAP, GAP_
 from ..gtl_port.gapc import GAPC_FIELDS_MASK
 from ..gtl_port.gapc_task import GAPC_MSG_ID, GAPC_DEV_INFO, GAPC_OPERATION, GAPC_BOND
 from ..gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, GAPM_ADDR_TYPE, GAPM_OWN_ADDR, SCAN_FILTER_POLICY, \
-    SCAN_DUP_FILTER_POLICY, GAPM_LE_LENGTH_EXT_OCTETS_MIN
+    SCAN_DUP_FILTER_POLICY, GAPM_LE_LENGTH_EXT_OCTETS_MIN, GAPM_ATT_CFG_FLAG
 
 from ..gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from ..manager.BleDevParams import BleDevParamsDefault
@@ -46,7 +48,7 @@ from ..manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp,
     BleMgrGapConnParamUpdateCmd, BleMgrGapConnParamUpdateRsp, BleMgrGapConnParamUpdateReplyCmd, \
     BleMgrGapConnParamUpdateReplyRsp, BleMgrGapPairCmd, BleMgrGapPairRsp, BleMgrGapPairReplyCmd, BleMgrGapPairReplyRsp, \
     BleMgrGapPasskeyReplyCmd, BleMgrGapPasskeyReplyRsp, BleMgrGapNumericReplyCmd, BleMgrGapNumericReplyRsp, BLE_MGR_RAL_OP, \
-    BleMgrGapMtuSizeSetCmd, BleMgrGapMtuSizeSetRsp
+    BleMgrGapMtuSizeSetCmd, BleMgrGapMtuSizeSetRsp, BleMgrGapDeviceNameSetCmd, BleMgrGapDeviceNameSetRsp
 
 from ..manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from ..manager.GtlWaitQueue import GtlWaitQueue
@@ -73,7 +75,7 @@ class BleManagerGap(BleManagerBase):
 
         self.cmd_handlers = {
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADDRESS_SET_CMD: None,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DEVICE_NAME_SET_CMD: None,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DEVICE_NAME_SET_CMD: self.device_name_set_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_APPEARANCE_SET_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PPCP_SET_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_START_CMD: self.adv_start_cmd_handler,
@@ -258,6 +260,17 @@ class BleManagerGap(BleManagerBase):
 
         self._mgr_response_queue_send(response)
         self.dev_params_release()
+
+    def _att_db_cfg_devname_perm_set_rsp(self, gtl: GapmCmpEvt, command: BleMgrGapDeviceNameSetCmd):
+        if gtl.parameters.status == HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
+            dev_params = self.dev_params_acquire()
+            dev_params.dev_name = bytes(command.name, 'utf-8')
+            # dev_params.att_db_cfg = ((dev_params.att_db_cfg & ~GAPM_ATT_CFG_FLAG.GAPM_MASK_ATT_NAME_PERM)
+            #                         | self._devname_perm_to_perm(command.perm))
+            dev_params.att_db_cfg.dev_name_perm = self._devname_perm_to_perm(command.perm)
+            self.dev_params_release()
+        response = BleMgrGapDeviceNameSetRsp(status=gtl.parameters.status)
+        self._mgr_response_queue_send(response)
 
     def _auth_to_sec_level(self, auth: GAP_AUTH_MASK, key_size: int):
 
@@ -602,6 +615,18 @@ class BleManagerGap(BleManagerBase):
 
         self.dev_params_release()
         return gtl
+
+    def _devname_perm_to_perm(self, perm_in):
+        rwperm = ATTM_PERM.DISABLE
+        # Translate write permissions
+        if (perm_in & ATT_PERM.ATT_PERM_WRITE_AUTH):
+            rwperm = ATTM_PERM.AUTH
+        elif (perm_in & ATT_PERM.ATT_PERM_WRITE_ENCRYPT):
+            rwperm = ATTM_PERM.UNAUTH
+        elif (perm_in & ATT_PERM.ATT_PERM_WRITE):
+            rwperm = ATTM_PERM.ENABLE
+
+        return rwperm
 
     def _gapm_address_resolve_complete(self, gtl: GapcCmpEvt, evt: BleEventGapConnected):
         conn_idx = evt.conn_idx
@@ -1345,6 +1370,40 @@ class BleManagerGap(BleManagerBase):
             # TODO something with service changed characteristic value from ..storage
             self._adapter_command_queue_send(cfm)
         self.storage_release()
+        self.dev_params_release()
+
+    def device_name_set_cmd_handler(self, command: BleMgrGapDeviceNameSetCmd) -> None: 
+        response = BleMgrGapDeviceNameSetRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
+        dev_params = self.dev_params_acquire()
+
+        # Check if the provided name is longer than the defined max size
+        if len(command.name) <= BLE_GAP_DEVNAME_LEN_MAX:
+            # Check if the attribute database configuration bit flag needs updating
+            # if (dev_params.att_db_cfg.dev_name_perm & GAPM_ATT_CFG_FLAG.GAPM_MASK_ATT_NAME_PERM) == self._devname_perm_to_perm(command.perm):
+            if dev_params.att_db_cfg.dev_name_perm == self._devname_perm_to_perm(command.perm):
+                dev_params.dev_name = bytes(command.name, 'utf-8')
+                response.status = BLE_ERROR.BLE_STATUS_OK
+            else:
+                if dev_params.advertising is True or dev_params.scanning is True:
+                    response.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
+                else:
+                    self.dev_params_release()
+                    gtl = self._dev_params_to_gtl()
+                    dev_params = self.dev_params_acquire()
+                    # gtl.parameters.att_cfg = (dev_params.att_db_cfg & ~GAPM_ATT_CFG_FLAG.GAPM_MASK_ATT_NAME_PERM
+                    #                          | self._devname_perm_to_perm(command.perm))
+
+                    gtl.parameters.att_cfg.dev_name_perm = self._devname_perm_to_perm(command.perm)
+                    self._gtl_wait_queue_add(BLE_CONN_IDX_INVALID,
+                                             GAPM_MSG_ID.GAPM_CMP_EVT,
+                                             GAPM_OPERATION.GAPM_SET_DEV_CONFIG,
+                                             self._att_db_cfg_devname_perm_set_rsp,
+                                             command)
+                    self._adapter_command_queue_send(gtl)
+                    self.dev_params_release()
+                    return
+
+        self._mgr_response_queue_send(response)
         self.dev_params_release()
 
     def disconnect_cmd_handler(self, command: BleMgrGapDisconnectCmd) -> None:

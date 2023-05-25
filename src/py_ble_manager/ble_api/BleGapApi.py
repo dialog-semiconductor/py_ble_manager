@@ -1,8 +1,9 @@
 from typing import Tuple
 from ..ble_api.BleApiBase import BleApiBase
+from ..ble_api.BleAtt import ATT_PERM
 from ..ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR
 from ..ble_api.BleGap import BLE_GAP_ROLE, GapConnParams, GAP_CONN_MODE, GAP_SCAN_TYPE, GAP_SCAN_MODE, \
-    GAP_IO_CAPABILITIES
+    GAP_IO_CAPABILITIES, BLE_GAP_DEVNAME_LEN_MAX
 from ..manager.BleManager import BleManager
 from ..manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, BleMgrGapConnectCmd, \
     BleMgrGapConnectRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp, BleMgrGapScanStartCmd, \
@@ -10,7 +11,8 @@ from ..manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp
     BleMgrGapConnectCancelRsp, BleMgrGapConnParamUpdateCmd, BleMgrGapConnParamUpdateRsp, \
     BleMgrGapConnParamUpdateReplyCmd, BleMgrGapConnParamUpdateReplyRsp, BleMgrGapPairCmd, BleMgrGapPairRsp, \
     BleMgrGapPairReplyCmd, BleMgrGapPairReplyRsp, BleMgrGapPasskeyReplyCmd, BleMgrGapPasskeyReplyRsp, \
-    BleMgrGapNumericReplyCmd, BleMgrGapNumericReplyRsp, BleMgrGapMtuSizeSetCmd, BleMgrGapMtuSizeSetRsp
+    BleMgrGapNumericReplyCmd, BleMgrGapNumericReplyRsp, BleMgrGapMtuSizeSetCmd, BleMgrGapMtuSizeSetRsp, \
+    BleMgrGapDeviceNameSetCmd, BleMgrGapDeviceNameSetRsp
 
 
 class BleGapApi(BleApiBase):
@@ -43,6 +45,20 @@ class BleGapApi(BleApiBase):
 
         command = BleMgrGapConnectCancelCmd()
         response: BleMgrGapConnectCancelRsp = self._ble_manager.cmd_execute(command)
+
+        return response.status
+
+    def device_name_get(self) -> Tuple[bytes, BLE_ERROR]:
+
+        dev_params = self._ble_manager.dev_params_acquire()
+        name = dev_params.dev_name
+        self._ble_manager.dev_params_release()
+        return name, BLE_ERROR.BLE_STATUS_OK
+
+    def device_name_set(self, name: str, perm: ATT_PERM) -> BLE_ERROR:
+
+        command = BleMgrGapDeviceNameSetCmd(name, perm)
+        response: BleMgrGapDeviceNameSetRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
 

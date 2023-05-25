@@ -1,6 +1,7 @@
 import queue
 from typing import Tuple
 from ..adapter.BleAdapter import BleAdapter
+from ..ble_api.BleAtt import ATT_PERM
 from ..ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_HCI_ERROR
 from ..ble_api.BleConfig import BleConfigDefault
 from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_IO_CAPABILITIES
@@ -98,6 +99,31 @@ class BleDeviceBase():
         """
 
         return self._ble_gap.conn_param_update_reply(conn_idx, accept)
+
+    def device_name_get(self) -> Tuple[str, BLE_ERROR]:
+        """Get the device name used for GAP service
+
+        :return: device name, result code
+        :rtype: Tuple[str, BLE_ERROR]
+        """
+        return self._ble_gap.device_name_get()
+
+    def device_name_set(self, name: str, perm: ATT_PERM) -> BLE_ERROR:
+        """Set the device name used for GAP service
+
+        ..note:
+            This API function has to be called prior to creating the attribute database of the device. This
+            is because the device configuration is going to be modified, which will result in clearing the
+            current attribute database (if it exists).
+
+        :param name: device name
+        :type name: str
+        :param perm: device name attribute write permission
+        :type perm: ATT_PERM
+        :return: result code
+        :rtype: BLE_ERROR
+        """
+        return self._ble_gap.device_name_set(name, perm)
 
     def disconnect(self, conn_idx: int, reason: BLE_HCI_ERROR = BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON) -> BLE_ERROR:
         """Terminate a connection

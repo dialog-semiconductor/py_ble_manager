@@ -384,33 +384,28 @@ class gapm_att_cfg_flag(LittleEndianStructure):
                 ("enable_debug", c_uint8, 1)]
 
 
-'''
-enum gapm_att_cfg_flag
-{
+class GAPM_ATT_CFG_FLAG(IntEnum):
+
     # Device Name write permission requirements for peer device (@see gapm_write_att_perm)
-    GAPM_MASK_ATT_NAME_PERM           = 0x03,
-    GAPM_POS_ATT_NAME_PERM            = 0x00,
+    GAPM_MASK_ATT_NAME_PERM = 0x03
+    GAPM_POS_ATT_NAME_PERM = 0x00
     # Device Appearance write permission requirements for peer device (@see gapm_write_att_perm)
-    GAPM_MASK_ATT_APPEARENCE_PERM     = 0x0C,
-    GAPM_POS_ATT_APPEARENCE_PERM      = 0x02,
+    GAPM_MASK_ATT_APPEARENCE_PERM = 0x0C
+    GAPM_POS_ATT_APPEARENCE_PERM = 0x02
     # Slave Preferred Connection Parameters present in GAP attribute database.
-    GAPM_MASK_ATT_SLV_PREF_CON_PAR_EN = 0x10,
-    GAPM_POS_ATT_SLV_PREF_CON_PAR_EN  = 0x04,
+    GAPM_MASK_ATT_SLV_PREF_CON_PAR_EN = 0x10
+    GAPM_POS_ATT_SLV_PREF_CON_PAR_EN = 0x04
     # Service change feature present in GATT attribute database.
-    GAPM_MASK_ATT_SVC_CHG_EN          = 0x20,
-    GAPM_POS_ATT_SVC_CHG_EN           = 0x05,
+    GAPM_MASK_ATT_SVC_CHG_EN = 0x20
+    GAPM_POS_ATT_SVC_CHG_EN = 0x05
 
     # CoC zero credit bahaviour.
-    GAPM_MASK_ATT_COC_NO_CREDIT_DISCARD   = 0x40,
-    GAPM_POS_ATT_COC_NO_CREDIT_DISCARD    = 0x06,
+    GAPM_MASK_ATT_COC_NO_CREDIT_DISCARD = 0x40
+    GAPM_POS_ATT_COC_NO_CREDIT_DISCARD = 0x06
 
-#if (BLE_DEBUG)
     # Service change feature present in GATT attribute database.
-    GAPM_MASK_ATT_DBG_MODE_EN          = 0x80,
-    GAPM_POS_ATT_DBG_MODE_EN           = 0x07,
-#endif // (BLE_DEBUG)
-};
-'''
+    GAPM_MASK_ATT_DBG_MODE_EN = 0x80
+    GAPM_POS_ATT_DBG_MODE_EN = 0x07
 
 
 # Operation command structure in order to keep requested operation.

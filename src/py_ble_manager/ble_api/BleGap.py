@@ -1,6 +1,6 @@
 from enum import IntEnum, auto
 from ..ble_api.BleCommon import BleEventBase, BdAddress, BLE_ERROR, BLE_EVT_GAP, BLE_HCI_ERROR
-from ..gtl_port.co_bt import ADV_DATA_LEN
+from ..gtl_port.co_bt import ADV_DATA_LEN, BD_NAME_SIZE
 
 BLE_CONN_IDX_INVALID = 0xFFFF
 BLE_GAP_MAX_BONDED = 8      # (defaultBLE_MAX_BONDED) TODO defaultBLE_MAX_BONDED defined in ble_config.h # TODO this will be different for 531 vs 695
@@ -8,7 +8,7 @@ BLE_ENC_KEY_SIZE_MAX = 16
 BLE_ADV_DATA_LEN_MAX = ADV_DATA_LEN - 3
 BLE_NON_CONN_ADV_DATA_LEN_MAX = ADV_DATA_LEN
 SCAN_RSP_DATA_LEN = ADV_DATA_LEN
-
+BLE_GAP_DEVNAME_LEN_MAX = (BD_NAME_SIZE)
 
 class ADV_FILT_POL():
     """Advertising filter policy
