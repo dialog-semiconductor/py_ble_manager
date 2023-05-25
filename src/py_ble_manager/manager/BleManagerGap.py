@@ -50,7 +50,8 @@ from ..manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp,
     BleMgrGapPasskeyReplyCmd, BleMgrGapPasskeyReplyRsp, BleMgrGapNumericReplyCmd, BleMgrGapNumericReplyRsp, BLE_MGR_RAL_OP, \
     BleMgrGapMtuSizeSetCmd, BleMgrGapMtuSizeSetRsp, BleMgrGapDeviceNameSetCmd, BleMgrGapDeviceNameSetRsp, BleMgrGapAdvStopCmd, \
     BleMgrGapAdvStopRsp, BleMgrGapAdvDataSetCmd, BleMgrGapAdvDataRsp, BleMgrGapScanStopCmd, BleMgrGapScanStopRsp, \
-    BleMgrGapDataLengthSetCmd, BleMgrGapDataLengthSetRsp, BleMgrGapAddressSetCmd, BleMgrGapAddressSetRsp
+    BleMgrGapDataLengthSetCmd, BleMgrGapDataLengthSetRsp, BleMgrGapAddressSetCmd, BleMgrGapAddressSetRsp, \
+    BleMgrGapAppearanceSetCmd, BleMgrGapAppearanceSetRsp
 
 from ..manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from ..manager.GtlWaitQueue import GtlWaitQueue
@@ -78,7 +79,7 @@ class BleManagerGap(BleManagerBase):
         self.cmd_handlers = {
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADDRESS_SET_CMD: self.address_set_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DEVICE_NAME_SET_CMD: self.device_name_set_cmd_handler,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_APPEARANCE_SET_CMD: None,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_APPEARANCE_SET_CMD: self.appearance_set_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PPCP_SET_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_START_CMD: self.adv_start_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_STOP_CMD: self.adv_stop_cmd_handler,
@@ -308,15 +309,38 @@ class BleManagerGap(BleManagerBase):
         self._mgr_response_queue_send(response)
         self.dev_params_release()
 
+    def _appearance_perm_to_perm(self, perm_in: ATT_PERM):
+        rwperm = ATTM_PERM.DISABLE
+        # Translate write permissions
+        if (perm_in & ATT_PERM.ATT_PERM_WRITE_AUTH):
+            rwperm = ATTM_PERM.AUTH
+        elif (perm_in & ATT_PERM.ATT_PERM_WRITE_ENCRYPT):
+            rwperm = ATTM_PERM.UNAUTH
+        elif (perm_in & ATT_PERM.ATT_PERM_WRITE):
+            rwperm = ATTM_PERM.ENABLE
+
+        return rwperm
+    
+    def _att_db_cfg_appearance_perm_set_rsp(self, gtl: GapmCmpEvt, command: BleMgrGapAppearanceSetCmd):
+        if gtl.parameters.status == HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
+            dev_params = self.dev_params_acquire()
+            dev_params.appearance = command.appearance
+            dev_params.att_db_cfg.dev_name_perm = self._appearance_perm_to_perm(command.perm)
+            self.dev_params_release()
+            # Below needs to be refactored to not depend on internal __members__ of IntEnum class
+            status = gtl.parameters.status if gtl.parameters.status in BLE_ERROR.__members__.values() else BLE_ERROR.BLE_ERROR_FAILED
+        response = BleMgrGapDeviceNameSetRsp(status=status)
+        self._mgr_response_queue_send(response)
+
     def _att_db_cfg_devname_perm_set_rsp(self, gtl: GapmCmpEvt, command: BleMgrGapDeviceNameSetCmd):
         if gtl.parameters.status == HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
             dev_params = self.dev_params_acquire()
             dev_params.dev_name = bytes(command.name, 'utf-8')
-            # dev_params.att_db_cfg = ((dev_params.att_db_cfg & ~GAPM_ATT_CFG_FLAG.GAPM_MASK_ATT_NAME_PERM)
-            #                         | self._devname_perm_to_perm(command.perm))
             dev_params.att_db_cfg.dev_name_perm = self._devname_perm_to_perm(command.perm)
             self.dev_params_release()
-        response = BleMgrGapDeviceNameSetRsp(status=gtl.parameters.status)
+        # Below needs to be refactored to not depend on internal __members__ of IntEnum class
+        status = gtl.parameters.status if gtl.parameters.status in BLE_ERROR.__members__.values() else BLE_ERROR.BLE_ERROR_FAILED
+        response = BleMgrGapDeviceNameSetRsp(status=status)
         self._mgr_response_queue_send(response)
 
     def _auth_to_sec_level(self, auth: GAP_AUTH_MASK, key_size: int):
@@ -661,7 +685,7 @@ class BleManagerGap(BleManagerBase):
 
         return gtl
 
-    def _devname_perm_to_perm(self, perm_in):
+    def _devname_perm_to_perm(self, perm_in: ATT_PERM):
         rwperm = ATTM_PERM.DISABLE
         # Translate write permissions
         if (perm_in & ATT_PERM.ATT_PERM_WRITE_AUTH):
@@ -1097,6 +1121,33 @@ class BleManagerGap(BleManagerBase):
             response.status = BLE_ERROR.BLE_STATUS_OK
         self.dev_params_release()
         self._mgr_response_queue_send(response)
+
+    def appearance_set_cmd_handler(self, command: BleMgrGapAppearanceSetCmd) -> None:
+        response = BleMgrGapAppearanceSetRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
+
+        dev_params = self.dev_params_acquire()
+        # Check if the attribute database configuration bit flag needs updating
+        if dev_params.att_db_cfg.dev_appear_perm != self._appearance_perm_to_perm(command.perm):
+            # att_db_cfg has to be updated
+
+            # Check if an air operation is in progress (att_db_cfg cannot be updated now)
+            if dev_params.advertising or dev_params.scanning:
+                response.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
+            else:
+                gtl = self._dev_params_to_gtl(dev_params)
+                gtl.parameters.att_cfg.dev_appear_perm = self._appearance_perm_to_perm(command.perm)
+
+                self._gtl_wait_queue_add(BLE_CONN_IDX_INVALID,
+                                         GAPM_MSG_ID.GAPM_CMP_EVT,
+                                         GAPM_OPERATION.GAPM_SET_DEV_CONFIG,
+                                         self._att_db_cfg_appearance_perm_set_rsp,
+                                         command)
+                self._adapter_command_queue_send(gtl)
+                self.dev_params_release()
+                return
+        self._mgr_response_queue_send(response)
+        self.dev_params_release()
+
 
     def bond_ind_evt_handler(self, gtl: GapcBondInd):
         match gtl.parameters.info:

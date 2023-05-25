@@ -4,7 +4,7 @@ from ..ble_api.BleApiBase import BleApiBase
 from ..ble_api.BleAtt import ATT_PERM
 from ..ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR, OwnAddress
 from ..ble_api.BleGap import BLE_GAP_ROLE, GapConnParams, GAP_CONN_MODE, GAP_SCAN_TYPE, GAP_SCAN_MODE, \
-    GAP_IO_CAPABILITIES, BLE_NON_CONN_ADV_DATA_LEN_MAX
+    GAP_IO_CAPABILITIES, BLE_NON_CONN_ADV_DATA_LEN_MAX, BLE_GAP_APPEARANCE
 from ..manager.BleManager import BleManager
 from ..manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, BleMgrGapConnectCmd, \
     BleMgrGapConnectRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp, BleMgrGapScanStartCmd, \
@@ -15,13 +15,21 @@ from ..manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp
     BleMgrGapNumericReplyCmd, BleMgrGapNumericReplyRsp, BleMgrGapMtuSizeSetCmd, BleMgrGapMtuSizeSetRsp, \
     BleMgrGapDeviceNameSetCmd, BleMgrGapDeviceNameSetRsp, BleMgrGapAdvStopCmd, BleMgrGapAdvStopRsp, \
     BleMgrGapAdvDataSetCmd, BleMgrGapAdvDataRsp, BleMgrGapScanStopCmd, BleMgrGapScanStopRsp, \
-    BleMgrGapDataLengthSetCmd, BleMgrGapDataLengthSetRsp, BleMgrGapAddressSetCmd, BleMgrGapAddressSetRsp
+    BleMgrGapDataLengthSetCmd, BleMgrGapDataLengthSetRsp, BleMgrGapAddressSetCmd, BleMgrGapAddressSetRsp, \
+    BleMgrGapAppearanceSetCmd, BleMgrGapAppearanceSetRsp
 
 
 class BleGapApi(BleApiBase):
 
     def __init__(self, ble_manager: BleManager):
         super().__init__(ble_manager)
+
+    def appearance_set(self, appearance: BLE_GAP_APPEARANCE, perm: ATT_PERM) -> BLE_ERROR:
+
+        command = BleMgrGapAppearanceSetCmd(appearance, perm)
+        response: BleMgrGapAppearanceSetRsp = self._ble_manager.cmd_execute(command)
+
+        return response.status
 
     def address_set(self, address: OwnAddress, renew_dur: int) -> BLE_ERROR:
 
