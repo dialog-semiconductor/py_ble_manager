@@ -49,7 +49,7 @@ from ..manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp,
     BleMgrGapConnParamUpdateReplyRsp, BleMgrGapPairCmd, BleMgrGapPairRsp, BleMgrGapPairReplyCmd, BleMgrGapPairReplyRsp, \
     BleMgrGapPasskeyReplyCmd, BleMgrGapPasskeyReplyRsp, BleMgrGapNumericReplyCmd, BleMgrGapNumericReplyRsp, BLE_MGR_RAL_OP, \
     BleMgrGapMtuSizeSetCmd, BleMgrGapMtuSizeSetRsp, BleMgrGapDeviceNameSetCmd, BleMgrGapDeviceNameSetRsp, BleMgrGapAdvStopCmd, \
-    BleMgrGapAdvStopRsp, BleMgrGapAdvDataSetCmd, BleMgrGapAdvDataRsp
+    BleMgrGapAdvStopRsp, BleMgrGapAdvDataSetCmd, BleMgrGapAdvDataRsp, BleMgrGapScanStopCmd, BleMgrGapScanStopRsp
 
 from ..manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from ..manager.GtlWaitQueue import GtlWaitQueue
@@ -84,7 +84,7 @@ class BleManagerGap(BleManagerBase):
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_DATA_SET_CMD: self.adv_data_set_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_SET_PERMUTATION_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SCAN_START_CMD: self.scan_start_cmd_handler,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SCAN_STOP_CMD: None,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SCAN_STOP_CMD: self.scan_stop_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CMD: self.connect_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_CONNECT_CANCEL_CMD: self.connect_cancel_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DISCONNECT_CMD: self.disconnect_cmd_handler,
@@ -1825,6 +1825,20 @@ class BleManagerGap(BleManagerBase):
             # ble_mgr_gap_ral_sync(ble_mgr_gap_scan_start_cmd_exec, param);
         else:
             self._scan_start_cmd_exec(command)
+
+    def scan_stop_cmd_handler(self, command: BleMgrGapScanStopCmd):
+        response = BleMgrGapScanStopRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
+
+        dev_params = self.dev_params_acquire()
+        if not dev_params.scanning:
+            response.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
+        else:
+            # TODO 690 supports additional canel commands
+            # self._send_gapm_cancel_cmd(GAPM_OPERATION.GAPM_CANCEL_SCAN)
+            self._send_gapm_cancel_cmd(GAPM_OPERATION.GAPM_CANCEL)
+            response.status = BLE_ERROR.BLE_STATUS_OK
+        self.dev_params_release()
+        self._mgr_response_queue_send(response)
 
 
 '''

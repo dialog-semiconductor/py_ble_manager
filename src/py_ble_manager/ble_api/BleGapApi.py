@@ -14,7 +14,7 @@ from ..manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp
     BleMgrGapPairReplyCmd, BleMgrGapPairReplyRsp, BleMgrGapPasskeyReplyCmd, BleMgrGapPasskeyReplyRsp, \
     BleMgrGapNumericReplyCmd, BleMgrGapNumericReplyRsp, BleMgrGapMtuSizeSetCmd, BleMgrGapMtuSizeSetRsp, \
     BleMgrGapDeviceNameSetCmd, BleMgrGapDeviceNameSetRsp, BleMgrGapAdvStopCmd, BleMgrGapAdvStopRsp, \
-    BleMgrGapAdvDataSetCmd, BleMgrGapAdvDataRsp
+    BleMgrGapAdvDataSetCmd, BleMgrGapAdvDataRsp, BleMgrGapScanStopCmd, BleMgrGapScanStopRsp
 
 
 class BleGapApi(BleApiBase):
@@ -162,6 +162,13 @@ class BleGapApi(BleApiBase):
 
         command = BleMgrGapScanStartCmd(type, mode, interval, window, filt_wlist, filt_dupl)
         response: BleMgrGapScanStartRsp = self._ble_manager.cmd_execute(command)
+
+        return response.status
+
+    def scan_stop(self) -> BLE_ERROR:
+
+        command = BleMgrGapScanStopCmd()
+        response: BleMgrGapScanStopRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
 

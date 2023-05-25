@@ -279,3 +279,16 @@ class BleMgrGapScanStartRsp(BleMgrMsgRsp):
                  ) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SCAN_START_CMD,
                          status=status)
+
+
+class BleMgrGapScanStopCmd(BleMgrMsgBase):
+    def __init__(self) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SCAN_STOP_CMD)
+
+
+class BleMgrGapScanStopRsp(BleMgrMsgRsp):
+    def __init__(self,
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SCAN_STOP_CMD,
+                         status=status)

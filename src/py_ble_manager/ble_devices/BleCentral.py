@@ -271,6 +271,16 @@ class BleCentral(BleDeviceBase):
         window = BleConvert.scan_window_from_ms(window_ms)
         return self._ble_gap.scan_start(type, mode, interval, window, filt_wlist, filt_dupl)
 
+    def scan_stop(self) -> BLE_ERROR:
+        """Stop scanning for devices
+
+        This call stops a scan procedure previously started using :py:meth:`~py_ble_manager.ble_devices.BleCentral.scan_start`
+
+        :return: result code
+        :rtype: BLE_ERROR
+        """
+        return self._ble_gap.scan_stop()
+
     def start(self) -> BLE_ERROR:
         """Start the BLE module as a central device
 

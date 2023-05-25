@@ -17,6 +17,7 @@ class CLIHandler():
     def start_prompt(self):
         # Accepted commands
         commands = ['GAPSCAN',
+                    'GAPSCANCANCEL',
                     'GAPCONNECT',
                     'GAPCONNECTCANCEL',
                     'GAPBROWSE',
@@ -129,6 +130,9 @@ class BleController():
                                                     50,
                                                     False,
                                                     True)
+
+                case 'GAPSCANCANCEL':
+                    error = self.central.scan_stop()
 
                 case "GAPCONNECT":
                     if len(args) == 2:
