@@ -17,7 +17,7 @@ from ..manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp
     BleMgrGapAdvDataSetCmd, BleMgrGapAdvDataRsp, BleMgrGapScanStopCmd, BleMgrGapScanStopRsp, \
     BleMgrGapDataLengthSetCmd, BleMgrGapDataLengthSetRsp, BleMgrGapAddressSetCmd, BleMgrGapAddressSetRsp, \
     BleMgrGapAppearanceSetCmd, BleMgrGapAppearanceSetRsp, BleMgrGapPeerVersionGetCmd, BleMgrGapPeerVersionGetRsp, \
-    BleMgrGapPeerFeaturesGetCmd, BleMgrGapPeerFeaturesGetRsp
+    BleMgrGapPeerFeaturesGetCmd, BleMgrGapPeerFeaturesGetRsp, BleMgrGapPpcpSetCmd, BleMgrGapPpcpSetRsp
 
 
 class BleGapApi(BleApiBase):
@@ -182,6 +182,13 @@ class BleGapApi(BleApiBase):
 
         command = BleMgrGapPeerVersionGetCmd(conn_idx)
         response: BleMgrGapPeerVersionGetRsp = self._ble_manager.cmd_execute(command)
+
+        return response.status
+
+    def per_pref_conn_params_set(self, conn_params: GapConnParams) -> BLE_ERROR:
+
+        command = BleMgrGapPpcpSetCmd(conn_params)
+        response: BleMgrGapPpcpSetRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
 

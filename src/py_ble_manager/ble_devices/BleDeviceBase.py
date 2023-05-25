@@ -346,6 +346,21 @@ class BleDeviceBase():
 
         return self._ble_gap.peer_version_get(conn_idx)
 
+    def per_pref_conn_params_set(self, conn_params: GapConnParams) -> BLE_ERROR:
+        """Set the peripheral preferred connection parameters used for GAP service
+
+        ..note:
+            This API function has to be called prior to creating the attribute database of the device. This
+            is because the device configuration is going to be modified, which will result in clearing the
+            current attribute database (if it exists).
+
+        :param conn_params: preferred connection parameters
+        :type conn_params: GapConnParams
+        :return: result code
+        :rtype: BLE_ERROR
+        """
+        return self._ble_gap.per_pref_conn_params_set(conn_params)
+
     def set_io_cap(self, io_cap: GAP_IO_CAPABILITIES) -> BLE_ERROR:
         """Set the I/O capabilities of the device
 

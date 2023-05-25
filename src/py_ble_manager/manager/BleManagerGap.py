@@ -52,7 +52,7 @@ from ..manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp,
     BleMgrGapAdvStopRsp, BleMgrGapAdvDataSetCmd, BleMgrGapAdvDataRsp, BleMgrGapScanStopCmd, BleMgrGapScanStopRsp, \
     BleMgrGapDataLengthSetCmd, BleMgrGapDataLengthSetRsp, BleMgrGapAddressSetCmd, BleMgrGapAddressSetRsp, \
     BleMgrGapAppearanceSetCmd, BleMgrGapAppearanceSetRsp, BleMgrGapPeerVersionGetCmd, BleMgrGapPeerVersionGetRsp, \
-    BleMgrGapPeerFeaturesGetCmd, BleMgrGapPeerFeaturesGetRsp
+    BleMgrGapPeerFeaturesGetCmd, BleMgrGapPeerFeaturesGetRsp, BleMgrGapPpcpSetCmd, BleMgrGapPpcpSetRsp
 
 from ..manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from ..manager.GtlWaitQueue import GtlWaitQueue
@@ -81,7 +81,7 @@ class BleManagerGap(BleManagerBase):
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADDRESS_SET_CMD: self.address_set_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DEVICE_NAME_SET_CMD: self.device_name_set_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_APPEARANCE_SET_CMD: self.appearance_set_cmd_handler,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PPCP_SET_CMD: None,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PPCP_SET_CMD: self.ppcp_set_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_START_CMD: self.adv_start_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_STOP_CMD: self.adv_stop_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_ADV_DATA_SET_CMD: self.adv_data_set_cmd_handler,
@@ -338,6 +338,17 @@ class BleManagerGap(BleManagerBase):
             dev_params = self.dev_params_acquire()
             dev_params.dev_name = bytes(command.name, 'utf-8')
             dev_params.att_db_cfg.dev_name_perm = self._devname_perm_to_perm(command.perm)
+            self.dev_params_release()
+        # Below needs to be refactored to not depend on internal __members__ of IntEnum class
+        status = gtl.parameters.status if gtl.parameters.status in BLE_ERROR.__members__.values() else BLE_ERROR.BLE_ERROR_FAILED
+        response = BleMgrGapDeviceNameSetRsp(status=status)
+        self._mgr_response_queue_send(response)
+
+    def _att_db_cfg_ppcp_en_rsp(self, gtl: GapmCmpEvt, command: BleMgrGapPpcpSetCmd):
+        if gtl.parameters.status == HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
+            dev_params = self.dev_params_acquire()
+            dev_params.gap_ppcp = command.gap_ppcp
+            dev_params.att_db_cfg.slv_perf_conn_params_present = True
             self.dev_params_release()
         # Below needs to be refactored to not depend on internal __members__ of IntEnum class
         status = gtl.parameters.status if gtl.parameters.status in BLE_ERROR.__members__.values() else BLE_ERROR.BLE_ERROR_FAILED
@@ -1991,6 +2002,32 @@ class BleManagerGap(BleManagerBase):
         if dev and dev.master:
             self._get_peer_features(evt.conn_idx)
         self.storage_release()
+
+    def ppcp_set_cmd_handler(self, command: BleMgrGapPpcpSetCmd) -> None:
+        response = BleMgrGapPpcpSetRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
+        dev_params = self.dev_params_acquire()
+        if not dev_params.att_db_cfg.slv_perf_conn_params_present:
+            # att_db_cfg has to be updated
+            if dev_params.advertising or dev_params.scanning:
+                response.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
+            else:
+                gtl = self._dev_params_to_gtl(dev_params)
+                # Enable PPCP present bit in att_db_cfg
+                gtl.parameters.att_cfg.slv_perf_conn_params_present = True
+                self._gtl_wait_queue_add(BLE_CONN_IDX_INVALID,
+                                         GAPM_MSG_ID.GAPM_CMP_EVT,
+                                         GAPM_OPERATION.GAPM_SET_DEV_CONFIG,
+                                         self._att_db_cfg_ppcp_en_rsp,
+                                         command)
+                self._adapter_command_queue_send(gtl)
+                self.dev_params_release()
+                return
+        else:
+            dev_params.gap_ppcp = command.gap_ppcp
+            response.status = BLE_ERROR.BLE_STATUS_OK
+
+        self._mgr_response_queue_send(response)
+        self.dev_params_release()
 
     def role_set_cmd_handler(self, command: BleMgrGapRoleSetCmd):
         dev_params = self.dev_params_acquire()
