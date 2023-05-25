@@ -27,6 +27,7 @@ class BleConfigDefault():
 
         self.dg_configBLE_DATA_LENGTH_RX_MAX = 251
         self.dg_configBLE_DATA_LENGTH_TX_MAX = 251
+        self.defaultBLE_STATIC_ADDRESS = bytes([0x01, 0x00, 0xF4, 0x35, 0x23, 0x48])
 
         assert ((self.dg_configBLE_DATA_LENGTH_RX_MAX < 251) or (self.dg_configBLE_DATA_LENGTH_RX_MAX > 27))
         assert ((self.dg_configBLE_DATA_LENGTH_TX_MAX < 251) or (self.dg_configBLE_DATA_LENGTH_TX_MAX > 27))

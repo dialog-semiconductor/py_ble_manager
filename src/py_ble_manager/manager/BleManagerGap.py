@@ -145,6 +145,8 @@ class BleManagerGap(BleManagerBase):
                 case BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS:
                     # TODO NVM
                     # ad_ble_get_public_address(ble_dev_params->own_addr.addr);
+                    # for now, just use the default
+                    dev_params.own_addr.addr = self._ble_config.defaultBLE_STATIC_ADDRESS
                     pass
                 case BLE_OWN_ADDR_TYPE.PRIVATE_STATIC_ADDRESS:
                     dev_params.own_addr.addr[:BD_ADDR_LEN] = command.address.addr[:BD_ADDR_LEN]
