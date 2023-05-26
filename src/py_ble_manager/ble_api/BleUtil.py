@@ -42,13 +42,14 @@ class BleUtils():
         data_len = len(evt.data)
         if data_len > 0:
             while data_ptr < 31 and data_ptr < data_len:
-                struct = BleAdvData(len=evt.data[data_ptr], type=evt.data[data_ptr + 1])
+                length = evt.data[data_ptr]
+                struct = BleAdvData(type=evt.data[data_ptr + 1])
 
-                if struct.len == 0 or struct.type == GAP_DATA_TYPE.GAP_DATA_TYPE_NONE:
+                if length == 0 or struct.type == GAP_DATA_TYPE.GAP_DATA_TYPE_NONE:
                     break
 
                 data_ptr += 2
-                struct.data = evt.data[data_ptr:(data_ptr + struct.len - 1)]  # -1 as calc includes AD Type
+                struct.data = evt.data[data_ptr:(data_ptr + length - 1)]  # -1 as calc includes AD Type
                 data_ptr += struct.len - 1  # -1 as calc includes AD Type
                 adv_data_structs.append(struct)
 
