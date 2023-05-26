@@ -52,7 +52,8 @@ from ..manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp,
     BleMgrGapAdvStopRsp, BleMgrGapAdvDataSetCmd, BleMgrGapAdvDataRsp, BleMgrGapScanStopCmd, BleMgrGapScanStopRsp, \
     BleMgrGapDataLengthSetCmd, BleMgrGapDataLengthSetRsp, BleMgrGapAddressSetCmd, BleMgrGapAddressSetRsp, \
     BleMgrGapAppearanceSetCmd, BleMgrGapAppearanceSetRsp, BleMgrGapPeerVersionGetCmd, BleMgrGapPeerVersionGetRsp, \
-    BleMgrGapPeerFeaturesGetCmd, BleMgrGapPeerFeaturesGetRsp, BleMgrGapPpcpSetCmd, BleMgrGapPpcpSetRsp
+    BleMgrGapPeerFeaturesGetCmd, BleMgrGapPeerFeaturesGetRsp, BleMgrGapPpcpSetCmd, BleMgrGapPpcpSetRsp, \
+    BleMgrGapUnpairCmd, BleMgrGapUnpairRsp
 
 from ..manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
 from ..manager.GtlWaitQueue import GtlWaitQueue
@@ -102,7 +103,7 @@ class BleManagerGap(BleManagerBase):
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PAIR_CMD: self.pair_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PAIR_REPLY_CMD: self.pair_reply_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PASSKEY_REPLY_CMD: self.passkey_reply_cmd_handler,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_UNPAIR_CMD: None,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_UNPAIR_CMD: self.unpair_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SET_SEC_LEVEL_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SKIP_LATENCY_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DATA_LENGTH_SET_CMD: self.data_length_set_cmd_handler,
@@ -964,6 +965,11 @@ class BleManagerGap(BleManagerBase):
     def _send_disconncet_cmd(self, conn_idx: int, reason: BLE_HCI_ERROR) -> None:
         gtl = GapcDisconnectCmd(conidx=conn_idx)
         gtl.parameters.reason = CO_ERROR(reason)
+        self._adapter_command_queue_send(gtl)
+
+    def _send_gapc_disconnect_cmd(self, conn_idx: int, reason: BLE_HCI_ERROR):
+        gtl = GapcDisconnectCmd(conidx=conn_idx)
+        gtl.parameters.reason = reason
         self._adapter_command_queue_send(gtl)
 
     def _send_gapm_cancel_cmd(self, operation: GAPM_OPERATION = GAPM_OPERATION.GAPM_CANCEL) -> None:
@@ -2062,6 +2068,31 @@ class BleManagerGap(BleManagerBase):
             self._send_gapm_cancel_cmd(GAPM_OPERATION.GAPM_CANCEL)
             response.status = BLE_ERROR.BLE_STATUS_OK
         self.dev_params_release()
+        self._mgr_response_queue_send(response)
+
+    def unpair_cmd_handler(self, command: BleMgrGapUnpairCmd) -> None:
+        response = BleMgrGapUnpairRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
+
+        self.storage_acquire()
+        dev = self._stored_device_list.find_device_by_address(command.addr, False)
+        if not dev:
+            response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
+        else:
+            self._stored_device_list.remove_pairing(dev)
+            response.status = BLE_ERROR.BLE_STATUS_OK
+
+            if self._ble_config.dg_configBLE_PRIVACY_1_2:
+                dev_params = self.dev_params_acquire()
+                if dev_params.own_addr.addr_type == BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
+                    dev_params.prev_privacy_operation = BLE_MGR_RAL_OP.BLE_MGR_RAL_OP_NONE
+                self.dev_params_release()
+
+            if not dev.connected:
+                self._stored_device_list.remove_device(dev)
+
+            self._send_gapc_disconnect_cmd(dev.conn_idx, BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON)
+        
+        self.storage_release()
         self._mgr_response_queue_send(response)
 
 

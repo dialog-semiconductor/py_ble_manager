@@ -277,6 +277,26 @@ class StoredDeviceQueue(SearchableQueue):
         # TODO storage mark dirty???
         # storage_mark_dirty(true);
 
+    def remove_pairing(self, device: StoredDevice):
+        device.bonded = False
+        device.paired = False
+        device.mitm = False
+
+        # device_free_pairing
+        if device.ltk:
+            device.ltk = key_ltk()
+        if device.remote_ltk:
+            device.remote_ltk = key_ltk()
+        if device.irk:
+            device.irk = key_irk()
+        if device.csrk:
+            device.csrk = key_csrk()
+        if device.remote_csrk:
+            device.remote_csrk = key_csrk()
+
+        # TODO STORAGE
+        # storage_mark_dirty(true)
+
 
 class key_csrk():
     def __init__(self, key: bytes = None, sign_cnt: int = 0) -> None:

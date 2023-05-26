@@ -20,7 +20,7 @@ class BleStorageApi(BleApiBase):
 
         return error
 
-    def get_int(self, conn_idx: int, key: int) -> tuple[BLE_ERROR, int]:
+    def get_int(self, conn_idx: int, key: int) -> tuple[int, BLE_ERROR]:
 
         error = BLE_ERROR.BLE_ERROR_FAILED
         value_int = None
@@ -36,4 +36,4 @@ class BleStorageApi(BleApiBase):
                 value_int = int.from_bytes(value_bytes, 'little')
                 error = BLE_ERROR.BLE_STATUS_OK
 
-        return error, value_int
+        return value_int, error

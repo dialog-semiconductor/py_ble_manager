@@ -17,7 +17,8 @@ from ..manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp
     BleMgrGapAdvDataSetCmd, BleMgrGapAdvDataRsp, BleMgrGapScanStopCmd, BleMgrGapScanStopRsp, \
     BleMgrGapDataLengthSetCmd, BleMgrGapDataLengthSetRsp, BleMgrGapAddressSetCmd, BleMgrGapAddressSetRsp, \
     BleMgrGapAppearanceSetCmd, BleMgrGapAppearanceSetRsp, BleMgrGapPeerVersionGetCmd, BleMgrGapPeerVersionGetRsp, \
-    BleMgrGapPeerFeaturesGetCmd, BleMgrGapPeerFeaturesGetRsp, BleMgrGapPpcpSetCmd, BleMgrGapPpcpSetRsp
+    BleMgrGapPeerFeaturesGetCmd, BleMgrGapPeerFeaturesGetRsp, BleMgrGapPpcpSetCmd, BleMgrGapPpcpSetRsp, \
+    BleMgrGapUnpairCmd, BleMgrGapUnpairRsp
 
 
 class BleGapApi(BleApiBase):
@@ -231,3 +232,10 @@ class BleGapApi(BleApiBase):
         dev_params.io_capabilities = io_cap
         self._ble_manager.dev_params_release()
         return BLE_ERROR.BLE_STATUS_OK
+
+    def unpair(self, addr: BdAddress):
+
+        command = BleMgrGapUnpairCmd(addr)
+        response: BleMgrGapUnpairRsp = self._ble_manager.cmd_execute(command)
+
+        return response.status

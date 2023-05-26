@@ -2,7 +2,7 @@ import queue
 from typing import Tuple
 from ..adapter.BleAdapter import BleAdapter
 from ..ble_api.BleAtt import ATT_PERM
-from ..ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_HCI_ERROR, OwnAddress
+from ..ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_HCI_ERROR, OwnAddress, BdAddress
 from ..ble_api.BleConfig import BleConfigDefault
 from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_IO_CAPABILITIES, BLE_GAP_APPEARANCE
 from ..ble_api.BleGapApi import BleGapApi, GapConnParams
@@ -389,8 +389,21 @@ class BleDeviceBase():
 
         return error
 
-    def storage_get_int(self, conn_idx: int, key: int) -> tuple[BLE_ERROR, int]:
+    def storage_get_int(self, conn_idx: int, key: int) -> tuple[int, BLE_ERROR]:
         return self._ble_storage.get_int(conn_idx, key)
 
     def storage_put_int(self, conn_idx: int, key: int, value: int, persistent: bool) -> BLE_ERROR:
         return self._ble_storage.put_int(conn_idx, key, value, persistent)
+
+    def unpair(self, addr: BdAddress) -> BLE_ERROR:
+        """Unpair command
+
+        Use this function to unpair a device. This will also remove the device bond data from BLE storage.
+
+        :param addr: remote device address
+        :type addr: BdAddress
+        :return: result code
+        :rtype: BLE_ERROR
+        """
+
+        return self._ble_gap.unpair(addr)
