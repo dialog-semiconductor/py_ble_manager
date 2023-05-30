@@ -1167,6 +1167,11 @@ class BleManagerGap(BleManagerBase):
                 self._adapter_command_queue_send(gtl)
                 self.dev_params_release()
                 return
+        else:
+            # No att_db_cfg update needed
+            # Just update appearance member in dev_params
+            dev_params.appearance = command.appearance
+            response.status = BLE_ERROR.BLE_STATUS_OK
         self._mgr_response_queue_send(response)
         self.dev_params_release()
 
@@ -1593,6 +1598,7 @@ class BleManagerGap(BleManagerBase):
                     gtl.parameters.max_mps = dev_params.mtu_size
                     self.dev_params_release()
                     self._adapter_command_queue_send(gtl)
+                    response.status = BLE_ERROR.BLE_STATUS_OK
                 else:
                     # Set data length for specified connection
                     self.storage_acquire()
@@ -2067,7 +2073,7 @@ class BleManagerGap(BleManagerBase):
         if not dev_params.scanning:
             response.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
         else:
-            # TODO 690 supports additional canel commands
+            # TODO 690 supports additional cancel commands
             # self._send_gapm_cancel_cmd(GAPM_OPERATION.GAPM_CANCEL_SCAN)
             self._send_gapm_cancel_cmd(GAPM_OPERATION.GAPM_CANCEL)
             response.status = BLE_ERROR.BLE_STATUS_OK
