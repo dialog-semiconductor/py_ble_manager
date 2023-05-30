@@ -4,7 +4,7 @@ from ..ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_EVT_GAP, BLE_EVT_GA
 from ..ble_api.BleConfig import BleConfigDefault, BLE_DEVICE_TYPE
 from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_CONN_MODE, BleEventGapConnected, \
     BleEventGapDisconnected, BleEventGapConnParamUpdateReq, BleEventGapPairReq, \
-    BleAdvData, BLE_NON_CONN_ADV_DATA_LEN_MAX
+    BleAdvData, BLE_NON_CONN_ADV_DATA_LEN_MAX, GapConnParams
 from ..ble_api.BleGatt import GATT_EVENT
 from ..ble_api.BleGatts import BleEventGattsReadReq, BleEventGattsWriteReq, \
     BleEventGattsPrepareWriteReq, BleEventGattsEventSent
@@ -129,6 +129,21 @@ class BlePeripheral(BleDeviceBase):
 
     def pair_reply(self, conn_idx: int, accept: bool, bond: bool) -> BLE_ERROR:
         return self._ble_gap.pair_reply(conn_idx, accept, bond)
+
+    def per_pref_conn_params_set(self, conn_params: GapConnParams) -> BLE_ERROR:
+        """Set the peripheral preferred connection parameters used for GAP service
+
+        ..note:
+            This API function has to be called prior to creating the attribute database of the device. This
+            is because the device configuration is going to be modified, which will result in clearing the
+            current attribute database (if it exists).
+
+        :param conn_params: preferred connection parameters
+        :type conn_params: GapConnParams
+        :return: result code
+        :rtype: BLE_ERROR
+        """
+        return self._ble_gap.per_pref_conn_params_set(conn_params)
 
     def prepare_write_cfm(self,
                           conn_idx: int,
