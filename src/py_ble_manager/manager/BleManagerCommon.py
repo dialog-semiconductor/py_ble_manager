@@ -49,8 +49,8 @@ class BleManagerCommon(BleManagerBase):
         }
 
     def _reset_rsp_handler(self, gtl: GapmCmpEvt, param: None):
-        response = BleMgrCommonResetRsp(BLE_ERROR.BLE_ERROR_FAILED)
-        evt = BleEventResetCompleted(BLE_ERROR.BLE_ERROR_FAILED)
+        response = BleMgrCommonResetRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
+        evt = BleEventResetCompleted(status=BLE_ERROR.BLE_ERROR_FAILED)
 
         if gtl.parameters.status == HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR:
             response.status = BLE_ERROR.BLE_STATUS_OK
