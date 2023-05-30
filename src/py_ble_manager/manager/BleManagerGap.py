@@ -2099,8 +2099,8 @@ class BleManagerGap(BleManagerBase):
 
             if not dev.connected:
                 self._stored_device_list.remove_device(dev)
-
-            self._send_gapc_disconnect_cmd(dev.conn_idx, BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON)
+            else:
+                self._send_gapc_disconnect_cmd(dev.conn_idx, BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON)
 
         self.storage_release()
         self._mgr_response_queue_send(response)
