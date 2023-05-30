@@ -21,18 +21,19 @@ DEBUG_CRASH_INFO_RX_CHAR_UUID_STR = "8a8b791b-82f3-4ecf-9ce4-7d422c371a01"
 DEBUG_CRASH_INFO_TX_CHAR_UUID_STR = "17738e00-54f9-4a2c-a6ed-1ee67e00f323"
 CCC_UUID_STR = "2902"
 USER_DESC_UUID_STR = "2901"
-
-DEVICE_NAME_HANDLE = 3
+DEVICE_NAME_UUID_STR = "2A00"
+GENERIC_ACCESS_SERVICE_UUID_STR = "1800"
 
 
 class FETCH_DATA_STATE(IntEnum):
     FETCH_DATA_NONE = auto()
     FETCH_DATA_CONNECT = auto()
+    FETCH_DATA_WAIT_FOR_BROWSE_GENERIC_ACCESS = auto()
     FETCH_DATA_WAIT_FOR_NAME = auto()
-    FETCH_DATA_BROWSE_DCI = auto()
-    FETCH_DATA_ENABLE_CCC = auto()
+    FETCH_DATA_WAIT_FOR_BROWSE_DCI = auto()
+    FETCH_DATA_WAIT_FOR_ENABLE_CCC = auto()
     FETCH_DATA_SEND_GET_DATA_COMMAND = auto()
-    FETCH_DATA_WAIT_FOR_RESPONSE = auto()
+    FETCH_DATA_WAIT_FOR_GET_ALL_RESPONSE = auto()
     FETCH_DATA_DISCONNECT = auto()
     FETCH_DATA_DONE = auto()
     FETCH_DATA_ERROR = auto()
@@ -113,14 +114,13 @@ class BleController():
         self.crash_info_uuid: ble.AttUuid = ble.BleUtils.uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR)
 
         self.connected_addr: ble.BdAddress = ble.BdAddress()
-        self.browse_data = []
         self.dci_svc = DebugCrashInfoSvc()
         self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_NONE
         self.response = DciSvcResponse()
         self.reset_data = DciData()
         self.connected_name = "Unknown"
-        self.device_name_char = ble.GattcItem()
         self.log_file_handle = log
+        self.device_name_handle = 0
 
     def _command_queue_task(self):
         while True:
@@ -189,7 +189,8 @@ class BleController():
                 case _:
                     self.central.handle_event_default(evt)
 
-            self.process_fetch_state(evt)
+            if self.fetch_state is not FETCH_DATA_STATE.FETCH_DATA_NONE:
+                self.process_fetch_state(evt)
 
     def handle_console_command(self, command: str) -> ble.BLE_ERROR:
         error = ble.BLE_ERROR.BLE_ERROR_FAILED
@@ -296,6 +297,11 @@ class BleController():
         self.log(f"Browsing complete: conn_idx={evt.conn_idx}, evt={evt.status.name}")
 
     def handle_evt_gattc_browse_svc(self, evt: ble.BleEventGattcBrowseSvc):
+        if (ble.BleUtils.uuid_from_str(GENERIC_ACCESS_SERVICE_UUID_STR) == evt.uuid):
+            for item in evt.items:
+                if item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_CHARACTERISTIC:
+                    if item.uuid == ble.BleUtils.uuid_from_str(DEVICE_NAME_UUID_STR):
+                        self.device_name_handle = item.handle
 
         # If browse info is for Debug Crash Info Service,  store attribute handles so we can access attributes via read/write/etc.
         if (ble.BleUtils.uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR) == evt.uuid):
@@ -399,35 +405,42 @@ class BleController():
 
             case FETCH_DATA_STATE.FETCH_DATA_CONNECT:
                 if (evt.evt_code == ble.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED):
+                    self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_BROWSE_GENERIC_ACCESS
+                    self.central.browse(0, ble.BleUtils.uuid_from_str(GENERIC_ACCESS_SERVICE_UUID_STR))
+
+            case FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_BROWSE_GENERIC_ACCESS:
+                evt: ble.BleEventGattcBrowseCompleted
+                if (evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED
+                        and self.device_name_handle != 0):
                     self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_NAME
-                    self.central.read(0, DEVICE_NAME_HANDLE, 0)
+                    self.central.read(0, self.device_name_handle + 1, 0)  # saved handle is the char declaration, +1 to write to the char value
 
             case FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_NAME:
 
                 if (evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_READ_COMPLETED
-                        and evt.handle == DEVICE_NAME_HANDLE):
+                        and evt.handle == self.device_name_handle + 1):  # saved handle is the char declaration, +1 is the char value
                     evt: ble.BleEventGattcReadCompleted
                     self.connected_name = evt.value.decode("utf-8")
-                    self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_BROWSE_DCI
+                    self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_BROWSE_DCI
                     self.central.browse(0, ble.BleUtils.uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR))
 
-            case FETCH_DATA_STATE.FETCH_DATA_BROWSE_DCI:
+            case FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_BROWSE_DCI:
                 evt: ble.BleEventGattcBrowseCompleted
                 if (evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED
                         and self.dci_svc.svc_handle != 0):
-                    self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_ENABLE_CCC
+                    self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_ENABLE_CCC
                     self.central.write(0,
                                        self.dci_svc.tx_ccc.handle,
                                        0,
                                        bytes(GATT_EVENT.GATT_EVENT_NOTIFICATION.to_bytes(2, 'little'))
                                        )
 
-            case FETCH_DATA_STATE.FETCH_DATA_ENABLE_CCC:
+            case FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_ENABLE_CCC:
                 if (evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED
                         and evt.handle == self.dci_svc.tx_ccc.handle):
                     if evt.status == ble.BLE_ERROR.BLE_STATUS_OK:
                         evt: ble.BleEventGattcWriteCompleted
-                        self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_RESPONSE
+                        self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_GET_ALL_RESPONSE
                         # +1 as handle is for char declaration
                         self.central.write(0,
                                            (self.dci_svc.rx.handle + 1),  # saved handle is the char declaration, +1 to write to the char value
@@ -437,15 +450,15 @@ class BleController():
                     else:
                         self.fetch_state = FETCH_DATA_STATE.FETCH_DATA_ERROR
 
-            case FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_RESPONSE:
+            case FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_GET_ALL_RESPONSE:
                 if (evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_NOTIFICATION
                         and evt.handle == self.dci_svc.tx.handle + 1):
 
                     evt: ble.BleEventGattcNotification
-                    if self.response.command == DCI_SVC_COMMAND.NONE and len(evt.value) > 2:
-                        self.response.command = evt.value[0]
-                        self.response.len = evt.value[1]
-                        self.response.data += evt.value[2:]
+                    if self.response.command == DCI_SVC_COMMAND.NONE and len(evt.value) > 4:
+                        self.response.command = int.from_bytes(evt.value[0:2], "little", signed=False)
+                        self.response.len = int.from_bytes(evt.value[2:4], "little", signed=False)
+                        self.response.data += evt.value[4:]
                     else:
                         self.response.data += evt.value
                         if len(self.response.data) == self.response.len:
