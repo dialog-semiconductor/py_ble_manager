@@ -144,6 +144,7 @@ class BleManagerGap(BleManagerBase):
         if gtl.parameters.status == HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
             # Update ble_dev_params with the new values for address and address_type
             dev_params = self.dev_params_acquire()
+            dev_params.own_addr.addr_type = command.address.addr_type
             match command.address.addr_type:
                 case BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS:
                     # TODO NVM
@@ -1065,6 +1066,9 @@ class BleManagerGap(BleManagerBase):
                                      GAPM_OPERATION.GAPM_SET_DEV_CONFIG,
                                      self._address_set_rsp,
                                      command)
+            self._adapter_command_queue_send(gtl)
+            self.dev_params_release()
+            return
 
         self._mgr_response_queue_send(response)
         self.dev_params_release()
@@ -2091,7 +2095,7 @@ class BleManagerGap(BleManagerBase):
                 self._stored_device_list.remove_device(dev)
 
             self._send_gapc_disconnect_cmd(dev.conn_idx, BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON)
-        
+
         self.storage_release()
         self._mgr_response_queue_send(response)
 
