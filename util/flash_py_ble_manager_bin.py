@@ -11,11 +11,11 @@ import py_ble_manager
 def create_mcu(device_id_str):
 
     match device_id_str:
-            case 'da14531':
-                mcu = da14531()
-            case _:
-                print("MCU not supported")
-                sys.exit(1)
+        case 'da14531':
+            mcu = da14531()
+        case _:
+            print("MCU not supported")
+            sys.exit(1)
     return mcu
 
 
@@ -114,7 +114,6 @@ def main():
 
         # program the binary
         program_binary(mcu, bin_data, flash_db)
-
 
     except Exception as ex:
         print(f"Exception: {ex}")
