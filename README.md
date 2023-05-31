@@ -18,26 +18,26 @@ The primary intent is for use as a central device for benchtop testing, continuo
 
     ![da14531_jumpers](assets/da14531_pro_kit_jumpers.png)
 
-3. [Download](util/) the GTL enabled [firmware binary](firmware/da14531mod_pro_kit_921600.bin) to the DA14531 Pro Development kit.
+3. Open a command prompt or terminal and navigate to the repository on your PC.
 
-4. Open a command prompt or terminal and navigate to the repository on your PC.
+4. Setup a virtual environment by calling: `<path_to/py_ble_manager>$ python -m venv ./venv`. Note this library has been tested with Python v3.10.5. To create a virtual environment that uses Python 3.10.5, you must already have Python 3.10.5 downloaded on your computer. To use the above command to create a Python 3.10.5 environment, Python 3.10.5 must be configured in your PATH. You can download it from the [python website](https://www.python.org/downloads/release/python-3105/).
 
-5. Setup a virtual environment by calling: `<path_to/py_ble_manager>$ python -m venv ./venv`. Note this library has been tested with Python v3.10.5. To create a virtual environment that uses Python 3.10.5, you must already have Python 3.10.5 downloaded on your computer. To use the above command to create a Python 3.10.5 environment, Python 3.10.5 must be configured in your PATH. You can download it from the [python website](https://www.python.org/downloads/release/python-3105/).
+5. Activate the virtual environment. The specific command depends on your operating system. From a windows command prompt call: `<path_to_venv>\Scripts\activate.bat`
 
-6. Activate the virtual environment. The specific command depends on your operating system. From a windows command prompt call: `<path_to_venv>\Scripts\activate.bat`
-
-7. Call: `pip install ".[ezFlashCLI,prompt_toolkit]"` to install the py_ble_manager package and its dependencies.
+6. Call: `pip install ".[ezFlashCLI,prompt_toolkit]"` to install the py_ble_manager package and its dependencies.
 
     > **_NOTE:_**
       [ezFlashCLI](https://pypi.org/project/ezFlashCLI/) and [prompt_toolkit](https://pypi.org/project/prompt-toolkit/)
       are optional dependencies. ``ezFlashCLI`` can be used to program the development kit with GTL compatible firmware.
       ``prompt_toolkit`` is used in some of the examples to provide a command line interface.
 
+7. [Download](src/py_ble_manager/util/) the py_ble_manager compatible [firmware binary](firmware/da14531mod_pro_kit_921600.bin) to the DA14531 Pro Development kit.
+
 8. The package is now installed and you are ready to run one of the [examples](examples)
 
 ## Quick Start (VS Code)
 
-1. Follow steps 1-3 in the [Quick Start](#quick-start) section.
+1. Follow steps 1-2 in the [Quick Start](#quick-start) section.
 
 2. Open the `py_ble_manager` repository directory in VS Code.
 
@@ -53,7 +53,9 @@ Open a new terminal in VS Code and the virtual environment will be activated.
       are optional dependencies. ``ezFlashCLI`` can be used to program the development kit with GTL compatible firmware.
       ``prompt_toolkit`` is used in some of the examples to provide a command line interface.
 
-6. The package is now installed and you are ready to run one of the [examples](examples)
+6. [Download](src/py_ble_manager/util/) the py_ble_manager compatible [firmware binary](firmware/da14531mod_pro_kit_921600.bin) to the DA14531 Pro Development kit.
+
+7. The package is now installed and you are ready to run one of the [examples](examples)
 
 ## Basic Usage
 

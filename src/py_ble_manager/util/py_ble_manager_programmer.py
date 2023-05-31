@@ -86,8 +86,7 @@ def prompt_for_jlink_to_use(device_list: list[str]) -> int:
     print("Available JLink devices:")
     for i in range(0, len(device_list)):
         print(f"\t {i}. {device_list[i]}")
-    print("Select JLink device (0, 1, 2, etc):")
-    return int(input(">>> "))
+    return int(input("Select JLink device (0, 1, 2, etc): "))
 
 
 def main():
