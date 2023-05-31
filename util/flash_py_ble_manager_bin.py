@@ -25,7 +25,6 @@ def flash(bin_path: TextIOWrapper, mcu: str):
         json_file.close()
 
     # open binary and load data
-    bin_path = "C:/GitKraken/py_ble_manager/firmware/da14531mod_pro_kit_921600.bin"
     bin_file = open(bin_path, 'rb')
     bin_data = bin_file.read()
 
