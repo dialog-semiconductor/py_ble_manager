@@ -2,13 +2,13 @@
 
 A utility for programming DA14xxx development kit flash with py_ble_manager compatible firmware.
 
-If you have installed py_ble_manager, you can call the executable in your <Python install dir>/Scripts>:
+If you have installed py_ble_manager, you can call the executable in your *<Python install dir/Scripts>*:
 
 `py_ble_manager_programmer`
 
 To run the python script directly call:
 
-> **_NOTE:_** If py_ble_manager_programmer is not found in your terminal, ensure <Python install dir>/Scripts is in your path.
+> **_NOTE:_** If py_ble_manager_programmer is not found in your terminal, ensure *<Python install dir/Scripts>* is in your path.
 
 `python py_ble_manager_programmer.py`
 
