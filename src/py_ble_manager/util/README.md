@@ -6,9 +6,9 @@ If you have installed py_ble_manager, you can call the executable in your *<Pyth
 
 `py_ble_manager_programmer`
 
-To run the python script directly call:
-
 > **_NOTE:_** If py_ble_manager_programmer is not found in your terminal, ensure *<Python install dir/Scripts>* is in your path.
+
+To run the python script directly call:
 
 `python py_ble_manager_programmer.py`
 
