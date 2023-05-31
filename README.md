@@ -31,9 +31,9 @@ The primary intent is for use as a central device for benchtop testing, continuo
       are optional dependencies. ``ezFlashCLI`` can be used to program the development kit with GTL compatible firmware.
       ``prompt_toolkit`` is used in some of the examples to provide a command line interface.
 
-7. [Download](src/py_ble_manager/util/) the py_ble_manager compatible [firmware binary](firmware/da14531mod_pro_kit_921600.bin) to the DA14531 Pro Development kit.
+7. [Download](src/py_ble_manager/util/) the py_ble_manager compatible firmware binary to the DA14531 Pro Development kit by calling the `py_ble_manager_programmer` utility from the terminal.
 
-8. The package is now installed and you are ready to run one of the [examples](examples)
+8. The package is now installed and you are ready to run one of the [examples](examples)!
 
 ## Quick Start (VS Code)
 
@@ -53,9 +53,9 @@ Open a new terminal in VS Code and the virtual environment will be activated.
       are optional dependencies. ``ezFlashCLI`` can be used to program the development kit with GTL compatible firmware.
       ``prompt_toolkit`` is used in some of the examples to provide a command line interface.
 
-6. [Download](src/py_ble_manager/util/) the py_ble_manager compatible [firmware binary](firmware/da14531mod_pro_kit_921600.bin) to the DA14531 Pro Development kit.
+6. [Download](src/py_ble_manager/util/) the py_ble_manager compatible firmware binary to the DA14531 Pro Development kit by calling the `py_ble_manager_programmer` utility from the terminal.
 
-7. The package is now installed and you are ready to run one of the [examples](examples)
+7. The package is now installed and you are ready to run one of the [examples](examples)!
 
 ## Basic Usage
 
