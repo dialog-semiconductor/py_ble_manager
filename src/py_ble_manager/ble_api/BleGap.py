@@ -10,6 +10,7 @@ BLE_NON_CONN_ADV_DATA_LEN_MAX = ADV_DATA_LEN
 SCAN_RSP_DATA_LEN = ADV_DATA_LEN
 BLE_GAP_DEVNAME_LEN_MAX = (BD_NAME_SIZE)
 
+
 class ADV_FILT_POL():
     """Advertising filter policy
     """
