@@ -12,8 +12,6 @@ Quick Start (terminal)
 
    .. image:: ../../assets/da14531_pro_kit_jumpers.png
 
-#. `Download <https://github.com/Renesas-US-Connectivity/py_ble_manager/tree/main/util>`_ the GTL enabled :download:`firmware binary <../../firmware/da14531mod_pro_kit_921600.bin>` to the DA14531 Pro Development kit.
-
 #. Open a command prompt or terminal and navigate to the repository on your PC.
 
 #. Setup a virtual environment by calling ``<path_to/py_ble_manager>$ python -m venv ./venv``. Note this library has been tested with Python v3.10.5. 
@@ -28,14 +26,16 @@ Quick Start (terminal)
       `ezFlashCLI <https://pypi.org/project/ezFlashCLI/>`_ and `prompt_toolkit <https://pypi.org/project/prompt-toolkit/>`_
       are optional dependencies. ``ezFlashCLI`` can be used to program the development kit with GTL compatible firmware.
       ``prompt_toolkit`` is used in some of the examples to provide a command line interface.
+
+#. `Download <https://github.com/Renesas-US-Connectivity/py_ble_manager/tree/main/src/py_ble_manager/util>`_ the py_ble_manager enabled firmware binary to the DA14531 Pro Development kit by calling the ``py_ble_manager_programmer`` utility from the terminal.
     
-#. The package is now installed and you are ready to run one of the [examples](examples)
+#. The package is now installed and you are ready to run one of the `examples <https://github.com/Renesas-US-Connectivity/py_ble_manager/tree/main/examples>`_!
 
 
 Quick Start (VS Code)
 ----------------------
 
-#. Follow steps 1-3 in the `Quick Start`_ section.
+#. Follow steps 1-2 in the `Quick Start`_ section.
 
 #. Open the ``py_ble_manager`` repository directory in VS Code.
 
@@ -53,4 +53,6 @@ Quick Start (VS Code)
       are optional dependencies. ``ezFlashCLI`` can be used to program the development kit with GTL compatible firmware.
       ``prompt_toolkit`` is used in some of the examples to provide a command line interface.
 
-#. The package is now installed and you are ready to run one of the `examples <https://github.com/Renesas-US-Connectivity/py_ble_manager/tree/main/examples>`_
+#. `Download <https://github.com/Renesas-US-Connectivity/py_ble_manager/tree/main/src/py_ble_manager/util>`_ the py_ble_manager enabled firmware binary to the DA14531 Pro Development kit by calling the ``py_ble_manager_programmer`` utility from the terminal.
+   
+#. The package is now installed and you are ready to run one of the `examples <https://github.com/Renesas-US-Connectivity/py_ble_manager/tree/main/examples>`_!
