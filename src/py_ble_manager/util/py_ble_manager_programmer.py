@@ -24,9 +24,10 @@ def get_jlink_devices() -> list[str]:
     link.init()
     raw_device_list = link.browse()
     device_list = []
-    for device in raw_device_list:
-        if device.SerialNumber != 0:
-            device_list.append(device.SerialNumber)
+    if raw_device_list:
+        for device in raw_device_list:
+            if device.SerialNumber != 0:
+                device_list.append(device.SerialNumber)
     return device_list
 
 
@@ -94,6 +95,11 @@ def main():
     try:
         # Get a list of Jlink devices
         device_list = get_jlink_devices()
+
+        # Verify devices are available
+        if not device_list:
+            print("No JLink devices found. Ensure development kit USB is plugged into your PC.")
+            sys.exit()
 
         # Have the user identify which jlink to use
         serial_num_index = prompt_for_jlink_to_use(device_list)
