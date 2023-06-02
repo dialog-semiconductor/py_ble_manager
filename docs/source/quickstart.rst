@@ -23,7 +23,7 @@ Quick Start (terminal)
 #. Call: ``pip install .[dev]`` to install the py_ble_manager package and its dependencies.
 
    .. note:: 
-      Specifying [dev] will install optional dependencies: [ezFlashCLI](https://pypi.org/project/ezFlashCLI/) and [prompt_toolkit](https://pypi.org/project/prompt-toolkit/).
+      Specifying [dev] will install optional dependencies: `ezFlashCLI <https://pypi.org/project/ezFlashCLI/>`_ and `prompt_toolkit <https://pypi.org/project/prompt-toolkit/>`_.
       ``ezFlashCLI`` can be used to program the development kit with ``py_ble_manager`` compatible firmware. ``prompt_toolkit`` is used in some of the examples to provide a command line interface.
 
 #. `Download <https://github.com/Renesas-US-Connectivity/py_ble_manager/tree/main/src/py_ble_manager/util>`_ the py_ble_manager enabled firmware binary to the DA14531 Pro Development kit by calling the ``py_ble_manager_programmer`` utility from the terminal.
@@ -48,7 +48,7 @@ Quick Start (VS Code)
 #. Call: ``pip install .[dev]`` to install the py_ble_manager package and its dependencies.
 
    .. note:: 
-      Specifying [dev] will install optional dependencies: [ezFlashCLI](https://pypi.org/project/ezFlashCLI/) and [prompt_toolkit](https://pypi.org/project/prompt-toolkit/).
+      Specifying [dev] will install optional dependencies: `ezFlashCLI <https://pypi.org/project/ezFlashCLI/>`_ and `prompt_toolkit <https://pypi.org/project/prompt-toolkit/>`_.
       ``ezFlashCLI`` can be used to program the development kit with ``py_ble_manager`` compatible firmware. ``prompt_toolkit`` is used in some of the examples to provide a command line interface.
 
 #. `Download <https://github.com/Renesas-US-Connectivity/py_ble_manager/tree/main/src/py_ble_manager/util>`_ the py_ble_manager enabled firmware binary to the DA14531 Pro Development kit by calling the ``py_ble_manager_programmer`` utility from the terminal.
