@@ -215,9 +215,11 @@ class BleController():
                         error = self.central.pair(conn_idx, bond)
 
                 case 'DISCOVER_SVC':
-                    if len(args) == 3:
+                    if len(args) >= 2:
                         conn_idx = int(args[1])
-                        uuid = ble.BleUtils.uuid_from_str(args[2])
+                        uuid = None
+                        if len(args) == 3:
+                            uuid = ble.BleUtils.uuid_from_str(args[2])
                         error = self.central.discover_services(conn_idx, uuid)
 
                 case 'DISCOVER_CHAR':

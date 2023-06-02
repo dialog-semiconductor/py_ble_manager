@@ -36,6 +36,8 @@ Advertisement data will print to the terminal. Once the scan is finished, a mess
 
 ![scan](assets/scan.png)
 
+![scan_complete](assets/scan_complete.png)
+
 ### SCAN_CANCEL
 
 Cancel a scan for peripheral devices.
@@ -76,6 +78,8 @@ When the procedure is complete, a message indicationg so will be printed to the 
 
 ### DISCONNECT
 
+Disconnect from a peripheral.
+
 `DISCONNECT <connection_index>`
 
 For example, to disconnect from the peripheral at connection index 0:
@@ -110,25 +114,39 @@ When the procedure is complete, a message indicationg so will be printed to the 
 
 ### DISCOVER_SVC
 
-`DISCOVER_SVC <connection_index> <uuid>`
+Discover a peripheral's services.
+
+`DISCOVER_SVC <connection_index>`
+
+For example:
+
+`DISCOVER_SVC 0`
+
+When the procedure is complete, a message indicationg so will be printed to the terminal:
+
+![disc_svc_all](assets/disc_svc_all.png)
+
+You may also pass a specific service UUID to discover. 
 
 For example, to discover a 16-bit service at connection index 0:
 
 `DISCOVER_SVC 0 1800`
 
+![disc_svc_16](assets/disc_svc_16.png)
+
 To discover a 128-bit service at connection index 0:
-
-`DISCOVER_SVC 0 21ce31fc-da27-11ed-afa1-0242ac120002`
-
-You may also enter the UUID without hyphens:
 
 `DISCOVER_SVC 0 21ce31fcda2711edafa10242ac120002`
 
-When the procedure is complete, a message indicationg so will be printed to the terminal:
+You may also enter the UUID with hyphens for readability:
+
+`DISCOVER_SVC 0 21ce31fc-da27-11ed-afa1-0242ac120002`
 
 ![disc_svc_128](assets/disc_svc_128.png)
 
 ### DISCOVER_CHAR
+
+Discover a peripheral's characteristics.
 
 `DISCOVER_CHAR <connection_index> <start_handle> <end_handle>`
 
@@ -148,6 +166,8 @@ You may also pass a specific characteristic UUID to discover:
 
 ### DISCOVER_DESC
 
+Discover a peripheral's descriptors.
+
 `DISCOVER_DESC <connection_index> <start_handle> <end_handle>`
 
 For example, to discover descriptors between start handle 23 and end handle 30:
@@ -159,6 +179,8 @@ When the procedure is complete, a message indicationg so will be printed to the 
 ![disc_desc](assets/disc_desc.png)
 
 ### READ
+
+Read a characteristic value.
 
 `READ <connection_index> <handle>`
 
@@ -180,6 +202,8 @@ You would use handle 13 to read the characteristic value.
 
 ### WRITE
 
+Write a characteristic value.
+
 `WRITE <connection_index> <handle> <data>`
 
 For example, to write 0x3412 to handle 13 of the peripheral at connection index 0:
@@ -198,6 +222,8 @@ You would use handle 13 to write the characteristic value.
 
 ### WRITE_NO_RESP
 
+Write a characteristic value with no response. 
+
 `WRITE_NO_RESP <connection_index> <handle> <signed> <data>`
 
 For example, to perform a signed write or 0x3412 to handle 13 of the peripheral at connection index 0:
@@ -205,6 +231,8 @@ For example, to perform a signed write or 0x3412 to handle 13 of the peripheral 
 `WRITE_NO_RESP 0 13 1 1234`
 
 ### SET_CONN_PARAM
+
+Set the connection parameters.
 
 `SET_CONN_PARAM <connection_index> <interval_min> <interval_max> <slave_latency> <sup_timeout>`
 
@@ -218,6 +246,8 @@ When the procedure is complete, a message indicationg so will be printed to the 
 
 ### PAIR
 
+Pair with a peripheral.
+
 `PAIR <connection_index> <bond>`
 
 For example, to pair to the peripheral at connection index 0:
@@ -229,6 +259,8 @@ When the procedure is complete, a message indicationg so will be printed to the 
 ![pair](assets/pair.png)
 
 ### PASSKEY_ENTRY
+
+Enter the passkey for Passkey Display pairing.
 
 `PASSKEY_ENTRY <connection_index> <accept> <passkey>`
 
@@ -244,11 +276,13 @@ When the procedure is complete, a message indicationg so will be printed to the 
 
 ### YES_NO_ENTRY
 
+Confirm pairing for Numeric Comparison pairing.
+
 `YES_NO_ENTRY <connection_index> <accept>`
 
 For example, to accept a secure connection at connection index 0:
 
-`YESNOENTRY 0 1`
+`YES_NO_ENTRY 0 1`
 
 When the procedure is complete, a message indicationg so will be printed to the terminal:
 
