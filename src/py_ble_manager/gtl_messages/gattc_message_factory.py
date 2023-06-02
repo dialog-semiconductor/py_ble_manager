@@ -119,12 +119,12 @@ class GattcMessageFactory():
             elif msg_id == GATTC_MSG_ID.GATTC_MTU_CHANGED_IND:
                 return GattcMtuChangedInd(conidx=conidx, parameters=gattc_mtu_changed_ind.from_buffer_copy(params_buf))
             
-            elif msg_id == GATTC_MSG_ID.GATTC_DISC_CHAR_DESC_IND:   
+            elif msg_id == GATTC_MSG_ID.GATTC_DISC_CHAR_DESC_IND:
                 parameters = gattc_disc_char_desc_ind()
                 parameters.attr_hdl = int.from_bytes(params_buf[0:2], "little", signed=False)
-            
+
                 length = int.from_bytes(params_buf[2:3], "little", signed=False)
-                assert length == len(params_buf[3:-1]) # Check for mismatch in value length and remaining bytes. Index to -1 to account for padding
+                assert length == len(params_buf[3:-1])  # Check for mismatch in value length and remaining bytes. Index to -1 to account for padding
 
                 parameters.uuid = (c_uint8 * len(params_buf[3:-1])).from_buffer_copy(params_buf[3:-1])  # -1 to account for padding
                 return GattcDiscCharDescInd(conidx=conidx, parameters=parameters)

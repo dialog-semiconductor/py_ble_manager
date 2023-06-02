@@ -305,13 +305,13 @@ class BleController():
             case ble.BLE_EVT_GAP.BLE_EVT_GAP_NUMERIC_REQUEST:
                 self.handle_evt_gap_numeric_request(evt)
             case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_SVC:
-                 self.handle_evt_gattc_discover_svc(evt)
+                self.handle_evt_gattc_discover_svc(evt)
             case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_CHAR:
-                 self.handle_evt_gattc_discover_char(evt)
+                self.handle_evt_gattc_discover_char(evt)
             case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_DESC:
-                 self.handle_evt_gattc_discover_desc(evt)
+                self.handle_evt_gattc_discover_desc(evt)
             case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_COMPLETED:
-                 self.handle_evt_gattc_discover_completed(evt)
+                self.handle_evt_gattc_discover_completed(evt)
             case _:
                 # print(f"Ble Task unhandled event: {evt}")
                 self.central.handle_event_default(evt)
@@ -380,7 +380,8 @@ class BleController():
                 print(f"\t\tDescriptor discovered: handle={item.handle}, uuid={ble.BleUtils.uuid_to_str(item.uuid)}")
 
     def handle_evt_gattc_discover_char(self, evt: ble.BleEventGattcDiscoverChar):
-        print(f"Characteristic discovered: conn_idx={evt.conn_idx}, uuid={ble.BleUtils.uuid_to_str(evt.uuid)}, hanlde={evt.handle}, value_handle={evt.value_handle}, properties={self.format_properties(evt.properties)}")
+        print(f"Characteristic discovered: conn_idx={evt.conn_idx}, uuid={ble.BleUtils.uuid_to_str(evt.uuid)}, hanlde={evt.handle}, value_handle={evt.value_handle}, \
+              properties={self.format_properties(evt.properties)}")
 
     def handle_evt_gattc_discover_completed(self, evt: ble.BleEventGattcDiscoverCompleted):
         print(f"Discovery completed: conn_idx={evt.conn_idx}, type={evt.type.name}, status={evt.status.name}")
