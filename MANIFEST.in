@@ -1,2 +1,0 @@
-include src/py_ble_manager/firmware/da14531mod_pro_kit_921600.bin
-include src/py_ble_manager/util/*.py
