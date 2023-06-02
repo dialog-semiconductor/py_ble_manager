@@ -28,7 +28,8 @@ The primary intent is for use as a central device for benchtop testing, continuo
 
     > **_NOTE:_**
       Specifying [dev] will install optional dependencies: [ezFlashCLI](https://pypi.org/project/ezFlashCLI/) and [prompt_toolkit](https://pypi.org/project/prompt-toolkit/).
-      `ezFlashCLI` can be used to program the development kit with `py_ble_manager` compatible firmware. `prompt_toolkit` is used in some of the examples to provide a command line interface.
+      `ezFlashCLI` is used by the `py_ble_manager_programmer` utility to program the development kit with `py_ble_manager` compatible firmware. 
+      `prompt_toolkit` is used in some of the examples to provide a command line interface.
 
 7. [Download](src/py_ble_manager/util/) the py_ble_manager compatible firmware binary to the DA14531 Pro Development kit by calling the `py_ble_manager_programmer` utility from the terminal.
 
@@ -49,7 +50,8 @@ Open a new terminal in VS Code and the virtual environment will be activated.
 
     > **_NOTE:_**
       Specifying [dev] will install optional dependencies: [ezFlashCLI](https://pypi.org/project/ezFlashCLI/) and [prompt_toolkit](https://pypi.org/project/prompt-toolkit/).
-      `ezFlashCLI` can be used to program the development kit with `py_ble_manager` compatible firmware. `prompt_toolkit` is used in some of the examples to provide a command line interface.
+      `ezFlashCLI` is used by the `py_ble_manager_programmer` utility to program the development kit with `py_ble_manager` compatible firmware. 
+      `prompt_toolkit` is used in some of the examples to provide a command line interface.
 
 6. [Download](src/py_ble_manager/util/) the py_ble_manager compatible firmware binary to the DA14531 Pro Development kit by calling the `py_ble_manager_programmer` utility from the terminal.
 
