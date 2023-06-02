@@ -14,167 +14,177 @@ Once running, you will be provided with a prompt:
 
 Here you can enter various commands. The prompt will provide auto-complete for commands available:
 
-![terminal2](assets/terminal2.png)
+![autocomplete](assets/autocomplete.png)
 
 For example, to scan for peripheral devices the `GAPSCAN` command can be used. When a command is entered, a response will be immediately returned indicating if the command was processed correctly:
 
-![terminal3](assets/terminal3.png)
+![command_response](assets/command_response.png)
 
 Once the command is processed, data from the BLE interaction will be returned. In the case of the `GAPSCAN` command, advertising packets recevied from any peripheral devices are printed to the terminal:
 
-![terminal4](assets/terminal4.png)
+![scan](assets/scan.png)
 
 ## Command Usage
 
-### GAPSCAN
+### SCAN
 
 Scan for peripheral devices.
 
-`GAPSCAN`
+`SCAN`
 
 Advertisement data will print to the terminal. Once the scan is finished, a message indicating the scan is complete will be printed to the terminal:
 
-![terminal4](assets/terminal4.png)
+![scan](assets/scan.png)
 
-### GAPCONNECT
+### SCAN_CANCEL
+
+Cancel a scan for peripheral devices.
+
+`SCAN_CANCEL`
+
+Once the scan is canceled, a message indicating the scan is canceled will be printed to the terminal:
+
+![scan_cancel](assets/scan_cancel.png)
+
+### CONNECT
 
 Connect to a peripheral.
 
-`GAPCONNECT <address>`
+`CONNECT <address>`
 
 For example:
 
-`GAPCONNECT 48:23:35:00:1b:53,P`
+`CONNECT 48:23:35:00:1b:53,P`
 
 When the procedure is complete, a message indicationg so will be printed to the terminal:
 
-![gapconnect](assets/gapconnect.png)
+![connect](assets/connect.png)
 
-### GAPCONNECTCANCEL
+### CONNECT_CANCEL
 
 Cancel connecting to a peripheral.
 
-`GAPCONNECTCANCEL`
+`CONNECT_CANCEL`
 
 For example:
 
-`GAPCONNECTCANCEL`
+`CONNECT_CANCEL`
 
 When the procedure is complete, a message indicationg so will be printed to the terminal:
 
-![gapconnectcancel](assets/gapconnectcancel.png)
+![connect_cancel](assets/connect_cancel.png)
 
-### GAPBROWSE
+### BROWSE
 
 Browse a peripheral's attributes.
 
-`GAPBROWSE <connection_index>`
+`BROWSE <connection_index>`
 
 For example, to browse the attributes of the peripheral at connection index 0:
 
-`GAPBROWSE 0`
+`BROWSE 0`
 
 When the procedure is complete, a message indicationg so will be printed to the terminal:
 
-![gapbrowse](assets/gapbrowse.png)
+![browse](assets/browse.png)
 
-### GAPDISCONNECT
+### DISCONNECT
 
-`GAPDISCONNECT <connection_index>`
+`DISCONNECT <connection_index>`
 
 For example, to disconnect from the peripheral at connection index 0:
 
-`GAPDISCONNECT 0`
+`DISCONNECT 0`
 
 When the procedure is complete, a message indicationg you have disconnected will be printed to the terminal:
 
-![gapdisconnect](assets/gapdisconnect.png)
+![disconnect](assets/disconnect.png)
 
 You may also pass a reason for diconnectiong. The reason should correspond to a `BLE_HCI_ERROR`:
 
-`GAPDISCONNECT <connection_index> <reason>`
+`DISCONNECT <connection_index> <reason>`
 
 For example, to disconnect from a peripheral at connection index 0 with the reason `BLE_HCI_ERROR_REMOTE_USER_TERM_CON`:
 
-`GAPDISCONNECT 0 19`
+`DISCONNECT 0 19`
 
-### GAPPAIR
+### PAIR
 
-`GAPPAIR <connection_index> <bond>`
+`PAIR <connection_index> <bond>`
 
 For example, to pair to the peripheral at connection index 0:
 
-`GAPPAIR 0 0`
+`PAIR 0 0`
 
 When the procedure is complete, a message indicationg so will be printed to the terminal:
 
-![gappair](assets/gappair.png)
+![pair](assets/pair.png)
 
-### GATTREAD
+### READ
 
-`GATTREAD <connection_index> <handle>`
+`READ <connection_index> <handle>`
 
 For example, to read handle 13 from the peripheral at connection index 0:
 
-`GATTREAD 0 13`
+`READ 0 13`
 
 When the procedure is complete, a message indicationg so will be printed to the terminal:
 
-![gattread](assets/gattread.png)
+![read](assets/read.png)
 
 Note the data returned is little endian.
 
-Note the Characteristic handle returned by the `GAPBROWSE` command is that of the characteristic declaration. To read the value of the characteristic, add 1 to the handle returned by the `GAPBROWSE` command. For example, if the `GAPBROWSE` command identifies a characteristic handle as 12:
+Note the Characteristic handle returned by the `BROWSE` command is that of the characteristic declaration. To read the value of the characteristic, add 1 to the handle returned by the `BROWSE` command. For example, if the `BROWSE` command identifies a characteristic handle as 12:
 
-![gapbrowse](assets/gapbrowse_char_handle.png)
+![browse](assets/browse_char_handle.png)
 
 You would use handle 13 to read the characteristic value.
 
-### GATTWRITE
+### WRITE
 
-`GATTWRITE <connection_index> <handle> <data>`
+`WRITE <connection_index> <handle> <data>`
 
 For example, to write 0x3412 to handle 13 of the peripheral at connection index 0:
 
-`GATTWRITE 0 13 1234`
+`WRITE 0 13 1234`
 
 Note the data should be written little endian. When the procedure is complete, a message indicationg so will be printed to the terminal:
 
-![gattwrite](assets/gattwrite.png)
+![write](assets/write.png)
 
-Again note the Characteristic handle returned by the `GAPBROWSE` command is that of the characteristic declaration. To write the value of the characteristic, add 1 to the handle returned by the `GAPBROWSE` command. For example, if the `GAPBROWSE` command identifies a characteristic handle as 12:
+Again note the Characteristic handle returned by the `BROWSE` command is that of the characteristic declaration. To write the value of the characteristic, add 1 to the handle returned by the `BROWSE` command. For example, if the `BROWSE` command identifies a characteristic handle as 12:
 
-![gapbrowse](assets/gapbrowse_char_handle.png)
+![browse](assets/browse_char_handle.png)
 
 You would use handle 13 to write the characteristic value.
 
-### GATTWRITENORESP
+### WRITE_NO_RESP
 
-`GATTWRITENORESP <connection_index> <handle> <signed> <data>`
+`WRITE_NO_RESP <connection_index> <handle> <signed> <data>`
 
 For example, to perform a signed write or 0x3412 to handle 13 of the peripheral at connection index 0:
 
-`GATTWRITENORESP 0 13 1 1234`
+`WRITE_NO_RESP 0 13 1 1234`
 
-### GAPSETCONNPARAM
+### SET_CONN_PARAM
 
-`GAPSETCONNPARAM <connection_index> <interval_min> <interval_max> <slave_latency> <sup_timeout>`
+`SET_CONN_PARAM <connection_index> <interval_min> <interval_max> <slave_latency> <sup_timeout>`
 
 For example:
 
-`GAPSETCONNPARAM 0 50 70 0 420`
+`SET_CONN_PARAM 0 50 70 0 420`
 
 When the procedure is complete, a message indicationg so will be printed to the terminal:
 
-![gapsetconnparam](assets/gapsetconnparams.png)
+![setconnparam](assets/setconnparams.png)
 
-### PASSKEYENTRY
+### PASSKEY_ENTRY
 
-`PASSKEYENTRY <connection_index> <accept> <passkey>`
+`PASSKEY_ENTRY <connection_index> <accept> <passkey>`
 
 For example, to accept pairing at connection index 0 with passkey 945553:
 
-`PASSKEYENTRY 0 1 945553`
+`PASSKEY_ENTRY 0 1 945553`
 
 Note the passkey to enter is presented on the display of the Peripheral.
 
@@ -182,9 +192,9 @@ When the procedure is complete, a message indicationg so will be printed to the 
 
 ![passkeyentry](assets/passkeyentry.png)
 
-### YESNOENTRY
+### YES_NO_ENTRY
 
-`YESNOENTRY <connection_index> <accept>`
+`YES_NO_ENTRY <connection_index> <accept>`
 
 For example, to accept a secure connection at connection index 0:
 

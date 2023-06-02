@@ -16,19 +16,22 @@ class CLIHandler():
 
     def start_prompt(self):
         # Accepted commands
-        commands = ['GAPSCAN',
-                    'GAPSCANCANCEL',
-                    'GAPCONNECT',
-                    'GAPCONNECTCANCEL',
-                    'GAPBROWSE',
-                    'GAPDISCONNECT',
-                    'GATTWRITE',
-                    'GATTREAD',
-                    'GATTWRITENORESP',
-                    'GAPPAIR',
-                    'GAPSETCONNPARAM',
-                    'PASSKEYENTRY',
-                    'YESNOENTRY',
+        commands = ['SCAN',
+                    'SCAN_CANCEL',
+                    'CONNECT',
+                    'CONNECT_CANCEL',
+                    'BROWSE',
+                    'DISCONNECT',
+                    'WRITE',
+                    'READ',
+                    'WRITE_NO_RESP',
+                    'PAIR',
+                    'SET_CONN_PARAM',
+                    'PASSKEY_ENTRY',
+                    'YES_NO_ENTRY',
+                    'DISCOVER_SVC',
+                    'DISCOVER_CHAR',
+                    'DISCOVER_DESC',
                     'EXIT']
         commands.sort()
         word_completer = WordCompleter(commands, ignore_case=True)
@@ -43,7 +46,7 @@ class CLIHandler():
                     if input:
                         args = input.split()
                         # Ensure we have a valid command
-                        if input and args[0] in commands:
+                        if input and len(args) > 0 and args[0] in commands:
                             self.ble_command_q.put_nowait(input)
                             response = self.ble_response_q.get()
                         else:
@@ -123,7 +126,7 @@ class BleController():
         if len(args) > 0:
             ble_func = args[0]
             match ble_func:
-                case 'GAPSCAN':
+                case 'SCAN':
                     error = self.central.scan_start(ble.GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
                                                     ble.GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
                                                     100,
@@ -131,25 +134,25 @@ class BleController():
                                                     False,
                                                     True)
 
-                case 'GAPSCANCANCEL':
+                case 'SCAN_CANCEL':
                     error = self.central.scan_stop()
 
-                case "GAPCONNECT":
+                case "CONNECT":
                     if len(args) == 2:
                         periph_bd = ble.BleUtils.str_to_bd_addr(args[1])
                         periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
                         error = self.central.connect(periph_bd, periph_conn_params)
 
-                case "GAPCONNECTCANCEL":
+                case "CONNECT_CANCEL":
                     if len(args) == 1:
                         error = self.central.connect_cancel()
 
-                case "GAPBROWSE":
+                case "BROWSE":
                     if len(args) == 2:
                         conn_idx = int(args[1])
                         error = self.central.browse(conn_idx, None)
 
-                case "GAPDISCONNECT":
+                case "DISCONNECT":
                     if len(args) >= 2:
                         conn_idx = int(args[1])
                         if len(args) == 3:
@@ -160,14 +163,14 @@ class BleController():
                             reason = ble.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON
                         error = self.central.disconnect(conn_idx, reason)
 
-                case "GATTWRITE":
+                case "WRITE":
                     if len(args) == 4:
                         conn_idx = int(args[1])
                         handle = int(args[2])
                         value = bytes.fromhex(args[3])  # Note: requires leading 0 for 0x0-0xF
                         error = self.central.write(conn_idx, handle, 0, value)
 
-                case "GATTWRITENORESP":
+                case "WRITE_NO_RESP":
                     if len(args) == 5:
                         conn_idx = int(args[1])
                         handle = int(args[2])
@@ -175,7 +178,7 @@ class BleController():
                         value = bytes.fromhex(args[4])  # Note: requires leading 0 for 0x0-0xF
                         error = self.central.write_no_resp(conn_idx, handle, signed, value)
 
-                case "GATTWRITEPREPARE":
+                case "WRITE_PREPARE":
                     # TODO not receiving GATTC_CMP_EVT after sending GattcWriteCmd
                     if len(args) == 4:
                         conn_idx = int(args[1])
@@ -183,19 +186,19 @@ class BleController():
                         value = bytes.fromhex(args[3])
                         error = self.central.write_prepare(conn_idx, handle, 0, value)
 
-                case "GATTWRITEEXECUTE":
+                case "WRITE_EXECUTE":
                     if len(args) == 3:
                         conn_idx = int(args[1])
                         execute = bool(int(args[2]))
                         error = self.central.write_execute(conn_idx, execute)
 
-                case "GATTREAD":  # Note: char handle displayed by browse is actually the declaration. The value is +1
+                case "READ":  # Note: char handle displayed by browse is actually the declaration. The value is +1
                     if len(args) == 3:
                         conn_idx = int(args[1])
                         handle = int(args[2])
                         error = self.central.read(conn_idx, handle, 0)
 
-                case 'GAPSETCONNPARAM':
+                case 'SET_CONN_PARAM':
                     if len(args) == 6:
                         conn_idx = int(args[1])
                         conn_params = ble.GapConnParams()
@@ -205,20 +208,43 @@ class BleController():
                         conn_params.sup_timeout_ms = int(args[5])
                         error = self.central.conn_param_update(conn_idx, conn_params)
 
-                case 'GAPPAIR':
+                case 'PAIR':
                     if len(args) == 3:
                         conn_idx = int(args[1])
                         bond = bool(int(args[2]))
                         error = self.central.pair(conn_idx, bond)
 
-                case 'PASSKEYENTRY':
+                case 'DISCOVER_SVC':
+                    if len(args) == 3:
+                        conn_idx = int(args[1])
+                        uuid = ble.BleUtils.uuid_from_str(args[2])
+                        error = self.central.discover_services(conn_idx, uuid)
+
+                case 'DISCOVER_CHAR':
+                    if len(args) >= 4:
+                        conn_idx = int(args[1])
+                        start_h = int(args[2])
+                        end_h = int(args[3])
+                        uuid = None
+                        if len(args) == 5:
+                            uuid = ble.BleUtils.uuid_from_str(args[4])
+                        error = self.central.discover_characteristics(conn_idx, start_h, end_h, uuid)
+
+                case 'DISCOVER_DESC':
+                    if len(args) == 4:
+                        conn_idx = int(args[1])
+                        start_h = int(args[2])
+                        end_h = int(args[3])
+                        error = self.central.discover_descriptors(conn_idx, start_h, end_h)
+
+                case 'PASSKEY_ENTRY':
                     if len(args) == 4:
                         conn_idx = int(args[1])
                         accept = bool(int(args[2]))
                         passkey = int(args[3])
                         error = self.central.passkey_reply(conn_idx, accept, passkey)
 
-                case 'YESNOENTRY':
+                case 'YES_NO_ENTRY':
                     if len(args) == 3:
                         conn_idx = int(args[1])
                         accept = bool(int(args[2]))
@@ -276,6 +302,14 @@ class BleController():
                 self.handle_evt_gap_address_resolved(evt)
             case ble.BLE_EVT_GAP.BLE_EVT_GAP_NUMERIC_REQUEST:
                 self.handle_evt_gap_numeric_request(evt)
+            case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_SVC:
+                 self.handle_evt_gattc_discover_svc(evt)
+            case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_CHAR:
+                 self.handle_evt_gattc_discover_char(evt)
+            case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_DESC:
+                 self.handle_evt_gattc_discover_desc(evt)
+            case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_COMPLETED:
+                 self.handle_evt_gattc_discover_completed(evt)
             case _:
                 # print(f"Ble Task unhandled event: {evt}")
                 self.central.handle_event_default(evt)
@@ -342,6 +376,18 @@ class BleController():
                       + f"{self.format_properties(item.char_data.properties)}")
             elif item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_DESCRIPTOR:
                 print(f"\t\tDescriptor discovered: handle={item.handle}, uuid={ble.BleUtils.uuid_to_str(item.uuid)}")
+
+    def handle_evt_gattc_discover_char(self, evt: ble.BleEventGattcDiscoverChar):
+        print(f"Characteristic discovered: conn_idx={evt.conn_idx}, uuid={ble.BleUtils.uuid_to_str(evt.uuid)}, hanlde={evt.handle}, value_handle={evt.value_handle}, properties={self.format_properties(evt.properties)}")
+
+    def handle_evt_gattc_discover_completed(self, evt: ble.BleEventGattcDiscoverCompleted):
+        print(f"Discovery completed: conn_idx={evt.conn_idx}, type={evt.type.name}, status={evt.status.name}")
+
+    def handle_evt_gattc_discover_desc(self, evt: ble.BleEventGattcDiscoverDesc):
+        print(f"Descriptor discovered: conn_idx={evt.conn_idx}, uuid={ble.BleUtils.uuid_to_str(evt.uuid)}, handle={evt.handle}")
+
+    def handle_evt_gattc_discover_svc(self, evt: ble.BleEventGattcDiscoverSvc):
+        print(f"Service discovered: conn_idx={evt.conn_idx}, uuid={ble.BleUtils.uuid_to_str(evt.uuid)}, start_h={evt.start_h}, end_h={evt.end_h}")
 
     def handle_evt_gattc_notification(self, evt: ble.BleEventGattcNotification):
         print(f"Received Notification: conn_idx={evt.conn_idx}, handle={evt.handle}, value={evt.value.hex()}")

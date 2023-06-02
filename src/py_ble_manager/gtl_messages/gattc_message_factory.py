@@ -1,10 +1,10 @@
 from ctypes import c_uint8
 
 from ..gtl_messages.gtl_message_gattc import GattcReadReqInd, GattcWriteReqInd, GattcCmpEvt, GattcDiscSvcInd, GattcDiscCharInd, \
-    GattcSdpSvcInd, GattcReadInd, GattcEventInd, GattcEventReqInd, GattcAttInfoReqInd, GattcMtuChangedInd
+    GattcSdpSvcInd, GattcReadInd, GattcEventInd, GattcEventReqInd, GattcAttInfoReqInd, GattcMtuChangedInd, GattcDiscCharDescInd
 from ..gtl_port.gattc_task import GATTC_MSG_ID, gattc_read_req_ind, gattc_write_req_ind, gattc_cmp_evt, gattc_disc_svc_ind, \
     gattc_disc_char_ind, gattc_sdp_svc_ind, gattc_sdp_att_info, gattc_read_ind, gattc_event_ind, gattc_event_req_ind, \
-    gattc_att_info_req_ind, gattc_mtu_changed_ind
+    gattc_att_info_req_ind, gattc_mtu_changed_ind, gattc_disc_char_desc_ind
 from ..gtl_port.rwip_config import KE_API_ID
 
 
@@ -118,6 +118,17 @@ class GattcMessageFactory():
 
             elif msg_id == GATTC_MSG_ID.GATTC_MTU_CHANGED_IND:
                 return GattcMtuChangedInd(conidx=conidx, parameters=gattc_mtu_changed_ind.from_buffer_copy(params_buf))
+            
+            elif msg_id == GATTC_MSG_ID.GATTC_DISC_CHAR_DESC_IND:   
+                parameters = gattc_disc_char_desc_ind()
+                parameters.attr_hdl = int.from_bytes(params_buf[0:2], "little", signed=False)
+            
+                length = int.from_bytes(params_buf[2:3], "little", signed=False)
+                assert length == len(params_buf[3:-1]) # Check for mismatch in value length and remaining bytes. Index to -1 to account for padding
+
+                parameters.uuid = (c_uint8 * len(params_buf[3:-1])).from_buffer_copy(params_buf[3:-1])  # -1 to account for padding
+                return GattcDiscCharDescInd(conidx=conidx, parameters=parameters)
+
             else:
                 raise AssertionError(f"GattcMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")
         except AssertionError as e:
