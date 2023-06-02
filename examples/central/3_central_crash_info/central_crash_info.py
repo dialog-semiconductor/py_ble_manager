@@ -63,8 +63,8 @@ class CLIHandler():
 
     def start_prompt(self):
         # Accepted commands
-        commands = ['GAPSCAN',
-                    'GETALLRESETDATA',
+        commands = ['SCAN',
+                    'GET_ALL_RESET_DATA',
                     'EXIT']
         commands.sort()
         word_completer = WordCompleter(commands, ignore_case=True)
@@ -198,7 +198,7 @@ class BleController():
         if len(args) > 0:
             ble_func = args[0]
             match ble_func:
-                case 'GAPSCAN':
+                case 'SCAN':
                     # Expected command format: >>>GAPSCAN
                     self.scan_dict: dict[bytes, tuple[str, ble.BleEventGapAdvReport]] = {}
                     self.log("Starting scan...")
@@ -209,7 +209,7 @@ class BleController():
                                                     False,
                                                     True)
 
-                case "GETALLRESETDATA":
+                case "GET_ALL_RESET_DATA":
                     # Expected command format: >>>GETALLRESETDATA 48:23:35:00:1b:53,P
                     if len(args) == 2:
                         periph_bd = ble.BleUtils.str_to_bd_addr(args[1])

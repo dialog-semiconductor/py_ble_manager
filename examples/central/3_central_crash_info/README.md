@@ -17,11 +17,11 @@ Here you can enter various commands. The prompt will provide auto-complete for c
 
 ![terminal2](assets/terminal2.png)
 
-For example, to scan for peripheral devices the `GAPSCAN` command can be used. When a command is entered, a response will be immediately returned indicating if the command was processed correctly:
+For example, to scan for peripheral devices the `SCAN` command can be used. When a command is entered, a response will be immediately returned indicating if the command was processed correctly:
 
 ![terminal3](assets/terminal3.png)
 
-Once the command is processed, data from the BLE interaction will be returned. In the case of the `GAPSCAN` command, The name, Bluetooth device address, and number of resets from any peripheral devices advertising the AD Type `Service Data - 128-bit UUID` for the Debug Crash Info service, will be printed to the terminal:
+Once the command is processed, data from the BLE interaction will be returned. In the case of the `SCAN` command, The name, Bluetooth device address, and number of resets from any peripheral devices advertising the AD Type `Service Data - 128-bit UUID` for the Debug Crash Info service, will be printed to the terminal:
 
 ![terminal4](assets/terminal4.png)
 
@@ -29,25 +29,25 @@ Note all data printed to the terminal that is not preceded with `>>>` or `<<<` w
 
 ## Command Usage
 
-### GAPSCAN
+### SCAN
 
 Scan for peripheral devices.
 
-`GAPSCAN`
+`SCAN`
 
 The name, Bluetooth device address, and number of resets for any device advertising the AD Type `Service Data - 128-bit UUID` for the Debug Crash Info service will be printed to the terminal
 
 ![terminal4](assets/terminal4.png)
 
-### GETALLRESETDATA
+### GET_ALL_RESET_DATA
 
 Fetch all reset data available from the specified peripheral:
 
-`GETALLRESETDATA <address>`
+`GET_ALL_RESET_DATA <address>`
 
 For example:
 
-`GETALLRESETDATA 48:23:35:00:1b:53,P`
+`GET_ALL_RESET_DATA 48:23:35:00:1b:53,P`
 
 When the procedure is complete, the reset data will be printed to the terminal and the application will exit:
 
