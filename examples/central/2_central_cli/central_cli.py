@@ -380,8 +380,8 @@ class BleController():
                 print(f"\t\tDescriptor discovered: handle={item.handle}, uuid={ble.BleUtils.uuid_to_str(item.uuid)}")
 
     def handle_evt_gattc_discover_char(self, evt: ble.BleEventGattcDiscoverChar):
-        print(f"Characteristic discovered: conn_idx={evt.conn_idx}, uuid={ble.BleUtils.uuid_to_str(evt.uuid)}, hanlde={evt.handle}, value_handle={evt.value_handle}, \
-              properties={self.format_properties(evt.properties)}")
+        print(f"Characteristic discovered: conn_idx={evt.conn_idx}, uuid={ble.BleUtils.uuid_to_str(evt.uuid)}, hanlde={evt.handle},\
+               value_handle={evt.value_handle}, properties={self.format_properties(evt.properties)}")
 
     def handle_evt_gattc_discover_completed(self, evt: ble.BleEventGattcDiscoverCompleted):
         print(f"Discovery completed: conn_idx={evt.conn_idx}, type={evt.type.name}, status={evt.status.name}")

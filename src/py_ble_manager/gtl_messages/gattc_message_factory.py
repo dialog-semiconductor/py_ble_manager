@@ -118,7 +118,7 @@ class GattcMessageFactory():
 
             elif msg_id == GATTC_MSG_ID.GATTC_MTU_CHANGED_IND:
                 return GattcMtuChangedInd(conidx=conidx, parameters=gattc_mtu_changed_ind.from_buffer_copy(params_buf))
-            
+
             elif msg_id == GATTC_MSG_ID.GATTC_DISC_CHAR_DESC_IND:
                 parameters = gattc_disc_char_desc_ind()
                 parameters.attr_hdl = int.from_bytes(params_buf[0:2], "little", signed=False)
