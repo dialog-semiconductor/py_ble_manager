@@ -126,7 +126,9 @@ When the procedure is complete, a message indicationg so will be printed to the 
 
 ![disc_svc_all](assets/disc_svc_all.png)
 
-You may also pass a specific service UUID to discover. 
+You may also pass a specific service UUID to discover:
+
+`DISCOVER_SVC <connection_index> <uuid>`
 
 For example, to discover a 16-bit service at connection index 0:
 
