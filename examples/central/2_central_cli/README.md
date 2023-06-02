@@ -16,11 +16,11 @@ Here you can enter various commands. The prompt will provide auto-complete for c
 
 ![autocomplete](assets/autocomplete.png)
 
-For example, to scan for peripheral devices the `GAPSCAN` command can be used. When a command is entered, a response will be immediately returned indicating if the command was processed correctly:
+For example, to scan for peripheral devices the `SCAN` command can be used. When a command is entered, a response will be immediately returned indicating if the command was processed correctly:
 
 ![command_response](assets/command_response.png)
 
-Once the command is processed, data from the BLE interaction will be returned. In the case of the `GAPSCAN` command, advertising packets recevied from any peripheral devices are printed to the terminal:
+Once the command is processed, data from the BLE interaction will be returned. In the case of the `SCAN` command, advertising packets recevied from any peripheral devices are printed to the terminal:
 
 ![scan](assets/scan.png)
 
