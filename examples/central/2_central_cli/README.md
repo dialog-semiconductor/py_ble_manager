@@ -74,20 +74,6 @@ When the procedure is complete, a message indicationg so will be printed to the 
 
 ![connect_cancel](assets/connect_cancel.png)
 
-### BROWSE
-
-Browse a peripheral's attributes.
-
-`BROWSE <connection_index>`
-
-For example, to browse the attributes of the peripheral at connection index 0:
-
-`BROWSE 0`
-
-When the procedure is complete, a message indicationg so will be printed to the terminal:
-
-![browse](assets/browse.png)
-
 ### DISCONNECT
 
 `DISCONNECT <connection_index>`
@@ -108,17 +94,69 @@ For example, to disconnect from a peripheral at connection index 0 with the reas
 
 `DISCONNECT 0 19`
 
-### PAIR
+### BROWSE
 
-`PAIR <connection_index> <bond>`
+Browse a peripheral's attributes.
 
-For example, to pair to the peripheral at connection index 0:
+`BROWSE <connection_index>`
 
-`PAIR 0 0`
+For example, to browse the attributes of the peripheral at connection index 0:
+
+`BROWSE 0`
 
 When the procedure is complete, a message indicationg so will be printed to the terminal:
 
-![pair](assets/pair.png)
+![browse](assets/browse.png)
+
+### DISCOVER_SVC
+
+`DISCOVER_SVC <connection_index> <uuid>`
+
+For example, to discover a 16-bit service at connection index 0:
+
+`DISCOVER_SVC 0 1800`
+
+To discover a 128-bit service at connection index 0:
+
+`DISCOVER_SVC 0 21ce31fc-da27-11ed-afa1-0242ac120002`
+
+You may also enter the UUID without hyphens:
+
+`DISCOVER_SVC 0 21ce31fcda2711edafa10242ac120002`
+
+When the procedure is complete, a message indicationg so will be printed to the terminal:
+
+![disc_svc_128](assets/disc_svc_128.png)
+
+### DISCOVER_CHAR
+
+`DISCOVER_CHAR <connection_index> <start_handle> <end_handle>`
+
+For example, to discover characteristics between start handle 23 and end handle 30:
+
+`DISCOVER_CHAR 0 23 30`
+
+When the procedure is complete, a message indicationg so will be printed to the terminal:
+
+![disc_char_all](assets/disc_char_all.png)
+
+You may also pass a specific characteristic UUID to discover:
+
+`DISCOVER_CHAR <connection_index> <start_handle> <end_handle> <uuid>`
+
+![disc_char_specific](assets/disc_char_specific.png)
+
+### DISCOVER_DESC
+
+`DISCOVER_DESC <connection_index> <start_handle> <end_handle>`
+
+For example, to discover descriptors between start handle 23 and end handle 30:
+
+`DISCOVER_DESC 0 23 30`
+
+When the procedure is complete, a message indicationg so will be printed to the terminal:
+
+![disc_desc](assets/disc_desc.png)
 
 ### READ
 
@@ -177,6 +215,18 @@ For example:
 When the procedure is complete, a message indicationg so will be printed to the terminal:
 
 ![setconnparam](assets/setconnparams.png)
+
+### PAIR
+
+`PAIR <connection_index> <bond>`
+
+For example, to pair to the peripheral at connection index 0:
+
+`PAIR 0 0`
+
+When the procedure is complete, a message indicationg so will be printed to the terminal:
+
+![pair](assets/pair.png)
 
 ### PASSKEY_ENTRY
 

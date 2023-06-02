@@ -98,7 +98,7 @@ class BleController():
         self.central = ble.BleCentral(self.com_port, gtl_debug=False)
         self.central.init()
         self.central.start()
-        self.central.set_io_cap(ble.GAP_IO_CAPABILITIES.GAP_IO_CAP_KEYBOARD_DISP)
+        self.central.set_io_cap(ble.GAP_IO_CAPABILITIES.GAP_IO_CAP_KEYBOARD_ONLY)
 
         self._command_task = threading.Thread(target=self._command_queue_task)
         self._command_task.daemon = True
