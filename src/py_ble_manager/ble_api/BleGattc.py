@@ -77,7 +77,7 @@ class GattcItem():
 class BleEventGattcBrowseSvc(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_SVC` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_SVC`
     :ivar conn_idx: connection index
     :ivar uuid: service uuid
     :ivar start_h: service start handle
@@ -106,7 +106,7 @@ class BleEventGattcBrowseSvc(BleEventBase):
 class BleEventGattcBrowseCompleted(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED`
     :ivar conn_idx: connection index
     :ivar status: browsing status
     """
@@ -123,7 +123,7 @@ class BleEventGattcBrowseCompleted(BleEventBase):
 class BleEventGattcDiscoverChar(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_CHAR` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_CHAR`
     :ivar conn_idx: connection index
     :ivar uuid: characteristic UUID
     :ivar handle: characteristic handle
@@ -149,7 +149,7 @@ class BleEventGattcDiscoverChar(BleEventBase):
 class BleEventGattcDiscoverCompleted(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_COMPLETED` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_COMPLETED`
     :ivar conn_idx: connection index
     :ivar type: discovery type
     :ivar status: discovery status
@@ -169,7 +169,7 @@ class BleEventGattcDiscoverCompleted(BleEventBase):
 class BleEventGattcDiscoverDesc(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_DESC` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_DESC`
     :ivar conn_idx: connection index
     :ivar uuid: characteristic descriptor UUID
     :ivar handle: characteristic descriptor handle
@@ -189,7 +189,7 @@ class BleEventGattcDiscoverDesc(BleEventBase):
 class BleEventGattcDiscoverSvc(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_SVC` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_SVC`
     :ivar conn_idx: connection index
     :ivar uuid: service UUID
     :ivar start_h: service start handle
@@ -212,7 +212,7 @@ class BleEventGattcDiscoverSvc(BleEventBase):
 class BleEventGattcNotification(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_NOTIFICATION` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_NOTIFICATION`
     :ivar conn_idx: connection index
     :ivar handle: attribute handle
     :ivar value: data value
@@ -232,7 +232,7 @@ class BleEventGattcNotification(BleEventBase):
 class BleEventGattcIndication(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_INDICATION` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_INDICATION`
     :ivar conn_idx: connection index
     :ivar handle: attribute handle
     :ivar value: data value
@@ -252,7 +252,7 @@ class BleEventGattcIndication(BleEventBase):
 class BleEventGattcMtuChanged(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_MTU_CHANGED` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_MTU_CHANGED`
     :ivar conn_idx: connection index
     :ivar handle: current MTU
     """
@@ -269,7 +269,7 @@ class BleEventGattcMtuChanged(BleEventBase):
 class BleEventGattcReadCompleted(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_READ_COMPLETED` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_READ_COMPLETED`
     :ivar conn_idx: connection index
     :ivar handle: attribute handle
     :ivar status: operation status
@@ -295,7 +295,7 @@ class BleEventGattcReadCompleted(BleEventBase):
 class BleEventGattcWriteCompleted(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED`
     :ivar conn_idx: connection index
     :ivar handle: attribute handle (will be 0 for write_execute())
     :ivar status: operation status

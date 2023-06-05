@@ -116,7 +116,7 @@ class BleDeviceBase():
         parameter update. For the master of the connection, the new connection parameters will be applied
         immediately. For the slave of the connection, a connection parameter update request will be send
         to the master. If the master accepts the connection parameters, it will be in charge of applying
-        them (which will result in a :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATED`
+        them (which will result in a :py:class:`~py_ble_manager.ble_api.BleGap.BleEventGapConnParamUpdated`
         event message to the slave that initiated the connection parameter update process). If 40s elapse without a response from the
         master, the connection will be terminated.
 
@@ -134,7 +134,7 @@ class BleDeviceBase():
         """Reply to a connection parameter update request
 
         This call should be used to reply to a connection parameter update request event
-        (:py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATE_REQ`) message.
+        (:py:class:`~py_ble_manager.ble_api.BleGap.BleEventGapConnParamUpdateReq`) message.
 
         :param conn_idx: connection index
         :type conn_idx: int
@@ -161,9 +161,9 @@ class BleDeviceBase():
 
         ..note:
           The application will receive one of the following events as response to this API:
-          :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DATA_LENGTH_CHANGED`
+          :py:class:`~py_ble_manager.ble_api.BleGap.BleEventGapDataLengthChanged`
           if data length has been changed
-          :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DATA_LENGTH_SET_FAILED`
+          :py:class:`~py_ble_manager.ble_api.BleGap.BleEventGapDataLengthSetFailed`
           with error code if data length could not be set
 
         ..note:
@@ -239,8 +239,8 @@ class BleDeviceBase():
             :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_ERROR.BLE_ERROR_INVALID_PARAM`.
 
     .. note:: After calling this function, the application will receive one of the following messages:
-            :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED` when the disconnection procedure was successful.
-            :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECT_FAILED` with error status when the disconnection procedure
+            :py:class:`~py_ble_manager.ble_api.BleGap.BleEventGapDisconnected` when the disconnection procedure was successful.
+            :py:class:`~py_ble_manager.ble_api.BleGap.BleEventGapDisconnectFailed` with error status when the disconnection procedure
             failed.
         """
 
@@ -297,7 +297,7 @@ class BleDeviceBase():
     def numeric_reply(self, conn_idx: int, accept: bool) -> BLE_ERROR:
         """Respond to a numeric comparison request
 
-        Respond to a :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_NUMERIC_REQUEST` event.
+        Respond to a :py:class:`~py_ble_manager.ble_api.BleGap.BleEventGapNumericRequest` event.
 
         :param conn_idx: connection index
         :type conn_idx: int
@@ -313,7 +313,7 @@ class BleDeviceBase():
 
         This call initiates a Feature Exchange procedure or retrieves the already exchanged peer's
         features on an established connection. Peer's features will be delivered to the application via
-        :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_PEER_FEATURES` event.
+        :py:class:`~py_ble_manager.ble_api.BleGap.BleEventGapPeerFeatures` event.
 
         ..note:
             For a mapping between bit values and features, see [Vol 6] Part B, Section 4.6 in Bluetooth
@@ -332,7 +332,7 @@ class BleDeviceBase():
 
         This call initiates a Feature Exchange procedure or retrieves the already exchanged peer's
         features on an established connection. Peer's features will be delivered to the application via
-        :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_PEER_VERSION` event.
+        :py:class:`~py_ble_manager.ble_api.BleGap.BleEventGapPeerVersion` event.
 
         ..note:
             For a mapping between bit values and features, see [Vol 6] Part B, Section 4.6 in Bluetooth

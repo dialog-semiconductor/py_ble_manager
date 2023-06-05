@@ -36,8 +36,8 @@ class BleCentral(BleDeviceBase):
         This will automatically discover all characteristics and descriptors of a service. To discover
         services only, use ble_gattc_discover_svc() instead.
 
-        :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_SVC` will be sent for each service found. Once completed
-        :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED` will be sent.
+        :py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcBrowseSvc` will be sent for each service found. Once completed
+        :py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcBrowseCompleted` will be sent.
 
         :param conn_idx: connection index
         :type conn_idx: int
@@ -53,10 +53,10 @@ class BleCentral(BleDeviceBase):
         """Connect to a device
 
         This call initiates a direct connection procedure to a specified device. The application will get
-        a :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED` event when the connection is established and a
-        :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED` event when the connection procedure is completed either
+        a :py:class:`~py_ble_manager.ble_api.BleGap.BleEventGapConnected` event when the connection is established and a
+        :py:class:`~py_ble_manager.ble_api.BleGap.BleEventGapConnectionCompleted` event when the connection procedure is completed either
         successfully or with error (in the second case,
-        :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED` will not be received).
+        :py:class:`~py_ble_manager.ble_api.BleGap.BleEventGapConnected` will not be received).
 
         :param peer_addr: BD address of the peer device
         :type peer_addr: BdAddress
@@ -72,7 +72,7 @@ class BleCentral(BleDeviceBase):
         """Cancel an initiated connection
 
         This call cancels a previously started connection procedure using connect(). The
-        application will receive a :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED` event
+        application will receive a :py:class:`~py_ble_manager.ble_api.BleGap.BleEventGapConnectionCompleted` event
         with status set to :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_ERROR.BLE_ERROR_CANCELED`
         if the connection procedure is successfully canceled.
 
@@ -90,8 +90,8 @@ class BleCentral(BleDeviceBase):
                                  ) -> BLE_ERROR:
         """Discover characteristics on remote GATT server
 
-        :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_CHAR` will be sent for each characteristic found. Once completed
-        :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_COMPLETED` will be sent.
+        :py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcDiscoverChar` will be sent for each characteristic found. Once completed
+        :py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcDiscoverCompleted` will be sent.
 
         If `uuid` is `None`, all characteristics are returned.
 
@@ -116,8 +116,8 @@ class BleCentral(BleDeviceBase):
                              ) -> BLE_ERROR:
         """Discover descriptors on remote GATT server
 
-        :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_DESC` will be sent for each descriptor found. Once completed
-        :py:class:`~py_ble_manager.ble_api.BleCommon..BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_COMPLETED` will be sent.
+        :py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcDiscoverDesc` will be sent for each descriptor found. Once completed
+        :py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcDiscoverCompleted` will be sent.
 
         :param conn_idx: connection index
         :type conn_idx: int
@@ -134,8 +134,8 @@ class BleCentral(BleDeviceBase):
     def discover_services(self, conn_idx: int, uuid: AttUuid) -> BLE_ERROR:
         """Discover services on remote GATT server
 
-        :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_SVC` will be sent for each service found. Once completed
-        :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_COMPLETED` will be sent.
+        :py:class:`~py_ble_manager.ble_api.BleGattc.BLE_EVT_GATTC.BleEventGattcDiscoverSvc` will be sent for each service found. Once completed
+        :py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcDiscoverCompleted` will be sent.
 
         If `uuid` is None, all services are returned.
 
@@ -154,7 +154,7 @@ class BleCentral(BleDeviceBase):
 
         This call will start an MTU exchange procedure with the MTU previously set using
         BleCentral.mtu_size_set(). If the MTU has been changed during the negotiation, a
-        :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_MTU_CHANGED` event will be sent to the application
+        :py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcMtuChanged` event will be sent to the application
 
         :param conn_idx: connection index
         :type conn_idx: int
@@ -224,7 +224,7 @@ class BleCentral(BleDeviceBase):
         procedure, depending on the attribute `handle`. If `offset` is non-zero or the
         attribute length is larger than the MTU, the "Read Long Characteristic Value" procedure or the
         "Read Long Characteristic Descriptor" procedure will be used respectively. The complete attribute
-        value will be returned in the :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_READ_COMPLETED` event.
+        value will be returned in the :py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcReadCompleted` event.
 
         :param conn_idx: connection index
         :type conn_idx: int
@@ -249,7 +249,7 @@ class BleCentral(BleDeviceBase):
 
         This call initiates a scan procedure. The scan duration depends on the scan mode selected.
         In General-discoverable and Limited-discoverable modes, the scan will stop after 10s of activity.
-        In Observer mode, the scan operation will continue until it is stopped using ble_gap_scan_stop().
+        In Observer mode, the scan operation will continue until it is stopped using :py:meth:`~py_ble_manager.ble_devices.BleCentral.scan_stop`.
         Allowed values for `interval_ms` span in the range of 2.5ms to 10.24s.
 
         :param type: active or passive scanning
@@ -297,7 +297,7 @@ class BleCentral(BleDeviceBase):
         or the attribute length is larger than the MTU, the "Write Long Characteristic Value" procedure
         or the "Write Long Characteristic Descriptor" procedure will be used respectively.
 
-        The application will receive a :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED`
+        The application will receive a :py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcWriteCompleted`
         event when the write operation is completed.
 
         :param conn_idx: connection index
@@ -322,7 +322,7 @@ class BleCentral(BleDeviceBase):
         a link which is not encrypted or will fall back to the "Write Without Response" procedure on a
         link that is already encrypted.
 
-        The application will receive a :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED` event
+        The application will receive a :py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcWriteCompleted` event
         when the write operation is performed.
 
         :param conn_idx: connection index
@@ -341,7 +341,7 @@ class BleCentral(BleDeviceBase):
     def write_prepare(self, conn_idx: int, handle: int, offset: int, value: bytes) -> BLE_ERROR:
         """Prepare long/reliable write to remote GATT server
 
-        The application will receive a :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED` event when
+        The application will receive a :py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcWriteCompleted` event when
         the write operation is queued.
 
         :param conn_idx: connection index
@@ -362,7 +362,7 @@ class BleCentral(BleDeviceBase):
 
         In order to cancel prepared requests, `commit` shall be set to `False`.
 
-        The application will receive a :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED`
+        The application will receive a :py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcWriteCompleted`
         event when write queue is executed. The `handle` parameter of this event will be set to 0.
 
         :param conn_idx: connection index

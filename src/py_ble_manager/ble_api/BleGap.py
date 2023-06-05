@@ -359,7 +359,7 @@ class BleAdvData():
 class BleEventGapAddressResolutionFailed(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_ADDRESS_RESOLUTION_FAILED` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_ADDRESS_RESOLUTION_FAILED`
     :ivar status: event status
     """
     def __init__(self,
@@ -372,7 +372,7 @@ class BleEventGapAddressResolutionFailed(BleEventBase):
 class BleEventGapAddressResolved(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_ADDRESS_RESOLVED` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_ADDRESS_RESOLVED`
     :ivar conn_idx: connection index
     :ivar resolved_address: static address
     :ivar address: random address
@@ -392,7 +392,7 @@ class BleEventGapAddressResolved(BleEventBase):
 class BleEventGapAdvCompleted(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_ADV_COMPLETED` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_ADV_COMPLETED`
     :ivar adv_type: advertising type
     :ivar status: event status
     """
@@ -408,7 +408,7 @@ class BleEventGapAdvCompleted(BleEventBase):
 class BleEventGapAdvReport(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_ADV_REPORT` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_ADV_REPORT`
     :ivar type: type of advertising packet
     :ivar address: BD address of advertising device
     :ivar rssi: received signal strength
@@ -431,7 +431,7 @@ class BleEventGapAdvReport(BleEventBase):
 class BleEventGapConnected(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED` event
 
-    :ivar conn_idx: connection index
+    :ivar conn_idx: connection index, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED`
     :ivar own_addr: own address
     :ivar peer_address: peer address
     :ivar conn_params: connection parameters
@@ -452,7 +452,7 @@ class BleEventGapConnected(BleEventBase):
 class BleEventGapConnectionCompleted(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED`
     :ivar status: completion status
     """
 
@@ -466,7 +466,7 @@ class BleEventGapConnectionCompleted(BleEventBase):
 class BleEventGapConnParamUpdateCompleted(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATE_COMPLETED` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATE_COMPLETED`
     :ivar conn_idx: connection index
     :ivar status: completion status
     """
@@ -483,7 +483,7 @@ class BleEventGapConnParamUpdateCompleted(BleEventBase):
 class BleEventGapConnParamUpdateReq(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATE_REQ` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATE_REQ`
     :ivar conn_idx: connection index
     :ivar conn_params: connection parameters
     """
@@ -500,7 +500,7 @@ class BleEventGapConnParamUpdateReq(BleEventBase):
 class BleEventGapConnParamUpdated(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATED` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_CONN_PARAM_UPDATED`
     :ivar conn_idx: connection index
     :ivar conn_params: connection parameters
     """
@@ -517,7 +517,7 @@ class BleEventGapConnParamUpdated(BleEventBase):
 class BleEventGapDataLengthChanged(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DATA_LENGTH_CHANGED` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DATA_LENGTH_CHANGED`
     :ivar conn_idx: connection index
     :ivar max_rx_length: maximum number of payload octets in RX
     :ivar max_rx_time: maximum time used for RX
@@ -542,7 +542,7 @@ class BleEventGapDataLengthChanged(BleEventBase):
 class BleEventGapDataLengthSetFailed(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DATA_LENGTH_SET_FAILED` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DATA_LENGTH_SET_FAILED`
     :ivar conn_idx: connection index
     :ivar status: event status
     """
@@ -558,7 +558,7 @@ class BleEventGapDataLengthSetFailed(BleEventBase):
 class BleEventGapLtkMissing(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_LTK_MISSING` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_LTK_MISSING`
     :ivar conn_idx: connection index
     """
 
@@ -572,7 +572,7 @@ class BleEventGapLtkMissing(BleEventBase):
 class BleEventGapPeerFeatures(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_PEER_FEATURES` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_PEER_FEATURES`
     :ivar conn_idx: connection index
     :ivar le_features: 8-byte array for LE features
     """
@@ -589,7 +589,7 @@ class BleEventGapPeerFeatures(BleEventBase):
 class BleEventGapPeerVersion(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_PEER_VERSION` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_PEER_VERSION`
     :ivar conn_idx: connection index
     :ivar lmp_version: supported Bluetooth LMP Specification
     :ivar company_id: company ID
@@ -612,7 +612,7 @@ class BleEventGapPeerVersion(BleEventBase):
 class BleEventGapDisconnected(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED`
     :ivar conn_idx: connection index
     :ivar address: BD address of disconnected device
     :ivar reason: reason of disconnection
@@ -632,7 +632,7 @@ class BleEventGapDisconnected(BleEventBase):
 class BleEventGapDisconnectFailed(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECT_FAILED` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECT_FAILED`
     :ivar conn_idx: connection index
     :ivar status: error status
     """
@@ -649,7 +649,7 @@ class BleEventGapDisconnectFailed(BleEventBase):
 class BleEventGapNumericRequest(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_NUMERIC_REQUEST` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_NUMERIC_REQUEST`
     :ivar conn_idx: connection index
     :ivar num_key: numeric comparison key
     """
@@ -666,7 +666,7 @@ class BleEventGapNumericRequest(BleEventBase):
 class BleEventGapPairCompleted(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_PAIR_COMPLETED` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_PAIR_COMPLETED`
     :ivar conn_idx: connection index
     :ivar status: completion status
     :ivar bond: bond enabled flag
@@ -689,7 +689,7 @@ class BleEventGapPairCompleted(BleEventBase):
 class BleEventGapPairReq(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_PAIR_REQ` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_PAIR_REQ`
     :ivar conn_idx: connection index
     :ivar bond: enable bond
     """
@@ -706,7 +706,7 @@ class BleEventGapPairReq(BleEventBase):
 class BleEventGapPasskeyNotify(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_PASSKEY_NOTIFY` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_PASSKEY_NOTIFY`
     :ivar conn_idx: connection index
     :ivar passkey: passkey
     """
@@ -723,7 +723,7 @@ class BleEventGapPasskeyNotify(BleEventBase):
 class BleEventGapScanCompleted(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_SCAN_COMPLETED` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_SCAN_COMPLETED`
     :ivar scan_type: scan type
     :ivar status: completion status
     """
@@ -740,7 +740,7 @@ class BleEventGapScanCompleted(BleEventBase):
 class BleEventGapSecLevelChanged(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_SEC_LEVEL_CHANGED` event
 
-    :ivar evt_code: event code
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_SEC_LEVEL_CHANGED`
     :ivar conn_idx: connection index
     :ivar level: security level
     """
