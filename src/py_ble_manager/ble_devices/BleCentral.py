@@ -73,7 +73,7 @@ class BleCentral(BleDeviceBase):
 
         This call cancels a previously started connection procedure using connect(). The
         application will receive a :py:class:`~py_ble_manager.ble_api.BleGap.BleEventGapConnectionCompleted` event
-        with status set to :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_ERROR.BLE_ERROR_CANCELED`
+        with status set to :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_ERROR.BLE_ERROR_CANCELED`
         if the connection procedure is successfully canceled.
 
         :return: result code
@@ -249,7 +249,7 @@ class BleCentral(BleDeviceBase):
 
         This call initiates a scan procedure. The scan duration depends on the scan mode selected.
         In General-discoverable and Limited-discoverable modes, the scan will stop after 10s of activity.
-        In Observer mode, the scan operation will continue until it is stopped using :py:meth:`~py_ble_manager.ble_devices.BleCentral.scan_stop`.
+        In Observer mode, the scan operation will continue until it is stopped using :py:meth:`~py_ble_manager.ble_devices.BleCentral.BleCentral.scan_stop`.
         Allowed values for `interval_ms` span in the range of 2.5ms to 10.24s.
 
         :param type: active or passive scanning
@@ -274,7 +274,7 @@ class BleCentral(BleDeviceBase):
     def scan_stop(self) -> BLE_ERROR:
         """Stop scanning for devices
 
-        This call stops a scan procedure previously started using :py:meth:`~py_ble_manager.ble_devices.BleCentral.scan_start`
+        This call stops a scan procedure previously started using :py:meth:`~py_ble_manager.ble_devices.BleCentral.BleCentral.scan_start`
 
         :return: result code
         :rtype: BLE_ERROR
