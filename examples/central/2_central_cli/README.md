@@ -58,7 +58,7 @@ For example:
 
 `CONNECT 48:23:35:00:1b:53,P`
 
-When the procedure is complete, a message indicationg so will be printed to the terminal:
+When the procedure is complete, a message indicating so will be printed to the terminal:
 
 ![connect](assets/connect.png)
 
@@ -72,7 +72,7 @@ For example:
 
 `CONNECT_CANCEL`
 
-When the procedure is complete, a message indicationg so will be printed to the terminal:
+When the procedure is complete, a message indicating so will be printed to the terminal:
 
 ![connect_cancel](assets/connect_cancel.png)
 
@@ -86,7 +86,7 @@ For example, to disconnect from the peripheral at connection index 0:
 
 `DISCONNECT 0`
 
-When the procedure is complete, a message indicationg you have disconnected will be printed to the terminal:
+When the procedure is complete, a message indicating you have disconnected will be printed to the terminal:
 
 ![disconnect](assets/disconnect.png)
 
@@ -108,7 +108,7 @@ For example, to browse the attributes of the peripheral at connection index 0:
 
 `BROWSE 0`
 
-When the procedure is complete, a message indicationg so will be printed to the terminal:
+When the procedure is complete, a message indicating so will be printed to the terminal:
 
 ![browse](assets/browse.png)
 
@@ -122,7 +122,7 @@ For example:
 
 `DISCOVER_SVC 0`
 
-When the procedure is complete, a message indicationg so will be printed to the terminal:
+When the procedure is complete, a message indicating so will be printed to the terminal:
 
 ![disc_svc_all](assets/disc_svc_all.png)
 
@@ -156,7 +156,7 @@ For example, to discover characteristics between start handle 23 and end handle 
 
 `DISCOVER_CHAR 0 23 30`
 
-When the procedure is complete, a message indicationg so will be printed to the terminal:
+When the procedure is complete, a message indicating so will be printed to the terminal:
 
 ![disc_char_all](assets/disc_char_all.png)
 
@@ -176,7 +176,7 @@ For example, to discover descriptors between start handle 23 and end handle 30:
 
 `DISCOVER_DESC 0 23 30`
 
-When the procedure is complete, a message indicationg so will be printed to the terminal:
+When the procedure is complete, a message indicating so will be printed to the terminal:
 
 ![disc_desc](assets/disc_desc.png)
 
@@ -190,7 +190,7 @@ For example, to read handle 13 from the peripheral at connection index 0:
 
 `READ 0 13`
 
-When the procedure is complete, a message indicationg so will be printed to the terminal:
+When the procedure is complete, a message indicating so will be printed to the terminal:
 
 ![read](assets/read.png)
 
@@ -212,7 +212,7 @@ For example, to write 0x3412 to handle 13 of the peripheral at connection index 
 
 `WRITE 0 13 1234`
 
-Note the data should be written little endian. When the procedure is complete, a message indicationg so will be printed to the terminal:
+Note the data should be written little endian. When the procedure is complete, a message indicating so will be printed to the terminal:
 
 ![write](assets/write.png)
 
@@ -242,7 +242,7 @@ For example:
 
 `SET_CONN_PARAM 0 50 70 0 420`
 
-When the procedure is complete, a message indicationg so will be printed to the terminal:
+When the procedure is complete, a message indicating so will be printed to the terminal:
 
 ![setconnparam](assets/setconnparams.png)
 
@@ -256,7 +256,7 @@ For example, to pair to the peripheral at connection index 0:
 
 `PAIR 0 0`
 
-When the procedure is complete, a message indicationg so will be printed to the terminal:
+When the procedure is complete, a message indicating so will be printed to the terminal:
 
 ![pair](assets/pair.png)
 
@@ -272,7 +272,7 @@ For example, to accept pairing at connection index 0 with passkey 945553:
 
 Note the passkey to enter is presented on the display of the Peripheral.
 
-When the procedure is complete, a message indicationg so will be printed to the terminal:
+When the procedure is complete, a message indicating so will be printed to the terminal:
 
 ![passkeyentry](assets/passkeyentry.png)
 
@@ -286,6 +286,6 @@ For example, to accept a secure connection at connection index 0:
 
 `YES_NO_ENTRY 0 1`
 
-When the procedure is complete, a message indicationg so will be printed to the terminal:
+When the procedure is complete, a message indicating so will be printed to the terminal:
 
 ![yesnoentry](assets/yesnoentry.png)
