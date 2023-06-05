@@ -26,9 +26,12 @@ dev = [
     "prompt_toolkit>=3.0.38"
 ]
 
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [tool.setuptools.package-data]
-firmware = ["src/py_ble_manager/firmware/da14531mod_pro_kit_921600.bin"]
-prgrm_util = ["include src/py_ble_manager/util/*.py"]
+firmware = ["*.bin"]
+util = ["py_ble_manager_programmer.py"]
 
 [project.scripts]
 py_ble_manager_programmer = "py_ble_manager.util.py_ble_manager_programmer:main"
