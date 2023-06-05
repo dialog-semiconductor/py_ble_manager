@@ -20,7 +20,11 @@ The primary intent is for use as a central device for benchtop testing, continuo
 
 3. Open a command prompt or terminal and navigate to the repository on your PC.
 
-4. Setup a virtual environment by calling: `<path_to/py_ble_manager>$ python -m venv ./venv`. Note this library has been tested with Python v3.10.5. To create a virtual environment that uses Python 3.10.5, you must already have Python 3.10.5 downloaded on your computer. To use the above command to create a Python 3.10.5 environment, Python 3.10.5 must be configured in your PATH. You can download it from the [python website](https://www.python.org/downloads/release/python-3105/).
+4. Setup a virtual environment by calling: `<path_to/py_ble_manager>$ python -m venv ./venv`.
+
+    > **_NOTE:_**
+      This library has been tested with Python v3.10.5. To create a virtual environment that uses Python 3.10.5, you must already have Python 3.10.5 downloaded on your computer. To use the above command to create a Python 3.10.5 environment, Python 3.10.5 must be configured in your PATH. You can download it from the [python website](https://www.python.org/downloads/release/python-3105/).
+
 
 5. Activate the virtual environment. The specific command depends on your operating system. From a windows command prompt call: `<path_to_venv>\Scripts\activate.bat`
 
@@ -41,7 +45,10 @@ The primary intent is for use as a central device for benchtop testing, continuo
 
 2. Open the `py_ble_manager` repository directory in VS Code.
 
-3. Setup a virtual environment by calling: `$ python -m venv ./venv` from the VS Code terminal. Note this library has been tested with Python v3.10.5. To create a virtual environment that uses Python 3.10.5, you must already have Python 3.10.5 downloaded on your computer. To use the above command to create a Python 3.10.5 environment, Python 3.10.5 must be configured in your PATH. You can download it from the [python website](https://www.python.org/downloads/release/python-3105/).
+3. Setup a virtual environment by calling: `$ python -m venv ./venv` from the VS Code terminal. 
+
+    > **_NOTE:_**
+      This library has been tested with Python v3.10.5. To create a virtual environment that uses Python 3.10.5, you must already have Python 3.10.5 downloaded on your computer. To use the above command to create a Python 3.10.5 environment, Python 3.10.5 must be configured in your PATH. You can download it from the [python website](https://www.python.org/downloads/release/python-3105/).
 
 4. Activate the virtual environment. Hold CTRL+shift+P to open the command palette. Select `Python: Select Interpreter`. Select the interpreter in the virtual environment you just created (labeled venv).
 Open a new terminal in VS Code and the virtual environment will be activated.
