@@ -30,8 +30,8 @@ dev = [
 where = ["src"]
 
 [tool.setuptools.package-data]
-firmware = ["*.bin"]
-util = ["py_ble_manager_programmer.py"]
+"py_ble_manager.firmware" = ["*.bin"]
+"py_ble_manager.util" = ["py_ble_manager_programmer.py"]
 
 [project.scripts]
 py_ble_manager_programmer = "py_ble_manager.util.py_ble_manager_programmer:main"
