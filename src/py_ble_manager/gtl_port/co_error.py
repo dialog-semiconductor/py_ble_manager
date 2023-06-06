@@ -1,39 +1,3 @@
-'''
-/**
- ****************************************************************************************
- *
- * @file co_error.h
- *
- * @brief List of codes for error in RW Software.
- *
- * Copyright (C) RivieraWaves 2009-2014
- *
- *
- ****************************************************************************************
- */
-
-#ifndef CO_ERROR_H_
- CO_ERROR_H_
-
-/**
- ****************************************************************************************
- * @addtogroup CO_ERROR Error Codes
- * @ingroup COMMON
- * @brief Defines error codes in messages.
- *
- * @{
- ****************************************************************************************
- */
-
-/*
- * DEFINES
- ****************************************************************************************
- */
-
-/*****************************************************
- ***              ERROR CODES                      ***
- *****************************************************/
-'''
 from enum import IntEnum
 
 
@@ -97,24 +61,3 @@ class CO_ERROR(IntEnum):
     CO_ERROR_DIRECT_ADV_TO = 0x3C
     CO_ERROR_TERMINATED_MIC_FAILURE = 0x3D
     CO_ERROR_CONN_FAILED_TO_BE_EST = 0x3E
-
-    # Proprietary error codes
-    CO_ERROR_MASTER_KEY_SLAVE = 0x80  # MasterLink not allowed because slave
-    CO_ERROR_CONNECTION_FILTERED = 0x83  # Connection Filtered by the HCI
-
-    CO_ERROR_UNDEFINED = 0xFF
-
-
-'''
-/*****************************************************
- ***              HW ERROR CODES                   ***
- *****************************************************/
-
-#CO_ERROR_HW_UART_OUT_OF_SYNC = 0x00
-# CO_ERROR_HW_MEM_ALLOC_FAIL = 0x01
-
-
-# @} CO_ERROR
-
-#endif // CO_ERROR_H_
-'''

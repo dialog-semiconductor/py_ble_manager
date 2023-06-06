@@ -1,43 +1,3 @@
-'''
- ****************************************************************************************
- *
- * @file gap.h
- *
- * @brief Header file - GAP.
- *
- * Copyright (C) RivieraWaves 2009-2014
- *
- *
- ****************************************************************************************
- */
-
-/**
- ****************************************************************************************
- * @addtogroup HOST
- * @ingroup ROOT
- * @brief Bluetooth Low Energy Host
- *
- * The HOST layer of the stack contains the higher layer protocols (@ref ATT "ATT",
- * @ref SMP "SMP") and transport module (@ref L2C "L2C"). It also includes the Generic
- * Access Profile (@ref GAP "GAP"), used for scanning/connection operations.
- ****************************************************************************************
- */
-/**
- ****************************************************************************************
- * @addtogroup GAP Generic Access Profile
- * @ingroup HOST
- * @brief Generic Access Profile.
- *
- * The GAP module is responsible for providing an API to the application in order to
- * configure the device in the desired mode (discoverable, connectable, etc.) and perform
- * required actions (scanning, connection, pairing, etc.). To achieve this, the GAP
- * interfaces with both the @ref SMP "SMP", @ref L2C "L2C" and the @ref CONTROLLER "CONTROLLER"
- *
- * @{
- ****************************************************************************************
- */
-'''
-
 from ctypes import Array, c_uint8, c_uint16, LittleEndianStructure, pointer, POINTER, cast
 from enum import auto, IntEnum, IntFlag
 from .co_bt import BD_ADDR_LEN, KEY_LEN, bd_addr
@@ -149,44 +109,6 @@ class GAP_ENABLE_TYPE(IntEnum):
     GAP_DISABLE = 0x00
     # Enable
     GAP_ENABLE = auto()
-
-
-# if (BLE_ATTS)
-# GAP Attribute database handles
-# Generic Access Profile Service
-'''
-enum
-{
-    GAP_IDX_PRIM_SVC
-    GAP_IDX_CHAR_DEVNAME
-    GAP_IDX_DEVNAME
-    GAP_IDX_CHAR_ICON
-    GAP_IDX_ICON
-    GAP_IDX_CHAR_SLAVE_PREF_PARAM
-    GAP_IDX_SLAVE_PREF_PARAM
-    GAP_IDX_CHAR_CENTRAL_RPA
-    GAP_IDX_CENTRAL_RPA
-    /// ESR10
-    GAP_IDX_CHAR_RPA_ONLY
-    GAP_IDX_RPA_ONLY
-    GAP_IDX_NUMBER
-};
-
-
-// GAP database default features
-#define GAP_DB_DEFAULT_FEAT         0x001F
-// GAP database features in peripheral role
-#define GAP_DB_PERIPH_FEAT          0x0060
-
-// GAP database features in central role
-#define GAP_DB_CENTRAL_FEAT         0x0180
-// GAP database features in for RPA Only  (ESR10)
-#define GAP_DB_RPA_ONLY_FEAT        0x0600
-
-
-#endif /* (BLE_ATTS)*/
-
-'''
 
 
 # GAP Role
@@ -397,45 +319,6 @@ class gap_slv_pref(LittleEndianStructure):
                 ("conn_timeout", c_uint16)]
 
 
-'''
-///***** AD Type Flag - Bit set *******/
-/// Limited discovery flag - AD Flag
-#define GAP_LE_LIM_DISCOVERABLE_FLG             0x01
-/// General discovery flag - AD Flag
-#define GAP_LE_GEN_DISCOVERABLE_FLG             0x02
-/// Legacy BT not supported - AD Flag
-#define GAP_BR_EDR_NOT_SUPPORTED                0x04
-/// Dual mode for controller supported (BR/EDR/LE) - AD Flag
-#define GAP_SIMUL_BR_EDR_LE_CONTROLLER          0x08
-/// Dual mode for host supported (BR/EDR/LE) - AD Flag
-#define GAP_SIMUL_BR_EDR_LE_HOST                0x10
-
-/*********** GAP Miscellaneous Defines *************/
-/// Invalid connection index
-#define GAP_INVALID_CONIDX                      0xFF
-
-/// Invalid connection handle
-#define GAP_INVALID_CONHDL                      0xFFFF
-
-/// Connection interval min (N*1.250ms)
-#define GAP_CNX_INTERVAL_MIN            6       //(0x06)
-/// Connection interval Max (N*1.250ms)
-#define GAP_CNX_INTERVAL_MAX            3200    //(0xC80)
-/// Connection latency min (N*cnx evt)
-#define GAP_CNX_LATENCY_MIN             0       //(0x00)
-/// Connection latency Max (N*cnx evt
-#define GAP_CNX_LATENCY_MAX             499     //(0x1F3)
-/// Supervision TO min (N*10ms)
-#define GAP_CNX_SUP_TO_MIN              10      //(0x0A)
-/// Supervision TO Max (N*10ms)
-#define GAP_CNX_SUP_TO_MAX              3200    //(0xC80)
-
-/// maximum number of LECB connection per BLE link
-#define GAP_LECB_CNX_MAX                rom_cfg_table[gap_lecb_cnx_max_pos] //10
-'''
-# *************** GAP LittleEndianStructures ********************
-
-
 # Address information about a device address
 class gap_bdaddr(LittleEndianStructure):
     def __init__(self,
@@ -500,5 +383,3 @@ class gap_ral_dev_info:
                 ("peer_irk", c_uint8 * KEY_LEN),
                 # Local IRK
                 ("local_irk", c_uint8 * KEY_LEN)]
-
-# @} GAP

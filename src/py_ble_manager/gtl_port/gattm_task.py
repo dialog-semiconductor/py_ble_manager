@@ -1,47 +1,3 @@
-'''
-/**
- ****************************************************************************************
- *
- * @file gattm_task.h
- *
- * @brief Header file - GATTMTASK.
- *
- * Copyright (C) RivieraWaves 2009-2014
- *
- *
- ****************************************************************************************
- */
-
-#ifndef GATTM_TASK_H_
-#define GATTM_TASK_H_
-
-/**
- ****************************************************************************************
- * @addtogroup GATTMTASK Task
- * @ingroup GATTM
- * @brief Handles ALL GATT block operations not related to a connection.
- *
- * The GATTMTASK is responsible for managing internal attribute database and state of
- * GATT controller which manage GATT block operations related to a connection.
- *
- * Messages may originate from @ref ATTM "ATTM", @ref GAP "GAP" and Application.
- *
- * @{
- ****************************************************************************************
- */
-/*
- * INCLUDE FILES
- ****************************************************************************************
- */
- '''
-# include "rwip_config.h"
-# if (BLE_CENTRAL || BLE_PERIPHERAL)
-
-# include "gatt.h"
-# include "attm.h"
-# include "gattm.h"
-# include "co_utils.h"
-
 from ctypes import Array, cast, c_uint8, c_uint16, LittleEndianStructure, pointer, POINTER
 from enum import auto, IntEnum
 
@@ -55,28 +11,6 @@ GAPM_LE_LENGTH_EXT_OCTETS_MIN = 27
 GAPM_LE_LENGTH_EXT_OCTETS_MAX = 251
 GAPM_LE_LENGTH_EXT_TIME_MIN = 328
 GAPM_LE_LENGTH_EXT_TIME_MAX = 2120
-
-'''
-/*
- * DEFINES
- ****************************************************************************************
- */
-
-/// number of GATT Process
-#define GATTM_IDX_MAX                                 0x01
-
-
-/// states of GATT task
-enum gattm_state_id
-{
-    /// idle state
-    GATTM_IDLE,
-    /// busy state
-    GATTM_BUSY,
-    /// Number of defined states.
-    GATTM_STATE_MAX
-};
-'''
 
 
 # GATT Task messages
@@ -315,47 +249,6 @@ class gattm_svc_set_permission_rsp(LittleEndianStructure):
                 ("padding", c_uint8)]
 
 
-'''
-/* Attribute management */
-/// Get permission settings of attribute request
-struct gattm_att_get_permission_req
-{
-    /// Handle of the attribute
-    uint16_t handle;
-};
-
-/// Get permission settings of attribute response
-struct gattm_att_get_permission_rsp
-{
-    /// Handle of the attribute
-    uint16_t handle;
-    /// Attribute permission
-    att_perm_type perm;
-    /// Return status
-    uint8_t status;
-};
-
-/// Set permission settings of attribute request
-struct gattm_att_set_permission_req
-{
-    /// Handle of the attribute
-    uint16_t handle;
-    /// Attribute permission
-    att_perm_type perm;
-};
-
-/// Set permission settings of attribute response
-struct gattm_att_set_permission_rsp
-{
-    /// Handle of the attribute
-    uint16_t handle;
-    /// Return status
-    uint8_t status;
-};
-
-'''
-
-
 # Get attribute value request
 class gattm_att_get_value_req(LittleEndianStructure):
 
@@ -455,80 +348,3 @@ class gattm_att_set_value_rsp(LittleEndianStructure):
                 # Return status
                 ("status", c_uint8),
                 ("padding", c_uint8)]
-
-
-'''
-/// DEBUG ONLY: Destroy Attribute database request
-struct gattm_destroy_db_req
-{
-    /// New Gap Start Handle
-    uint16_t gap_hdl;
-    /// New Gatt Start Handle
-    uint16_t gatt_hdl;
-};
-
-/// DEBUG ONLY: Destroy Attribute database Response
-struct gattm_destroy_db_rsp
-{
-    /// Return status
-    uint8_t status;
-};
-
-
-/// Service information
-struct gattm_svc_info
-{
-    /// Service start handle
-    uint16_t start_hdl;
-    /// Service end handle
-    uint16_t end_hdl;
-    /// Service task_id
-    uint16_t task_id;
-    /// Service permission
-    uint8_t perm;
-};
-
-/// DEBUG ONLY: Retrieve list of services response
-struct gattm_svc_get_list_rsp
-{
-    /// Return status
-    uint8_t status;
-    /// Number of services
-    uint8_t nb_svc;
-    /// Array of information about services
-    struct gattm_svc_info svc[__ARRAY_EMPTY];
-};
-
-/// DEBUG ONLY: Retrieve information of attribute request
-struct  gattm_att_get_info_req
-{
-    /// Attribute Handle
-    uint16_t handle;
-};
-
-/// DEBUG ONLY: Retrieve information of attribute response
-struct  gattm_att_get_info_rsp
-{
-    /// Return status
-    uint8_t status;
-    /// UUID Length
-    uint8_t uuid_len;
-    /// Attribute Handle
-    uint16_t handle;
-    /// Attribute Permissions
-    att_perm_type perm;
-    /// UUID value
-    uint8_t uuid[ATT_UUID_128_LEN];
-};
-
-/*
- * FUNCTION DECLARATIONS
- ****************************************************************************************
- */
-extern const struct ke_state_handler gattm_default_handler;
-extern ke_state_t gattm_state[GATTM_IDX_MAX];
-
-#endif /* (BLE_CENTRAL || BLE_PERIPHERAL) */
-/// @} GATTMTASK
-#endif // GATTM_TASK_H_
-'''

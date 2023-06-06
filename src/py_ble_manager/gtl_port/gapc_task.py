@@ -1,39 +1,3 @@
-'''
-#*
- ****************************************************************************************
- *
- * @file gapc_task.h
- *
- * @brief Generic Access Profile Controller Task Header.
- *
- * Copyright (C) RivieraWaves 2009-2014
- *
- ****************************************************************************************
- */
-#ifndef _GAPC_TASK_H_
-#define _GAPC_TASK_H_
-
-#*
- ****************************************************************************************
- * @addtogroup GAPC_TASK Generic Access Profile Controller Task
- * @ingroup GAPC
- * @brief Handles ALL messages to/from GAP Controller block.
- *
- * It handles messages from lower and higher layers related to an ongoing connection.
- *
- * @{
- ****************************************************************************************
- */
-
-#
- * INCLUDE FILES
- ****************************************************************************************
- */
-'''
-# include "rwip_config.h"
-# include "ke_task.h"
-# include "gap.h"
-
 from ctypes import Array, c_bool, c_uint8, c_uint16, c_uint32, LittleEndianStructure, Union
 from enum import auto, IntEnum
 
@@ -43,82 +7,6 @@ from .gap import GAP_AUTH, GAP_IO_CAP, GAP_KDIST, GAP_OOB, GAP_TK_TYPE, gap_sec_
     gap_dev_name, gap_slv_pref
 from .rwble_hl_error import HOST_STACK_ERROR_CODE
 from .rwip_config import KE_API_ID
-
-'''
-
-#if (BLE_CENTRAL || BLE_PERIPHERAL)
-
-#
- * MACROS
- ****************************************************************************************
- */
-#define GAPC_LECB_AUTH(slvl)              (slvl & 0x0003)
-#define GAPC_LECB_EKS(slvl)               ((slvl >> 2) & 0x0001)
-
-#
- * DEFINES
- ****************************************************************************************
- */
-
-# number of GAP Controller Process
-#define GAPC_IDX_MAX                                 BLE_CONNECTION_MAX
-
-# Operation type
-enum gapc_op_type
-{
-    # Operation used to manage Link (update params, get peer info)
-    GAPC_OP_LINK_INFO    = 0x00,
-
-    # Operation used to manage SMP
-    GAPC_OP_SMP          = 0x01,
-
-    # Operation used to manage Link Layer update (connection parameters or PHY)
-    GAPC_OP_LINK_UPD     = 0x02,
-
-#if defined (__DA14531__)
-    # Operation used to manage L2CAP connection parameters update
-    GAPC_OP_L2C_UPD      = 0x03,
-#endif
-
-    # Max number of operations
-    GAPC_OP_MAX
-};
-
-# states of GAP Controller task
-enum gapc_state_id
-{
-    # Connection ready state
-    GAPC_READY,
-
-    # Link Operation on-going
-    GAPC_LINK_INFO_BUSY     = (1 << GAPC_OP_LINK_INFO),
-    # SMP Operation  on-going
-    GAPC_SMP_BUSY           = (1 << GAPC_OP_SMP),
-    # Link Layer Update Operation on-going
-    GAPC_LINK_UPD_BUSY      = (1 << GAPC_OP_LINK_UPD),
-#if defined (__DA14531__)
-    # L2CAP Connection Parameters Update Operation on-going
-    GAPC_L2C_UPD_BUSY       = (1 << GAPC_OP_L2C_UPD),
-    # SMP start encryption on-going
-    GAPC_ENCRYPT_BUSY       = (1 << GAPC_OP_MAX),
-
-    # Disconnection  on-going
-    GAPC_DISC_BUSY          = 0x3F,
-    # Free state
-    GAPC_FREE               = 0X7F,
-#else
-    # SMP start encryption on-going
-    GAPC_ENCRYPT_BUSY       = (1 << GAPC_OP_MAX),
-
-    # Disconnection  on-going
-    GAPC_DISC_BUSY          = 0x1F,
-    # Free state
-    GAPC_FREE               = 0X3F,
-#endif
-    # Number of defined states.
-    GAPC_STATE_MAX
-};
-'''
 
 
 # GAP Controller Task messages
@@ -387,36 +275,6 @@ class GAPC_DEV_INFO(IntEnum):
     GAPC_DEV_INFO_MAX = auto()
 
 
-'''
-# List of features available on a device
-enum gapc_features_list
-{
-    # LE encryption
-    GAPC_ENCRYPT_FEAT_MASK              = (1 << 0),
-    # Connection Parameters Request Procedure
-    GAPC_CONN_PARAM_REQ_FEAT_MASK       = (1 << 1),
-    # Extended Reject Indication
-    GAPC_EXT_REJECT_IND_FEAT_MASK       = (1 << 2),
-    # Slave-intiated Features Exchange
-    GAPC_SLAVE_FEAT_EXCH_FEAT_MASK      = (1 << 3),
-    # LE ping
-    GAPC_LE_PING_FEAT_MASK              = (1 << 4)
-};
-
-#
- * TYPE DEFINITIONS
- ****************************************************************************************
- */
-
-# Operation command structure in order to keep requested operation.
-struct gapc_operation_cmd
-{
-    # GAP request type
-    uint8_t operation;
-};
-'''
-
-
 # Command complete event data structure
 class gapc_cmp_evt(LittleEndianStructure):
 
@@ -619,27 +477,6 @@ class gapc_dev_info_val(Union):
                 ("rpa_only", c_uint8)]
 
 
-'''
-# Peer device attribute DB info such as Device Name, Appearance or Slave Preferred Parameters
-struct gapc_peer_att_info_ind
-{
-    # Requested information
-    # - GAPC_DEV_NAME: Device Name
-    # - GAPC_DEV_APPEARANCE: Device Appearance Icon
-    # - GAPC_DEV_SLV_PREF_PARAMS: Device Slave preferred parameters
-    # - GAPC_DEV_CENTRAL_RPA: Device Central Address Resolution
-//ESR10
-    # - GAPC_DEV_RPA_ONLY: Device Resolvable Private Address Only
-    uint8_t  req;
-    # Attribute handle
-    uint16_t handle;
-
-    # device information data
-    union gapc_dev_info_val info;
-};
-'''
-
-
 # Indication of peer version info
 class gapc_peer_version_ind(LittleEndianStructure):
 
@@ -676,39 +513,6 @@ class gapc_peer_features_ind(LittleEndianStructure):
 
                 # 8-byte array for LE features
     _fields_ = [("features", c_uint8 * LE_FEATS_LEN)]
-
-
-'''
-# Indication of ongoing connection RSSI
-struct gapc_con_rssi_ind
-{
-    # RSSI value
-    uint8_t rssi;
-};
-# Indication of ongoing connection Channel Map
-struct gapc_con_channel_map_ind
-{
-    # channel map value
-    struct le_chnl_map ch_map;
-};
-
-# Sign counter value changed due to packet signing or signature verification.
-struct gapc_sign_counter_updated_ind
-{
-    # New Local signature counter value
-    uint32_t lsign_counter;
-    # New Remote signature counter value
-    uint32_t rsign_counter;
-};
-
-# Indication of LE Ping
-struct gapc_le_ping_to_val_ind
-{
-    #Authenticated payload timeout
-    uint16_t     timeout;
-};
-
-'''
 
 
 # Peer device request local device info such as name, appearance or slave preferred parameters
@@ -754,52 +558,6 @@ class gapc_get_dev_info_cfm(LittleEndianStructure):
                 # Peer device information data
                 ("info", gapc_dev_info_val),
                 ("more_padding", (c_uint8 * 6))]
-
-
-'''
-# Peer device request to modify local device info such as name or appearance
-struct gapc_set_dev_info_req_ind
-{
-    # Requested information
-    # - GAPC_DEV_NAME: Device Name
-    # - GAPC_DEV_APPEARANCE: Device Appearance Icon
-    uint8_t req;
-
-    # device information data
-    union gapc_set_dev_info
-    {
-        # Device name
-        struct gap_dev_name name;
-        # Appearance Icon
-        uint16_t appearance;
-    } info;
-};
-
-# Local device accept or reject device info modification
-struct gapc_set_dev_info_cfm
-{
-    # Requested information
-    # - GAPC_DEV_NAME: Device Name
-    # - GAPC_DEV_APPEARANCE: Device Appearance Icon
-    uint8_t req;
-
-    # Status code used to know if requested has been accepted or not
-    uint8_t status;
-};
-
-# Connection Parameter used to update connection parameters
-struct gapc_conn_param
-{
-    # Connection interval minimum
-    uint16_t intv_min;
-    # Connection interval maximum
-    uint16_t intv_max;
-    # Latency
-    uint16_t latency;
-    # Supervision timeout
-    uint16_t time_out;
-};
-'''
 
 
 # Perform update of connection parameters command
@@ -1201,19 +959,6 @@ class gapc_bond_ind(LittleEndianStructure):
                 ("data", gapc_bond_data)]
 
 
-'''
-# Start Encryption command procedure
-struct gapc_encrypt_cmd
-{
-    # GAP request type:
-    # - GAPC_ENCRYPT:  Start encryption procedure.
-    uint8_t operation;
-    # Long Term Key information
-    struct gapc_ltk ltk;
-};
-'''
-
-
 # Encryption requested by peer device indication message.
 class gapc_encrypt_req_ind(LittleEndianStructure):
 
@@ -1286,21 +1031,6 @@ class gapc_security_cmd(LittleEndianStructure):
                 ("auth", c_uint8)]
 
 
-'''
-# Security requested by peer device indication message
-struct gapc_security_ind
-{
-    # Authentification level (@see gap_auth)
-    uint8_t auth;
-};
-# Keypress notification message
-struct gapc_keypress_notification
-{
-    uint8_t type;
-};
-'''
-
-
 # Parameters of the @ref GAPC_SIGN_COUNTER_IND message
 class gapc_sign_counter_ind(LittleEndianStructure):
 
@@ -1317,170 +1047,6 @@ class gapc_sign_counter_ind(LittleEndianStructure):
     _fields_ = [("local_sign_counter", c_uint32),
                 # Peer SignCounter value
                 ("peer_sign_counter", c_uint32)]
-
-
-'''
-# Parameters of the @ref GAPC_SIGN_CMD message
-struct gapc_sign_cmd
-{
-    # GAP request type:
-    # - GAPC_SIGN_PACKET: Sign an attribute packet
-    # - GAPC_SIGN_CHECK:  Verify signature or an attribute packet
-    uint8_t operation;
-    # Data PDU length (Bytes)
-    uint16_t byte_len;
-    # Data PDU + SignCounter if generation, Data PDU + SignCounter + MAC if verification
-    uint8_t msg[__ARRAY_EMPTY];
-};
-
-# Parameters of the @ref GAPC_SIGN_IND message
-struct gapc_sign_ind
-{
-    # GAP request type:
-    # - GAPC_SIGN_PACKET: Sign an attribute packet
-    # - GAPC_SIGN_CHECK:  Verify signature or an attribute packet
-    uint8_t operation;
-    # Data PDU length (Bytes)
-    uint16_t byte_len;
-    # Data PDU + SignCounter + MAC
-    uint8_t signed_msg[__ARRAY_EMPTY];
-};
-
-# Parameters of the @ref GAPC_LECB_CREATE_CMD message
-struct gapc_lecb_create_cmd
-{
-    # GAP request type:
-    # - GAPC_LE_CB_CREATE: Allocate credit based structure
-    uint8_t operation;
-    # Security level
-    uint16_t sec_lvl;
-    # LE Protocol/Service Multiplexer
-    uint16_t le_psm;
-    # Channel identifier
-    uint16_t cid;
-    # Credit allocated for the LE Credit Based Connection
-    uint16_t intial_credit;
-};
-
-# Parameters of the @ref GAPC_LECB_DESTROY_CMD message
-struct gapc_lecb_destroy_cmd
-{
-    # GAP request type:
-    # - GAPC_LE_CB_DESTROY: Destroy allocated credit based structure
-    uint8_t operation;
-    # LE Protocol/Service Multiplexer
-    uint16_t le_psm;
-};
-
-# Parameters of the @ref GAPC_LECB_CONNECT_CMD message
-struct gapc_lecb_connect_cmd
-{
-    # GAP request type:
-    # - GAPC_LE_CB_CON: LE credit connection
-    uint8_t operation;
-    # Internal parameter used to manage internally l2cap packet identifier
-    uint8_t pkt_id;
-    # LE Protocol/Service Multiplexer
-    uint16_t le_psm;
-    # Channel identifier
-    uint16_t cid;
-    # Credit allocated for the LE Credit Based Connection
-    uint16_t credit;
-};
-
-# Parameters of the @ref GAPC_LECB_CONNECT_CFM message
-struct gapc_lecb_connect_cfm
-{
-    # LE Protocol/Service Multiplexer
-    uint16_t le_psm;
-    # Status
-    uint16_t status;
-};
-
-# Parameters of the @ref GAPC_LECB_CONNECT_IND message
-struct gapc_lecb_connect_ind
-{
-    # LE Protocol/Service Multiplexer
-    uint16_t le_psm;
-    # Destination Credit for the LE Credit Based Connection
-    uint16_t dest_credit;
-    # Maximum SDU size
-    uint16_t max_sdu;
-    # Destination CID
-    uint16_t dest_cid;
-};
-
-# Parameters of the @ref GAPC_LECB_CONNECT_REQ_IND message
-struct gapc_lecb_connect_req_ind
-{
-    # LE Protocol/Service Multiplexer
-    uint16_t le_psm;
-    # Destination Credit for the LE Credit Based Connection
-    uint16_t dest_credit;
-    # Maximum SDU size
-    uint16_t max_sdu;
-    # Destination CID
-    uint16_t dest_cid;
-};
-
-
-# Parameters of the @ref GAPC_LECB_DISCONNECT_CMD message
-struct gapc_lecb_disconnect_cmd
-{
-    # GAP request type:
-    # - GAPC_LE_CB_DIS: LE credit disconnection
-    uint8_t operation;
-    # Internal parameter used to manage internally l2cap packet identifier
-    uint8_t pkt_id;
-    # LE Protocol/Service Multiplexer
-    uint16_t le_psm;
-};
-
-# Parameters of the @ref GAPC_LECB_DISCONNECT_IND message
-struct gapc_lecb_disconnect_ind
-{
-    # LE Protocol/Service Multiplexer
-    uint16_t le_psm;
-    # Reason
-    uint16_t reason;
-};
-
-# Parameters of the @ref GAPC_LECB_ADD_CMD message
-struct gapc_lecb_add_cmd
-{
-    # GAP request type:
-    # - GAPC_LE_CB_ADD: LE credit addition
-    uint8_t operation;
-    # Internal parameter used to manage internally l2cap packet identifier for signaling
-    uint8_t pkt_id;
-    # LE Protocol/Service Multiplexer
-    uint16_t le_psm;
-    # Destination Credit for the LE Credit Based Connection
-    uint16_t credit;
-};
-
-# Parameters of the @ref GAPC_LECB_ADD_IND message
-struct gapc_lecb_add_ind
-{
-    # LE Protocol/Service Multiplexer
-    uint16_t le_psm;
-    # Source Credit for the LE Credit Based Connection
-    uint16_t src_credit;
-    # Destination Credit for the LE Credit Based Connection
-    uint16_t dest_credit;
-};
-
-
-# Parameters of the @ref GAPC_SET_LE_PING_TO_CMD message
-struct gapc_set_le_ping_to_cmd
-{
-    # GAP request type:
-    # - GAPC_SET_LE_PING_TO : Set the LE Ping timeout value
-    uint8_t      operation;
-    # Authenticated payload timeout
-    uint16_t     timeout;
-};
-'''
 
 
 class gapc_set_le_pkt_size_cmd(LittleEndianStructure):
@@ -1537,37 +1103,3 @@ class gapc_le_pkt_size_ind(LittleEndianStructure):
                 ("max_rx_octets", c_uint16),
                 # The maximum time that the local Controller will take to RX
                 ("max_rx_time", c_uint16)]
-
-
-'''
-
-#
- * MACROS
- ****************************************************************************************
- */
-
-
-#
- * GLOBAL VARIABLE DECLARATIONS
- ****************************************************************************************
- */
-
-#
- * FUNCTION DECLARATIONS
- ****************************************************************************************
- */
-int gapc_process_op(uint8_t conidx, uint8_t op_type, void* op_msg, enum gapc_operation* supp_ops);
-
-#
- * TASK DESCRIPTOR DECLARATIONS
- ****************************************************************************************
- */
-extern const struct ke_state_handler gapc_default_handler;
-extern ke_state_t gapc_state[GAPC_IDX_MAX];
-
-#endif // (BLE_CENTRAL || BLE_PERIPHERAL)
-
-# @} GAPC_TASK
-
-#endif # _GAPC_TASK_H_ */
-'''

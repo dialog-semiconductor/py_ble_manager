@@ -1,115 +1,9 @@
-'''
-#*
- ****************************************************************************************
- *
- * @file gattc_task.h
- *
- * @brief Header file - GATTCTASK.
- *
- * Copyright (C) RivieraWaves 2009-2014
- *
- *
- ****************************************************************************************
-
-
-#ifndef GATTC_TASK_H_
-#define GATTC_TASK_H_
-
-#*
- ****************************************************************************************
- * @addtogroup GATTCTASK Task
- * @ingroup GATTC
- * @brief Handles ALL messages to/from GATT Controller block.
- *
- * The GATTCTASK is responsible for managing the messages coming from
- * the attribute layer and host-level layers for dedicated connection.
- * The task includes services and characteristic discovery, configuration exchanges
- * and attribute value access operations (reading, writing, notification and indication).
- *
- * Messages may originate from @ref ATTC "ATTC", @ref ATTS "ATTS", @ref GAP "GAP"
- * and Application.
- *
- * @{
- ****************************************************************************************
-
-#
- * INCLUDE FILES
- ****************************************************************************************
-
-#include "rwip_config.h"
-#if (BLE_CENTRAL || BLE_PERIPHERAL)
-#include "attm.h"
-#include "gatt.h"
-#include "co_utils.h"
-'''
-
 from ctypes import Array, cast, c_bool, c_uint8, c_uint16, LittleEndianStructure, pointer, POINTER, Union
 from enum import auto, IntEnum
 
 from .att import ATT_CHAR_PROP, ATT_UUID_128_LEN
 from .rwble_hl_error import HOST_STACK_ERROR_CODE
 from .rwip_config import KE_API_ID
-
-'''
-
-#
- * DEFINES
- ****************************************************************************************
-
-
-# number of GATT Controller Process
-#define GATTC_IDX_MAX                                 BLE_CONNECTION_MAX
-
-#if defined (__DA14531__)
-# PDU Opcode Command Flag - indicates that ATT PDU is a Command and NOT a Request
-#define CMD_FLAG
-#endif
-
-# Operation type
-enum gattc_op_type
-{
-    #if (BLE_ATTS)
-    # Operation used to Server Request operations
-    GATTC_OP_SERVER,
-    #endif // (BLE_ATTS)
-
-    #if (BLE_ATTC)
-    # Operation used to Client Request operations
-    GATTC_OP_CLIENT,
-    # Service Discovery Procedure operation
-    GATTC_OP_SDP,
-    #endif // (BLE_ATTC)
-
-    # Max number of operations
-    GATTC_OP_MAX
-};
-
-
-# states of GATT Controller task
-enum gattc_state_id
-{
-    # Connection ready state
-    GATTC_READY = 0,
-    #if (BLE_ATTC)
-    # Client operation on-going
-    GATTC_CLIENT_BUSY       = (1 << GATTC_OP_CLIENT),
-    # Service Discovery Procedure operation on-going
-    GATTC_SDP_BUSY          = (1 << GATTC_OP_SDP),
-    #endif // (BLE_ATTC)
-    #if (BLE_ATTS)
-    # Server operation on-going
-    GATTC_SERVER_BUSY       = (1 << GATTC_OP_SERVER),
-    GATTC_ATTS_BUSY         = (1 << GATTC_OP_MAX),
-    #endif // (BLE_ATTS)
-    # Connection started but ATTS not ready
-    GATTC_CONNECTED         = (1 << (GATTC_OP_MAX + 1)),
-
-    # Free state
-    GATTC_FREE              = (1 << (GATTC_OP_MAX + 2)),
-    # Number of defined states.
-    GATTC_STATE_MAX
-};
-'''
 
 
 # GATT Task messages
@@ -329,18 +223,6 @@ class GATTC_SDP_ATT_TYPE(IntEnum):
     GATTC_SDP_ATT_VAL = auto()
     # Attribute Descriptor
     GATTC_SDP_ATT_DESC = auto()
-
-
-'''
-# Command complete event data structure
-struct gattc_op_cmd
-{
-    # GATT request type
-    uint8_t operation;
-    # operation sequence number
-    uint16_t seq_num;
-};
-'''
 
 
 # Command complete event data structure
@@ -986,22 +868,6 @@ class gattc_event_cfm(LittleEndianStructure):
     _fields_ = [("handle", c_uint16)]
 
 
-'''
-# Register to peer device events command
-struct gattc_reg_to_peer_evt_cmd
-{
-    # Request type
-    uint8_t operation;
-    # operation sequence number
-    uint16_t seq_num;
-    # attribute start handle
-    uint16_t start_hdl;
-    # attribute end handle
-    uint16_t end_hdl;
-};
-'''
-
-
 # Send an event to peer device
 class gattc_send_evt_cmd(LittleEndianStructure):
 
@@ -1149,32 +1015,6 @@ class gattc_write_cfm(LittleEndianStructure):
                 # Status of write command execution by upper layers
                 ("status", c_uint8),
                 ("padding", c_uint8)]
-
-
-'''
-# Parameters for @ref GATTC_SEND_SVC_CHANGED_CMD message
-struct gattc_send_svc_changed_cmd
-{
-    # Request Type
-    uint8_t operation;
-    # operation sequence number
-    uint16_t seq_num;
-    # Start of Affected Attribute Handle Range
-    uint16_t svc_shdl;
-    # End of Affected Attribute Handle Range
-    uint16_t svc_ehdl;
-};
-
-# Parameters for @ref GATTC_SVC_CHANGED_CFG_IND message
-struct gattc_svc_changed_cfg
-{
-    #*
-     * Current value of the Client Characteristic Configuration descriptor for the Service
-     * Changed characteristic
-
-    uint16_t ind_cfg;
-};
-'''
 
 
 # Request Attribute info to upper layer - could be trigger during prepare write
@@ -1488,17 +1328,3 @@ class gattc_sdp_svc_ind(LittleEndianStructure):
             raise ValueError("UUID length must be 2, 4, or 16")
 
     uuid = property(get_uuid, set_uuid)
-
-
-'''
-#
- * FUNCTION DECLARATIONS
- ****************************************************************************************
-
-extern const struct ke_state_handler gattc_default_handler;
-extern ke_state_t gattc_state[GATTC_IDX_MAX];
-
-#endif # (BLE_CENTRAL || BLE_PERIPHERAL)
-# @} GATTCTASK
-#endif // GATTC_TASK_H_
-'''

@@ -1,54 +1,4 @@
-'''
-/**
- ****************************************************************************************
- *
- * @file rwble_hl_error.h
- *
- * @brief File that contains all error codes.
- *
- * Copyright (C) RivieraWaves 2009-2014
- *
- *
- ****************************************************************************************
- */
-
-#ifndef RWBLE_HL_ERROR_H_
-#define RWBLE_HL_ERROR_H_
-
-#if defined (__DA14531__)
-#include "co_version.h"
-#endif
-
-/**
- ****************************************************************************************
- * @addtogroup ROOT
- * @brief High layer error codes
- *
- * This module contains the primitives that allow an application accessing and running the
- * BLE protocol stack
- *
- * @{
- ****************************************************************************************
- */
- '''
-
 from enum import IntEnum
-# from .co_version import *
-
-'''
-
-
-/// Error code from HCI TO HL Range - from 0x90 to 0xD0
-#define RW_ERR_HCI_TO_HL(err)     (((err) != 0) ? ((err) + 0x90) : (0))
-
-
-/// Error code from HL TO HCI Range - from 0x90 to 0xD0
-#define RW_ERR_HL_TO_HCI(err)     (((err) > 0x90) ? ((err) - 0x90) : (0))
-
-/**
- * List all HL error codes
- */
-'''
 
 
 class HOST_STACK_ERROR_CODE(IntEnum):
@@ -479,9 +429,3 @@ class HOST_STACK_ERROR_CODE(IntEnum):
     LL_ERR_TERMINATED_MIC_FAILURE = 0xCD
     # Connection failed to be established
     LL_ERR_CONN_FAILED_TO_BE_EST = 0xCE
-
-
-'''
-/// @} RWBLE_HL_ERROR_H
-
-'''
