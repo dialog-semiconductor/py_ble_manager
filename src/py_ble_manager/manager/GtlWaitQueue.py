@@ -12,11 +12,9 @@ class GtlWaitQueue(WaitQueue):
         super().__init__()
 
     def _wait_queue_lock_acquire(self,):
-        # print("WAIT QUEUE LOCK ACQUIRE")
         self._wait_queue_lock.acquire()
 
     def _wait_queue_lock_release(self,):
-        # print("WAIT QUEUE LOCK RELEASE")
         self._wait_queue_lock.release()
 
     def add(self, elem: WaitQueueElement):
