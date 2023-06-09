@@ -22,7 +22,7 @@ class BleCentral(BleDeviceBase):
 
     def __init__(self,
                  com_port: str,
-                 baud_rate: int = 921600,
+                 baud_rate: int = 1000000,
                  ble_config: BleConfigDefault = BleConfigDefault(BLE_DEVICE_TYPE.CENTRAL),
                  gtl_debug: bool = False
                  ) -> None:

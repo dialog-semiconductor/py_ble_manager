@@ -27,7 +27,7 @@ class BleDeviceBase():
     :param gtl_debug: enable or disable GTL debugging, defaults to False
     :type gtl_debug: bool, optional
     """
-    def __init__(self, com_port: str, baud_rate: int = 921600, config: BleConfigDefault = BleConfigDefault(), gtl_debug: bool = False):
+    def __init__(self, com_port: str, baud_rate: int = 1000000, config: BleConfigDefault = BleConfigDefault(), gtl_debug: bool = False):
         """Constructor
         """
         app_command_q = queue.Queue()

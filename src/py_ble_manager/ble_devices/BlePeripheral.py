@@ -15,7 +15,7 @@ from ..services.BleService import BleServiceBase
 class BlePeripheral(BleDeviceBase):
     def __init__(self,
                  com_port: str,
-                 baud_rate: int = 921600,
+                 baud_rate: int = 1000000,
                  ble_config: BleConfigDefault = BleConfigDefault(BLE_DEVICE_TYPE.PERIPHERAL),
                  gtl_debug: bool = False):
         super().__init__(com_port, baud_rate, ble_config, gtl_debug)

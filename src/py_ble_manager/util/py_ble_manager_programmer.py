@@ -44,7 +44,7 @@ def identify_hardware_type(serial_number: str):
 def load_binary_data(device_id_str: str):
     match device_id_str:
         case 'da14531':
-            with open(os.path.join(os.path.dirname(os.path.abspath(py_ble_manager.__file__)), 'firmware/da14531mod_pro_kit_921600.bin'), 'rb') as bin_file:
+            with open(os.path.join(os.path.dirname(os.path.abspath(py_ble_manager.__file__)), 'firmware/da14531_pro_kit_1000000_baud.bin'), 'rb') as bin_file:
                 # open binary and load data
                 bin_data = bin_file.read()
         case _:
