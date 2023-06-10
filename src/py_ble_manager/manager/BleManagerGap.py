@@ -6,14 +6,14 @@ import threading
 from ..ble_api.BleAtt import ATT_PERM
 from ..ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_OWN_ADDR_TYPE, BLE_ADDR_TYPE, BLE_HCI_ERROR, \
     BdAddress
-from ..ble_api.BleConfig import BleConfigDefault
+from ..ble_api.BleConfig import BleConfigDefault, BLE_HW_TYPE
 from ..ble_api.BleConvert import BleConvert
 
 from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_CONN_MODE, BleEventGapConnected, BleEventGapDisconnected,  \
     BleEventGapAdvCompleted, BLE_CONN_IDX_INVALID, GAP_SEC_LEVEL, GAP_SCAN_TYPE, BleEventGapAdvReport, \
     BleEventGapScanCompleted, BleEventGapConnectionCompleted, BleEventGapDisconnectFailed,  \
     BleEventGapConnParamUpdateCompleted, BleEventGapConnParamUpdated, BleEventGapConnParamUpdateReq, \
-    BLE_GAP_MAX_BONDED, GAP_IO_CAPABILITIES, BLE_ENC_KEY_SIZE_MAX, BleEventGapPairReq, \
+    GAP_IO_CAPABILITIES, BLE_ENC_KEY_SIZE_MAX, BleEventGapPairReq, \
     BleEventGapPasskeyNotify, BleEventGapNumericRequest, BleEventGapPairCompleted, BleEventGapSecLevelChanged, \
     BleEventGapAddressResolved, BleEventGapPeerVersion, BleEventGapPeerFeatures, BleEventGapLtkMissing, \
     BLE_ADV_DATA_LEN_MAX, BLE_NON_CONN_ADV_DATA_LEN_MAX, BleEventGapAddressResolutionFailed, \
@@ -784,7 +784,7 @@ class BleManagerGap(BleManagerBase):
         return gtl_io_cap
 
     def _max_bonded_reached(self):  # Acquire storage before calling this function
-        return self._stored_device_list.count_bonded() >= BLE_GAP_MAX_BONDED
+        return self._stored_device_list.count_bonded() >= self._ble_config.defaultBLE_MAX_BONDED
 
     def _resolve_address_from_connected_evt(self, gtl: GapcConnectionReqInd, evt: BleEventGapConnected):
         # Check if peer's address is random

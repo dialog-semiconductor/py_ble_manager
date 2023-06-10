@@ -10,6 +10,12 @@ class BLE_DEVICE_TYPE(IntEnum):
     BROADCASTER = auto()
 
 
+class BLE_HW_TYPE(IntEnum):
+    NONE = 0
+    DA14531 = 1
+    DA14695 = 2
+
+
 class BleConfigDefault():
     """Default configuration for various BLE parameters
     """
@@ -19,6 +25,8 @@ class BleConfigDefault():
         self.dg_configBLE_PAIR_INIT_KEY_DIST = (GAP_KDIST.GAP_KDIST_ENCKEY | GAP_KDIST.GAP_KDIST_IDKEY | GAP_KDIST.GAP_KDIST_SIGNKEY)
         self.dg_configBLE_PAIR_RESP_KEY_DIST = (GAP_KDIST.GAP_KDIST_ENCKEY | GAP_KDIST.GAP_KDIST_IDKEY | GAP_KDIST.GAP_KDIST_SIGNKEY)
         self.dg_configBLE_PRIVACY_1_2 = (0)
+        self.defaultBLE_MAX_BONDED = (3)
+        self.dg_configHW_TYPE = BLE_HW_TYPE.NONE
 
         self.dg_configBLE_CENTRAL = 1 if ble_device_type == BLE_DEVICE_TYPE.CENTRAL else 0
         self.dg_configBLE_PERIPHERAL = 1 if ble_device_type == BLE_DEVICE_TYPE.PERIPHERAL else 0
@@ -32,6 +40,31 @@ class BleConfigDefault():
         assert ((self.dg_configBLE_DATA_LENGTH_RX_MAX < 251) or (self.dg_configBLE_DATA_LENGTH_RX_MAX > 27))
         assert ((self.dg_configBLE_DATA_LENGTH_TX_MAX < 251) or (self.dg_configBLE_DATA_LENGTH_TX_MAX > 27))
 
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            members_self = [getattr(self, attr) for attr in dir(self) if not attr.startswith("__")]
+            members_other = [getattr(other, attr) for attr in dir(other) if not attr.startswith("__")]
+            if members_self == members_other:
+                return True
+        return False
+
+
+class BleConfigDA1469x(BleConfigDefault):
+    """DA14695 configuration for various BLE parameters
+    """
+    def __init__(self, ble_device_type: BLE_DEVICE_TYPE = BLE_DEVICE_TYPE.CENTRAL):
+        super().__init__(ble_device_type)
+        self.defaultBLE_MAX_BONDED = (8)
+        self.dg_configHW_TYPE = BLE_HW_TYPE.DA14695
+
+
+class BleConfigDA1453x(BleConfigDefault):
+    """DA14531 configuration for various BLE parameters
+    """
+    def __init__(self, ble_device_type: BLE_DEVICE_TYPE = BLE_DEVICE_TYPE.CENTRAL):
+        super().__init__(ble_device_type)
+        self.defaultBLE_MAX_BONDED = (3)
+        self.dg_configHW_TYPE = BLE_HW_TYPE.DA14531
 
 # define dg_configBLE_OBSERVER                (1)
 # define dg_configBLE_BROADCASTER             (1)
