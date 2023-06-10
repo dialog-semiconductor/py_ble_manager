@@ -378,7 +378,11 @@ class BleDeviceBase():
 
         error = self._ble_reset()
         if error == BLE_ERROR.BLE_STATUS_OK:
-            error = self._ble_gap.role_set(role)
+            ble_config, error = self._get_dev_version()
+            if error == BLE_ERROR.BLE_STATUS_OK:
+                self._config = ble_config
+                self._ble_manager.update_ble_config(ble_config)
+                error = self._ble_gap.role_set(role)
 
         return error
 
