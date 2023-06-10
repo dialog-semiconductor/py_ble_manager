@@ -263,8 +263,6 @@ class GAPM_OPERATION(IntEnum):
     # Implemented as a subcase of reset. Renews our private/public key.
     GAPM_KEY_RENEW = auto()
 
-    GAPM_GEN_P256_KEY = GAPM_KEY_RENEW
-
     GAPM_SET_DEFAULT_PHY = GAPM_KEY_RENEW
 
     # Set Tx power
