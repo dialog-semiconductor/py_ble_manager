@@ -553,6 +553,68 @@ class gapm_set_dev_config_cmd(LittleEndianStructure):
     max_txtime = property(get_max_txtime, set_max_txtime)
 
 
+# Get local device info command
+class gapm_get_dev_info_cmd(LittleEndianStructure):
+    def __init__(self, operation: GAPM_OPERATION = GAPM_OPERATION.GAPM_GET_DEV_VERSION) -> None:
+
+        self.operation = operation
+        super().__init__(operation=self.operation)
+
+                # GAPM requested operation:
+                #  - GAPM_GET_DEV_VERSION: Get Local device version
+                #  - GAPM_GET_DEV_BDADDR: Get Local device BD Address
+                #  - GAPM_GET_DEV_ADV_TX_POWER: Get device advertising power level
+                #  - GAPM_DBG_GET_MEM_INFO: Get memory usage (debug only)
+                #  - GAPM_GET_SUGGESTED_DFLT_LE_DATA_LEN: Get Suggested Default LE Data Length (valid if RWBLE_SW_VERSION_MAJOR >= 8)
+                #  - GAPM_GET_MAX_LE_DATA_LEN: Get Maximum LE Data Length (valid if RWBLE_SW_VERSION_MAJOR >= 8)
+    _fields_ = [("operation", c_uint8)]
+
+
+# Local device version indication event
+class gapm_dev_version_ind(LittleEndianStructure):
+    def __init__(self,
+                 hci_ver: c_uint8 = 0,
+                 lmp_ver: c_uint8 = 0,
+                 host_ver: c_uint8 = 0,
+                 hci_subver: c_uint16 = 0,
+                 lmp_subver: c_uint16 = 0,
+                 host_subver: c_uint16 = 0,
+                 manuf_name: c_uint16 = 0,
+                 ) -> None:
+
+        self.hci_ver = hci_ver
+        self.lmp_ver = lmp_ver
+        self.host_ver = host_ver
+        self.hci_subver = hci_subver
+        self.lmp_subver = hci_ver
+        self.host_subver = host_subver
+        self.manuf_name = manuf_name
+        super().__init__(hci_ver=self.hci_ver,
+                         lmp_ver=self.lmp_ver,
+                         host_ver=self.host_ver,
+                         padding=0,
+                         hci_subver=self.hci_subver,
+                         lmp_subver=self.lmp_subver,
+                         host_subver=self.host_subver,
+                         manuf_name=self.manuf_name)
+
+                # HCI version
+    _fields_ = [("hci_ver", c_uint8),
+                # LMP version
+                ("lmp_ver", c_uint8),
+                # Host version
+                ("host_ver", c_uint8),
+                ("padding", c_uint8),
+                # HCI subversion
+                ("hci_subver", c_uint16),
+                # LMP subversion
+                ("lmp_subver", c_uint16),
+                # Host revision
+                ("host_subver", c_uint16),
+                # Manufacturer name
+                ("manuf_name", c_uint16)]
+
+
 # Cancel ongoing operation
 class gapm_cancel_cmd(LittleEndianStructure):
     def __init__(self) -> None:  # TODO RWBLE_SW_VERSION_MAJOR >= 9 supports additional cancel commands, but could cause issue with GAPM_KEY_RENEW on 531
