@@ -19,7 +19,7 @@ class GtlWaitQueue(WaitQueue):
 
     def add(self, elem: WaitQueueElement):
         self._wait_queue_lock_acquire()
-        self.push(elem)
+        super().add(elem)
         self._wait_queue_lock_release()
 
     def flush(self, conn_idx):
