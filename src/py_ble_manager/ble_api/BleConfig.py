@@ -66,6 +66,52 @@ class BleConfigDA1453x(BleConfigDefault):
         self.defaultBLE_MAX_BONDED = (3)
         self.dg_configHW_TYPE = BLE_HW_TYPE.DA14531
 
+
+class DA14531VersionInd():
+    def __init__(self):
+        super().__init__()
+        self.hci_ver = 10
+        self.lmp_ver = 10
+        self.host_ver = 8
+        self.hci_subver = 271
+        self.lmp_subver = 271
+        self.host_subver = 270
+        self.manuf_name = 210
+
+    def __eq__(self, other):
+        return (self.hci_ver == other.hci_ver
+                and self.hci_ver == other.hci_ver
+                and self.lmp_ver == other.lmp_ver
+                and self.host_ver == other.host_ver
+                and self.hci_subver == other.hci_subver
+                and self.lmp_subver == other.lmp_subver
+                and self.host_subver == other.host_subver
+                and self.manuf_name == other.manuf_name)
+
+
+class DA14695VersionInd():
+    def __init__(self):
+        super().__init__()
+        self.hci_ver = 11
+        self.lmp_ver = 11
+        self.host_ver = 8
+        self.hci_subver = 24
+        self.lmp_subver = 24
+        self.host_subver = 526
+        self.manuf_name = 210
+
+    def __eq__(self, other):
+        return (self.hci_ver == other.hci_ver
+                and self.hci_ver == other.hci_ver
+                and self.lmp_ver == other.lmp_ver
+                and self.host_ver == other.host_ver
+                and self.hci_subver == other.hci_subver
+                and self.lmp_subver == other.lmp_subver
+                and self.host_subver == other.host_subver
+                and self.manuf_name == other.manuf_name)
+
+
+
 # define dg_configBLE_OBSERVER                (1)
 # define dg_configBLE_BROADCASTER             (1)
 # define dg_configBLE_CENTRAL                 (1)
