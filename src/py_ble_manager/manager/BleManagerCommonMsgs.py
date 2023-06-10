@@ -1,6 +1,7 @@
 from enum import IntEnum, auto
 
 from ..ble_api.BleCommon import BLE_ERROR
+from ..ble_api.BleConfig import BleConfigDefault
 
 
 class BLE_MGR_CMD_CAT(IntEnum):
@@ -18,6 +19,7 @@ class BLE_MGR_COMMON_CMD_OPCODE(IntEnum):
     BLE_MGR_COMMON_ENABLE_CMD = auto()
     BLE_MGR_COMMON_RESET_CMD = auto()
     BLE_MGR_COMMON_READ_TX_POWER_CMD = auto()
+    BLE_MGR_COMMON_GET_DEV_VERSION_CMD = auto()
     # Dummy command opcode, needs to be always defined after all commands
     BLE_MGR_COMMON_LAST_CMD = auto()
 
@@ -149,3 +151,32 @@ class BleMgrCommonResetRsp(BleMgrMsgRsp):
     def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
         super().__init__(opcode=BLE_MGR_COMMON_CMD_OPCODE.BLE_MGR_COMMON_RESET_CMD,
                          status=status)
+
+
+class BleMgrCommonGetDevVersionCmd(BleMgrMsgBase):
+    def __init__(self) -> None:
+        super().__init__(opcode=BLE_MGR_COMMON_CMD_OPCODE.BLE_MGR_COMMON_GET_DEV_VERSION_CMD)
+
+
+class BleMgrCommonGetDevVersionRsp(BleMgrMsgRsp):
+    def __init__(self,
+                 hci_ver: int = 0,
+                 lmp_ver: int = 0,
+                 host_ver: int = 0,
+                 hci_subver: int = 0,
+                 lmp_subver: int = 0,
+                 host_subver: int = 0,
+                 manuf_name: int = 0,
+                 config: BleConfigDefault = BleConfigDefault(),
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED
+                 ) -> None:
+        super().__init__(opcode=BLE_MGR_COMMON_CMD_OPCODE.BLE_MGR_COMMON_GET_DEV_VERSION_CMD,
+                         status=status)
+        self.hci_ver = hci_ver
+        self.lmp_ver = lmp_ver
+        self.host_ver = host_ver
+        self.hci_subver = hci_subver
+        self.lmp_subver = lmp_subver
+        self.host_subver = host_subver
+        self.manuf_name = manuf_name
+        self.config = config
