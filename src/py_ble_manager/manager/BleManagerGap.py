@@ -1142,8 +1142,11 @@ class BleManagerGap(BleManagerBase):
         if not dev_params.advertising:
             response.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
         else:
-            # TODO 69x has specific cancel commands send_gapm_cancel_cmd(GAPM_CANCEL_ADVERTISE);
-            self._send_gapm_cancel_cmd(GAPM_OPERATION.GAPM_CANCEL)
+
+            op = GAPM_OPERATION.GAPM_CANCEL
+            if self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14695:
+                op = GAPM_OPERATION.GAPM_CANCEL_ADVERTISE
+            self._send_gapm_cancel_cmd(op)
             response.status = BLE_ERROR.BLE_STATUS_OK
         self.dev_params_release()
         self._mgr_response_queue_send(response)
