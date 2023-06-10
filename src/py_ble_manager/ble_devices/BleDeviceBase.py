@@ -3,14 +3,14 @@ from typing import Tuple
 from ..adapter.BleAdapter import BleAdapter
 from ..ble_api.BleAtt import ATT_PERM
 from ..ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_HCI_ERROR, OwnAddress, BdAddress
-from ..ble_api.BleConfig import BleConfigDefault
+from ..ble_api.BleCommonApi import BleCommonApi
+from ..ble_api.BleConfig import BleConfigDefault, BLE_HW_TYPE
 from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_IO_CAPABILITIES, BLE_GAP_APPEARANCE
 from ..ble_api.BleGapApi import BleGapApi, GapConnParams
 from ..ble_api.BleGattcApi import BleGattcApi
 from ..ble_api.BleGattsApi import BleGattsApi
 from ..ble_api.BleStorageApi import BleStorageApi
 from ..manager.BleManager import BleManager
-from ..manager.BleManagerCommonMsgs import BleMgrCommonResetCmd, BleMgrCommonResetRsp
 from ..services.BleService import BleServiceBase
 from ..serial_manager.SerialStreamManager import SerialStreamManager
 
@@ -49,6 +49,7 @@ class BleDeviceBase():
         self._ble_gattc = BleGattcApi(self._ble_manager)
         self._ble_gatts = BleGattsApi(self._ble_manager)
         self._ble_storage = BleStorageApi(self._ble_manager)
+        self._ble_common = BleCommonApi(self._ble_manager)
 
         self._services: list[BleServiceBase] = []
 
@@ -59,9 +60,16 @@ class BleDeviceBase():
         :rtype: BLE_ERROR
         """
 
-        command = BleMgrCommonResetCmd()
-        response: BleMgrCommonResetRsp = self._ble_manager.cmd_execute(command)
-        return response.status
+        return self._ble_common.ble_reset()
+
+    def _get_dev_version(self) -> Tuple[BleConfigDefault, BLE_ERROR]:
+        """Get Device Version, used to determine whihc development kit in use
+
+        :return: result code
+        :rtype: BLE_ERROR
+        """
+
+        return self._ble_common.get_dev_version()
 
     def address_set(self, address: OwnAddress, renew_dur: int) -> BLE_ERROR:
         """Set the address of the device
