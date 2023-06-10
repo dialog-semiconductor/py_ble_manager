@@ -1107,8 +1107,12 @@ class BleManagerGap(BleManagerBase):
     def adv_report_evt_handler(self, gtl: GapmAdvReportInd) -> None:
         evt = BleEventGapAdvReport()
         evt.type = GAP_ADV_TYPE(gtl.parameters.report.evt_type)
-        evt.rssi = (gtl.parameters.report.rssi & 0x7F)
-        evt.rssi = (-1 * evt.rssi) if (gtl.parameters.report.rssi & 0x80) else evt.rssi
+        if self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14695:
+            evt.rssi = (gtl.parameters.report.rssi & 0x7F)
+            evt.rssi = (-1 * evt.rssi) if (gtl.parameters.report.rssi & 0x80) else evt.rssi
+        elif self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14531:
+            evt.rssi = -1 * (256 - gtl.parameters.report.rssi)
+
         # if (dg_configBLE_PRIVACY_1_2 == 1)
         # Mask the flag indicating that the address was resolved by the controller */
         # evt->address.addr_type = gevt->report.adv_addr_type & 0x01;
