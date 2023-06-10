@@ -261,7 +261,39 @@ class GAPM_OPERATION(IntEnum):
     GAPM_DEVICE_MODE_RAL = auto()
 
     # Implemented as a subcase of reset. Renews our private/public key.
-    GAPM_KEY_RENEW = auto()  # TODO 690 does not have GAPM_KEY_RENEW, has GAPM_SET_DEFAULT_PHY here
+    GAPM_KEY_RENEW = auto()
+
+    GAPM_GEN_P256_KEY = GAPM_KEY_RENEW
+
+    GAPM_SET_DEFAULT_PHY = GAPM_KEY_RENEW
+
+    # Set Tx power
+    GAPM_SET_TX_PW = auto()
+
+    # Renew random address
+    GAPM_RENEW_RAND_ADDR = auto()
+
+    # Cancel advertising operation
+    GAPM_CANCEL_ADVERTISE = auto()
+    # Cancel scanning operation
+    GAPM_CANCEL_SCAN = auto()
+    # Cancel connection operation
+    GAPM_CANCEL_CONNECTION = auto()
+
+    # Generate a new P256 public/private key pair in the Controller
+    GAPM_GEN_P256_KEY = auto()
+
+    # Perform RF calibration
+    GAPM_PERFORM_RF_CALIB = auto()
+
+#ifdef F_PCLE
+    # Set the RF path gain or loss between the RF transceiver and the antenna
+    GAPM_LE_WR_RF_PATH_COMPENS = auto()
+#endif // F_PCLE
+#endif /* (RWBLE_SW_VERSION_MAJOR >= 9) */
+
+    # Set the primary advertising channel permutation
+    GAPM_SET_ADV_PERMUTATION = auto()
 
     # Last GAPM operation flag
     GAPM_LAST = auto()
