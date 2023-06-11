@@ -975,7 +975,7 @@ class BleManagerGap(BleManagerBase):
 
     def _send_gapm_cancel_cmd(self, operation: GAPM_OPERATION = GAPM_OPERATION.GAPM_CANCEL) -> None:
 
-        gtl = GapmCancelCmd()  # TODO  RWBLE >= 9.0 has additiononal cancel commands
+        gtl = GapmCancelCmd()
         gtl.parameters.operation = operation
         self._adapter_command_queue_send(gtl)
 
@@ -1487,9 +1487,10 @@ class BleManagerGap(BleManagerBase):
         if not dev_params.connecting:
             response.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
         else:
-            # TODO support for additional cancel commands for RWBLE >= 9
-            # send_gapm_cancel_cmd(GAPM_CANCEL_CONNECTION)
-            self._send_gapm_cancel_cmd(GAPM_OPERATION.GAPM_CANCEL)
+            op = GAPM_OPERATION.GAPM_CANCEL
+            if self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14695:
+                op = GAPM_OPERATION.GAPM_CANCEL_CONNECTION
+            self._send_gapm_cancel_cmd(op)
             response.status = BLE_ERROR.BLE_STATUS_OK
 
         self._mgr_response_queue_send(response)
@@ -1770,19 +1771,23 @@ class BleManagerGap(BleManagerBase):
 
             case GAPM_OPERATION.GAPM_UPDATE_ADVERTISE_DATA:
                 pass
-            # case GAPM_OPERATION.GAPM_CANCEL_ADVERTISE: RWBLE >= 9
-            #    pass
+
+            case GAPM_OPERATION.GAPM_CANCEL_ADVERTISE:
+                pass
 
             case GAPM_OPERATION.GAPM_SCAN_ACTIVE \
                     | GAPM_OPERATION.GAPM_SCAN_PASSIVE:
 
                 self._scan_cmp_evt_handler(gtl)
 
+            case GAPM_OPERATION.GAPM_CANCEL_SCAN:
+                pass
+
             case GAPM_OPERATION.GAPM_CONNECTION_DIRECT:
                 self._connect_cmp_evt_handler(gtl)
 
-            # case GAPM_OPERATION.GAPM_CANCEL_CONNECTION: RWBLE >= 9
-            #    pass
+            case GAPM_OPERATION.GAPM_CANCEL_CONNECTION:
+                pass
 
             case GAPM_OPERATION.GAPM_SET_CHANNEL_MAP:
                 pass
@@ -1795,9 +1800,9 @@ class BleManagerGap(BleManagerBase):
                     | GAPM_OPERATION.GAPM_SET_DEV_CONFIG
                     | GAPM_OPERATION.GAPM_SET_DEV_CONFIG
                     | GAPM_OPERATION.GAPM_GET_DEV_BDADDR
-                    # | GAPM_OPERATION.GAPM_SET_TX_PW
-                    # | GAPM_OPERATION.GAPM_LE_WR_RF_PATH_COMPENS
-                    # | GAPM_OPERATION.GAPM_SET_ADV_PERMUTATION
+                    | GAPM_OPERATION.GAPM_SET_TX_PW
+                    | GAPM_OPERATION.GAPM_LE_WR_RF_PATH_COMPENS
+                    | GAPM_OPERATION.GAPM_SET_ADV_PERMUTATION
                   ):
 
                 pass
@@ -2080,9 +2085,10 @@ class BleManagerGap(BleManagerBase):
         if not dev_params.scanning:
             response.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
         else:
-            # TODO 690 supports additional cancel commands
-            # self._send_gapm_cancel_cmd(GAPM_OPERATION.GAPM_CANCEL_SCAN)
-            self._send_gapm_cancel_cmd(GAPM_OPERATION.GAPM_CANCEL)
+            op = GAPM_OPERATION.GAPM_CANCEL
+            if self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14695:
+                op = GAPM_OPERATION.GAPM_CANCEL_SCAN
+            self._send_gapm_cancel_cmd(op)
             response.status = BLE_ERROR.BLE_STATUS_OK
         self.dev_params_release()
         self._mgr_response_queue_send(response)
