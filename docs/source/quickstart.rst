@@ -6,9 +6,7 @@ Quick Start
 Quick Start (terminal)
 ----------------------
 
-#. Connect the jumpers on the DA14531 Pro Development kit as depicted below:
-
-   .. image:: ../../assets/da14531_pro_kit_jumpers.png
+#. Refer to the :doc:`hardware_setup` to setup the jumpers on your development kit.
 
 #. Call: ``pip install "py_ble_manager[dev] @ git+https://github.com/dialog-semiconductor/py_ble_manager.git`` to install the ``py_ble_manager`` package and its dependencies.
 
