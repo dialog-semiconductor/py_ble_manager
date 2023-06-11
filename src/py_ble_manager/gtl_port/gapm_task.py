@@ -284,11 +284,11 @@ class GAPM_OPERATION(IntEnum):
     # Perform RF calibration
     GAPM_PERFORM_RF_CALIB = auto()
 
-#ifdef F_PCLE
+# ifdef F_PCLE
     # Set the RF path gain or loss between the RF transceiver and the antenna
     GAPM_LE_WR_RF_PATH_COMPENS = auto()
-#endif // F_PCLE
-#endif /* (RWBLE_SW_VERSION_MAJOR >= 9) */
+# endif // F_PCLE
+# endif /* (RWBLE_SW_VERSION_MAJOR >= 9) */
 
     # Set the primary advertising channel permutation
     GAPM_SET_ADV_PERMUTATION = auto()

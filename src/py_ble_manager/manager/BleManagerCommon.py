@@ -135,7 +135,6 @@ class BleManagerCommon(BleManagerBase):
         self._adapter_command_queue_send(gtl)
 
 
-
 '''
 static const ble_mgr_cmd_handler_t h_common[BLE_MGR_CMD_GET_IDX(BLE_MGR_COMMON_LAST_CMD)] = {
         ble_mgr_common_stack_msg_handler,

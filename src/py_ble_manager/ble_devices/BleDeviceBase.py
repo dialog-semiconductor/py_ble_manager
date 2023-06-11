@@ -4,7 +4,7 @@ from ..adapter.BleAdapter import BleAdapter
 from ..ble_api.BleAtt import ATT_PERM
 from ..ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_HCI_ERROR, OwnAddress, BdAddress
 from ..ble_api.BleCommonApi import BleCommonApi
-from ..ble_api.BleConfig import BleConfigDefault, BLE_HW_TYPE
+from ..ble_api.BleConfig import BleConfigDefault
 from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_IO_CAPABILITIES, BLE_GAP_APPEARANCE
 from ..ble_api.BleGapApi import BleGapApi, GapConnParams
 from ..ble_api.BleGattcApi import BleGattcApi

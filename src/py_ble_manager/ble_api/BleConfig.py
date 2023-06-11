@@ -63,7 +63,7 @@ class BleConfigDA1453x(BleConfigDefault):
     """
     def __init__(self, ble_device_type: BLE_DEVICE_TYPE = BLE_DEVICE_TYPE.CENTRAL):
         super().__init__(ble_device_type)
-        self.defaultBLE_MAX_BONDED = (3)
+        self.defaultBLE_MAX_BONDED = (5)
         self.dg_configHW_TYPE = BLE_HW_TYPE.DA14531
 
 
@@ -109,7 +109,6 @@ class DA14695VersionInd():
                 and self.lmp_subver == other.lmp_subver
                 and self.host_subver == other.host_subver
                 and self.manuf_name == other.manuf_name)
-
 
 
 # define dg_configBLE_OBSERVER                (1)
