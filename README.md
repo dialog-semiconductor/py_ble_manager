@@ -23,7 +23,7 @@ The primary intent is for use as a central device for benchtop testing, continuo
     > **_NOTE:_**
       This library requires Python v3.10.5 or later.
 
-3. [Download](src/py_ble_manager/util/) the py_ble_manager compatible firmware binary to the DA14531 Pro Development kit by calling the `py_ble_manager_programmer` utility from the terminal.
+3. [Download](src/py_ble_manager/util/) the py_ble_manager compatible firmware binary to the development kit by calling the `py_ble_manager_programmer` utility from the terminal.
 
 4. The package is now installed and you are ready to run one of the [examples](examples)!
 
