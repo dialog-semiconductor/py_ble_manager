@@ -380,7 +380,7 @@ class GattcSdpSvcInd(GtlMessageBase):
         param_string += 'info=('
         item: gattc_sdp_att_info
         for item in struct.info:
-            param_string += f'\ngattc_sdp_att_info=(att_type={str(GATTC_SDP_ATT_TYPE(item.att_type))}, '
+            param_string += f'gattc_sdp_att_info=(att_type={str(GATTC_SDP_ATT_TYPE(item.att_type))}, '
             match item.att_type:
                 case GATTC_SDP_ATT_TYPE.GATTC_SDP_ATT_CHAR:
                     param_string += 'att_char=gattc_sdp_att_char=('

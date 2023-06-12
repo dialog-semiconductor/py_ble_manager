@@ -31,5 +31,12 @@ Progress with erasing/programming/resetting will be printed to the terminal:
 
 Once the script is complete, your development kit is ready to communicate with the py_ble_manager library.
 
-> **_NOTE:_** Occasionally the script fails to reset the target to start the firmware. Simply remove and re-apply power to your development kit to reset the device.
-If the LED on the development kit is illuminated, the application is running. Below shows the LED for the DA14531 Pro Development kit: <br> ![da14531_pro_kit](assets/da14531_pro_kit_jumpers_led_on.png)
+> **_NOTE:_** Occasionally the script fails to reset the target to start the firmware. Simply press the reset button or remove and re-apply power to your development kit to reset the device.
+
+If the LED on the development kit is illuminated, the application is running. Below shows the LED for various development kits:
+
+* The DA14531 Pro Development kit: <br> ![da14531_pro_kit](assets/da14531_pro_kit_jumpers_led_on.png)
+
+* The DA14531MOD Pro Development kit: <br> ![da14531mod_pro_kit](assets/da14531mod_pro_kit_jumpers_led_on.png)
+
+* DA1469x Pro Development kit: <br> ![da1469x_pro_kit](assets/da1469x_pro_kit_jumpers_led_on.png)

@@ -88,7 +88,7 @@ class BleManager(BleManagerBase):
             BLE_MGR_CMD_CAT.BLE_MGR_L2CAP_CMD_CAT: None,
         }
 
-        self.evt_handlers = [self._gap_mgr.evt_handlers, self._gattc_mgr.evt_handlers, self._gatts_mgr.evt_handlers]
+        self.evt_handlers = [self._gap_mgr.evt_handlers, self._gattc_mgr.evt_handlers, self._gatts_mgr.evt_handlers, self._common_mgr.evt_handlers]
 
     def _adapter_event_queue_get(self) -> BleEventBase:
         return self._adapter_event_q.get()
@@ -185,3 +185,10 @@ class BleManager(BleManagerBase):
 
     def find_stored_device_by_conn_idx(self, conn_idx: int) -> StoredDevice:
         return self._stored_device_list.find_device_by_conn_idx(conn_idx)
+
+    def update_ble_config(self, ble_config: BleConfigDefault):
+        super().update_ble_config(ble_config)
+        self._common_mgr.update_ble_config(ble_config)
+        self._gap_mgr.update_ble_config(ble_config)
+        self._gattc_mgr.update_ble_config(ble_config)
+        self._gatts_mgr.update_ble_config(ble_config)

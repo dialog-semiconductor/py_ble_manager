@@ -94,3 +94,6 @@ class BleManagerBase():
 
     def storage_release(self) -> None:
         self._stored_device_lock.release()
+
+    def update_ble_config(self, ble_config: BleConfigDefault):
+        self._ble_config = ble_config

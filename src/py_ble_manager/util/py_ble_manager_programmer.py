@@ -3,7 +3,7 @@ import json
 import os
 import sys
 import ezFlashCLI.cli
-from ezFlashCLI.ezFlash.smartbond.smartbondDevices import da14xxx, da14531, SMARTBOND_IDENTIFIER
+from ezFlashCLI.ezFlash.smartbond.smartbondDevices import da14xxx, da14531, da1469x, SMARTBOND_IDENTIFIER
 from ezFlashCLI.ezFlash.pyjlink import pyjlink
 import py_ble_manager
 
@@ -13,6 +13,8 @@ def create_mcu(device_id_str):
     match device_id_str:
         case 'da14531':
             mcu = da14531()
+        case 'da1469x':
+            mcu = da1469x()
         case _:
             print("MCU not supported")
             sys.exit(1)
@@ -47,6 +49,10 @@ def load_binary_data(device_id_str: str):
             with open(os.path.join(os.path.dirname(os.path.abspath(py_ble_manager.__file__)), 'firmware/da14531_pro_kit_1000000_baud.bin'), 'rb') as bin_file:
                 # open binary and load data
                 bin_data = bin_file.read()
+        case 'da1469x':
+            with open(os.path.join(os.path.dirname(os.path.abspath(py_ble_manager.__file__)), 'firmware/da1469x_pro_kit_1000000_baud.bin'), 'rb') as bin_file:
+                # open binary and load data
+                bin_data = bin_file.read()
         case _:
             print("MCU not supported")
             sys.exit(1)
@@ -60,7 +66,7 @@ def load_flash_db():
     return flash_db
 
 
-def program_binary(mcu: da14xxx, bin_data: bytes, flash_db):
+def program_binary(mcu: da14xxx, bin_data: bytes):
     # get the flash ID
     flash_id = mcu.flash_probe()
 
@@ -68,10 +74,21 @@ def program_binary(mcu: da14xxx, bin_data: bytes, flash_db):
     print("Erasing flash...")
     mcu.flash_erase()
 
-    # program
-    print("Programming binary...")
+    # load the flash database
+    flash_db = load_flash_db()
+
+    # get the flash info
     flash = mcu.get_flash(flash_id, flash_db)
-    mcu.flash_program_image(bin_data, flash)
+
+    if isinstance(mcu, da14531):
+        parameters = flash
+    if isinstance(mcu, da1469x):
+        parameters = {}
+        parameters["active_fw_image_address"] = None
+        parameters["flashid"] = flash
+
+    # program
+    mcu.flash_program_image(bin_data, parameters)
     print("Finished programming.")
 
     # reset the device to start the application
@@ -79,7 +96,9 @@ def program_binary(mcu: da14xxx, bin_data: bytes, flash_db):
     mcu.link.resetNoHalt()
     mcu.link.close()
 
-    print("Firmware is running and the serial port is available for communication with py_ble_manager!")
+    print("Firmware is programmed and the serial port is available for communication with py_ble_manager!")
+    print("If an orange (DA14531) or red (DA1469x) LED on your development kit is not illuminated,"
+          "press the reset button or power cycle the development kit to start the application")
 
 
 def prompt_for_jlink_to_use(device_list: list[str]) -> int:
@@ -114,11 +133,8 @@ def main():
         # load the appropriate binary
         bin_data = load_binary_data(device_id_str)
 
-        # load the flash database
-        flash_db = load_flash_db()
-
         # program the binary
-        program_binary(mcu, bin_data, flash_db)
+        program_binary(mcu, bin_data)
 
     except Exception as ex:
         print(f"Exception: {ex}")

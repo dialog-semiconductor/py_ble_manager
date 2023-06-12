@@ -24,9 +24,6 @@ class WaitQueue():
         return task_id >> 8
 
     def add(self, elem: WaitQueueElement):
-        self.push(elem)
-
-    def push(self, elem: WaitQueueElement) -> None:
         if not isinstance(elem, WaitQueueElement):
             raise TypeError(f"Element must be of type WaitQueueElement, was {type(elem)}")
         self._queue.append(elem)

@@ -6,9 +6,7 @@ Quick Start
 Quick Start (terminal)
 ----------------------
 
-#. Connect the jumpers on the DA14531 Pro Development kit as depicted below:
-
-   .. image:: ../../assets/da14531_pro_kit_jumpers.png
+#. Refer to the :doc:`hardware_setup` to setup the jumpers on your development kit.
 
 #. Call: ``pip install "py_ble_manager[dev] @ git+https://github.com/dialog-semiconductor/py_ble_manager.git`` to install the ``py_ble_manager`` package and its dependencies.
 
@@ -19,6 +17,6 @@ Quick Start (terminal)
     .. note:: 
       This library requires Python v3.10.5 or later.
 
-#. `Download <https://github.com/Renesas-US-Connectivity/py_ble_manager/tree/main/src/py_ble_manager/util>`_ the py_ble_manager enabled firmware binary to the DA14531 Pro Development kit by calling the ``py_ble_manager_programmer`` utility from the terminal.
+#. `Download <https://github.com/Renesas-US-Connectivity/py_ble_manager/tree/main/src/py_ble_manager/util>`_ the py_ble_manager enabled firmware binary to the development kit by calling the ``py_ble_manager_programmer`` utility from the terminal.
     
 #. The package is now installed and you are ready to run one of the `examples <https://github.com/Renesas-US-Connectivity/py_ble_manager/tree/main/examples>`_!

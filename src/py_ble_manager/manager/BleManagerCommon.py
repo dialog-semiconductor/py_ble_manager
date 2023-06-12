@@ -3,15 +3,18 @@ import threading
 from typing import Callable
 
 from ..ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_STATUS, BleEventResetCompleted
-from ..ble_api.BleConfig import BleConfigDefault
+from ..ble_api.BleConfig import BleConfigDefault, BleConfigDA14531, BleConfigDA1469x, DA14531VersionInd, DA14695VersionInd, \
+    BLE_HW_TYPE
 from ..ble_api.BleGap import BLE_CONN_IDX_INVALID
 from ..gtl_messages.gtl_message_base import GtlMessageBase
-from ..gtl_messages.gtl_message_gapm import GapmResetCmd, GapmCmpEvt
-from ..gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, gapm_reset_cmd
+from ..gtl_messages.gtl_message_gapm import GapmResetCmd, GapmCmpEvt, GapmGetDevVersionCmd, GapmDevVersionInd
+from ..gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, gapm_reset_cmd, gapm_get_dev_info_cmd
 from ..gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from ..manager.BleDevParams import BleDevParamsDefault
 from ..manager.BleManagerBase import BleManagerBase
-from ..manager.BleManagerCommonMsgs import BleMgrCommonResetCmd, BleMgrCommonResetRsp, BLE_MGR_COMMON_CMD_OPCODE
+from ..manager.BleManagerCommonMsgs import BleMgrCommonResetCmd, BleMgrCommonResetRsp, BLE_MGR_COMMON_CMD_OPCODE, \
+    BleMgrCommonGetDevVersionCmd, BleMgrCommonGetDevVersionRsp
+
 from ..manager.BleManagerStorage import StoredDeviceQueue
 from ..manager.GtlWaitQueue import GtlWaitQueue
 from ..manager.ResetWaitQueue import ResetWaitQueue
@@ -46,7 +49,31 @@ class BleManagerCommon(BleManagerBase):
 
         self.cmd_handlers = {
             BLE_MGR_COMMON_CMD_OPCODE.BLE_MGR_COMMON_RESET_CMD: self.reset_cmd_handler,
+            BLE_MGR_COMMON_CMD_OPCODE.BLE_MGR_COMMON_GET_DEV_VERSION_CMD: self.get_dev_version_cmd_handler,
         }
+
+        self.evt_handlers = {
+            GAPM_MSG_ID.GAPM_DEV_VERSION_IND: self.get_dev_version_evt_handler,
+        }
+
+    def _get_dev_version_rsp_handler(self, gtl: GapmCmpEvt, response: BleMgrCommonGetDevVersionRsp):
+        if gtl.parameters.status == HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
+            response.status = BLE_ERROR.BLE_STATUS_OK
+            # overwrite the BLE config only if user is using the default
+            response.config = None
+            if self._ble_config == BleConfigDefault():
+                if response == DA14531VersionInd():
+                    response.config = BleConfigDA14531()
+                elif response == DA14695VersionInd():
+                    response.config = BleConfigDA1469x()
+            else:
+                # otherwise just update the HW type
+                if response == DA14531VersionInd():
+                    self._ble_config.dg_configHW_TYPE = BLE_HW_TYPE.DA14531
+                elif response == DA14695VersionInd():
+                    self._ble_config.dg_configHW_TYPE = BLE_HW_TYPE.DA14695
+
+        self._mgr_response_queue_send(response)
 
     def _reset_rsp_handler(self, gtl: GapmCmpEvt, param: None):
         response = BleMgrCommonResetRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
@@ -85,6 +112,28 @@ class BleManagerCommon(BleManagerBase):
     def _rest_wait_queue_add(self, conn_idx: int, msg_id: int, ext_id: int, cb: Callable, param: object) -> None:
         item = WaitQueueElement(conn_idx=conn_idx, msg_id=msg_id, ext_id=ext_id, cb=cb, param=param)
         self._reset_wait_q.add(item)
+
+    def get_dev_version_cmd_handler(self, command: BleMgrCommonGetDevVersionCmd):
+        # This will result in a GapmDevVersionInd event (see get_dev_version_evt_handler())
+        gtl = GapmGetDevVersionCmd()
+        gtl.parameters = gapm_get_dev_info_cmd(GAPM_OPERATION.GAPM_GET_DEV_VERSION)
+        self._adapter_command_queue_send(gtl)
+
+    def get_dev_version_evt_handler(self, gtl: GapmDevVersionInd):
+        # put item on wait queue to wait for the GAPM_CMP_EVT
+        response = BleMgrCommonGetDevVersionRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
+        response.hci_ver = gtl.parameters.hci_ver
+        response.lmp_ver = gtl.parameters.lmp_ver
+        response.host_ver = gtl.parameters.host_ver
+        response.hci_subver = gtl.parameters.hci_subver
+        response.lmp_subver = gtl.parameters.lmp_subver
+        response.host_subver = gtl.parameters.host_subver
+        response.manuf_name = gtl.parameters.manuf_name
+        self._gtl_wait_queue_add(BLE_CONN_IDX_INVALID,
+                                 GAPM_MSG_ID.GAPM_CMP_EVT,
+                                 GAPM_OPERATION.GAPM_GET_DEV_VERSION,
+                                 self._get_dev_version_rsp_handler,
+                                 response)
 
     def reset_cmd_handler(self, command: BleMgrCommonResetCmd):
         self._set_status(BLE_STATUS.BLE_IS_RESET)

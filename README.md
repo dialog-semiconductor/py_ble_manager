@@ -12,9 +12,7 @@ The primary intent is for use as a central device for benchtop testing, continuo
 
 ## Quick Start
 
-1. Connect the jumpers on the DA14531 Pro Development kit as depicted below:
-
-    ![da14531_jumpers](assets/da14531_pro_kit_jumpers.png)
+1. Refer to the [hardware setup](docs/source/hardware_setup.rst) to setup the jumpers on your development kit.
 
 2. Call: `pip install "py_ble_manager[dev] @ git+https://github.com/dialog-semiconductor/py_ble_manager.git"` to install the `py_ble_manager` package and its dependencies.
 
@@ -25,7 +23,7 @@ The primary intent is for use as a central device for benchtop testing, continuo
     > **_NOTE:_**
       This library requires Python v3.10.5 or later.
 
-3. [Download](src/py_ble_manager/util/) the py_ble_manager compatible firmware binary to the DA14531 Pro Development kit by calling the `py_ble_manager_programmer` utility from the terminal.
+3. [Download](src/py_ble_manager/util/) the py_ble_manager compatible firmware binary to the development kit by calling the `py_ble_manager_programmer` utility from the terminal.
 
 4. The package is now installed and you are ready to run one of the [examples](examples)!
 
