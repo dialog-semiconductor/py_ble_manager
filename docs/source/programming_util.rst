@@ -40,3 +40,15 @@ If the LED on the development kit is illuminated, the application is running. Be
 
 * DA1469x Pro Development kit:
     .. image:: ../../src/py_ble_manager/util/assets/da1469x_pro_kit_jumpers_led_on.png
+
+In the case of the DA1469x, you will be prompted which baud rate to use:
+
+.. image:: ../../src/py_ble_manager/util/assets/terminal_baud.png
+
+Note the default ``baud_rate`` used by a ``BleCentral`` object is 1M. If you select the 3M baud option, ensure you pass in the baud_rate parameter when creating a ``BleCentral`` object:
+
+.. code-block:: python
+
+    import py_ble_manager as ble
+
+    central = ble.BleCentral("COM54", baud_rate=3000000)

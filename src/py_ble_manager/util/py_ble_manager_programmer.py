@@ -50,9 +50,23 @@ def load_binary_data(device_id_str: str):
                 # open binary and load data
                 bin_data = bin_file.read()
         case 'da1469x':
-            with open(os.path.join(os.path.dirname(os.path.abspath(py_ble_manager.__file__)), 'firmware/da1469x_pro_kit_1000000_baud.bin'), 'rb') as bin_file:
-                # open binary and load data
-                bin_data = bin_file.read()
+            print("Available baud rates:")
+            print("0. 1M Baud (default)")
+            print("1. 3M Baud")
+            baud_select = int(input("Select baud rate (0 or 1): "))
+            baud_select = None if not baud_select else baud_select 
+            match baud_select:
+                case 0:
+                    with open(os.path.join(os.path.dirname(os.path.abspath(py_ble_manager.__file__)), 'firmware/da1469x_pro_kit_1000000_baud.bin'), 'rb') as bin_file:
+                        # open binary and load data
+                        bin_data = bin_file.read()
+                case 1:
+                    with open(os.path.join(os.path.dirname(os.path.abspath(py_ble_manager.__file__)), 'firmware/da1469x_pro_kit_3000000_baud.bin'), 'rb') as bin_file:
+                        # open binary and load data
+                        bin_data = bin_file.read()
+                case _:
+                    print("Baud not supported")
+                    sys.exit(1)
         case _:
             print("MCU not supported")
             sys.exit(1)
