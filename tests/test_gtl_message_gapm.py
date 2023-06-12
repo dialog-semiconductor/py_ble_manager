@@ -301,5 +301,35 @@ class TestGapmAddrSolvedInd(unittest.TestCase):
 
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+# Table 221
+class TestGapmGetDevVersionCmd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05060D0D001000010005"
+        
+    def test_parameters_passed_on_construction(self):
+        test_message = GapmGetDevVersionCmd()
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 223
+class TestGapmDevVersionInd(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "05070D10000D000C000A0A08000F010F010E01D200"
+        
+    def test_parameters_passed_on_construction(self):
+        test_message = GapmDevVersionInd()
+        test_message.parameters.hci_ver = 0x0A
+        test_message.parameters.lmp_ver = 0x0A
+        test_message.parameters.host_ver = 0x08
+        test_message.parameters.hci_subver = 0x010F
+        test_message.parameters.lmp_subver = 0x010F
+        test_message.parameters.host_subver = 0x010E
+        test_message.parameters.manuf_name = 0x00D2
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+
 if __name__ == '__main__':
     unittest.main()

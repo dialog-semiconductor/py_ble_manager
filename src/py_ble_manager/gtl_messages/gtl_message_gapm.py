@@ -169,7 +169,6 @@ class GapmUpdateAdvertiseDataCmd(GtlMessageBase):
                          parameters=self.parameters)
 
 
-# TODO need unit test
 class GapmGetDevVersionCmd(GtlMessageBase):
 
     def __init__(self, parameters: gapm_get_dev_info_cmd = None):
@@ -183,7 +182,6 @@ class GapmGetDevVersionCmd(GtlMessageBase):
                          parameters=self.parameters)
 
 
-# TODO need unit test
 class GapmDevVersionInd(GtlMessageBase):
 
     def __init__(self, parameters: gapm_dev_version_ind = None):
