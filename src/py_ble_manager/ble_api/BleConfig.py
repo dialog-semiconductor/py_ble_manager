@@ -49,15 +49,6 @@ class BleConfigDefault():
         return False
 
 
-class BleConfigDA1469x(BleConfigDefault):
-    """DA14695 configuration for various BLE parameters
-    """
-    def __init__(self, ble_device_type: BLE_DEVICE_TYPE = BLE_DEVICE_TYPE.CENTRAL):
-        super().__init__(ble_device_type)
-        self.defaultBLE_MAX_BONDED = (8)
-        self.dg_configHW_TYPE = BLE_HW_TYPE.DA14695
-
-
 class BleConfigDA14531(BleConfigDefault):
     """DA14531 configuration for various BLE parameters
     """
@@ -65,6 +56,15 @@ class BleConfigDA14531(BleConfigDefault):
         super().__init__(ble_device_type)
         self.defaultBLE_MAX_BONDED = (5)
         self.dg_configHW_TYPE = BLE_HW_TYPE.DA14531
+
+
+class BleConfigDA1469x(BleConfigDefault):
+    """DA14695 configuration for various BLE parameters
+    """
+    def __init__(self, ble_device_type: BLE_DEVICE_TYPE = BLE_DEVICE_TYPE.CENTRAL):
+        super().__init__(ble_device_type)
+        self.defaultBLE_MAX_BONDED = (8)
+        self.dg_configHW_TYPE = BLE_HW_TYPE.DA14695
 
 
 class DA14531VersionInd():
