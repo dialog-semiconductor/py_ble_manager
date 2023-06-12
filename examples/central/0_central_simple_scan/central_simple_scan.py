@@ -18,7 +18,7 @@ def main(com_port):
                        interval_ms=100,
                        window_ms=50,
                        filt_wlist=False,
-                       filt_dupl=True)
+                       filt_dupl=False)
 
     while True:
         # Wait for asynchronous events to arrive. A timeout is set to allow for Keyboard interrupts

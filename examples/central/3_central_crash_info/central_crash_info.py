@@ -207,7 +207,7 @@ class BleController():
                                                     100,
                                                     50,
                                                     False,
-                                                    True)
+                                                    False)
 
                 case "GET_ALL_RESET_DATA":
                     # Expected command format: >>>GETALLRESETDATA 48:23:35:00:1b:53,P

@@ -132,7 +132,7 @@ class BleController():
                                                     100,
                                                     50,
                                                     False,
-                                                    True)
+                                                    False)
 
                 case 'SCAN_CANCEL':
                     error = self.central.scan_stop()
