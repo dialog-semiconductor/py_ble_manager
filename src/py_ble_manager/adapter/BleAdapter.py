@@ -1,3 +1,4 @@
+import logging
 import queue
 import threading
 
@@ -13,15 +14,14 @@ class BleAdapter():
                  event_q: queue.Queue[GtlMessageBase],
                  serial_tx_q: queue.Queue[bytes],
                  serial_rx_q: queue.Queue[bytes],
-                 gtl_debug: bool = False,
                  ) -> None:
 
         self._command_q: queue.Queue[GtlMessageBase] = command_q
         self._event_q: queue.Queue[GtlMessageBase] = event_q
         self._serial_tx_q: queue.Queue[bytes] = serial_tx_q
         self._serial_rx_q: queue.Queue[bytes] = serial_rx_q
-        self._gtl_debug = gtl_debug
         self._ble_stack_initialized = False
+        self._logger = logging.getLogger(__name__)
 
     def _command_queue_get(self) -> GtlMessageBase:
         return self._command_q.get()
@@ -39,8 +39,7 @@ class BleAdapter():
 
     def _process_serial_rx_q(self, byte_string: bytes):
         msg = GtlMessageFactory().create_message(byte_string)
-        if self._gtl_debug:
-            print(f"<-- Rx: {msg}\n")
+        self._logger.debug(f"<-- Rx: {msg}\n")
 
         if msg:
             if msg.msg_id == GAPM_MSG_ID.GAPM_DEVICE_READY_IND:
@@ -60,8 +59,7 @@ class BleAdapter():
             pass
 
     def _send_serial_message(self, message: GtlMessageBase):
-        if self._gtl_debug:
-            print(f"--> Tx: {message}\n")
+        self._logger.debug(f"--> Tx: {message}\n")
         self._serial_tx_q.put_nowait(message.to_bytes())
 
     def _serial_rx_q_get(self) -> bytes:

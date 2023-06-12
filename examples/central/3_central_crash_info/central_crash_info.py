@@ -144,7 +144,7 @@ class BleController():
         assert self.response_q
 
         # initialize central device
-        self.central = ble.BleCentral(self.com_port, gtl_debug=False)
+        self.central = ble.BleCentral(self.com_port)
         self.central.init()
         self.central.start()
         self.central.set_io_cap(ble.GAP_IO_CAPABILITIES.GAP_IO_CAP_KEYBOARD_DISP)
