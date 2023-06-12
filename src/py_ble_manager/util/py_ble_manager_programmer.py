@@ -53,8 +53,8 @@ def load_binary_data(device_id_str: str):
             print("Available baud rates:")
             print("0. 1M Baud (default)")
             print("1. 3M Baud")
-            baud_select = int(input("Select baud rate (0 or 1): "))
-            baud_select = None if not baud_select else baud_select 
+            baud_select = input("Select baud rate (0 or 1): ")
+            baud_select = int(baud_select) if baud_select else 0  # default to 1M
             match baud_select:
                 case 0:
                     with open(os.path.join(os.path.dirname(os.path.abspath(py_ble_manager.__file__)), 'firmware/da1469x_pro_kit_1000000_baud.bin'), 'rb') as bin_file:
