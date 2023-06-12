@@ -45,7 +45,7 @@ In the case of the DA1469x, you will be prompted which baud rate to use:
 
 ![terminal](assets/terminal_baud.png)
 
-Note the default `baud_rate` used by a `BleCentral` object is 1M. If you select the 3M baud option, ensure you pass in the baud_rate parameter when creating a `BleCentral` object:
+Note the default `baud_rate` used by a `BleCentral` object is 1M. If you select the 3M baud option, ensure you pass in the `baud_rate` parameter when creating a `BleCentral` object:
 
 ```Python
 import py_ble_manager as ble
