@@ -97,8 +97,8 @@ def program_binary(mcu: da14xxx, bin_data: bytes):
     mcu.link.close()
 
     print("Firmware is programmed and the serial port is available for communication with py_ble_manager!")
-    print("If an orange (DA14531) or red (DA1469x) LED on your development kit is not illuminated, press the reset button or power cycle the development kit"
-          "to start the application")
+    print("If an orange (DA14531) or red (DA1469x) LED on your development kit is not illuminated,"
+          "press the reset button or power cycle the development kit to start the application")
 
 
 def prompt_for_jlink_to_use(device_list: list[str]) -> int:
