@@ -38,7 +38,7 @@ class BleDeviceBase():
         adapter_event_q = queue.Queue()
         serial_tx_q = queue.Queue()
         serial_rx_q = queue.Queue()
-        self._config = config
+        self._ble_config = config
         # Internal BLE framework layers
         self._ble_manager = BleManager(app_command_q, app_response_q, app_event_q, adapter_command_q, adapter_event_q, config)
         self._ble_adapter = BleAdapter(adapter_command_q, adapter_event_q, serial_tx_q, serial_rx_q, gtl_debug)
@@ -380,8 +380,9 @@ class BleDeviceBase():
         if error == BLE_ERROR.BLE_STATUS_OK:
             ble_config, error = self._get_dev_version()
             if error == BLE_ERROR.BLE_STATUS_OK:
-                self._config = ble_config
-                self._ble_manager.update_ble_config(ble_config)
+                if ble_config:
+                    self._ble_config = ble_config
+                    self._ble_manager.update_ble_config(ble_config)
                 error = self._ble_gap.role_set(role)
 
         return error

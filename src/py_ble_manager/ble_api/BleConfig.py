@@ -58,7 +58,7 @@ class BleConfigDA1469x(BleConfigDefault):
         self.dg_configHW_TYPE = BLE_HW_TYPE.DA14695
 
 
-class BleConfigDA1453x(BleConfigDefault):
+class BleConfigDA14531(BleConfigDefault):
     """DA14531 configuration for various BLE parameters
     """
     def __init__(self, ble_device_type: BLE_DEVICE_TYPE = BLE_DEVICE_TYPE.CENTRAL):

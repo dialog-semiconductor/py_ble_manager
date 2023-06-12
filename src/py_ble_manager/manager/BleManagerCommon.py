@@ -3,7 +3,8 @@ import threading
 from typing import Callable
 
 from ..ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_STATUS, BleEventResetCompleted
-from ..ble_api.BleConfig import BleConfigDefault, BleConfigDA1453x, BleConfigDA1469x, DA14531VersionInd, DA14695VersionInd
+from ..ble_api.BleConfig import BleConfigDefault, BleConfigDA14531, BleConfigDA1469x, DA14531VersionInd, DA14695VersionInd, \
+    BLE_HW_TYPE
 from ..ble_api.BleGap import BLE_CONN_IDX_INVALID
 from ..gtl_messages.gtl_message_base import GtlMessageBase
 from ..gtl_messages.gtl_message_gapm import GapmResetCmd, GapmCmpEvt, GapmGetDevVersionCmd, GapmDevVersionInd
@@ -58,13 +59,20 @@ class BleManagerCommon(BleManagerBase):
     def _get_dev_version_rsp_handler(self, gtl: GapmCmpEvt, response: BleMgrCommonGetDevVersionRsp):
         if gtl.parameters.status == HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
             response.status = BLE_ERROR.BLE_STATUS_OK
-            # TODO do not overwrite config passed by user
-            response.config = self._ble_config
+            # overwrite the BLE config only if user is using the default
+            response.config = None
             if self._ble_config == BleConfigDefault():
                 if response == DA14531VersionInd():
-                    response.config = BleConfigDA1453x()
+                    response.config = BleConfigDA14531()
                 elif response == DA14695VersionInd():
                     response.config = BleConfigDA1469x()
+            else:
+                # otherwise just update the HW type
+                if response == DA14531VersionInd():
+                    self._ble_config.dg_configHW_TYPE = BLE_HW_TYPE.DA14531
+                elif response == DA14695VersionInd():
+                    self._ble_config.dg_configHW_TYPE = BLE_HW_TYPE.DA14695
+
         self._mgr_response_queue_send(response)
 
     def _reset_rsp_handler(self, gtl: GapmCmpEvt, param: None):
