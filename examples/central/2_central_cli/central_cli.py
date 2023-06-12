@@ -339,7 +339,7 @@ class BleController():
     def handle_evt_gap_disconnected(self, evt: ble.BleEventGapDisconnected):
         print(f"Disconnected from: addr={ble.BleUtils.bd_addr_to_str(evt.address)}")
 
-    def handle_evt_gap_numeric_request(central: ble.BleCentral, evt: ble.BleEventGapNumericRequest):
+    def handle_evt_gap_numeric_request(self, evt: ble.BleEventGapNumericRequest):
         print(f"Numeric Request: conn_idx={evt.conn_idx}, num_key={evt.num_key}")
 
     def handle_evt_gap_pair_completed(self, evt: ble.BleEventGapPairCompleted):
@@ -358,7 +358,7 @@ class BleController():
         print(f"Peer version: conn_idx={evt.conn_idx}, lmp_version={evt.lmp_version} "
               + f"company_id={evt.company_id}, lmp_subversion={evt.lmp_subversion}")
 
-    def handle_evt_gap_scan_completed(central: ble.BleCentral, evt: ble.BleEventGapScanCompleted):
+    def handle_evt_gap_scan_completed(self, evt: ble.BleEventGapScanCompleted):
         print(f"Scan completed: status={evt.status.name}")
 
     def handle_evt_gap_sec_level_changed(self, evt: ble.BleEventGapSecLevelChanged):
