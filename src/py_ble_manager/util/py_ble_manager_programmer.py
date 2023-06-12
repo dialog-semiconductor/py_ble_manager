@@ -57,11 +57,15 @@ def load_binary_data(device_id_str: str):
             baud_select = int(baud_select) if baud_select else 0  # default to 1M
             match baud_select:
                 case 0:
-                    with open(os.path.join(os.path.dirname(os.path.abspath(py_ble_manager.__file__)), 'firmware/da1469x_pro_kit_1000000_baud.bin'), 'rb') as bin_file:
+                    with open(os.path.join(os.path.dirname(os.path.abspath(py_ble_manager.__file__)),
+                                           'firmware/da1469x_pro_kit_1000000_baud.bin'), 'rb'
+                              ) as bin_file:
                         # open binary and load data
                         bin_data = bin_file.read()
                 case 1:
-                    with open(os.path.join(os.path.dirname(os.path.abspath(py_ble_manager.__file__)), 'firmware/da1469x_pro_kit_3000000_baud.bin'), 'rb') as bin_file:
+                    with open(os.path.join(os.path.dirname(os.path.abspath(py_ble_manager.__file__)),
+                                           'firmware/da1469x_pro_kit_3000000_baud.bin'), 'rb'
+                              ) as bin_file:
                         # open binary and load data
                         bin_data = bin_file.read()
                 case _:
