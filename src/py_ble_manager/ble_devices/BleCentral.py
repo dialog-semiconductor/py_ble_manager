@@ -28,13 +28,15 @@ class BleCentral(BleDeviceBase):
         super().__init__(com_port, baud_rate, ble_config)
 
     def browse(self, conn_idx: int, uuid: AttUuid) -> BLE_ERROR:
-        """Browse services on remote GATT server in a given range
+        """Browse services on remote GATT server
 
         This will automatically discover all characteristics and descriptors of a service. To discover
-        services only, use ble_gattc_discover_svc() instead.
+        services only, use :py:meth:`~py_ble_manager.ble_devices.BleCentral.BleCentral.discover_services`. instead.
 
         :py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcBrowseSvc` will be sent for each service found. Once completed
         :py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcBrowseCompleted` will be sent.
+
+        If ``uuid`` is ``None``, all services are returned.
 
         :param conn_idx: connection index
         :type conn_idx: int
