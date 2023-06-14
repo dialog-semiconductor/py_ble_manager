@@ -193,7 +193,7 @@ class BleCentral(BleDeviceBase):
             * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_ERROR.BLE_STATUS_OK` if request has been send successfully.
             * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_ERROR.BLE_ERROR_FAILED` if request hasn't been sent successfully
             * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_ERROR.BLE_ERROR_ALREADY_DONE` if device is already paired or bonded respectively
-            * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_ERROR.BLE_ERROR_INS_RESOURCES` if there is 
+            * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_ERROR.BLE_ERROR_INS_RESOURCES` if there is
               :py:const:`~py_ble_manager.ble_api.BleConfig.defaultBLE_MAX_BONDED` number of bonded devices
         :rtype: BLE_ERROR
         """
