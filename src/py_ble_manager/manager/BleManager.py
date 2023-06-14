@@ -159,7 +159,7 @@ class BleManager(BleManagerBase):
                 if not self._handle_evt_or_ind(gtl):
                     print(f"BleManager._process_event_queue. Unhandled event={gtl}\n")
 
-    def cmd_execute(self, command: BleMgrMsgBase) -> BLE_ERROR:
+    def cmd_execute(self, command: BleMgrMsgBase, rsp_timeout_s: int = None) -> BLE_ERROR:
         dev_params = self.dev_params_acquire()
         ble_status = dev_params.status
         self.dev_params_release()
@@ -168,9 +168,8 @@ class BleManager(BleManagerBase):
 
         self._mgr_lock.acquire()
         self._mgr_command_queue_send(command)
-        response = self._mgr_response_queue_get()
+        response = self._mgr_response_queue_get(rsp_timeout_s)
         self._mgr_lock.release()
-        assert command.opcode == response.opcode
 
         return response
 

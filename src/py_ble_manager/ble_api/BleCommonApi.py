@@ -12,7 +12,10 @@ class BleCommonApi(BleApiBase):
     def ble_reset(self) -> BLE_ERROR:
 
         command = BleMgrCommonResetCmd()
-        response: BleMgrCommonResetRsp = self._ble_manager.cmd_execute(command)
+        response: BleMgrCommonResetRsp = self._ble_manager.cmd_execute(command, 5)  # timeout after 5 seconds
+        if not response:
+            raise TimeoutError("Failed to reset BLE stack. Check your development kit hardware setup"
+                               " and confirm the development kit is programmed with py_ble_manager firmware")
         return response.status
 
     def get_dev_version(self) -> BLE_ERROR:

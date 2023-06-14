@@ -51,8 +51,12 @@ class BleManagerBase():
     def _mgr_event_queue_send(self, evt: BleEventBase):
         self._mgr_event_q.put_nowait(evt)
 
-    def _mgr_response_queue_get(self) -> BleMgrMsgRsp:
-        return self._mgr_response_q.get()
+    def _mgr_response_queue_get(self, timeout: int = None) -> BleMgrMsgRsp:
+        try:
+            evt = self._mgr_response_q.get(timeout=timeout)
+        except queue.Empty:
+            evt = None
+        return evt
 
     def _mgr_response_queue_send(self, response: BleMgrMsgRsp):
         self._mgr_response_q.put_nowait(response)
