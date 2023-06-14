@@ -54,7 +54,8 @@ The methods exposed by these classes are wrappers for class methods defined in t
 
 The [ble_api](#ble_api) directory contains classes that implement the functionality of the `Dialog BLE API Library` layer. As with SDK10, functionality is broken in into logical groupings:
 
-The `BleGapApi` class implements GAP related functionality. The `BleGattcApi` class implements GATT client related functionality. The `BleGattsApi` class implements GATT service related functionality.  
+The `BleGapApi` class implements GAP related functionality. The `BleGattcApi` class implements GATT client related functionality. The `BleGattsApi` class implements GATT service related functionality. 
+The `BleCommonApi` class implements common functionality (e.g. reset handling).
 
 In addition, a number of classes and enums are defined for passing parameters / receiving responses and events back from the BLE Framework. Some example include `BLE_ERROR`, `BdAddress`, `GapScanParams`, `GAP_SCAN_TYPE`,  various BLE event definitions (`BleEventGapAdvCompleted`, `BleEventGapConnected`, etc.). Again, these classes and enums are analogous to their SDK10 counterparts.  
 
