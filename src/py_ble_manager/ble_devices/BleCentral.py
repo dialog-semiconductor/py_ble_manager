@@ -152,7 +152,8 @@ class BleCentral(BleDeviceBase):
         """Exchange MTU
 
         This call will start an MTU exchange procedure with the MTU previously set using
-        BleCentral.mtu_size_set(). If the MTU has been changed during the negotiation, a
+        :py:meth:`~py_ble_manager.ble_devices.BleCentral.mtu_size_set`.
+        If the MTU has been changed during the negotiation, a
         :py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcMtuChanged` event will be sent to the application
 
         :param conn_idx: connection index
@@ -190,10 +191,10 @@ class BleCentral(BleDeviceBase):
         :type bond: bool
         :return:
             * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_ERROR.BLE_STATUS_OK` if request has been send successfully.
-            * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_ERROR.BLE_ERROR_FAILED` if request hasn't been send successfully
+            * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_ERROR.BLE_ERROR_FAILED` if request hasn't been sent successfully
             * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_ERROR.BLE_ERROR_ALREADY_DONE` if device is already paired or bonded respectively
-            * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_ERROR.BLE_ERROR_INS_RESOURCES` if there is
-            * :py:const:`~py_ble_manager.ble_api.BleConfig.defaultBLE_MAX_BONDED` number of bonded devices
+            * :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_ERROR.BLE_ERROR_INS_RESOURCES` if there is 
+              :py:const:`~py_ble_manager.ble_api.BleConfig.defaultBLE_MAX_BONDED` number of bonded devices
         :rtype: BLE_ERROR
         """
 
