@@ -131,3 +131,9 @@ dmypy.json
 *.txt
 sandbox.py
 .vscode
+
+# Remove Sphinx files generated from code
+modules.rst
+py_ble_manager.ble_api.rst
+py_ble_manager.ble_devices.rst
+py_ble_manager.rst
