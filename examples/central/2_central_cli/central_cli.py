@@ -178,20 +178,6 @@ class BleController():
                         value = bytes.fromhex(args[4])  # Note: requires leading 0 for 0x0-0xF
                         error = self.central.write_no_resp(conn_idx, handle, signed, value)
 
-                case "WRITE_PREPARE":
-                    # TODO not receiving GATTC_CMP_EVT after sending GattcWriteCmd
-                    if len(args) == 4:
-                        conn_idx = int(args[1])
-                        handle = int(args[2])
-                        value = bytes.fromhex(args[3])
-                        error = self.central.write_prepare(conn_idx, handle, 0, value)
-
-                case "WRITE_EXECUTE":
-                    if len(args) == 3:
-                        conn_idx = int(args[1])
-                        execute = bool(int(args[2]))
-                        error = self.central.write_execute(conn_idx, execute)
-
                 case "READ":  # Note: char handle displayed by browse is actually the declaration. The value is +1
                     if len(args) == 3:
                         conn_idx = int(args[1])
