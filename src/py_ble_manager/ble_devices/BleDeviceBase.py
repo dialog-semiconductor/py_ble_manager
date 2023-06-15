@@ -303,7 +303,7 @@ class BleDeviceBase():
         with peers.
 
         :return: result code, mtu size
-        :rtype: Tuple[BLE_ERROR, int]
+        :rtype: Tuple[int, BLE_ERROR]
         """
         return self._ble_gap.mtu_size_get()
 
