@@ -437,7 +437,7 @@ class BleEventGapAirOpBdAddr(BleEventBase):
                  address: OwnAddress = None,
                  ) -> None:
         super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_AIR_OP_BDADDR)
-        self.address = address
+        self.address = address if address else OwnAddress()
 
 
 class BleEventGapConnected(BleEventBase):
