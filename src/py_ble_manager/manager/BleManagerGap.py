@@ -1087,9 +1087,9 @@ class BleManagerGap(BleManagerBase):
             else:
                 gtl = GapmUpdateAdvertiseDataCmd()
                 gtl.parameters.adv_data_len = command.adv_data_len
-                gtl.parameters.adv_data[:command.adv_data_len] = command.adv_data
+                gtl.parameters.adv_data[:command.adv_data_len] = command.adv_data[:command.adv_data_len]
                 gtl.parameters.scan_rsp_data_len = command.scan_rsp_data_len
-                gtl.parameters.scan_rsp_data[:command.scan_rsp_data_len] = command.scan_rsp_data
+                gtl.parameters.scan_rsp_data[:command.scan_rsp_data_len] = command.scan_rsp_data[:command.scan_rsp_data_len]
                 self._gtl_wait_queue_add(BLE_CONN_IDX_INVALID,
                                          GAPM_MSG_ID.GAPM_CMP_EVT,
                                          GAPM_OPERATION.GAPM_UPDATE_ADVERTISE_DATA,
