@@ -122,6 +122,14 @@ class BleDeviceBase():
 
         return self._ble_gap.address_set(address, renew_dur)
 
+    def appearance_get(self) -> Tuple[BLE_GAP_APPEARANCE, BLE_ERROR]:
+        """Get the appearance used for GAP service
+
+        :return: appearance, result code
+        :rtype: Tuple[BLE_GAP_APPEARANCE, BLE_ERROR]
+        """
+        return self._ble_gap.appearance_get()
+
     def appearance_set(self, appearance: BLE_GAP_APPEARANCE, perm: ATT_PERM) -> BLE_ERROR:
         """Set the appearance used for GAP service
 

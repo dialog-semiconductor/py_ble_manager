@@ -26,6 +26,13 @@ class BleGapApi(BleApiBase):
     def __init__(self, ble_manager: BleManager):
         super().__init__(ble_manager)
 
+    def appearance_get(self) -> Tuple[BLE_GAP_APPEARANCE, BLE_ERROR]:
+
+        dev_params = self._ble_manager.dev_params_acquire()
+        appearance = dev_params.appearance
+        self._ble_manager.dev_params_release()
+        return appearance
+
     def appearance_set(self, appearance: BLE_GAP_APPEARANCE, perm: ATT_PERM) -> BLE_ERROR:
 
         command = BleMgrGapAppearanceSetCmd(appearance, perm)
