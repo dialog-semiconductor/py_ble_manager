@@ -236,7 +236,7 @@ class BleController():
         adv_packet = False  # used to separate adv packets from scan responses
 
         # Parse the advertising structures
-        ad_structs = ble.BleUtils.parse_adv_data(evt)
+        ad_structs = ble.BleUtils.parse_adv_data_from_bytes(evt.data)
         for ad_struct in ad_structs:
             if ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_FLAGS:
                 # This is an advertising packet (vs scan response)
@@ -285,7 +285,7 @@ class BleController():
             name, adv_packet, scan_rsp = self.scan_dict[key]
             device_info += f"Device name: {name}, addr: {ble.BleUtils.bd_addr_to_str(adv_packet.address)}"
 
-            ad_structs = ble.BleUtils.parse_adv_data(adv_packet)
+            ad_structs = ble.BleUtils.parse_adv_data_from_bytes(adv_packet.data)
             for ad_struct in ad_structs:
                 if ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_UUID128_SVC_DATA:
                     num_resets = ad_struct.data[-1]

@@ -28,28 +28,27 @@ class BleUtils():
         return return_string
 
     @staticmethod
-    def parse_adv_data(evt: BleEventGapAdvReport) -> list[BleAdvData]:
-        """Generate AD structures from data in `BleEventGapAdvReport` event
+    def parse_adv_data_from_bytes(data: bytes) -> list[BleAdvData]:
+        """"Generate AD structures from bytes
 
-        :param evt: advertising report
-        :type evt: BleEventGapAdvReport
+        :param data: advertising data
+        :type data: bytes
         :return: list of AD structures
         :rtype: list[BleAdvData]
         """
-
         data_ptr = 0
-        adv_data_structs: BleAdvData = []
-        data_len = len(evt.data)
+        adv_data_structs: list[BleAdvData] = []
+        data_len = len(data)
         if data_len > 0:
             while data_ptr < 31 and data_ptr < data_len:
-                length = evt.data[data_ptr]
-                struct = BleAdvData(type=evt.data[data_ptr + 1])
+                length = data[data_ptr]
+                struct = BleAdvData(type=data[data_ptr + 1])
 
                 if length == 0 or struct.type == GAP_DATA_TYPE.GAP_DATA_TYPE_NONE:
                     break
 
                 data_ptr += 2
-                struct.data = evt.data[data_ptr:(data_ptr + length - 1)]  # -1 as calc includes AD Type
+                struct.data = data[data_ptr:(data_ptr + length - 1)]  # -1 as calc includes AD Type
                 data_ptr += struct.len - 1  # -1 as calc includes AD Type
                 adv_data_structs.append(struct)
 
