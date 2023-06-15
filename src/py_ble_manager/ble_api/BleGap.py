@@ -1,5 +1,5 @@
 from enum import IntEnum, auto
-from ..ble_api.BleCommon import BleEventBase, BdAddress, BLE_ERROR, BLE_EVT_GAP, BLE_HCI_ERROR
+from ..ble_api.BleCommon import BleEventBase, BdAddress, BLE_ERROR, BLE_EVT_GAP, BLE_HCI_ERROR, OwnAddress
 from ..gtl_port.co_bt import ADV_DATA_LEN, BD_NAME_SIZE
 
 BLE_CONN_IDX_INVALID = 0xFFFF
@@ -425,6 +425,19 @@ class BleEventGapAdvReport(BleEventBase):
         self.address = address if address else BdAddress()
         self.rssi = rssi
         self.data = data if data else bytes()
+
+
+class BleEventGapAirOpBdAddr(BleEventBase):
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_AIR_OP_BDADDR` event
+
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_AIR_OP_BDADDR`
+    :ivar address: random address
+    """
+    def __init__(self,
+                 address: OwnAddress = None,
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_AIR_OP_BDADDR)
+        self.address = address
 
 
 class BleEventGapConnected(BleEventBase):

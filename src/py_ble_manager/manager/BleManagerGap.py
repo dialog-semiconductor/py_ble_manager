@@ -17,7 +17,8 @@ from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_CONN_MODE, BleEventGapConnected, 
     BleEventGapPasskeyNotify, BleEventGapNumericRequest, BleEventGapPairCompleted, BleEventGapSecLevelChanged, \
     BleEventGapAddressResolved, BleEventGapPeerVersion, BleEventGapPeerFeatures, BleEventGapLtkMissing, \
     BLE_ADV_DATA_LEN_MAX, BLE_NON_CONN_ADV_DATA_LEN_MAX, BleEventGapAddressResolutionFailed, \
-    BleEventGapDataLengthSetFailed, GAP_ADV_TYPE, BleEventGapDataLengthChanged, BLE_GAP_DEVNAME_LEN_MAX
+    BleEventGapDataLengthSetFailed, GAP_ADV_TYPE, BleEventGapDataLengthChanged, BLE_GAP_DEVNAME_LEN_MAX,\
+    BleEventGapAirOpBdAddr
 
 from ..gtl_messages.gtl_message_base import GtlMessageBase
 from ..gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd, GapcGetDevInfoReqInd, GapcGetDevInfoCfm, \
@@ -26,7 +27,7 @@ from ..gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReq
     GapcPeerVersionInd, GapcPeerFeaturesInd, GapcEncryptReqInd, GapcEncryptCfm, GapcEncryptInd, GapcSetLePktSizeCmd, GapcLePktSizeInd
 
 from ..gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd, \
-    GapmStartScanCmd, GapmAdvReportInd, GapmCancelCmd, GapmResolvAddrCmd, GapmUpdateAdvertiseDataCmd
+    GapmStartScanCmd, GapmAdvReportInd, GapmCancelCmd, GapmResolvAddrCmd, GapmUpdateAdvertiseDataCmd, GapmDevBdAddrInd
 
 from ..gtl_port.attm import ATTM_PERM
 from ..gtl_port.co_bt import RAND_NB_LEN, KEY_LEN, BLE_LE_LENGTH_FEATURE, BD_ADDR_LEN
@@ -113,7 +114,7 @@ class BleManagerGap(BleManagerBase):
         }
 
         self.evt_handlers = {
-            GAPM_MSG_ID.GAPM_DEV_BDADDR_IND: None,
+            GAPM_MSG_ID.GAPM_DEV_BDADDR_IND: self.bdaddr_ind_evt_handler,
             GAPM_MSG_ID.GAPM_ADV_REPORT_IND: self.adv_report_evt_handler,
             GAPC_MSG_ID.GAPC_CONNECTION_REQ_IND: self.connected_evt_handler,
             GAPC_MSG_ID.GAPC_GET_DEV_INFO_REQ_IND: self.get_device_info_req_evt_handler,
@@ -1181,6 +1182,15 @@ class BleManagerGap(BleManagerBase):
             response.status = BLE_ERROR.BLE_STATUS_OK
         self._mgr_response_queue_send(response)
         self.dev_params_release()
+
+    def bdaddr_ind_evt_handler(self, gtl: GapmDevBdAddrInd):
+        dev_params = self.dev_params_acquire()
+        dev_params.own_addr.addr = gtl.parameters.addr.addr.addr[:BD_ADDR_LEN]
+        evt = BleEventGapAirOpBdAddr()
+        evt.address.addr = dev_params.own_addr.addr
+        evt.address.addr_type = dev_params.own_addr.addr_type
+        self.dev_params_release()
+        self._mgr_event_queue_send(evt)
 
     def bond_ind_evt_handler(self, gtl: GapcBondInd):
         match gtl.parameters.info:
