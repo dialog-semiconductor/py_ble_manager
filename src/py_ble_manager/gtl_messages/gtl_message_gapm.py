@@ -1,7 +1,7 @@
 from .gtl_message_base import GtlMessageBase
 from ..gtl_port.gapm_task import GAPM_MSG_ID, gapm_reset_cmd, gapm_cmp_evt, gapm_set_dev_config_cmd, gapm_start_advertise_cmd, \
     gapm_start_connection_cmd, gapm_start_scan_cmd, gapm_adv_report_ind, gapm_cancel_cmd, gapm_resolv_addr_cmd, \
-    gapm_addr_solved_ind, gapm_update_advertise_data_cmd, gapm_get_dev_info_cmd, gapm_dev_version_ind
+    gapm_addr_solved_ind, gapm_update_advertise_data_cmd, gapm_get_dev_info_cmd, gapm_dev_version_ind, gapm_dev_bdaddr_ind
 from ..gtl_port.rwip_config import KE_API_ID
 
 
@@ -192,4 +192,17 @@ class GapmDevVersionInd(GtlMessageBase):
                          dst_id=KE_API_ID.TASK_ID_GTL,
                          src_id=KE_API_ID.TASK_ID_GAPM,
                          par_len=12,
+                         parameters=self.parameters)
+
+
+class GapmDevBdAddrInd(GtlMessageBase):
+
+    def __init__(self, parameters: gapm_dev_bdaddr_ind = None):
+
+        self.parameters = parameters if parameters else gapm_dev_bdaddr_ind()
+
+        super().__init__(msg_id=GAPM_MSG_ID.GAPM_DEV_BDADDR_IND,
+                         dst_id=KE_API_ID.TASK_ID_GTL,
+                         src_id=KE_API_ID.TASK_ID_GAPM,
+                         par_len=7,
                          parameters=self.parameters)

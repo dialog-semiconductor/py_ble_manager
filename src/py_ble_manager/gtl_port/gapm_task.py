@@ -645,9 +645,22 @@ class gapm_dev_version_ind(LittleEndianStructure):
                 ("manuf_name", c_uint16)]
 
 
+# Local device BD Address indication event
+class gapm_dev_bdaddr_ind(LittleEndianStructure):
+    def __init__(self,
+                 addr: gap_bdaddr = gap_bdaddr()
+                 ) -> None:
+
+        self.addr = addr
+        super().__init__(addr=self.addr)
+
+                # Local device address information
+    _fields_ = [("addr", gap_bdaddr)]
+
+
 # Cancel ongoing operation
 class gapm_cancel_cmd(LittleEndianStructure):
-    def __init__(self) -> None:  # TODO RWBLE_SW_VERSION_MAJOR >= 9 supports additional cancel commands, but could cause issue with GAPM_KEY_RENEW on 531
+    def __init__(self) -> None:
         self.operation = GAPM_OPERATION.GAPM_CANCEL
         super().__init__(operation=self.operation)
 
