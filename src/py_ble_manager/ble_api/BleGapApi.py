@@ -33,6 +33,13 @@ class BleGapApi(BleApiBase):
 
         return response.status
 
+    def address_get(self) -> Tuple[OwnAddress, BLE_ERROR]:
+
+        dev_params = self._ble_manager.dev_params_acquire()
+        addr = dev_params.own_addr
+        self._ble_manager.dev_params_release()
+        return addr, BLE_ERROR.BLE_STATUS_OK
+
     def address_set(self, address: OwnAddress, renew_dur: int) -> BLE_ERROR:
 
         command = BleMgrGapAddressSetCmd(address, renew_dur)
