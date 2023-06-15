@@ -10,15 +10,15 @@ from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.patch_stdout import patch_stdout
 import time
 
-from debug_crash_info import DciData, DciFaultInfo, CortexM0StackFrame, DciSvcResponse, DCI_LAST_FAULT_HANDLER, DCI_REST_REASON, DCI_SVC_COMMAND
+from debug_crash_info import DciData, DciFaultInfo, CortexM0StackFrame, DciSvcResponse, DCI_LAST_FAULT_HANDLER, DCI_REST_REASON, DCI_SVC_COMMAND, \
+    DEBUG_CRASH_INFO_SVC_UUID_STR, DEBUG_CRASH_INFO_RX_CHAR_UUID_STR, DEBUG_CRASH_INFO_TX_CHAR_UUID_STR
+
 import py_ble_manager as ble
 
 
 FILE_PATH = Path(__file__).parent
 
-DEBUG_CRASH_INFO_SVC_UUID_STR = "21ce31fc-da27-11ed-afa1-0242ac120002"
-DEBUG_CRASH_INFO_RX_CHAR_UUID_STR = "8a8b791b-82f3-4ecf-9ce4-7d422c371a01"
-DEBUG_CRASH_INFO_TX_CHAR_UUID_STR = "17738e00-54f9-4a2c-a6ed-1ee67e00f323"
+
 CCC_UUID_STR = "2902"
 USER_DESC_UUID_STR = "2901"
 DEVICE_NAME_UUID_STR = "2A00"
