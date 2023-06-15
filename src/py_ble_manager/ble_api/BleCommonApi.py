@@ -1,5 +1,7 @@
-from .BleApiBase import BleApiBase
-from .BleCommon import BLE_ERROR
+from typing import Tuple
+from ..ble_api.BleApiBase import BleApiBase
+from ..ble_api.BleCommon import BLE_ERROR
+from ..ble_api.BleConfig import BleConfigDefault
 from ..manager.BleManager import BleManager
 from ..manager.BleManagerCommonMsgs import BleMgrCommonResetCmd, BleMgrCommonResetRsp, BleMgrCommonGetDevVersionCmd, BleMgrCommonGetDevVersionRsp
 
@@ -18,7 +20,7 @@ class BleCommonApi(BleApiBase):
                                " and confirm the development kit is programmed with py_ble_manager firmware")
         return response.status
 
-    def get_dev_version(self) -> BLE_ERROR:
+    def get_dev_version(self) -> Tuple[BleConfigDefault, BLE_ERROR]:
 
         command = BleMgrCommonGetDevVersionCmd()
         response: BleMgrCommonGetDevVersionRsp = self._ble_manager.cmd_execute(command)
