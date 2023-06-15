@@ -179,7 +179,7 @@ class BlePeripheral(BleDeviceBase):
                 gatt_char_def = svc.gatt_char_defs[i]
                 char_def = gatt_char_def.char_def
                 # ignoring ( _ ) char declaration handle offset (h_offset)
-                error, _, char_def.handle.value = self._ble_gatts.add_characteristic(char_def.uuid,
+                _, char_def.handle.value, error = self._ble_gatts.add_characteristic(char_def.uuid,
                                                                                      char_def.prop,
                                                                                      char_def.perm,
                                                                                      char_def.max_len,
@@ -187,7 +187,7 @@ class BlePeripheral(BleDeviceBase):
                 if error == BLE_ERROR.BLE_STATUS_OK:
                     for j in range(0, len(gatt_char_def.desc_defs)):
                         desc = gatt_char_def.desc_defs[j]
-                        error, desc.handle.value = self._ble_gatts.add_descriptor(desc.uuid,
+                        desc.handle.value, error = self._ble_gatts.add_descriptor(desc.uuid,
                                                                                   desc.perm,
                                                                                   desc.max_len,
                                                                                   desc.flags)

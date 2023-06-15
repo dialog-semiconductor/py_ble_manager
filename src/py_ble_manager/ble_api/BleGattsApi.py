@@ -26,28 +26,28 @@ class BleGattsApi(BleApiBase):
                            perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
                            max_len: int = 0,
                            flags: GATTS_FLAG = GATTS_FLAG.GATTS_FLAG_CHAR_READ_REQ,
-                           ) -> tuple[BLE_ERROR, int, int]:
+                           ) -> tuple[int, int, BLE_ERROR]:
 
         command = BleMgrGattsServiceAddCharacteristicCmd(uuid, prop, perm, max_len, flags)
         response: BleMgrGattsServiceAddCharacteristicRsp = self._ble_manager.cmd_execute(command)
         if response.status is BLE_ERROR.BLE_STATUS_OK:
-            return response.status, response.h_offset, response.h_val_offset
+            return response.h_offset, response.h_val_offset, response.status
         else:
-            return response.status, 0, 0
+            return 0, 0, response.status
 
     def add_descriptor(self,
                        uuid: AttUuid = None,
                        perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
                        max_len: int = 0,
                        flags: GATTS_FLAG = GATTS_FLAG.GATTS_FLAG_CHAR_READ_REQ,
-                       ) -> tuple[BLE_ERROR, int]:
+                       ) -> tuple[int, BLE_ERROR]:
 
         command = BleMgrGattsServiceAddDescriptorCmd(uuid, perm, max_len, flags)
         response: BleMgrGattsServiceAddDescriptorRsp = self._ble_manager.cmd_execute(command)
         if response.status is BLE_ERROR.BLE_STATUS_OK:
-            return response.status, response.h_offset
+            return response.h_offset, response.status
         else:
-            return response.status, 0
+            return 0, response.status
 
     def add_include(self,
                     handle: int = 0
