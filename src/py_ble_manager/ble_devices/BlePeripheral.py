@@ -1,13 +1,15 @@
 from ctypes import c_uint8
+from typing import Tuple
 from ..ble_api.BleAtt import ATT_ERROR
 from ..ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_EVT_GAP, BLE_EVT_GATTS
 from ..ble_api.BleConfig import BleConfigDefault, BLE_DEVICE_TYPE
 from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_CONN_MODE, BleEventGapConnected, \
     BleEventGapDisconnected, BleEventGapConnParamUpdateReq, BleEventGapPairReq, \
-    BleAdvData, BLE_NON_CONN_ADV_DATA_LEN_MAX, GapConnParams
+    BleAdvData, BLE_NON_CONN_ADV_DATA_LEN_MAX, GapConnParams, GAP_DISC_MODE
 from ..ble_api.BleGatt import GATT_EVENT
 from ..ble_api.BleGatts import BleEventGattsReadReq, BleEventGattsWriteReq, \
     BleEventGattsPrepareWriteReq, BleEventGattsEventSent
+from ..ble_api.BleUtil import BleUtils
 from ..ble_devices.BleDeviceBase import BleDeviceBase
 from ..services.BleService import BleServiceBase
 
@@ -68,6 +70,20 @@ class BlePeripheral(BleDeviceBase):
             return True
         return False
 
+    def advertising_channel_map_get(self) -> Tuple[int, BLE_ERROR]:
+
+        return self._ble_gap.adv_chnl_map_get()
+
+    def advertising_channel_map_set(self, chnl_map: int) -> BLE_ERROR:
+
+        return self._ble_gap.adv_chnl_map_set(chnl_map)
+
+    def advertising_data_get(self) -> Tuple[list[BleAdvData], list[BleAdvData], BLE_ERROR]:
+        adv_data, scan_rsp_data, error = self._ble_gap.adv_data_get()
+        adv_data_structs: list[BleAdvData] = BleUtils.parse_adv_data_from_bytes(adv_data)
+        scan_rsp_data_structs: list[BleAdvData] = BleUtils.parse_adv_data_from_bytes(scan_rsp_data)
+        return adv_data_structs, scan_rsp_data_structs, error
+
     def advertising_data_set(self,
                              adv_data_ad_list: list[BleAdvData] = [],
                              scan_rsp_ad_list: list[BleAdvData] = []
@@ -91,6 +107,19 @@ class BlePeripheral(BleDeviceBase):
             scan_rsp_data_len += ad.len + 1  # +1 to account for AD len byte
 
         return self._ble_gap.adv_data_set(adv_data_len, adv_data, scan_rsp_data_len, scan_rsp_data)
+
+    def advertising_interval_get(self) -> Tuple[int, int, BLE_ERROR]:
+
+        return self._ble_gap.adv_intv_get()
+
+    def advertising_interval_set(self, adv_intv_min_ms, adv_intv_max_ms) -> None:
+        self._ble_gap.adv_intv_set(adv_intv_min_ms, adv_intv_max_ms)
+
+    def advertising_mode_get(self) -> Tuple[GAP_DISC_MODE, BLE_ERROR]:
+        return self._ble_gap.adv_mode_get()
+
+    def advertising_mode_set(self, mode: GAP_DISC_MODE) -> BLE_ERROR:
+        return self._ble_gap.adv_mode_set(mode)
 
     def advertising_start(self,
                           adv_type: GAP_CONN_MODE = GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
@@ -129,6 +158,14 @@ class BlePeripheral(BleDeviceBase):
 
     def pair_reply(self, conn_idx: int, accept: bool, bond: bool) -> BLE_ERROR:
         return self._ble_gap.pair_reply(conn_idx, accept, bond)
+
+    def per_pref_conn_params_get(self) -> Tuple[GapConnParams, BLE_ERROR]:
+        """Get the peripheral preferred connection parameters currently set for GAP service
+
+        :return: preferred connection params, result code
+        :rtype: Tuple[GapConnParams, BLE_ERROR]
+        """
+        return self._ble_gap.per_pref_conn_params_get()
 
     def per_pref_conn_params_set(self, conn_params: GapConnParams) -> BLE_ERROR:
         """Set the peripheral preferred connection parameters used for GAP service
@@ -242,9 +279,6 @@ class BlePeripheral(BleDeviceBase):
 
         return handled
 
-    def set_advertising_interval(self, adv_intv_min_ms, adv_intv_max_ms) -> None:
-        self._ble_gap.set_advertising_interval(adv_intv_min_ms, adv_intv_max_ms)
-
     def set_value(self, handle: int, value: bytes) -> BLE_ERROR:
         error = BLE_ERROR.BLE_ERROR_FAILED
         service = self._find_service_by_handle(handle)
@@ -255,7 +289,7 @@ class BlePeripheral(BleDeviceBase):
     def start(self) -> BLE_ERROR:
         return super().start(BLE_GAP_ROLE.GAP_PERIPHERAL_ROLE)
 
-    def storage_get_int(self, conn_idx: int, key: int) -> tuple[BLE_ERROR, int]:
+    def storage_get_int(self, conn_idx: int, key: int) -> Tuple[int, BLE_ERROR]:
         return self._ble_storage.get_int(conn_idx, key)
 
     def storage_put_int(self, conn_idx: int, key: int, value: int, persistent: bool) -> BLE_ERROR:

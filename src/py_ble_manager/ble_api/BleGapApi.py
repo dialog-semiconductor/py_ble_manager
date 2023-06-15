@@ -1,10 +1,11 @@
+import copy
 from ctypes import c_uint8
 from typing import Tuple
 from ..ble_api.BleApiBase import BleApiBase
 from ..ble_api.BleAtt import ATT_PERM
 from ..ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR, OwnAddress
 from ..ble_api.BleGap import BLE_GAP_ROLE, GapConnParams, GAP_CONN_MODE, GAP_SCAN_TYPE, GAP_SCAN_MODE, \
-    GAP_IO_CAPABILITIES, BLE_NON_CONN_ADV_DATA_LEN_MAX, BLE_GAP_APPEARANCE
+    GAP_IO_CAPABILITIES, BLE_NON_CONN_ADV_DATA_LEN_MAX, BLE_GAP_APPEARANCE, GAP_DISC_MODE
 from ..manager.BleManager import BleManager
 from ..manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, BleMgrGapConnectCmd, \
     BleMgrGapConnectRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp, BleMgrGapScanStartCmd, \
@@ -43,7 +44,7 @@ class BleGapApi(BleApiBase):
     def address_get(self) -> Tuple[OwnAddress, BLE_ERROR]:
 
         dev_params = self._ble_manager.dev_params_acquire()
-        addr = dev_params.own_addr
+        addr = copy.deepcopy(dev_params.own_addr)
         self._ble_manager.dev_params_release()
         return addr, BLE_ERROR.BLE_STATUS_OK
 
@@ -53,6 +54,27 @@ class BleGapApi(BleApiBase):
         response: BleMgrGapAddressSetRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
+
+    def adv_chnl_map_get(self) -> Tuple[int, BLE_ERROR]:
+
+        dev_params = self._ble_manager.dev_params_acquire()
+        chnl_map = dev_params.adv_channel_map
+        self._ble_manager.dev_params_release()
+        return chnl_map, BLE_ERROR.BLE_STATUS_OK
+
+    def adv_chnl_map_set(self, chnl_map) -> BLE_ERROR:
+
+        dev_params = self._ble_manager.dev_params_acquire()
+        dev_params.adv_channel_map = chnl_map
+        self._ble_manager.dev_params_release()
+        return BLE_ERROR.BLE_STATUS_OK
+
+    def adv_data_get(self) -> Tuple[bytes, bytes, BLE_ERROR]:
+        dev_params = self._ble_manager.dev_params_acquire()
+        adv_data = copy.deepcopy(dev_params.adv_data[:dev_params.adv_data_length])
+        scan_rsp_data = copy.deepcopy(dev_params.scan_rsp_data[:dev_params.scan_rsp_data_length])
+        self._ble_manager.dev_params_release()
+        return adv_data, scan_rsp_data, BLE_ERROR.BLE_STATUS_OK
 
     def adv_data_set(self,
                      adv_data_len: int = 0,
@@ -68,6 +90,34 @@ class BleGapApi(BleApiBase):
         response: BleMgrGapAdvDataRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
+
+    def adv_intv_get(self) -> Tuple[int, int, BLE_ERROR]:
+
+        dev_params = self._ble_manager.dev_params_acquire()
+        intv_min = dev_params.adv_intv_min_ms
+        intv_max = dev_params.adv_intv_max_ms
+        self._ble_manager.dev_params_release()
+        return intv_min, intv_max, BLE_ERROR.BLE_STATUS_OK
+
+    def adv_intv_set(self, adv_intv_min_ms, adv_intv_max_ms) -> None:
+        dev_params = self._ble_manager.dev_params_acquire()
+        dev_params.adv_intv_min_ms = adv_intv_min_ms
+        dev_params.adv_intv_max_ms = adv_intv_max_ms
+        self._ble_manager.dev_params_release()
+
+    def adv_mode_get(self) -> Tuple[GAP_DISC_MODE, BLE_ERROR]:
+
+        dev_params = self._ble_manager.dev_params_acquire()
+        adv_mode = dev_params.adv_mode
+        self._ble_manager.dev_params_release()
+        return adv_mode, BLE_ERROR.BLE_STATUS_OK
+
+    def adv_mode_set(self, mode: GAP_DISC_MODE) -> BLE_ERROR:
+
+        dev_params = self._ble_manager.dev_params_acquire()
+        dev_params.adv_mode = mode
+        self._ble_manager.dev_params_release()
+        return BLE_ERROR.BLE_STATUS_OK
 
     def adv_start(self,
                   adv_type: GAP_CONN_MODE = GAP_CONN_MODE.GAP_CONN_MODE_UNDIRECTED
@@ -200,6 +250,13 @@ class BleGapApi(BleApiBase):
 
         return response.status
 
+    def per_pref_conn_params_get(self) -> Tuple[GapConnParams, BLE_ERROR]:
+
+        dev_params = self._ble_manager.dev_params_acquire()
+        conn_params = copy.deepcopy(dev_params.gap_ppcp)
+        self._ble_manager.dev_params_release()
+        return conn_params, BLE_ERROR.BLE_STATUS_OK
+
     def per_pref_conn_params_set(self, conn_params: GapConnParams) -> BLE_ERROR:
 
         command = BleMgrGapPpcpSetCmd(conn_params)
@@ -234,12 +291,6 @@ class BleGapApi(BleApiBase):
         response: BleMgrGapScanStopRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
-
-    def set_advertising_interval(self, adv_intv_min_ms, adv_intv_max_ms) -> None:
-        dev_params = self._ble_manager.dev_params_acquire()
-        dev_params.adv_intv_min_ms = adv_intv_min_ms
-        dev_params.adv_intv_max_ms = adv_intv_max_ms
-        self._ble_manager.dev_params_release()
 
     def set_io_cap(self, io_cap: GAP_IO_CAPABILITIES) -> BLE_ERROR:
         dev_params = self._ble_manager.dev_params_acquire()
