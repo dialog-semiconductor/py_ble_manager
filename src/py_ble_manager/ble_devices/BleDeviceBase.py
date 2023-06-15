@@ -410,7 +410,7 @@ class BleDeviceBase():
 
         return error
 
-    def storage_get_int(self, conn_idx: int, key: int) -> tuple[int, BLE_ERROR]:
+    def storage_get_int(self, conn_idx: int, key: int) -> Tuple[int, BLE_ERROR]:
         return self._ble_storage.get_int(conn_idx, key)
 
     def storage_put_int(self, conn_idx: int, key: int, value: int, persistent: bool) -> BLE_ERROR:
