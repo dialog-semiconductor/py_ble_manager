@@ -217,11 +217,11 @@ class BleDeviceBase():
 
         return self._ble_gap.data_length_set(conn_idx, tx_length, tx_time)
 
-    def device_name_get(self) -> Tuple[str, BLE_ERROR]:
+    def device_name_get(self) -> Tuple[bytes, BLE_ERROR]:
         """Get the device name used for GAP service
 
         :return: device name, result code
-        :rtype: Tuple[str, BLE_ERROR]
+        :rtype: Tuple[bytes, BLE_ERROR]
         """
 
         return self._ble_gap.device_name_get()
