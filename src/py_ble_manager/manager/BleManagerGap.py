@@ -154,18 +154,18 @@ class BleManagerGap(BleManagerBase):
                     dev_params.own_addr.addr = self._ble_config.defaultBLE_STATIC_ADDRESS
                     pass
                 case BLE_OWN_ADDR_TYPE.PRIVATE_STATIC_ADDRESS:
-                    dev_params.own_addr.addr[:BD_ADDR_LEN] = command.address.addr[:BD_ADDR_LEN]
+                    dev_params.own_addr.addr = command.address.addr[:BD_ADDR_LEN]
                 case BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
                     # The actual address depends on the air operation and whether the
                     # relevant peer is included in the RAL or not.
-                    dev_params.own_addr.addr[:BD_ADDR_LEN] = bytes(BD_ADDR_LEN)
+                    dev_params.own_addr.addr = bytes(BD_ADDR_LEN)
                     dev_params.addr_renew_duration = 0
                 case _:
                     # Assume it's either private random non-resolvable or resolvable address.
                     # We clear addr field to avoid confusion in application - only address type
                     # matters here. Proper address will be written when GAPM_DEV_BDADDR_IND
                     # is received.
-                    dev_params.own_addr.addr[:BD_ADDR_LEN] = bytes(BD_ADDR_LEN)
+                    dev_params.own_addr.addr = bytes(BD_ADDR_LEN)
                     dev_params.addr_renew_duration = command.renew_dur
             self.dev_params_release()
         self._mgr_response_queue_send(response)
@@ -1050,7 +1050,7 @@ class BleManagerGap(BleManagerBase):
                     gtl.parameters.addr_type = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PUBLIC
                 case BLE_OWN_ADDR_TYPE.PRIVATE_STATIC_ADDRESS:
                     gtl.parameters.addr_type = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PRIVATE
-                    gtl.parameters.addr = command.address.addr
+                    gtl.parameters.addr.addr[:] = (c_uint8 * len(command.address.addr)).from_buffer_copy(command.address.addr)
                 case (BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_RESOLVABLE_ADDRESS
                       | BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_NONRESOLVABLE_ADDRESS):
                     gtl.parameters.renew_dur = command.renew_dur
