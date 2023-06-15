@@ -616,7 +616,7 @@ class gapm_dev_version_ind(LittleEndianStructure):
         self.lmp_ver = lmp_ver
         self.host_ver = host_ver
         self.hci_subver = hci_subver
-        self.lmp_subver = hci_ver
+        self.lmp_subver = lmp_subver
         self.host_subver = host_subver
         self.manuf_name = manuf_name
         super().__init__(hci_ver=self.hci_ver,
