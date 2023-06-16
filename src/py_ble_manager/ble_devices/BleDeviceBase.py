@@ -294,6 +294,13 @@ class BleDeviceBase():
         self._serial_stream_manager.init()
 
     def get_connected(self) -> Tuple[list[int], BLE_ERROR]:
+        """Get connected devices list
+
+        Connection indexes for currently connected devices are returned
+
+        :return: list of connection idexes for connected devices, result code
+        :rtype: _type_
+        """
         return self._ble_gap.get_connected()
 
     def get_event(self, timeout: int = None) -> BleEventBase:
