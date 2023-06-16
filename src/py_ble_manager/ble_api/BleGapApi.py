@@ -28,6 +28,10 @@ class BleGapApi(BleApiBase):
     def __init__(self, ble_manager: BleManager):
         super().__init__(ble_manager)
 
+    def _bonded_device_callback(self, dev: StoredDevice, active_addr_list: list[int]) -> None:
+        if dev.bonded:
+            active_addr_list.append(copy.deepcopy(dev.addr))
+
     def _connected_device_callback(self, dev: StoredDevice, active_conn_idx_list: list[int]) -> None:
         if dev.connected and not dev.resolving:
             active_conn_idx_list.append(dev.conn_idx)
@@ -199,12 +203,28 @@ class BleGapApi(BleApiBase):
 
         return response.status
 
+    def get_bonded(self) -> Tuple[list[BdAddress], BLE_ERROR]:
+
+        active_addr_list: list[BdAddress] = []
+        self._ble_manager.storage_acquire()
+        self._ble_manager.device_for_each(self._bonded_device_callback, active_addr_list)
+        self._ble_manager.storage_release()
+        return active_addr_list, BLE_ERROR.BLE_STATUS_OK
+
     def get_connected(self) -> Tuple[list[int], BLE_ERROR]:
+
         active_conn_idx_list: list[int] = []
         self._ble_manager.storage_acquire()
         self._ble_manager.device_for_each(self._connected_device_callback, active_conn_idx_list)
         self._ble_manager.storage_release()
         return active_conn_idx_list, BLE_ERROR.BLE_STATUS_OK
+
+    def get_io_cap(self) -> Tuple[GAP_IO_CAPABILITIES, BLE_ERROR]:
+
+        dev_params = self._ble_manager.dev_params_acquire()
+        io_cap = dev_params.io_capabilities
+        self._ble_manager.dev_params_release()
+        return io_cap, BLE_ERROR.BLE_STATUS_OK
 
     def mtu_size_get(self) -> Tuple[int, BLE_ERROR]:
 

@@ -293,6 +293,17 @@ class BleDeviceBase():
         self._ble_adapter.init()
         self._serial_stream_manager.init()
 
+    def get_bonded(self) -> Tuple[list[BdAddress], BLE_ERROR]:
+        """Get bonded devices list
+
+        Addresses for currently bonded devices are returned.
+
+        :return: list of BdAddress for bonded devices, result code
+        :rtype: Tuple[list[BdAddress], BLE_ERROR]
+        """
+
+        return self._ble_gap.get_bonded()
+
     def get_connected(self) -> Tuple[list[int], BLE_ERROR]:
         """Get connected devices list
 
@@ -313,6 +324,18 @@ class BleDeviceBase():
         """
 
         return self._ble_manager.mgr_event_queue_get(timeout)
+    
+    def get_io_cap(self) -> Tuple[GAP_IO_CAPABILITIES, BLE_ERROR]:
+        """Get the I/O capabilities of the device
+
+        Get the currently set Input/Output Capabilities of the device (combined with the peer's I/O
+        capabilities, this will determine which pairing algorithm will be used).
+
+
+        :return: io capabilities, result code
+        :rtype: Tuple[GAP_IO_CAPABILITIES, BLE_ERROR]
+        """
+        return self._ble_gap.get_io_cap()
 
     def mtu_size_get(self) -> Tuple[int, BLE_ERROR]:
         """Get MTU size
