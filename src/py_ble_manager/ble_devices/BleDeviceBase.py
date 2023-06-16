@@ -293,6 +293,9 @@ class BleDeviceBase():
         self._ble_adapter.init()
         self._serial_stream_manager.init()
 
+    def get_connected(self) -> Tuple[list[int], BLE_ERROR]:
+        return self._ble_gap.get_connected()
+
     def get_event(self, timeout: int = None) -> BleEventBase:
         """Get event from BLE event queue
 

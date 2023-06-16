@@ -242,6 +242,10 @@ class StoredDeviceQueue(SearchableQueue):
 
         return found
 
+    def for_each(self, callback: Callable, param: object):
+        for device in self.queue:
+            callback(device, param)
+
     def move_to_front(self, elem: StoredDevice):
         device: StoredDevice
         for device in self.queue:
