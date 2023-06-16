@@ -324,7 +324,7 @@ class BleDeviceBase():
         """
 
         return self._ble_manager.mgr_event_queue_get(timeout)
-    
+
     def get_io_cap(self) -> Tuple[GAP_IO_CAPABILITIES, BLE_ERROR]:
         """Get the I/O capabilities of the device
 

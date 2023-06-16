@@ -1,6 +1,6 @@
 from ..ble_api.BleAtt import AttUuid, ATT_UUID_TYPE
 from ..ble_api.BleCommon import BdAddress, BLE_ADDR_TYPE
-from ..ble_api.BleGap import BleAdvData, BleEventGapAdvReport, GAP_DATA_TYPE
+from ..ble_api.BleGap import BleAdvData, GAP_DATA_TYPE
 
 
 class BleUtils():
