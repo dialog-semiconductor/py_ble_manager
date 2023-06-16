@@ -127,7 +127,7 @@ Separate python files exist for messages related to different BLE layers. For ex
 
 Each message takes care of setting the appropriate MSG_ID, DST_ID, SRC_ID, and PAR_LEN for its specific message type. A user only needs to provide the appropriate `parameters` to create a valid message. The `parameters` are one of the `LittleEndianStructure`'s defined in [gtl_port](gtl_port).
 
-For example, below demonstrates creating a [GapmResetCmd](https://github.com/dialog-semiconductor/py_ble_manager/blob/4d2c118afd886daabd73dd39d6d1d3fe650dbebc/src/py_ble_manager/gtl_messages/gtl_message_gapm.py#L19-L29) using the [gapm_reset_cmd](https://github.com/dialog-semiconductor/py_ble_manager/blob/4d2c118afd886daabd73dd39d6d1d3fe650dbebc/src/py_ble_manager/gtl_port/gapm_task.py#L451-L458) parameters:
+For example, below demonstrates creating a [GapmResetCmd](https://github.com/dialog-semiconductor/py_ble_manager/blob/4aeb3748a1d8de06bd29da2aaf7a39ec317c5443/src/py_ble_manager/gtl_messages/gtl_message_gapm.py#L19-L29) using the [gapm_reset_cmd](https://github.com/dialog-semiconductor/py_ble_manager/blob/4aeb3748a1d8de06bd29da2aaf7a39ec317c5443/src/py_ble_manager/gtl_port/gapm_task.py#L431-L438) parameters:
 
 ```python
 reset_cmd = GapmResetCmd(parameters = gapm_reset_cmd(GAPM_OPERATION.GAPM_RESET))
