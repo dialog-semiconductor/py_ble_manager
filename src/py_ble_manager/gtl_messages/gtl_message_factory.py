@@ -15,8 +15,10 @@ class GtlMessageFactory():
         if int.from_bytes(msg_bytes[:1], "little", signed=False) != GTL_INITIATOR:
             return None
 
-        dst_id = KE_API_ID(int.from_bytes(msg_bytes[3:5], "little", signed=False))
-        src_id = KE_API_ID(int.from_bytes(msg_bytes[5:7], "little", signed=False))
+        # There may be a connection index in the MSB of the dst_id or src_id.
+        # Only use LSB to identify
+        dst_id = KE_API_ID(int.from_bytes(msg_bytes[3:4], "little", signed=False))
+        src_id = KE_API_ID(int.from_bytes(msg_bytes[5:6], "little", signed=False))
 
         # Message type will be defined under the files associated with the non-GTL task id in the message
         message_task_id = src_id
