@@ -139,7 +139,7 @@ gtl_messages
 ^^^^^^^^^^^^
 
 The `gtl_messages`_  directory contains classes implementing various GTL messages defined in the `GTL User Manual <https://www.renesas.com/us/en/document/mat/um-b-143-renesas-external-processor-interface-gtl-interface?language=en&r=1564826>`_
-A generic base class for every message is defined in `gtl_message_base.py <https://github.com/Renesas-US-Connectivity/py_ble_manager/blob/main/src/py_ble_manager/gtl_messages/gtl_message_base.py>`_
+A generic base class for every message is defined in `gtl_message_base.py <https://github.com/dialog-semiconductor/py_ble_manager/blob/main/src/py_ble_manager/gtl_messages/gtl_message_base.py>`_
 
 .. code-block:: python
 
@@ -163,7 +163,7 @@ This message definition is consistent with the the GTL message format from the u
 
 .. image:: ../../assets/gtl_message_format.png
 
-Separate python files exist for messages related to different BLE layers. For example, `gtl_message_gapm.py <https://github.com/Renesas-US-Connectivity/py_ble_manager/blob/main/src/py_ble_manager/gtl_messages/gtl_message_gapm.py>`_
+Separate python files exist for messages related to different BLE layers. For example, `gtl_message_gapm.py <https://github.com//dialog-semiconductor/py_ble_manager/blob/main/src/py_ble_manager/gtl_messages/gtl_message_gapm.py>`_
 defines GAP Manager related GTL messages.
 
 Each message takes care of setting the appropriate MSG_ID, DST_ID, SRC_ID, and PAR_LEN for its specific message type. A user only needs to provide the appropriate ``parameters`` to create a valid message. The ``parameters`` are 
@@ -187,7 +187,7 @@ If no ``parameters`` are specified when the message is created, default ``parame
     set_dev_cmd.parameters.max_txoctets = 251
     set_dev_cmd.parameters.max_txtime = 2120
 
-In addition, the `gtl_messages`_ directory contains factory classes for creating GTL messages from byte streams. For example, the `GattcMessageFactory <https://github.com/Renesas-US-Connectivity/py_ble_manager/blob/main/src/py_ble_manager/gtl_messages/gapc_message_factory.py>`_
+In addition, the `gtl_messages`_ directory contains factory classes for creating GTL messages from byte streams. For example, the `GattcMessageFactory <https://github.com/dialog-semiconductor/py_ble_manager/blob/main/src/py_ble_manager/gtl_messages/gapc_message_factory.py>`_
 class coverts byte streams into the appropriate GATT client related GTL message. These are leveraged by the ``BleAdapter`` to create valid GTL messages from byte streams received over the serial port.
 
 .. _gtl_port: 
