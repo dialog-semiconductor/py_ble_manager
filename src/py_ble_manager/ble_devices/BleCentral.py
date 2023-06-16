@@ -201,23 +201,6 @@ class BleCentral(BleDeviceBase):
 
         return self._ble_gap.pair(conn_idx, bond)
 
-    def passkey_reply(self, conn_idx: int, accept: bool, passkey: int) -> BLE_ERROR:
-        """Respond to a passkey request
-
-        Respond to a :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_PASSKEY_REQUEST` event.
-
-        :param conn_idx: connection index
-        :type conn_idx: int
-        :param accept: accept flag
-        :type accept: bool
-        :param passkey: passkey entered by user
-        :type passkey: int
-        :return: result code
-        :rtype: BLE_ERROR
-        """
-
-        return self._ble_gap.passkey_reply(conn_idx, accept, passkey)
-
     def read(self, conn_idx: int, handle: int, offset: int) -> BLE_ERROR:
         """Read attribute from remote GATT server
 

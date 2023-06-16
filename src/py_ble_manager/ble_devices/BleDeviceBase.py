@@ -380,6 +380,23 @@ class BleDeviceBase():
         """
         return self._ble_gap.numeric_reply(conn_idx, accept)
 
+    def passkey_reply(self, conn_idx: int, accept: bool, passkey: int) -> BLE_ERROR:
+        """Respond to a passkey request
+
+        Respond to a :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_PASSKEY_REQUEST` event.
+
+        :param conn_idx: connection index
+        :type conn_idx: int
+        :param accept: accept flag
+        :type accept: bool
+        :param passkey: passkey entered by user
+        :type passkey: int
+        :return: result code
+        :rtype: BLE_ERROR
+        """
+
+        return self._ble_gap.passkey_reply(conn_idx, accept, passkey)
+
     def peer_features_get(self, conn_idx: int) -> BLE_ERROR:
         """Get peer's features
 
