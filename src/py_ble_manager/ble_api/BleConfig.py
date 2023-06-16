@@ -25,7 +25,7 @@ class BleConfigDefault():
         self.dg_configBLE_PAIR_INIT_KEY_DIST = (GAP_KDIST.GAP_KDIST_ENCKEY | GAP_KDIST.GAP_KDIST_IDKEY | GAP_KDIST.GAP_KDIST_SIGNKEY)
         self.dg_configBLE_PAIR_RESP_KEY_DIST = (GAP_KDIST.GAP_KDIST_ENCKEY | GAP_KDIST.GAP_KDIST_IDKEY | GAP_KDIST.GAP_KDIST_SIGNKEY)
         self.dg_configBLE_PRIVACY_1_2 = (0)
-        self.defaultBLE_MAX_BONDED = (3)
+        self.defaultBLE_MAX_BONDED = (8)
         self.dg_configHW_TYPE = BLE_HW_TYPE.NONE
 
         self.dg_configBLE_CENTRAL = 1 if ble_device_type == BLE_DEVICE_TYPE.CENTRAL else 0
@@ -54,7 +54,6 @@ class BleConfigDA14531(BleConfigDefault):
     """
     def __init__(self, ble_device_type: BLE_DEVICE_TYPE = BLE_DEVICE_TYPE.CENTRAL):
         super().__init__(ble_device_type)
-        self.defaultBLE_MAX_BONDED = (5)
         self.dg_configHW_TYPE = BLE_HW_TYPE.DA14531
 
 
@@ -63,7 +62,6 @@ class BleConfigDA1469x(BleConfigDefault):
     """
     def __init__(self, ble_device_type: BLE_DEVICE_TYPE = BLE_DEVICE_TYPE.CENTRAL):
         super().__init__(ble_device_type)
-        self.defaultBLE_MAX_BONDED = (8)
         self.dg_configHW_TYPE = BLE_HW_TYPE.DA14695
 
 
