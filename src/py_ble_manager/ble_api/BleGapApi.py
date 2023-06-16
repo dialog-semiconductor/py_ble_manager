@@ -5,7 +5,7 @@ from ..ble_api.BleApiBase import BleApiBase
 from ..ble_api.BleAtt import ATT_PERM
 from ..ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR, OwnAddress
 from ..ble_api.BleGap import BLE_GAP_ROLE, GapConnParams, GAP_CONN_MODE, GAP_SCAN_TYPE, GAP_SCAN_MODE, \
-    GAP_IO_CAPABILITIES, BLE_NON_CONN_ADV_DATA_LEN_MAX, BLE_GAP_APPEARANCE, GAP_DISC_MODE
+    GAP_IO_CAPABILITIES, BLE_NON_CONN_ADV_DATA_LEN_MAX, BLE_GAP_APPEARANCE, GAP_DISC_MODE, GapScanParams
 from ..manager.BleManager import BleManager
 from ..manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, BleMgrGapConnectCmd, \
     BleMgrGapConnectRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp, BleMgrGapScanStartCmd, \
@@ -67,7 +67,7 @@ class BleGapApi(BleApiBase):
         self._ble_manager.dev_params_release()
         return chnl_map, BLE_ERROR.BLE_STATUS_OK
 
-    def adv_chnl_map_set(self, chnl_map) -> BLE_ERROR:
+    def adv_chnl_map_set(self, chnl_map: int) -> BLE_ERROR:
 
         dev_params = self._ble_manager.dev_params_acquire()
         dev_params.adv_channel_map = chnl_map
@@ -276,12 +276,33 @@ class BleGapApi(BleApiBase):
 
         return response.status
 
+    def role_get(self) -> Tuple[BLE_GAP_ROLE, BLE_ERROR]:
+
+        dev_params = self._ble_manager.dev_params_acquire()
+        role = dev_params.role
+        self._ble_manager.dev_params_release()
+        return role, BLE_ERROR.BLE_STATUS_OK
+
     def role_set(self, role: BLE_GAP_ROLE) -> BLE_ERROR:
 
         command = BleMgrGapRoleSetCmd(role)
         response: BleMgrGapRoleSetRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
+
+    def scan_params_get(self) -> Tuple[GapScanParams, BLE_ERROR]:
+
+        dev_params = self._ble_manager.dev_params_acquire()
+        scan_params = copy.deepcopy(dev_params.scan_params)
+        self._ble_manager.dev_params_release()
+        return scan_params, BLE_ERROR.BLE_STATUS_OK
+
+    def scan_params_set(self, scan_params: GapScanParams) -> BLE_ERROR:
+
+        dev_params = self._ble_manager.dev_params_acquire()
+        dev_params.scan_params = copy.deepcopy(scan_params)
+        self._ble_manager.dev_params_release()
+        return scan_params, BLE_ERROR.BLE_STATUS_OK
 
     def scan_start(self,
                    type: GAP_SCAN_TYPE = GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,

@@ -1,10 +1,11 @@
+from typing import Tuple
 from ..ble_api.BleAtt import AttUuid
 from ..ble_api.BleConfig import BleConfigDefault, BLE_DEVICE_TYPE
 from ..ble_api.BleConvert import BleConvert
 from ..ble_devices.BleDeviceBase import BleDeviceBase
 from ..ble_api.BleCommon import BLE_ERROR, BdAddress, BleEventBase, BLE_EVT_GAP
 from ..ble_api.BleGap import BLE_GAP_ROLE, GapConnParams, GAP_SCAN_TYPE, GAP_SCAN_MODE, \
-    BleEventGapConnParamUpdateReq
+    BleEventGapConnParamUpdateReq, GapScanParams
 
 
 class BleCentral(BleDeviceBase):
@@ -236,6 +237,34 @@ class BleCentral(BleDeviceBase):
         :rtype: BLE_ERROR
         """
         return self._ble_gattc.read(conn_idx, handle, offset)
+
+    def scan_params_get(self) -> Tuple[GapScanParams, BLE_ERROR]:
+        """Get the scan parameters used for connections
+
+        This call retrieves the scan parameters used when a connection is initiated.
+
+        :return: scan parameters, result code
+        :rtype: Tuple[GapScanParams, BLE_ERROR]
+        """
+        return self._ble_gap.scan_params_get()
+
+    def scan_params_set(self, scan_params: GapScanParams) -> BLE_ERROR:
+        """Set the scan parameters used for connections
+
+        This call sets the scan parameters used for initiated connections. This call won't change
+        the scan parameters of a connection attempt which is in progress (the scan parameters will be
+        set for the next connection attempt).
+        .. note:
+            This call should be used prior to ble_gap_connect(). If a connection attempt is in
+            progress, one should cancel it using the ble_gap_connect_cancel() call, set the desired
+            scan parameters, and call ble_gap_connect() again.
+
+        :param scan_params: scan parameters
+        :type scan_params: GapScanParams
+        :return: result code
+        :rtype: BLE_ERROR
+        """
+        return self._ble_gap.scan_params_set(scan_params)
 
     def scan_start(self,
                    type: GAP_SCAN_TYPE,
