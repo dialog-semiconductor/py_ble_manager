@@ -19,4 +19,4 @@ Quick Start (terminal)
 
 #. :doc:`Download <programming_util>` the py_ble_manager enabled firmware binary to the development kit by calling the ``py_ble_manager_programmer`` utility from the terminal.
     
-#. The package is now installed and you are ready to run one of the `examples <https://github.com/Renesas-US-Connectivity/py_ble_manager/tree/main/examples>`_!
+#. The package is now installed and you are ready to run one of the `examples <https://github.com/dialog-semiconductor/py_ble_manager/tree/main/examples>`_!
