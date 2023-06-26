@@ -84,15 +84,13 @@ class GATTC_MSG_ID(IntEnum):
     GATTC_SEND_EVT_CMD = auto()
 
     # Service Changed Characteristic Indication
-    # *
-    # * Send a Service Changed indication to a device
-    # * (message structure is struct gattc_send_svc_changed_cmd)
-
+    #
+    # Send a Service Changed indication to a device
+    # (message structure is struct gattc_send_svc_changed_cmd)
     GATTC_SEND_SVC_CHANGED_CMD = auto()
-    # *
-    # * Inform the application when sending of Service Changed indications has been
-    # * enabled or disabled
-
+    #
+    # Inform the application when sending of Service Changed indications has been
+    # enabled or disabled
     GATTC_SVC_CHANGED_CFG_IND = auto()
 
     # Indicate that read operation is requested.
