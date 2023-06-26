@@ -20,7 +20,7 @@ from ..manager.BleManagerGattcMsgs import BLE_CMD_GATTC_OPCODE, BleMgrGattcDisco
     BleMgrGattcDiscoverSvcRsp, BleMgrGattcDiscoverCharCmd, BleMgrGattcDiscoverCharRsp, BleMgrGattcDiscoverDescCmd, \
     BleMgrGattcDiscoverDescRsp, BleMgrGattcBrowseCmd, BleMgrGattcBrowseRsp, BleMgrGattcReadCmd, BleMgrGattcReadRsp, \
     BleMgrGattcWriteGenericCmd, BleMgrGattcWriteGenericRsp, BleMgrGattcWriteExecuteCmd, BleMgrGattcWriteExecuteRsp, \
-    BleMgrGattcExchangeMtuCmd, BleMgrGattcExchangeMtuRsp
+    BleMgrGattcExchangeMtuCmd, BleMgrGattcExchangeMtuRsp, BleMgrGattcBrowseRangeCmd, BleMgrGattcBrowseRangeRsp
 from ..manager.BleDevParams import BleDevParamsDefault
 from ..manager.BleManagerStorage import StoredDeviceQueue
 from ..manager.GtlWaitQueue import GtlWaitQueue
@@ -44,7 +44,7 @@ class BleManagerGattc(BleManagerBase):
 
         self.cmd_handlers = {
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_BROWSE_CMD: self.browse_cmd_handler,
-            BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_BROWSE_RANGE_CMD: None,
+            BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_BROWSE_RANGE_CMD: self.browse_range_cmd_handler,
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_SVC_CMD: self.discover_svc_cmd_handler,
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_INCLUDE_CMD: None,
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_CHAR_CMD: self.discover_char_cmd_handler,
@@ -128,6 +128,18 @@ class BleManagerGattc(BleManagerBase):
         evt.operation = gtl.parameters.operation
         self._mgr_event_queue_send(evt)
 
+    def _send_browse_gtl_cmd(self, uuid: AttUuid, conn_idx: int, start_hdl: int, end_hdl: int):
+        gtl = GattcSdpSvcDiscCmd(conidx=conn_idx)
+        if uuid:
+            gtl.parameters.operation = GATTC_OPERATION.GATTC_SDP_DISC_SVC
+            gtl.parameters.uuid = (c_uint8 * len(uuid.uuid)).from_buffer_copy(uuid.uuid)
+        else:
+            gtl.parameters.operation = GATTC_OPERATION.GATTC_SDP_DISC_SVC_ALL
+
+        gtl.parameters.start_hdl = start_hdl
+        gtl.parameters.end_hdl = end_hdl
+        self._adapter_command_queue_send(gtl)
+
     def browse_cmd_handler(self, command: BleMgrGattcBrowseCmd):
         response = BleMgrGattcBrowseRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
         self.storage_acquire()
@@ -135,16 +147,20 @@ class BleManagerGattc(BleManagerBase):
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
         else:
-            gtl = GattcSdpSvcDiscCmd(conidx=command.conn_idx)
-            if command.uuid:
-                gtl.parameters.operation = GATTC_OPERATION.GATTC_SDP_DISC_SVC
-                gtl.parameters.uuid = (c_uint8 * len(command.uuid.uuid)).from_buffer_copy(command.uuid.uuid)
-            else:
-                gtl.parameters.operation = GATTC_OPERATION.GATTC_SDP_DISC_SVC_ALL
+            self._send_browse_gtl_cmd(command.uuid, command.conn_idx, 1, 0xFFFF)
+            response.status = BLE_ERROR.BLE_STATUS_OK
 
-            gtl.parameters.start_hdl = 1
-            gtl.parameters.end_hdl = 0xFFFF
-            self._adapter_command_queue_send(gtl)
+        self.storage_release()
+        self._mgr_response_queue_send(response)
+
+    def browse_range_cmd_handler(self, command: BleMgrGattcBrowseRangeCmd):
+        response = BleMgrGattcBrowseRangeRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
+        self.storage_acquire()
+        dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
+        if not dev:
+            response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
+        else:
+            self._send_browse_gtl_cmd(command.uuid, command.conn_idx, command.start_h, command.end_h)
             response.status = BLE_ERROR.BLE_STATUS_OK
 
         self.storage_release()

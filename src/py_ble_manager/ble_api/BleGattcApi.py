@@ -6,7 +6,7 @@ from ..manager.BleManagerGattcMsgs import BleMgrGattcDiscoverSvcCmd, BleMgrGattc
     BleMgrGattcDiscoverCharCmd, BleMgrGattcDiscoverCharRsp, BleMgrGattcDiscoverDescCmd, BleMgrGattcDiscoverDescRsp, \
     BleMgrGattcBrowseCmd, BleMgrGattcBrowseRsp, BleMgrGattcReadCmd, BleMgrGattcReadRsp, BleMgrGattcWriteGenericCmd, \
     BleMgrGattcWriteGenericRsp, BleMgrGattcWriteExecuteCmd, BleMgrGattcWriteExecuteRsp, BleMgrGattcExchangeMtuCmd, \
-    BleMgrGattcExchangeMtuRsp
+    BleMgrGattcExchangeMtuRsp, BleMgrGattcBrowseRangeCmd, BleMgrGattcBrowseRangeRsp
 
 
 class BleGattcApi(BleApiBase):
@@ -20,6 +20,17 @@ class BleGattcApi(BleApiBase):
 
         command = BleMgrGattcBrowseCmd(conn_idx, uuid)
         resposne: BleMgrGattcBrowseRsp = self._ble_manager.cmd_execute(command)
+
+        return resposne.status
+
+    def browse_range(self,
+                     conn_idx: int,
+                     start_h: int,
+                     end_h: int,
+                     uuid: AttUuid) -> BLE_ERROR:
+
+        command = BleMgrGattcBrowseRangeCmd(conn_idx, start_h, end_h, uuid)
+        resposne: BleMgrGattcBrowseRangeRsp = self._ble_manager.cmd_execute(command)
 
         return resposne.status
 

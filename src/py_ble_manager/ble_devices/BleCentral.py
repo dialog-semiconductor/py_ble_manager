@@ -28,7 +28,7 @@ class BleCentral(BleDeviceBase):
         """
         super().__init__(com_port, baud_rate, ble_config)
 
-    def browse(self, conn_idx: int, uuid: AttUuid) -> BLE_ERROR:
+    def browse(self, conn_idx: int, uuid: AttUuid = None) -> BLE_ERROR:
         """Browse services on remote GATT server
 
         This will automatically discover all characteristics and descriptors of a service. To discover
@@ -48,6 +48,31 @@ class BleCentral(BleDeviceBase):
         """
 
         return self._ble_gattc.browse(conn_idx, uuid)
+
+    def browse_range(self, conn_idx: int, start_h: int, end_h: int, uuid: AttUuid = None) -> BLE_ERROR:
+        """Browse services on remote GATT server in a given range
+
+        This will automatically discover all characteristics and descriptors of a service in the range
+        between start_h and end_h.
+
+        :py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcBrowseSvc` will be sent for each service found. Once completed
+        :py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcBrowseCompleted` will be sent.
+
+        If ``uuid`` is ``None``,  all services in range are returned.
+
+        :param conn_idx: connection index
+        :type conn_idx: int
+        :param start_h: start handle
+        :type start_h: int
+        :param end_h: end handle
+        :type end_h: int
+        :param uuid: optional service UUID
+        :type uuid: AttUuid
+        :return: result code
+        :rtype: BLE_ERROR
+        """
+
+        return self._ble_gattc.browse_range(conn_idx, start_h, end_h, uuid)
 
     def connect(self, peer_addr: BdAddress, conn_params: GapConnParams) -> BLE_ERROR:
         """Connect to a device
