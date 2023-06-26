@@ -301,14 +301,6 @@ class BleDeviceBase():
 
         return self._ble_gattc.exchange_mtu(conn_idx)
 
-    def init(self) -> None:
-        self._serial_stream_manager.open_serial_port()
-
-        # Start always running BLE tasks
-        self._ble_manager.init()
-        self._ble_adapter.init()
-        self._serial_stream_manager.init()
-
     def get_bonded(self) -> Tuple[list[BdAddress], BLE_ERROR]:
         """Get bonded devices list
 
@@ -352,6 +344,14 @@ class BleDeviceBase():
         :rtype: Tuple[GAP_IO_CAPABILITIES, BLE_ERROR]
         """
         return self._ble_gap.get_io_cap()
+
+    def init(self) -> None:
+        self._serial_stream_manager.open_serial_port()
+
+        # Start always running BLE tasks
+        self._ble_manager.init()
+        self._ble_adapter.init()
+        self._serial_stream_manager.init()
 
     def mtu_size_get(self) -> Tuple[int, BLE_ERROR]:
         """Get MTU size
