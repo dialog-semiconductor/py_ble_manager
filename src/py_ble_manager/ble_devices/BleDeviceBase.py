@@ -345,6 +345,16 @@ class BleDeviceBase():
         """
         return self._ble_gap.get_io_cap()
 
+    def get_peer_tx_mtu(self, conn_idx: int) -> Tuple[int, BLE_ERROR]:
+        """Get current TX MTU for peer
+
+        :param conn_idx: connection index
+        :type conn_idx: int
+        :return: peer tx mtu, result code
+        :rtype: Tuple[int, BLE_ERROR]
+        """
+        return self._ble_gap.get_peer_tx_mtu(conn_idx)
+
     def init(self) -> None:
         self._serial_stream_manager.open_serial_port()
 

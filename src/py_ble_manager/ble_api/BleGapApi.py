@@ -226,6 +226,18 @@ class BleGapApi(BleApiBase):
         self._ble_manager.dev_params_release()
         return io_cap, BLE_ERROR.BLE_STATUS_OK
 
+    def get_peer_tx_mtu(self, conn_idx) -> Tuple[int, BLE_ERROR]:
+
+        self._ble_manager.storage_acquire()
+        dev = self._ble_manager.find_stored_device_by_conn_idx(conn_idx)
+        mtu = -1
+        error = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
+        if dev:
+            mtu = dev.mtu
+            error = BLE_ERROR.BLE_STATUS_OK
+        self._ble_manager.storage_release()
+        return mtu, error
+
     def mtu_size_get(self) -> Tuple[int, BLE_ERROR]:
 
         dev_params = self._ble_manager.dev_params_acquire()
