@@ -285,6 +285,22 @@ class BleDeviceBase():
 
         return self._ble_gap.disconnect(conn_idx, reason)
 
+    def exchange_mtu(self, conn_idx: int) -> BLE_ERROR:
+        """Exchange MTU
+
+        This call will start an MTU exchange procedure with the MTU previously set using
+        :py:meth:`~py_ble_manager.ble_devices.BleCentral.mtu_size_set`.
+        If the MTU has been changed during the negotiation, a
+        :py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcMtuChanged` event will be sent to the application
+
+        :param conn_idx: connection index
+        :type conn_idx: int
+        :return: result code
+        :rtype: BLE_ERROR
+        """
+
+        return self._ble_gattc.exchange_mtu(conn_idx)
+
     def init(self) -> None:
         self._serial_stream_manager.open_serial_port()
 
