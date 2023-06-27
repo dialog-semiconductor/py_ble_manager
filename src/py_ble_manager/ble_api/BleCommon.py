@@ -267,7 +267,7 @@ class BdAddress():
 
     def __repr__(self):
 
-        return f"{type(self).__name__}(addr_type={BLE_ADDR_TYPE(self.addr_type)}, addr={list(self.addr)})"
+        return f"{type(self).__name__}(addr_type={BLE_ADDR_TYPE(self.addr_type).name}, addr={list(self.addr)})"
 
 
 class BleEventBase():
@@ -335,3 +335,7 @@ class OwnAddress():
     def __init__(self, addr_type: BLE_OWN_ADDR_TYPE = BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS, addr: bytes = None) -> None:
         self.addr_type = addr_type
         self.addr = addr if addr else bytes()
+
+    def __repr__(self):
+
+        return f"{type(self).__name__}(addr_type={BLE_OWN_ADDR_TYPE(self.addr_type).name}, addr={list(self.addr)})"
