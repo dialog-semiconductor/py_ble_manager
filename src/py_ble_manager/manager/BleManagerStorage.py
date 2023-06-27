@@ -138,7 +138,7 @@ class StoredDevice():
         app_value = self.app_values.find_app_value_by_key(key, False)
         return app_value.value if app_value else None
 
-    def app_value_put(self, key: int, persistent: bool, value: bytes) -> None:
+    def app_value_put(self, key: int, value: bytes, persistent: bool) -> None:
 
         self.app_value_remove_by_key(key)  # TODO This may be unnecessary as we can reassign dynamically
         app_value = self.app_values.find_app_value_by_key(key, True)

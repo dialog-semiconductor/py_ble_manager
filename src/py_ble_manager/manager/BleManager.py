@@ -185,9 +185,6 @@ class BleManager(BleManagerBase):
     def find_stored_device_by_conn_idx(self, conn_idx: int) -> StoredDevice:
         return self._stored_device_list.find_device_by_conn_idx(conn_idx)
 
-    def device_for_each(self, callback: callable, param: object):
-        self._stored_device_list.for_each(callback, param)
-
     def update_ble_config(self, ble_config: BleConfigDefault):
         super().update_ble_config(ble_config)
         self._common_mgr.update_ble_config(ble_config)

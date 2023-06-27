@@ -39,6 +39,46 @@ class BleManagerBase():
     def _adapter_command_queue_send(self, command: GtlMessageBase):
         self._adapter_command_q.put_nowait(command)
 
+    def _generic_get(self, conn_idx: int, key: int) -> Tuple[bytes, BLE_ERROR]:
+        error = BLE_ERROR.BLE_ERROR_FAILED
+        self.storage_acquire()
+        dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+        app_value = bytes()
+        if not dev:
+            error = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
+        else:
+            app_value = dev.app_value_get(key)
+            if app_value:
+                error = BLE_ERROR.BLE_STATUS_OK
+            else:
+                error = BLE_ERROR.BLE_ERROR_NOT_FOUND
+
+        self.storage_release()
+        return app_value, error
+
+    def _generic_put(self, conn_idx: int, key: int, value: bytes, persistent: bool) -> BLE_ERROR:
+        error = BLE_ERROR.BLE_ERROR_FAILED
+        self.storage_acquire()
+        dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+        if not dev:
+            error = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
+        else:
+            dev.app_value_put(key, value, persistent)
+            error = BLE_ERROR.BLE_STATUS_OK
+
+        self.storage_release()
+        return error
+
+    def _gtl_wait_queue_add(self, conn_idx: int, msg_id: int, ext_id: int, cb: Callable, param: object) -> None:
+        item = WaitQueueElement(conn_idx=conn_idx, msg_id=msg_id, ext_id=ext_id, cb=cb, param=param)
+        self._gtl_wait_q.add(item)
+
+    def _gtl_wait_queue_flush(self, conn_idx: int) -> None:
+        self._gtl_wait_q.flush(conn_idx)
+
+    def _gtl_wait_queue_flush_all(self) -> None:
+        self._gtl_wait_q.flush_all()
+
     def _mgr_event_queue_flush(self) -> None:
         # TODO Critical section?
         while self._mgr_event_q.qsize() != 0:
@@ -69,16 +109,6 @@ class BleManagerBase():
     def _task_to_connidx(self, task_id: int) -> int:
         return task_id >> 8
 
-    def _gtl_wait_queue_add(self, conn_idx: int, msg_id: int, ext_id: int, cb: Callable, param: object) -> None:
-        item = WaitQueueElement(conn_idx=conn_idx, msg_id=msg_id, ext_id=ext_id, cb=cb, param=param)
-        self._gtl_wait_q.add(item)
-
-    def _gtl_wait_queue_flush(self, conn_idx: int) -> None:
-        self._gtl_wait_q.flush(conn_idx)
-
-    def _gtl_wait_queue_flush_all(self) -> None:
-        self._gtl_wait_q.flush_all()
-
     def dev_params_acquire(self):
         self._dev_params_lock.acquire()
         return self._dev_params
@@ -86,34 +116,8 @@ class BleManagerBase():
     def dev_params_release(self) -> None:
         self._dev_params_lock.release()
 
-    def _generic_get(self, conn_idx: int, key: int, value: bytes, persistent: bool) -> Tuple[bytes, BLE_ERROR]:
-        error = BLE_ERROR.BLE_ERROR_FAILED
-        self.storage_acquire()
-        dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
-        if not dev:
-            error = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
-        else:
-            app_value = dev.app_value_get(key, persistent, value)
-            if app_value:
-                error = BLE_ERROR.BLE_STATUS_OK
-            else:
-                error = BLE_ERROR.BLE_ERROR_NOT_FOUND
-
-        self.storage_release()
-        return app_value, error
-
-    def _generic_put(self, conn_idx: int, key: int, value: bytes, persistent: bool) -> BLE_ERROR:
-        error = BLE_ERROR.BLE_ERROR_FAILED
-        self.storage_acquire()
-        dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
-        if not dev:
-            error = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
-        else:
-            dev.app_value_put(key, persistent, value)
-            error = BLE_ERROR.BLE_STATUS_OK
-
-        self.storage_release()
-        return error
+    def device_for_each(self, callback: callable, param: object):
+        self._stored_device_list.for_each(callback, param)
 
     def mgr_event_queue_get(self, timeout=None) -> BleMgrMsgBase:
         try:
