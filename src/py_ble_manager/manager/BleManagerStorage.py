@@ -204,7 +204,7 @@ class StoredDeviceQueue(SearchableQueue):
     def get_irk_count(self) -> int:
         count = 0
         for dev in self.queue:
-            if dev.irk.key != bytes():
+            if dev.irk:
                 count += 1
         return count
 
