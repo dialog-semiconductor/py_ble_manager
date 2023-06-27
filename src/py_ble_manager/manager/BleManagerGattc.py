@@ -12,7 +12,7 @@ from ..ble_api.BleGattc import BleEventGattcDiscoverSvc, BleEventGattcDiscoverCo
 from ..gtl_messages.gtl_message_base import GtlMessageBase
 from ..gtl_messages.gtl_message_gattc import GattcDiscCmd, GattcDiscSvcInd, GattcCmpEvt, GattcDiscCharInd, GattcSdpSvcDiscCmd, \
     GattcSdpSvcInd, GattcReadCmd, GattcReadInd, GattcWriteCmd, GattcEventInd, GattcEventReqInd, GattcEventCfm, \
-    GattcWriteExecuteCmd, GattcMtuChangedInd, GattcExcMtuCmd
+    GattcWriteExecuteCmd, GattcMtuChangedInd, GattcExcMtuCmd, GattcSvcChangedCfgInd
 from ..gtl_port.gattc_task import GATTC_OPERATION, GATTC_MSG_ID, gattc_sdp_att_info, GATTC_SDP_ATT_TYPE, gattc_read_simple
 from ..gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from ..manager.BleManagerBase import BleManagerBase
@@ -22,7 +22,7 @@ from ..manager.BleManagerGattcMsgs import BLE_CMD_GATTC_OPCODE, BleMgrGattcDisco
     BleMgrGattcWriteGenericCmd, BleMgrGattcWriteGenericRsp, BleMgrGattcWriteExecuteCmd, BleMgrGattcWriteExecuteRsp, \
     BleMgrGattcExchangeMtuCmd, BleMgrGattcExchangeMtuRsp, BleMgrGattcBrowseRangeCmd, BleMgrGattcBrowseRangeRsp
 from ..manager.BleDevParams import BleDevParamsDefault
-from ..manager.BleManagerStorage import StoredDeviceQueue
+from ..manager.BleManagerStorage import StoredDeviceQueue, INTERNAL_STORAGE_KEY
 from ..manager.GtlWaitQueue import GtlWaitQueue
 
 
@@ -68,7 +68,7 @@ class BleManagerGattc(BleManagerBase):
             GATTC_MSG_ID.GATTC_READ_IND: self.read_ind_evt_handler,
             GATTC_MSG_ID.GATTC_EVENT_IND: self.event_ind_evt_handler,  # Notifications
             GATTC_MSG_ID.GATTC_EVENT_REQ_IND: self.event_req_ind_evt_handler,  # Indications
-            GATTC_MSG_ID.GATTC_SVC_CHANGED_CFG_IND: None,
+            GATTC_MSG_ID.GATTC_SVC_CHANGED_CFG_IND: self.svc_changed_cfg_ind_evt_handler,
         }
 
     def _cmp_browse_evt_handler(self, gtl: GattcCmpEvt):
@@ -436,6 +436,14 @@ class BleManagerGattc(BleManagerBase):
 
         if not ignore:
             self._mgr_event_queue_send(evt)
+
+    def svc_changed_cfg_ind_evt_handler(self, evt: GattcSvcChangedCfgInd):
+        # Put this to persistent storage - it will be retrieved upon reconnection.
+        conn_idx = self._task_to_connidx(evt.src_id)
+        self.storage_put_int(conn_idx,
+                             INTERNAL_STORAGE_KEY.STORAGE_KEY_SVC_CHANGED_CCC,
+                             evt.parameters.ind_cfg,
+                             True)
 
     def write_execute_cmd_handler(self, command: BleMgrGattcWriteExecuteCmd):
         response = BleMgrGattcWriteExecuteRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
