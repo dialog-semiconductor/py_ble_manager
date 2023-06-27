@@ -121,11 +121,11 @@ class StoredDevice():
 # endif /* (dg_configBLE_2MBIT_PHY == 1) */
 
         # pairing information
-        self.ltk: key_ltk = key_ltk()
-        self.remote_ltk: key_ltk = key_ltk()
-        self.irk: key_irk = key_irk()
-        self.csrk: key_csrk = key_csrk()
-        self.remote_csrk: key_csrk = key_csrk()
+        self.ltk: key_ltk = None
+        self.remote_ltk: key_ltk = None
+        self.irk: key_irk = None
+        self.csrk: key_csrk = None
+        self.remote_csrk: key_csrk = None
 
         # custom values set from ..application
         self.app_values: AppValueQueue = AppValueQueue()

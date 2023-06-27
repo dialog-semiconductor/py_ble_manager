@@ -1,4 +1,4 @@
-from ctypes import c_uint8
+from ctypes import c_uint8, Array
 import queue
 import secrets
 import threading
@@ -34,7 +34,7 @@ from ..gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvert
 from ..gtl_port.attm import ATTM_PERM
 from ..gtl_port.co_bt import RAND_NB_LEN, KEY_LEN, BLE_LE_LENGTH_FEATURE, BD_ADDR_LEN
 from ..gtl_port.co_error import CO_ERROR
-from ..gtl_port.gap import GAP_ROLE, GAP_AUTH_MASK, gap_bdaddr, GAP_IO_CAP, GAP_OOB, GAP_TK_TYPE, GAP_SEC_REQ
+from ..gtl_port.gap import GAP_ROLE, GAP_AUTH_MASK, gap_bdaddr, GAP_IO_CAP, GAP_OOB, GAP_TK_TYPE, GAP_SEC_REQ, gap_sec_key
 
 from ..gtl_port.gapc import GAPC_FIELDS_MASK
 from ..gtl_port.gapc_task import GAPC_MSG_ID, GAPC_DEV_INFO, GAPC_OPERATION, GAPC_BOND
@@ -58,7 +58,7 @@ from ..manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp,
     BleMgrGapPeerFeaturesGetCmd, BleMgrGapPeerFeaturesGetRsp, BleMgrGapPpcpSetCmd, BleMgrGapPpcpSetRsp, \
     BleMgrGapUnpairCmd, BleMgrGapUnpairRsp
 
-from ..manager.BleManagerStorage import StoredDeviceQueue, StoredDevice, INTERNAL_STORAGE_KEY
+from ..manager.BleManagerStorage import StoredDeviceQueue, StoredDevice, INTERNAL_STORAGE_KEY, key_ltk, key_irk, key_csrk
 from ..manager.GtlWaitQueue import GtlWaitQueue
 
 
@@ -785,6 +785,13 @@ class BleManagerGap(BleManagerBase):
                 gtl_io_cap = GAP_IO_CAP.GAP_IO_CAP_NO_INPUT_NO_OUTPUT
         return gtl_io_cap
 
+    def _irk_copy_cb(self, dev: StoredDevice, copy_array: Array[gap_sec_key]):
+        if dev.irk:
+            item: gap_sec_key
+            for item in copy_array:
+                if item.key == (c_uint8 * KEY_LEN)():
+                    item.key = dev.irk
+
     def _max_bonded_reached(self):  # Acquire storage before calling this function
         return self._stored_device_list.count_bonded() >= self._ble_config.defaultBLE_MAX_BONDED
 
@@ -806,11 +813,10 @@ class BleManagerGap(BleManagerBase):
         cmd = GapmResolvAddrCmd()
         cmd.parameters.addr = gtl.parameters.peer_addr
         cmd.parameters.nb_key = irk_count
+        cmd.parameters.irk = (gap_sec_key * irk_count)()
 
-        # Copy IRKs  # TODO not clear where these are getting copied to and used for
-        # copy_data.array = gcmd->irk;
-        # copy_data.index = 0;
-        # device_foreach(irk_copy_cb, &copy_data);
+        # Copy IRKs
+        self.device_for_each(self._irk_copy_cb, cmd.parameters.irk)
 
         self._gtl_wait_queue_add(BLE_CONN_IDX_INVALID,
                                  GAPM_MSG_ID.GAPM_CMP_EVT,
@@ -1267,8 +1273,10 @@ class BleManagerGap(BleManagerBase):
                 self.storage_acquire()
                 dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
                 if dev:
+                    if not dev.remote_ltk:
+                        dev.remote_ltk = key_ltk()
 
-                    dev.remote_ltk.key_size = gtl.parameters.data.ltk
+                    dev.remote_ltk.key_size = gtl.parameters.data.ltk.key_size
                     for i in range(0, RAND_NB_LEN):
                         dev.remote_ltk.rand |= gtl.parameters.data.ltk.randnb.nb[i] << i
                     dev.remote_ltk.ediv = gtl.parameters.data.ltk.ediv
@@ -1282,6 +1290,8 @@ class BleManagerGap(BleManagerBase):
                 self.storage_acquire()
                 dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
                 if dev:
+                    if not dev.remote_csrk:
+                        dev.remote_csrk = key_csrk()
 
                     dev.remote_csrk.key = bytes(gtl.parameters.data.csrk.key[:])
                     dev.remote_csrk.sign_cnt = 0
@@ -1306,6 +1316,9 @@ class BleManagerGap(BleManagerBase):
                         old_dev = self._stored_device_list.find_device_by_address(addr, False)
 
                     evt = BleEventGapAddressResolved()
+                    if not dev.irk:
+                        dev.irk = key_irk()
+
                     dev.irk.key = bytes(gtl.parameters.data.irk.irk.key[:])
                     dev.addr.addr_type = gtl.parameters.data.irk.addr.addr_type
                     dev.addr = addr
@@ -1350,8 +1363,10 @@ class BleManagerGap(BleManagerBase):
                 self.storage_acquire()
                 dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
                 if dev:
-                    dev.ltk.key_size = cfm.parameters.data.ltk.key_size
+                    if not dev.ltk:
+                        dev.ltk = key_ltk()
 
+                    dev.ltk.key_size = cfm.parameters.data.ltk.key_size
                     dev.ltk.rand = 0
                     for i in range(0, RAND_NB_LEN):
                         dev.ltk.rand |= cfm.parameters.data.ltk.randnb.nb[i] << i
@@ -1374,6 +1389,9 @@ class BleManagerGap(BleManagerBase):
                 self.storage_acquire()
                 dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
                 if dev:
+                    if not dev.csrk:
+                        dev.csrk = key_csrk()
+
                     dev.csrk.key = bytes(cfm.parameters.data.csrk.key)
                     dev.csrk.sign_cnt = 0
                     #  TODO storage_mark_dirty(false) STORAGE
@@ -1579,10 +1597,10 @@ class BleManagerGap(BleManagerBase):
             # if (RWBLE_SW_VERSION >= VERSION_8_1)
             cfm.parameters.auth |= GAPC_FIELDS_MASK.GAPC_LTK_MASK if dev.remote_ltk else GAP_AUTH_MASK.GAP_AUTH_NONE
             # endif /* (RWBLE_SW_VERSION >= VERSION_8_1)
-            if dev.csrk.key != b'':
+            if dev.csrk:
                 cfm.parameters.lsign_counter = dev.csrk.sign_cnt
                 cfm.parameters.lcsrk.key = (c_uint8 * KEY_LEN).from_buffer_copy(dev.csrk.key)
-            if dev.remote_csrk.key != b'':
+            if dev.remote_csrk:
                 cfm.parameters.rsign_counter = dev.remote_csrk.sign_cnt
                 cfm.parameters.rcsrk.key = (c_uint8 * KEY_LEN).from_buffer_copy(dev.remote_csrk.key)
 
@@ -1712,12 +1730,12 @@ class BleManagerGap(BleManagerBase):
         if dev:
             if self._ble_config.dg_configBLE_SECURE_CONNECTIONS == 1:
                 if (not dev.bonded) or (not gtl.parameters.ediv):
-                    if dev.remote_ltk.key != b'':
+                    if dev.remote_ltk:
                         cfm.parameters.ltk.key = (c_uint8 * len(dev.remote_ltk.key)).from_buffer_copy(dev.remote_ltk.key)
                         cfm.parameters.found = 0x01
                         cfm.parameters.key_size = dev.ltk.key_size
             else:
-                if dev.ltk.key != b'' and dev.ltk.ediv == gtl.parameters.ediv:
+                if dev.ltk and dev.ltk.ediv == gtl.parameters.ediv:
                     # Our Rand is stored in the same endianess as RW
 
                     rand_int = 0
