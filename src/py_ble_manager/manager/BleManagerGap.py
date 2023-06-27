@@ -796,6 +796,8 @@ class BleManagerGap(BleManagerBase):
         return self._stored_device_list.count_bonded() >= self._ble_config.defaultBLE_MAX_BONDED
 
     def _resolve_address_from_connected_evt(self, gtl: GapcConnectionReqInd, evt: BleEventGapConnected):
+        # Note this function accesses storage. Storage should be acquired before calling
+
         # Check if peer's address is random
         if gtl.parameters.peer_addr_type != BLE_ADDR_TYPE.PRIVATE_ADDRESS:
             return False
@@ -804,9 +806,9 @@ class BleManagerGap(BleManagerBase):
         if gtl.parameters.peer_addr.addr[5] & 0xC0 != 0x40:
             return False
 
-        self.storage_acquire()
+        # TODO _irk_count_cb instead? 
         irk_count = self._stored_device_list.get_irk_count()
-        self.storage_release()
+
         if irk_count == 0:
             return False
 
