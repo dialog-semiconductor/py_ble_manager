@@ -1015,6 +1015,21 @@ class gattc_write_cfm(LittleEndianStructure):
                 ("padding", c_uint8)]
 
 
+# Parameters for GATTC_SVC_CHANGED_CFG_IND message
+class gattc_svc_changed_cfg(LittleEndianStructure):
+
+    def __init__(self,
+                 ind_cfg: c_uint16 = 0,
+                 ) -> None:
+
+        self.ind_cfg = ind_cfg
+        super().__init__(ind_cfg=self.ind_cfg)
+
+                # Current value of the Client Characteristic Configuration descriptor for the Service
+                # Changed characteristic
+    _fields_ = [("ind_cfg", c_uint16)]
+
+
 # Request Attribute info to upper layer - could be trigger during prepare write
 class gattc_att_info_req_ind(LittleEndianStructure):
 

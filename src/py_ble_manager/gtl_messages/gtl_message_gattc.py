@@ -4,7 +4,7 @@ from ..gtl_port.gattc_task import GATTC_MSG_ID, gattc_write_req_ind, gattc_write
     gattc_cmp_evt, gattc_event_ind, gattc_event_req_ind, gattc_event_cfm, gattc_disc_cmd, gattc_disc_char_desc_ind, gattc_disc_svc_ind, \
     gattc_disc_svc_incl_ind, gattc_disc_char_ind, gattc_sdp_svc_disc_cmd, gattc_read_cmd, GATTC_OPERATION, gattc_read_ind, gattc_write_cmd, \
     gattc_exc_mtu_cmd, gattc_mtu_changed_ind, gattc_att_info_req_ind, gattc_att_info_cfm, gattc_sdp_svc_ind, gattc_sdp_att_info, \
-    GATTC_SDP_ATT_TYPE, gattc_execute_write_cmd
+    GATTC_SDP_ATT_TYPE, gattc_execute_write_cmd, gattc_svc_changed_cfg
 from ..gtl_port.rwip_config import KE_API_ID
 
 
@@ -572,4 +572,17 @@ class GattcWriteExecuteCmd(GtlMessageBase):
                          dst_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
                          src_id=KE_API_ID.TASK_ID_GTL,
                          par_len=4,
+                         parameters=self.parameters)
+
+
+class GattcSvcChangedCfgInd(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gattc_svc_changed_cfg = None):
+
+        self.parameters = parameters if parameters else gattc_svc_changed_cfg()
+
+        super().__init__(msg_id=GATTC_MSG_ID.GATTC_SVC_CHANGED_CFG_IND,
+                         dst_id=KE_API_ID.TASK_ID_GTL,
+                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
+                         par_len=2,
                          parameters=self.parameters)
