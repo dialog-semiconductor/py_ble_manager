@@ -1,6 +1,14 @@
 from enum import IntEnum, auto
 
 
+class GATT_CCC(IntEnum):
+    """GATT Client Characteristic Configuration bitmask values
+    """
+    GATT_CCC_NONE = 0x0000,
+    GATT_CCC_NOTIFICATIONS = 0x0001,
+    GATT_CCC_INDICATIONS = 0x0002,
+
+
 class GATT_EVENT(IntEnum):
     """GATT event type
     """

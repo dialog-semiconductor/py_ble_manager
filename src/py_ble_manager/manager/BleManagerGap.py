@@ -20,6 +20,8 @@ from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_CONN_MODE, BleEventGapConnected, 
     BleEventGapDataLengthSetFailed, GAP_ADV_TYPE, BleEventGapDataLengthChanged, BLE_GAP_DEVNAME_LEN_MAX,\
     BleEventGapAirOpBdAddr
 
+from ..ble_api.BleGatt import GATT_CCC
+
 from ..gtl_messages.gtl_message_base import GtlMessageBase
 from ..gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd, GapcGetDevInfoReqInd, GapcGetDevInfoCfm, \
     GapcDisconnectInd, GapcCmpEvt, GapcDisconnectCmd, GapcParamUpdateCmd, GapcParamUpdatedInd, GapcParamUpdateReqInd, \
@@ -56,7 +58,7 @@ from ..manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp,
     BleMgrGapPeerFeaturesGetCmd, BleMgrGapPeerFeaturesGetRsp, BleMgrGapPpcpSetCmd, BleMgrGapPpcpSetRsp, \
     BleMgrGapUnpairCmd, BleMgrGapUnpairRsp
 
-from ..manager.BleManagerStorage import StoredDeviceQueue, StoredDevice
+from ..manager.BleManagerStorage import StoredDeviceQueue, StoredDevice, INTERNAL_STORAGE_KEY
 from ..manager.GtlWaitQueue import GtlWaitQueue
 
 
@@ -744,10 +746,9 @@ class BleManagerGap(BleManagerBase):
                     cfm.parameters.lsign_counter = dev.csrk.sign_cnt
                     cfm.parameters.lcsrk.key = (c_uint8 * KEY_LEN).from_buffer_copy(dev.csrk.key)
 
-                # TODO
                 # Retrieve value for Service Changed Characteristic CCC
-                # ble_storage_get_u16(conn_idx, STORAGE_KEY_SVC_CHANGED_CCC, &svc_chg_ccc);
-                # gcmd->svc_changed_ind_enable = !!(svc_chg_ccc & GATT_CCC_INDICATIONS);
+                svc_chg_ccc = self.storage_get_int(conn_idx, INTERNAL_STORAGE_KEY.STORAGE_KEY_SVC_CHANGED_CCC)
+                cfm.parameters.svc_changed_ind_enable = svc_chg_ccc & GATT_CCC.GATT_CCC_INDICATIONS
                 self._adapter_command_queue_send(cfm)
         self.storage_release()
 
