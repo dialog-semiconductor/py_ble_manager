@@ -6,7 +6,8 @@ from ..manager.BleManagerGattcMsgs import BleMgrGattcDiscoverSvcCmd, BleMgrGattc
     BleMgrGattcDiscoverCharCmd, BleMgrGattcDiscoverCharRsp, BleMgrGattcDiscoverDescCmd, BleMgrGattcDiscoverDescRsp, \
     BleMgrGattcBrowseCmd, BleMgrGattcBrowseRsp, BleMgrGattcReadCmd, BleMgrGattcReadRsp, BleMgrGattcWriteGenericCmd, \
     BleMgrGattcWriteGenericRsp, BleMgrGattcWriteExecuteCmd, BleMgrGattcWriteExecuteRsp, BleMgrGattcExchangeMtuCmd, \
-    BleMgrGattcExchangeMtuRsp, BleMgrGattcBrowseRangeCmd, BleMgrGattcBrowseRangeRsp
+    BleMgrGattcExchangeMtuRsp, BleMgrGattcBrowseRangeCmd, BleMgrGattcBrowseRangeRsp, BleMgrGattcDiscoverIncludeCmd, \
+    BleMgrGattcDiscoverIncludeRsp
 
 
 class BleGattcApi(BleApiBase):
@@ -51,6 +52,12 @@ class BleGattcApi(BleApiBase):
 
         command = BleMgrGattcDiscoverDescCmd(conn_idx, start_h, end_h)
         response: BleMgrGattcDiscoverDescRsp = self._ble_manager.cmd_execute(command)
+
+        return response.status
+
+    def discover_include(self, conn_idx: int, start_h: int, end_h: int):
+        command = BleMgrGattcDiscoverIncludeCmd(conn_idx, start_h, end_h)
+        response: BleMgrGattcDiscoverIncludeRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
 

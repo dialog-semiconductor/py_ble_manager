@@ -2,10 +2,10 @@ from ctypes import c_uint8
 
 from ..gtl_messages.gtl_message_gattc import GattcReadReqInd, GattcWriteReqInd, GattcCmpEvt, GattcDiscSvcInd, GattcDiscCharInd, \
     GattcSdpSvcInd, GattcReadInd, GattcEventInd, GattcEventReqInd, GattcAttInfoReqInd, GattcMtuChangedInd, GattcDiscCharDescInd, \
-    GattcSvcChangedCfgInd
+    GattcSvcChangedCfgInd, GattcDiscSvcInclInd
 from ..gtl_port.gattc_task import GATTC_MSG_ID, gattc_read_req_ind, gattc_write_req_ind, gattc_cmp_evt, gattc_disc_svc_ind, \
     gattc_disc_char_ind, gattc_sdp_svc_ind, gattc_sdp_att_info, gattc_read_ind, gattc_event_ind, gattc_event_req_ind, \
-    gattc_att_info_req_ind, gattc_mtu_changed_ind, gattc_disc_char_desc_ind, gattc_svc_changed_cfg
+    gattc_att_info_req_ind, gattc_mtu_changed_ind, gattc_disc_char_desc_ind, gattc_svc_changed_cfg, gattc_disc_svc_incl_ind
 from ..gtl_port.rwip_config import KE_API_ID
 
 
@@ -132,6 +132,18 @@ class GattcMessageFactory():
 
             elif msg_id == GATTC_MSG_ID.GATTC_SVC_CHANGED_CFG_IND:
                 return GattcSvcChangedCfgInd(conidx=conidx, parameters=gattc_svc_changed_cfg.from_buffer_copy(params_buf))
+
+            elif msg_id == GATTC_MSG_ID.GATTC_DISC_SVC_INCL_IND:
+                # note from_buffer_copy fails due to POINTER in gattc_disc_svc_incl_ind
+                parameters = gattc_disc_svc_incl_ind()
+                parameters.attr_hdl = int.from_bytes(params_buf[0:2], "little", signed=False)
+                parameters.start_hdl = int.from_bytes(params_buf[2:4], "little", signed=False)
+                parameters.end_hdl = int.from_bytes(params_buf[4:6], "little", signed=False)
+
+                length = int.from_bytes(params_buf[6:8], "little", signed=False)
+                assert length == len(params_buf[8:])  # Check for mismatch in value length and remaining bytes
+                parameters.uuid = (c_uint8 * len(params_buf[8:])).from_buffer_copy(params_buf[8:])
+                return GattcDiscSvcInclInd(conidx=conidx, parameters=parameters)
 
             else:
                 raise AssertionError(f"GattcMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")

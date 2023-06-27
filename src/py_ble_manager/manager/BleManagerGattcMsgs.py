@@ -74,6 +74,23 @@ class BleMgrGattcDiscoverDescRsp(BleMgrMsgRsp):
                          status=status)
 
 
+class BleMgrGattcDiscoverIncludeCmd(BleMgrMsgBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 start_h: int = 0,
+                 end_h: int = 0) -> None:
+        super().__init__(opcode=BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_INCLUDE_CMD)
+        self.conn_idx = conn_idx
+        self.start_h = start_h
+        self.end_h = end_h
+
+
+class BleMgrGattcDiscoverIncludeRsp(BleMgrMsgRsp):
+    def __init__(self, status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED) -> None:
+        super().__init__(opcode=BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_INCLUDE_CMD,
+                         status=status)
+
+
 class BleMgrGattcDiscoverSvcCmd(BleMgrMsgBase):
     def __init__(self, conn_idx: int = 0, uuid: AttUuid = None) -> None:
         super().__init__(opcode=BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_SVC_CMD)

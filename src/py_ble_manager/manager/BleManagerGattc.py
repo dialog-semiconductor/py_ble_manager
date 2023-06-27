@@ -8,11 +8,12 @@ from ..ble_api.BleConfig import BleConfigDefault
 from ..ble_api.BleGattc import BleEventGattcDiscoverSvc, BleEventGattcDiscoverCompleted, GATTC_DISCOVERY_TYPE, \
     BleEventGattcDiscoverChar, BleEventGattcDiscoverDesc, BleEventGattcBrowseSvc, BleEventGattcBrowseCompleted, \
     GattcItem, GATTC_ITEM_TYPE, GattcIncludedServiceData, GattcCharacteristicData, BleEventGattcReadCompleted,\
-    BleEventGattcWriteCompleted, BleEventGattcNotification, BleEventGattcIndication, BleEventGattcMtuChanged
+    BleEventGattcWriteCompleted, BleEventGattcNotification, BleEventGattcIndication, BleEventGattcMtuChanged, \
+    BleEventGattcDiscoverInclude
 from ..gtl_messages.gtl_message_base import GtlMessageBase
 from ..gtl_messages.gtl_message_gattc import GattcDiscCmd, GattcDiscSvcInd, GattcCmpEvt, GattcDiscCharInd, GattcSdpSvcDiscCmd, \
     GattcSdpSvcInd, GattcReadCmd, GattcReadInd, GattcWriteCmd, GattcEventInd, GattcEventReqInd, GattcEventCfm, \
-    GattcWriteExecuteCmd, GattcMtuChangedInd, GattcExcMtuCmd, GattcSvcChangedCfgInd
+    GattcWriteExecuteCmd, GattcMtuChangedInd, GattcExcMtuCmd, GattcSvcChangedCfgInd, GattcDiscSvcInclInd
 from ..gtl_port.gattc_task import GATTC_OPERATION, GATTC_MSG_ID, gattc_sdp_att_info, GATTC_SDP_ATT_TYPE, gattc_read_simple
 from ..gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from ..manager.BleManagerBase import BleManagerBase
@@ -20,7 +21,8 @@ from ..manager.BleManagerGattcMsgs import BLE_CMD_GATTC_OPCODE, BleMgrGattcDisco
     BleMgrGattcDiscoverSvcRsp, BleMgrGattcDiscoverCharCmd, BleMgrGattcDiscoverCharRsp, BleMgrGattcDiscoverDescCmd, \
     BleMgrGattcDiscoverDescRsp, BleMgrGattcBrowseCmd, BleMgrGattcBrowseRsp, BleMgrGattcReadCmd, BleMgrGattcReadRsp, \
     BleMgrGattcWriteGenericCmd, BleMgrGattcWriteGenericRsp, BleMgrGattcWriteExecuteCmd, BleMgrGattcWriteExecuteRsp, \
-    BleMgrGattcExchangeMtuCmd, BleMgrGattcExchangeMtuRsp, BleMgrGattcBrowseRangeCmd, BleMgrGattcBrowseRangeRsp
+    BleMgrGattcExchangeMtuCmd, BleMgrGattcExchangeMtuRsp, BleMgrGattcBrowseRangeCmd, BleMgrGattcBrowseRangeRsp, \
+    BleMgrGattcDiscoverIncludeCmd, BleMgrGattcDiscoverIncludeRsp
 from ..manager.BleDevParams import BleDevParamsDefault
 from ..manager.BleManagerStorage import StoredDeviceQueue, INTERNAL_STORAGE_KEY
 from ..manager.GtlWaitQueue import GtlWaitQueue
@@ -46,7 +48,7 @@ class BleManagerGattc(BleManagerBase):
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_BROWSE_CMD: self.browse_cmd_handler,
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_BROWSE_RANGE_CMD: self.browse_range_cmd_handler,
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_SVC_CMD: self.discover_svc_cmd_handler,
-            BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_INCLUDE_CMD: None,
+            BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_INCLUDE_CMD: self.discover_include_cmd_handler,
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_CHAR_CMD: self.discover_char_cmd_handler,
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_DISCOVER_DESC_CMD: self.discover_desc_cmd_handler,
             BLE_CMD_GATTC_OPCODE.BLE_MGR_GATTC_READ_CMD: self.read_cmd_handler,
@@ -61,8 +63,8 @@ class BleManagerGattc(BleManagerBase):
             # GATTC_MSG_ID.GATTC_CMP_EVT: self.cmp_evt_handler,
             GATTC_MSG_ID.GATTC_MTU_CHANGED_IND: self.mtu_changed_ind_evt_handler,
             GATTC_MSG_ID.GATTC_SDP_SVC_IND: self.sdp_svc_ind_evt_handler,
-            GATTC_MSG_ID.GATTC_DISC_SVC_IND: self.disc_svc_ind_evt_handler,
-            GATTC_MSG_ID.GATTC_DISC_SVC_INCL_IND: None,
+            GATTC_MSG_ID.GATTC_DISC_SVC_IND: self.disc_svc_incl_ind_evt_handler,
+            GATTC_MSG_ID.GATTC_DISC_SVC_INCL_IND: self.disc_svc_incl_ind_evt_handler,
             GATTC_MSG_ID.GATTC_DISC_CHAR_IND: self.disc_char_ind_evt_handler,
             GATTC_MSG_ID.GATTC_DISC_CHAR_DESC_IND: self.disc_char_desc_ind_evt_handler,
             GATTC_MSG_ID.GATTC_READ_IND: self.read_ind_evt_handler,
@@ -218,6 +220,15 @@ class BleManagerGattc(BleManagerBase):
         evt.handle = gtl.parameters.attr_hdl
         self._mgr_event_queue_send(evt)
 
+    def disc_svc_incl_ind_evt_handler(self, gtl: GattcDiscSvcInclInd):
+        evt = BleEventGattcDiscoverInclude()
+        evt.conn_idx = self._task_to_connidx(gtl.src_id)
+        evt.handle = gtl.parameters.attr_hdl
+        evt.start_h = gtl.parameters.start_hdl
+        evt.end_h = gtl.parameters.end_hdl
+        evt.uuid.uuid = bytes(gtl.parameters.uuid)
+        self._mgr_event_queue_send(evt)
+
     def disc_svc_ind_evt_handler(self, gtl: GattcDiscSvcInd):
         evt = BleEventGattcDiscoverSvc()
         evt.conn_idx = self._task_to_connidx(gtl.src_id)
@@ -271,6 +282,26 @@ class BleManagerGattc(BleManagerBase):
             response.status = BLE_ERROR.BLE_STATUS_OK
 
         self.storage_release()
+        self._mgr_response_queue_send(response)
+
+    def discover_include_cmd_handler(self, command: BleMgrGattcDiscoverIncludeCmd):
+        response = BleMgrGattcDiscoverIncludeRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
+
+        self.storage_acquire()
+        dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
+        if not dev:
+            response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
+            self.storage_release()
+        else:
+            self.storage_release()
+            gtl = GattcDiscCmd(conidx=command.conn_idx)
+            gtl.parameters.operation = GATTC_OPERATION.GATTC_DISC_INCLUDED_SVC
+            gtl.parameters.seq_num = command.conn_idx
+            gtl.parameters.start_hdl = command.start_h
+            gtl.parameters.end_hdl = command.end_h
+            self._adapter_command_queue_send(gtl)
+            response.status = BLE_ERROR.BLE_STATUS_OK
+
         self._mgr_response_queue_send(response)
 
     def discover_svc_cmd_handler(self, command: BleMgrGattcDiscoverSvcCmd):

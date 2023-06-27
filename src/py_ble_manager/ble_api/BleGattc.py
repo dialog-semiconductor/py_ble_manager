@@ -186,6 +186,32 @@ class BleEventGattcDiscoverDesc(BleEventBase):
         self.handle = handle
 
 
+class BleEventGattcDiscoverInclude(BleEventBase):
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_INCLUDE` event
+
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_INCLUDE`
+    :ivar conn_idx: connection index
+    :ivar handle: include attribute handle
+    :ivar uuid: included service UUID
+    :ivar start_h: included service start handle
+    :ivar end_h: included service end handle
+    """
+
+    def __init__(self,
+                 conn_idx: int = 0,
+                 handle: int = 0,
+                 uuid: AttUuid = None,
+                 start_h: int = 0,
+                 end_h: int = 0
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_INCLUDE)
+        self.conn_idx = conn_idx
+        self.handle = handle
+        self.uuid = uuid if uuid else AttUuid()
+        self.start_h = start_h
+        self.end_h = end_h
+
+
 class BleEventGattcDiscoverSvc(BleEventBase):
     """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_SVC` event
 

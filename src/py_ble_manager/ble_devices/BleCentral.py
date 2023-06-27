@@ -156,6 +156,28 @@ class BleCentral(BleDeviceBase):
 
         return self._ble_gattc.discover_descriptors(conn_idx, start_h, end_h)
 
+    def discover_include(self,
+                         conn_idx: int,
+                         start_h: int,
+                         end_h: int
+                         ) -> BLE_ERROR:
+        """Discover included services on remote GATT server
+
+        :py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcDiscoverInclude` will be sent for each service found. Once completed
+        :py:class:`~py_ble_manager.ble_api.BleGattc.BleEventGattcDiscoverCompleted` will be sent.
+
+        :param conn_idx: connection index
+        :type conn_idx: int
+        :param start_h: start handle of service to discover
+        :type start_h: int
+        :param end_h: end handle of service to discover
+        :type end_h: int
+        :return: result code
+        :rtype: BLE_ERROR
+        """
+
+        return self._ble_gattc.discover_include(conn_idx, start_h, end_h)
+
     def discover_services(self, conn_idx: int, uuid: AttUuid) -> BLE_ERROR:
         """Discover services on remote GATT server
 
