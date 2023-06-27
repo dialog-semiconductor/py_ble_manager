@@ -1,6 +1,6 @@
 import queue
 import threading
-from typing import Callable
+from typing import Callable, Tuple
 
 from ..ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_STATUS
 from ..ble_api.BleConfig import BleConfigDefault
@@ -86,12 +86,58 @@ class BleManagerBase():
     def dev_params_release(self) -> None:
         self._dev_params_lock.release()
 
+    def _generic_get(self, conn_idx: int, key: int, value: bytes, persistent: bool) -> Tuple[bytes, BLE_ERROR]:
+        error = BLE_ERROR.BLE_ERROR_FAILED
+        self.storage_acquire()
+        dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+        if not dev:
+            error = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
+        else:
+            app_value = dev.app_value_get(key, persistent, value)
+            if app_value:
+                error = BLE_ERROR.BLE_STATUS_OK
+            else:
+                error = BLE_ERROR.BLE_ERROR_NOT_FOUND
+
+        self.storage_release()
+        return app_value, error
+
+    def _generic_put(self, conn_idx: int, key: int, value: bytes, persistent: bool) -> BLE_ERROR:
+        error = BLE_ERROR.BLE_ERROR_FAILED
+        self.storage_acquire()
+        dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+        if not dev:
+            error = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
+        else:
+            dev.app_value_put(key, persistent, value)
+            error = BLE_ERROR.BLE_STATUS_OK
+
+        self.storage_release()
+        return error
+
     def mgr_event_queue_get(self, timeout=None) -> BleMgrMsgBase:
         try:
             evt = self._mgr_event_q.get(timeout=timeout)
         except queue.Empty:
             evt = None
         return evt
+
+    def storage_get_buffer(self, conn_idx: int, key: int) -> Tuple[bytes, BLE_ERROR]:
+        app_value, error = self._generic_get(conn_idx, key)
+        return app_value, error
+
+    def storage_get_int(self, conn_idx: int, key: int) -> Tuple[int, BLE_ERROR]:
+        app_value, error = self._generic_get(conn_idx, key)
+        return_val = None
+        if app_value:
+            return_val = int.from_bytes(app_value, 'little', signed=True)
+        return return_val, error
+
+    def storage_put_buffer(self, conn_idx: int, key: int, value: bytes, persistent: bool):
+        return self._generic_put(conn_idx, key, value, persistent)
+
+    def storage_put_int(self, conn_idx: int, key: int, value: int, persistent: bool):
+        return self._generic_put(conn_idx, key, value.to_bytes(4, 'little', signed=True), persistent)
 
     def storage_acquire(self) -> BleDevParams:
         self._stored_device_lock.acquire()
