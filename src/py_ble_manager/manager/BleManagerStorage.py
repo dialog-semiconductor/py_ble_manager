@@ -135,7 +135,7 @@ class StoredDevice():
         self.discon_reason: int = 0
 
     def app_value_get(self, key: int) -> bytes:
-        app_value = self.app_values.find_app_value_by_key(key, True)
+        app_value = self.app_values.find_app_value_by_key(key, False)
         return app_value.value if app_value else None
 
     def app_value_put(self, key: int, persistent: bool, value: bytes) -> None:
