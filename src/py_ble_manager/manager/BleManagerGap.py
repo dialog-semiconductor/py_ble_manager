@@ -75,10 +75,10 @@ class BleManagerGap(BleManagerBase):
                  adapter_command_q: queue.Queue[GtlMessageBase],
                  wait_q: GtlWaitQueue,
                  stored_device_q: StoredDeviceQueue,
-                 stored_device_lock: threading.Lock(),
+                 stored_device_lock: threading.RLock,
                  dev_params: BleDevParamsDefault,
-                 dev_params_lock: threading.Lock(),
-                 ble_config: BleConfigDefault = BleConfigDefault()
+                 dev_params_lock: threading.Lock,
+                 ble_config: BleConfigDefault
                  ) -> None:
 
         super().__init__(mgr_response_q, mgr_event_q, adapter_command_q, wait_q, stored_device_q, stored_device_lock, dev_params, dev_params_lock, ble_config)
@@ -1819,8 +1819,8 @@ class BleManagerGap(BleManagerBase):
                         cfm.parameters.found = 0x01
                         cfm.parameters.key_size = dev.ltk.key_size
 
-            if dev and cfm.parameters.found == 0:
-                self._send_bonding_info_miss_evt(dev.conn_idx)
+        if dev and cfm.parameters.found == 0:
+            self._send_bonding_info_miss_evt(dev.conn_idx)
 
         self.storage_release()
         self._adapter_command_queue_send(cfm)

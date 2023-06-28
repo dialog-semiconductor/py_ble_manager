@@ -19,10 +19,10 @@ class BleManagerBase():
                  adapter_command_q: queue.Queue[GtlMessageBase],
                  wait_q: GtlWaitQueue,
                  stored_device_q: StoredDeviceQueue,
-                 stored_device_lock: threading.Lock(),
+                 stored_device_lock: threading.RLock,
                  dev_params: BleDevParamsDefault,
-                 dev_params_lock: threading.Lock(),
-                 config: BleConfigDefault = BleConfigDefault()) -> None:
+                 dev_params_lock: threading.Lock,
+                 config: BleConfigDefault) -> None:
 
         self._mgr_response_q = mgr_response_q
         self._mgr_event_q = mgr_event_q

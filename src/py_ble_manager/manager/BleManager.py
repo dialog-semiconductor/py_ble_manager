@@ -35,7 +35,7 @@ class BleManager(BleManagerBase):
         self._adapter_event_q: queue.Queue[GtlMessageBase] = adapter_event_q
         self._gtl_wait_q = GtlWaitQueue()
         self._stored_device_list = StoredDeviceQueue()
-        self._stored_device_lock = threading.Lock()
+        self._stored_device_lock = threading.RLock()
         self._ble_stack_initialized = False
         self._dev_params = BleDevParamsDefault()
         self._dev_params_lock = threading.Lock()

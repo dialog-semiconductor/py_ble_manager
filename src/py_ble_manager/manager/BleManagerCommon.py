@@ -29,11 +29,11 @@ class BleManagerCommon(BleManagerBase):
                  adapter_command_q: queue.Queue[GtlMessageBase],
                  gtl_wait_q: GtlWaitQueue,
                  stored_device_q: StoredDeviceQueue,
-                 stored_device_lock: threading.Lock(),
+                 stored_device_lock: threading.RLock,
                  dev_params: BleDevParamsDefault,
-                 dev_params_lock: threading.Lock(),
-                 ble_config: BleConfigDefault = BleConfigDefault(),
-                 reset_wait_q: ResetWaitQueue = ResetWaitQueue(),
+                 dev_params_lock: threading.Lock,
+                 ble_config: BleConfigDefault,
+                 reset_wait_q: ResetWaitQueue,
                  ) -> None:
 
         self._reset_wait_q = reset_wait_q
