@@ -865,8 +865,11 @@ class BleManagerGap(BleManagerBase):
                 if item.key == (c_uint8 * KEY_LEN)():
                     item.key = dev.irk
 
-    def _max_bonded_reached(self):  # Acquire storage before calling this function
-        return self._stored_device_list.count_bonded() >= self._ble_config.defaultBLE_MAX_BONDED
+    def _max_bonded_reached(self):
+        self.storage_acquire()
+        max_reached = self._stored_device_list.count_bonded() >= self._ble_config.defaultBLE_MAX_BONDED
+        self.storage_release()
+        return max_reached
 
     def _resolve_address_from_connected_evt(self, gtl: GapcConnectionReqInd, evt: BleEventGapConnected):
         # Note this function accesses storage. Storage should be acquired before calling
@@ -1985,9 +1988,7 @@ class BleManagerGap(BleManagerBase):
                 response.status = BLE_ERROR.BLE_ERROR_ALREADY_DONE
             else:
                 # Don't exceed the max bonded devices threshold
-                self.storage_acquire()
                 max_bonded = self._max_bonded_reached()
-                self.storage_release()
                 if (command.bond and not bonded and max_bonded):
                     response.status = BLE_ERROR.BLE_ERROR_INS_RESOURCES
 
