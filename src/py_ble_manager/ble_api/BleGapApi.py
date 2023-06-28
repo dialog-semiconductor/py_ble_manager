@@ -5,7 +5,8 @@ from ..ble_api.BleApiBase import BleApiBase
 from ..ble_api.BleAtt import ATT_PERM
 from ..ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR, OwnAddress
 from ..ble_api.BleGap import BLE_GAP_ROLE, GapConnParams, GAP_CONN_MODE, GAP_SCAN_TYPE, GAP_SCAN_MODE, \
-    GAP_IO_CAPABILITIES, BLE_NON_CONN_ADV_DATA_LEN_MAX, BLE_GAP_APPEARANCE, GAP_DISC_MODE, GapScanParams
+    GAP_IO_CAPABILITIES, BLE_NON_CONN_ADV_DATA_LEN_MAX, BLE_GAP_APPEARANCE, GAP_DISC_MODE, GapScanParams, \
+    GAP_SEC_LEVEL, BLE_ENC_KEY_SIZE_MAX
 from ..manager.BleManager import BleManager
 from ..manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, BleMgrGapConnectCmd, \
     BleMgrGapConnectRsp, BleMgrGapAdvStartCmd, BleMgrGapAdvStartRsp, BleMgrGapScanStartCmd, \
@@ -19,7 +20,7 @@ from ..manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp
     BleMgrGapDataLengthSetCmd, BleMgrGapDataLengthSetRsp, BleMgrGapAddressSetCmd, BleMgrGapAddressSetRsp, \
     BleMgrGapAppearanceSetCmd, BleMgrGapAppearanceSetRsp, BleMgrGapPeerVersionGetCmd, BleMgrGapPeerVersionGetRsp, \
     BleMgrGapPeerFeaturesGetCmd, BleMgrGapPeerFeaturesGetRsp, BleMgrGapPpcpSetCmd, BleMgrGapPpcpSetRsp, \
-    BleMgrGapUnpairCmd, BleMgrGapUnpairRsp
+    BleMgrGapUnpairCmd, BleMgrGapUnpairRsp, BleMgrGapSetSecLevelCmd, BleMgrGapSetSecLevelRsp
 from ..manager.BleManagerStorage import StoredDevice
 
 
@@ -238,6 +239,29 @@ class BleGapApi(BleApiBase):
         self._ble_manager.storage_release()
         return mtu, error
 
+    def get_sec_level(self, conn_idx: int) -> Tuple[GAP_SEC_LEVEL, BLE_ERROR]:
+
+        self._ble_manager.storage_acquire()
+        dev = self._ble_manager.find_stored_device_by_conn_idx(conn_idx)
+        if not dev:
+            self._ble_manager.storage_release()
+            return BLE_ERROR.BLE_ERROR_BUSY
+
+        level = GAP_SEC_LEVEL.GAP_SEC_LEVEL_1
+        if dev and dev.encrypted:
+            level = GAP_SEC_LEVEL.GAP_SEC_LEVEL_2
+            if dev.mitm:
+                if self._ble_manager._ble_config.dg_configBLE_SECURE_CONNECTIONS:
+                    if dev.secure and dev.remote_ltk.key_size == BLE_ENC_KEY_SIZE_MAX:
+                        level = GAP_SEC_LEVEL.GAP_SEC_LEVEL_4
+                    else:
+                        level = GAP_SEC_LEVEL.GAP_SEC_LEVEL_3
+                else:
+                    level = GAP_SEC_LEVEL.GAP_SEC_LEVEL_3
+
+        self._ble_manager.storage_release()
+        return level, BLE_ERROR.BLE_STATUS_OK
+
     def mtu_size_get(self) -> Tuple[int, BLE_ERROR]:
 
         dev_params = self._ble_manager.dev_params_acquire()
@@ -362,6 +386,13 @@ class BleGapApi(BleApiBase):
         dev_params.io_capabilities = io_cap
         self._ble_manager.dev_params_release()
         return BLE_ERROR.BLE_STATUS_OK
+    
+    def set_sec_level(self, conn_idx: int, level: GAP_SEC_LEVEL) -> BLE_ERROR:
+
+        command = BleMgrGapSetSecLevelCmd(conn_idx, level)
+        response: BleMgrGapSetSecLevelRsp = self._ble_manager.cmd_execute(command)
+
+        return response.status
 
     def unpair(self, addr: BdAddress):
 

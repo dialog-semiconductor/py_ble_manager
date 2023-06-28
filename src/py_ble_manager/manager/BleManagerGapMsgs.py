@@ -3,7 +3,7 @@ from enum import IntEnum, auto
 from ..ble_api.BleAtt import ATT_PERM
 from ..ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR, OwnAddress
 from ..ble_api.BleGap import GAP_CONN_MODE, BLE_GAP_ROLE, GapConnParams, GAP_SCAN_TYPE, GAP_SCAN_MODE, \
-    BLE_NON_CONN_ADV_DATA_LEN_MAX, BLE_GAP_APPEARANCE
+    BLE_NON_CONN_ADV_DATA_LEN_MAX, BLE_GAP_APPEARANCE, GAP_SEC_LEVEL
 from ..manager.BleManagerCommonMsgs import BleMgrMsgBase, BleMgrMsgRsp, BLE_CMD_GAP_OPCODE
 
 
@@ -384,6 +384,24 @@ class BleMgrGapScanStopRsp(BleMgrMsgRsp):
                  status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED
                  ) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SCAN_STOP_CMD,
+                         status=status)
+
+
+class BleMgrGapSetSecLevelCmd(BleMgrMsgBase):
+    def __init__(self,
+                 conn_idx: int = 0,
+                 level: GAP_SEC_LEVEL = GAP_SEC_LEVEL.GAP_SEC_LEVEL_1
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SET_SEC_LEVEL_CMD)
+        self.conn_idx = conn_idx
+        self.level = level
+
+
+class BleMgrGapSetSecLevelRsp(BleMgrMsgRsp):
+    def __init__(self,
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED
+                 ) -> None:
+        super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SET_SEC_LEVEL_CMD,
                          status=status)
 
 

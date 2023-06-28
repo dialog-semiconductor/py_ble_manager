@@ -764,3 +764,20 @@ class BleEventGapSecLevelChanged(BleEventBase):
         super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_SEC_LEVEL_CHANGED)
         self.conn_idx = conn_idx
         self.level = level
+
+
+class BleEventGapSetSecLevelFailed(BleEventBase):
+    """Class for :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_SET_SEC_LEVEL_FAILED` event
+
+    :ivar evt_code: event code, :py:class:`~py_ble_manager.ble_api.BleCommon.BLE_EVT_GAP.BLE_EVT_GAP_SET_SEC_LEVEL_FAILED`
+    :ivar conn_idx: connection index
+    :ivar status: completion status
+    """
+
+    def __init__(self,
+                 conn_idx: int = 0,
+                 status: BLE_ERROR = BLE_ERROR.BLE_ERROR_FAILED,
+                 ) -> None:
+        super().__init__(evt_code=BLE_EVT_GAP.BLE_EVT_GAP_SET_SEC_LEVEL_FAILED)
+        self.conn_idx = conn_idx
+        self.status = status

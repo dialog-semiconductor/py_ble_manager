@@ -5,7 +5,7 @@ from ..ble_api.BleAtt import ATT_PERM
 from ..ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_HCI_ERROR, OwnAddress, BdAddress
 from ..ble_api.BleCommonApi import BleCommonApi
 from ..ble_api.BleConfig import BleConfigDefault
-from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_IO_CAPABILITIES, BLE_GAP_APPEARANCE
+from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_IO_CAPABILITIES, BLE_GAP_APPEARANCE, GAP_SEC_LEVEL
 from ..ble_api.BleGapApi import BleGapApi, GapConnParams
 from ..ble_api.BleGattcApi import BleGattcApi
 from ..ble_api.BleGattsApi import BleGattsApi
@@ -355,6 +355,19 @@ class BleDeviceBase():
         """
         return self._ble_gap.get_peer_tx_mtu(conn_idx)
 
+    def get_sec_level(self, conn_idx: int) -> Tuple[GAP_SEC_LEVEL, BLE_ERROR]:
+        """Get connection security level
+
+        Get the currently established security level on a connection.
+
+        :param conn_idx: connection index
+        :type conn_idx: int
+        :return: result code
+        :rtype: Tuple[GAP_SEC_LEVEL, BLE_ERROR]
+        """
+
+        return self._ble_gap.get_sec_level(conn_idx)
+
     def init(self) -> None:
         self._serial_stream_manager.open_serial_port()
 
@@ -472,7 +485,26 @@ class BleDeviceBase():
         :return: result code
         :rtype: BLE_ERROR
         """
+
         return self._ble_gap.set_io_cap(io_cap)
+
+    def set_sec_level(self, conn_idx: int, level: GAP_SEC_LEVEL) -> BLE_ERROR:
+        """Set connection security level
+
+        Use this function to set the security level for a connection. If the device is already bonded,
+        it will use the existing LTK or request a new bonding. If the device is not bonded, it will
+        create a pairing or a security request (depending on whether the device is master or slave on the
+        connection) with the bond flag set to false.
+
+        :param conn_idx: connection index
+        :type conn_idx: int
+        :param level: new security level
+        :type level: GAP_SEC_LEVEL
+        :return: result code
+        :rtype: BLE_ERROR
+        """
+
+        return self._ble_gap.set_sec_level(conn_idx, level)
 
     def start(self, role: BLE_GAP_ROLE) -> BLE_ERROR:
         """Start the BLE module as a central device

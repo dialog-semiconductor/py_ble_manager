@@ -5,7 +5,7 @@ import threading
 
 from ..ble_api.BleAtt import ATT_PERM
 from ..ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_OWN_ADDR_TYPE, BLE_ADDR_TYPE, BLE_HCI_ERROR, \
-    BdAddress
+    BdAddress, BLE_EVT_GAP
 from ..ble_api.BleConfig import BleConfigDefault, BLE_HW_TYPE
 from ..ble_api.BleConvert import BleConvert
 
@@ -18,7 +18,7 @@ from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_CONN_MODE, BleEventGapConnected, 
     BleEventGapAddressResolved, BleEventGapPeerVersion, BleEventGapPeerFeatures, BleEventGapLtkMissing, \
     BLE_ADV_DATA_LEN_MAX, BLE_NON_CONN_ADV_DATA_LEN_MAX, BleEventGapAddressResolutionFailed, \
     BleEventGapDataLengthSetFailed, GAP_ADV_TYPE, BleEventGapDataLengthChanged, BLE_GAP_DEVNAME_LEN_MAX,\
-    BleEventGapAirOpBdAddr
+    BleEventGapAirOpBdAddr, BleEventGapSetSecLevelFailed
 
 from ..ble_api.BleGatt import GATT_CCC
 
@@ -26,7 +26,8 @@ from ..gtl_messages.gtl_message_base import GtlMessageBase
 from ..gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReqInd, GapcGetDevInfoReqInd, GapcGetDevInfoCfm, \
     GapcDisconnectInd, GapcCmpEvt, GapcDisconnectCmd, GapcParamUpdateCmd, GapcParamUpdatedInd, GapcParamUpdateReqInd, \
     GapcParamUpdateCfm, GapcBondCfm, GapcBondCmd, GapcSecurityCmd, GapcBondReqInd, GapcBondInd, GapcGetInfoCmd, \
-    GapcPeerVersionInd, GapcPeerFeaturesInd, GapcEncryptReqInd, GapcEncryptCfm, GapcEncryptInd, GapcSetLePktSizeCmd, GapcLePktSizeInd
+    GapcPeerVersionInd, GapcPeerFeaturesInd, GapcEncryptReqInd, GapcEncryptCfm, GapcEncryptInd, GapcSetLePktSizeCmd, \
+    GapcLePktSizeInd, GapcEncryptCmd
 
 from ..gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd, \
     GapmStartScanCmd, GapmAdvReportInd, GapmCancelCmd, GapmResolvAddrCmd, GapmUpdateAdvertiseDataCmd, GapmDevBdAddrInd
@@ -42,6 +43,7 @@ from ..gtl_port.gapm_task import GAPM_MSG_ID, GAPM_OPERATION, GAPM_ADDR_TYPE, GA
     SCAN_DUP_FILTER_POLICY, GAPM_LE_LENGTH_EXT_OCTETS_MIN, GAPM_LE_LENGTH_EXT_OCTETS_MAX
 
 from ..gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
+from ..gtl_port.smp_common import SMP_PROP_ERROR
 from ..manager.BleDevParams import BleDevParamsDefault
 from ..manager.BleManagerCommon import BleManagerBase
 
@@ -56,7 +58,7 @@ from ..manager.BleManagerGapMsgs import BLE_CMD_GAP_OPCODE, BleMgrGapRoleSetRsp,
     BleMgrGapDataLengthSetCmd, BleMgrGapDataLengthSetRsp, BleMgrGapAddressSetCmd, BleMgrGapAddressSetRsp, \
     BleMgrGapAppearanceSetCmd, BleMgrGapAppearanceSetRsp, BleMgrGapPeerVersionGetCmd, BleMgrGapPeerVersionGetRsp, \
     BleMgrGapPeerFeaturesGetCmd, BleMgrGapPeerFeaturesGetRsp, BleMgrGapPpcpSetCmd, BleMgrGapPpcpSetRsp, \
-    BleMgrGapUnpairCmd, BleMgrGapUnpairRsp
+    BleMgrGapUnpairCmd, BleMgrGapUnpairRsp, BleMgrGapSetSecLevelCmd, BleMgrGapSetSecLevelRsp
 
 from ..manager.BleManagerStorage import StoredDeviceQueue, StoredDevice, INTERNAL_STORAGE_KEY, key_ltk, key_irk, key_csrk
 from ..manager.GtlWaitQueue import GtlWaitQueue
@@ -107,7 +109,7 @@ class BleManagerGap(BleManagerBase):
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PAIR_REPLY_CMD: self.pair_reply_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_PASSKEY_REPLY_CMD: self.passkey_reply_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_UNPAIR_CMD: self.unpair_cmd_handler,
-            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SET_SEC_LEVEL_CMD: None,
+            BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SET_SEC_LEVEL_CMD: self.set_sec_level_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_SKIP_LATENCY_CMD: None,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_DATA_LENGTH_SET_CMD: self.data_length_set_cmd_handler,
             BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_NUMERIC_REPLY_CMD: self.numeric_reply_cmd_handler,
@@ -714,6 +716,75 @@ class BleManagerGap(BleManagerBase):
 
         return rwperm
 
+    def _encrypt_conn_using_ltk(self, conn_idx: int, auth: int, sec_level_req: GAP_SEC_LEVEL, evt: BleEventBase) -> bool: 
+        self.storage_acquire()
+        dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+        if not dev or not dev.remote_ltk:
+            self.storage_release()
+            return False
+
+        if auth & GAP_AUTH_MASK.GAP_AUTH_MITM and not dev.mitm:
+            self.storage_release()
+            return False
+
+        if self._ble_config.dg_configBLE_SECURE_CONNECTIONS:
+            if (sec_level_req == GAP_SEC_LEVEL.GAP_SEC_LEVEL_4
+                    and dev.secure is False
+                    and dev.mitm is False
+                    and dev.remote_ltk.key != BLE_ENC_KEY_SIZE_MAX):
+                self.storage_release()
+                return False
+
+        gtl = GapcEncryptCmd(conidx=conn_idx)
+        gtl.parameters.ltk.ediv = dev.remote_ltk.ediv
+        gtl.parameters.ltk.key_size = dev.remote_ltk.key_size
+        gtl.parameters.ltk.ltk.key[:KEY_LEN] = dev.remote_ltk.key[:KEY_LEN]
+        gtl.parameters.ltk.randnb.nb[:RAND_NB_LEN] = dev.remote_ltk.rand[:RAND_NB_LEN]
+
+        self.storage_release()
+        self._gtl_wait_queue_add(conn_idx,
+                                 GAPM_MSG_ID.GAPM_CMP_EVT,
+                                 GAPM_OPERATION.GAPC_ENCRYPT,
+                                 self._gapc_encrypt_complete,
+                                 evt)
+
+    def _gapc_encrypt_complete(self, gtl: GapcCmpEvt, param: BleEventBase):
+        if param.evt_code == BLE_EVT_GAP.BLE_EVT_GAP_SET_SEC_LEVEL_FAILED:
+            evt = BleEventGapSetSecLevelFailed()
+            # Check if callback was called by ble_gtl_waitqueue_flush() */
+            if (gtl is not None):
+                match (gtl.parameters.status):
+                    case HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
+                        # Encryption was successful, BLE_EVT_GAP_SET_SEC_LEVEL_FAILED event
+                        # should not be sent to application.
+                        # BLE_EVT_GAP_SEC_LEVEL_CHANGED event will be sent instead upon
+                        # reception of GAPC_ENCRYPT_IND message.
+                        #
+                        return
+                    # Translate error codes
+                    case (HOST_STACK_ERROR_CODE.SMP_ERROR_REM_ENC_KEY_MISSING
+                          | SMP_PROP_ERROR.SMP_ERROR_ENC_KEY_MISSING):
+         
+                        evt.status = BLE_ERROR.BLE_ERROR_ENC_KEY_MISSING
+
+                    case _:
+                        evt.status = gtl.parameters.status if gtl.parameters.status in BLE_ERROR.__members__.values() else BLE_ERROR.BLE_ERROR_FAILED
+            else:
+                # Called by ble_gtl_waitqueue_flush(), link was disconnected
+                evt.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
+
+        elif param.evt_code == BLE_EVT_GAP.BLE_EVT_GAP_SECURITY_REQUEST:
+            if (gtl is None) or (gtl.parameters.status == HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR):
+                # Either link was disconnected or encryption was successful. In any case,
+                # security request has been handled internally, so there's no need to
+                # notify the application. Return.
+                return
+        else:
+            assert (0)
+
+        # Encryption has failed, send event to application
+        self._mgr_event_queue_send(param)
+
     def _gapm_address_resolve_complete(self, gtl: GapcCmpEvt, evt: BleEventGapConnected):
         conn_idx = evt.conn_idx
         self.storage_acquire()
@@ -1019,7 +1090,7 @@ class BleManagerGap(BleManagerBase):
             case _:
                 # response.status = gtl.parameters.status
                 # Below needs to be refactored to not depend on internal __members__ of IntEnum class
-                gtl.parameters.status if gtl.parameters.status in BLE_ERROR.__members__.values() else BLE_ERROR.BLE_ERROR_FAILED
+                response.status = gtl.parameters.status if gtl.parameters.status in BLE_ERROR.__members__.values() else BLE_ERROR.BLE_ERROR_FAILED
 
         self._mgr_response_queue_send(response)
         self.dev_params_release()
@@ -2122,6 +2193,49 @@ class BleManagerGap(BleManagerBase):
             self._send_gapm_cancel_cmd(op)
             response.status = BLE_ERROR.BLE_STATUS_OK
         self.dev_params_release()
+        self._mgr_response_queue_send(response)
+
+    def set_sec_level_cmd_handler(self, command: BleMgrGapSetSecLevelCmd) -> None:
+        response = BleMgrGapSetSecLevelRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
+
+        mitm = True if command.level > GAP_SEC_LEVEL.GAP_SEC_LEVEL_2 else False
+        secure = False
+        if self._ble_config.dg_configBLE_SECURE_CONNECTIONS:
+            secure = True
+
+        dev_params = self.dev_params_acquire()
+        io_cap = dev_params.io_capabilities
+        self.dev_params_release()
+
+        self.storage_acquire()
+        dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
+        if not dev:
+            response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
+        else:
+            if self._ble_config.dg_configBLE_SECURE_CONNECTIONS and command.level == GAP_SEC_LEVEL.GAP_SEC_LEVEL_4:
+                response.status = BLE_ERROR.BLE_ERROR_NOT_SUPPORTED
+            else:
+                if dev.master:
+                    
+                    if self._ble_config.dg_configBLE_CENTRAL:
+                        evt = BleEventGapSetSecLevelFailed()
+                        evt.conn_idx = command.conn_idx
+                        auth = (GAP_AUTH_MASK.GAP_AUTH_MITM if mitm else 0) | (GAP_AUTH_MASK.GAP_AUTH_SEC if secure else 0)
+                        if not self._encrypt_conn_using_ltk(command.conn_idx, auth, command.level, evt):
+                            dev.sec_level_req = command.level
+                            # Initiate pairing
+                            self._send_bond_cmd(command.conn_idx, io_cap, dev.bonded, dev.mitm, dev.secure)
+                            response.status = BLE_ERROR.BLE_STATUS_OK
+                    elif self._ble_config.dg_configBLE_PERIPHERAL:
+                        if dev.security_req_pending:
+                            response.status = BLE_ERROR.BLE_ERROR_IN_PROGRESS
+                        else:
+                            dev.sec_level_req = command.level
+                            dev.security_req_pending = True
+                            self._send_security_req(command.conn_idx, dev.bonded, dev.mitm, dev.secure)
+                            response.status = BLE_ERROR.BLE_STATUS_OK
+
+        self.storage_release()
         self._mgr_response_queue_send(response)
 
     def unpair_cmd_handler(self, command: BleMgrGapUnpairCmd) -> None:

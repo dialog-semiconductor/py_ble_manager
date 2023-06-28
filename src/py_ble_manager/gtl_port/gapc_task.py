@@ -959,6 +959,26 @@ class gapc_bond_ind(LittleEndianStructure):
                 ("data", gapc_bond_data)]
 
 
+# Start Encryption command procedure
+class gapc_encrypt_cmd(LittleEndianStructure):
+
+    def __init__(self,
+                 ltk: gapc_ltk = gapc_ltk(),):
+
+        self.operation = GAPC_OPERATION.GAPC_ENCRYPT
+        self.ltk = ltk
+        super().__init__(operation=self.operation,
+                         padding=0,
+                         ltk=self.ltk)
+
+                # GAP request type:
+                # - GAPC_ENCRYPT:  Start encryption procedure.
+    _fields_ = [("operation", c_uint8),
+                ("padding", c_uint8),  # TODO I assume there is padding here, need to confirm how much paddding
+                # Long Term Key information
+                ("ltk", gapc_ltk)]
+
+
 # Encryption requested by peer device indication message.
 class gapc_encrypt_req_ind(LittleEndianStructure):
 
