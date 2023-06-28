@@ -1775,12 +1775,10 @@ class BleManagerGap(BleManagerBase):
         if dev is not None:
             if dev.resolving:
                 dev.discon_reason = gtl.parameters.reason
-                self.storage_release()
             else:
-                self.storage_release()
                 self._conn_cleanup(conn_idx, gtl.parameters.reason)
-        else:
-            self.storage_release()
+
+        self.storage_release()
 
     def encrypt_ind_evt_handler(self, gtl: GapcEncryptInd):
         conn_idx = self._task_to_connidx(gtl.src_id)
