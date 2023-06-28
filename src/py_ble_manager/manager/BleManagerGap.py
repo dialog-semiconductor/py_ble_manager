@@ -805,7 +805,7 @@ class BleManagerGap(BleManagerBase):
                 self._conn_cleanup(conn_idx, dev.discon_reason)
             else:
                 # Send GAPC_CONNECTION_CFM to the BLE Host
-                cfm = GapcConnectionCfm(conn_idx=conn_idx)
+                cfm = GapcConnectionCfm(conidx=conn_idx)
                 cfm.parameters.auth = GAP_AUTH_MASK.GAP_AUTH_BOND if dev.bonded else GAP_AUTH_MASK.GAP_AUTH_NONE
                 cfm.parameters.auth |= GAP_AUTH_MASK.GAP_AUTH_MITM if dev.mitm else GAP_AUTH_MASK.GAP_AUTH_NONE
                 if self._ble_config.dg_configBLE_SECURE_CONNECTIONS == 1:
@@ -818,7 +818,9 @@ class BleManagerGap(BleManagerBase):
                     cfm.parameters.lcsrk.key = (c_uint8 * KEY_LEN).from_buffer_copy(dev.csrk.key)
 
                 # Retrieve value for Service Changed Characteristic CCC
-                svc_chg_ccc = self.storage_get_int(conn_idx, INTERNAL_STORAGE_KEY.STORAGE_KEY_SVC_CHANGED_CCC)
+                svc_chg_ccc, error = self.storage_get_int(conn_idx, INTERNAL_STORAGE_KEY.STORAGE_KEY_SVC_CHANGED_CCC)
+                if error != BLE_ERROR.BLE_STATUS_OK:
+                    svc_chg_ccc = 0
                 cfm.parameters.svc_changed_ind_enable = svc_chg_ccc & GATT_CCC.GATT_CCC_INDICATIONS
                 self._adapter_command_queue_send(cfm)
         self.storage_release()
@@ -1810,7 +1812,7 @@ class BleManagerGap(BleManagerBase):
             else:
                 if dev.ltk and dev.ltk.ediv == gtl.parameters.ediv:
                     # Our Rand is stored in the same endianess as RW
-
+                    # memcmp
                     rand_int = 0
                     for i in range(0, RAND_NB_LEN):
                         rand_int |= gtl.parameters.rand_nb.nb[i] << i
