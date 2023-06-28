@@ -31,7 +31,7 @@ class BleManagerCommon(BleManagerBase):
                  stored_device_q: StoredDeviceQueue,
                  stored_device_lock: threading.RLock,
                  dev_params: BleDevParamsDefault,
-                 dev_params_lock: threading.Lock,
+                 dev_params_lock: threading.RLock,
                  ble_config: BleConfigDefault,
                  reset_wait_q: ResetWaitQueue,
                  ) -> None:

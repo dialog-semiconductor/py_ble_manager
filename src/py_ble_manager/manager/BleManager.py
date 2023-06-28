@@ -38,7 +38,7 @@ class BleManager(BleManagerBase):
         self._stored_device_lock = threading.RLock()
         self._ble_stack_initialized = False
         self._dev_params = BleDevParamsDefault()
-        self._dev_params_lock = threading.Lock()
+        self._dev_params_lock = threading.RLock()
         self._mgr_lock = threading.Lock()
         self._ble_config = config
         self._reset_wait_q = ResetWaitQueue()
