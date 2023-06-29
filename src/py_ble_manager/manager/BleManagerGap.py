@@ -751,6 +751,7 @@ class BleManagerGap(BleManagerBase):
                                  GAPC_OPERATION.GAPC_ENCRYPT,
                                  self._gapc_encrypt_complete,
                                  evt)
+        self._adapter_command_queue_send(gtl)
         return True
 
     def _gapc_encrypt_complete(self, gtl: GapcCmpEvt, param: BleEventBase):
@@ -1801,7 +1802,7 @@ class BleManagerGap(BleManagerBase):
             # Check if the security level has changed (if 0x00, wait for pairing completed) */
             if (dev.paired
                     and dev.sec_level != self._auth_to_sec_level(gtl.parameters.auth, dev.remote_ltk.key_size)
-                    and dev.sec_level != 0x00):
+                    and gtl.parameters.auth != 0x00):
 
                 dev.sec_level = self._auth_to_sec_level(gtl.parameters.auth, dev.remote_ltk.key_size)
                 self._send_sec_level_changed_evt(conn_idx, dev.sec_level)
