@@ -719,7 +719,7 @@ class BleManagerGap(BleManagerBase):
     def _encrypt_conn_using_ltk(self, conn_idx: int, auth: int, sec_level_req: GAP_SEC_LEVEL, evt: BleEventBase) -> bool: 
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
-        if not dev or not dev.remote_ltk:
+        if dev is None or dev.remote_ltk is None:
             self.storage_release()
             return False
 
@@ -731,7 +731,7 @@ class BleManagerGap(BleManagerBase):
             if (sec_level_req == GAP_SEC_LEVEL.GAP_SEC_LEVEL_4
                     and dev.secure is False
                     and dev.mitm is False
-                    and dev.remote_ltk.key != BLE_ENC_KEY_SIZE_MAX):
+                    and dev.remote_ltk.key_size != BLE_ENC_KEY_SIZE_MAX):
                 self.storage_release()
                 return False
 
@@ -739,14 +739,19 @@ class BleManagerGap(BleManagerBase):
         gtl.parameters.ltk.ediv = dev.remote_ltk.ediv
         gtl.parameters.ltk.key_size = dev.remote_ltk.key_size
         gtl.parameters.ltk.ltk.key[:KEY_LEN] = dev.remote_ltk.key[:KEY_LEN]
-        gtl.parameters.ltk.randnb.nb[:RAND_NB_LEN] = dev.remote_ltk.rand[:RAND_NB_LEN]
+
+        # gtl.parameters.ltk.randnb.nb[:RAND_NB_LEN] = dev.remote_ltk.rand[:RAND_NB_LEN]
+
+        for i in range(0, RAND_NB_LEN):
+            gtl.parameters.ltk.randnb.nb[i] = (dev.remote_ltk.rand >> i) & 0xFF
 
         self.storage_release()
         self._gtl_wait_queue_add(conn_idx,
-                                 GAPM_MSG_ID.GAPM_CMP_EVT,
-                                 GAPM_OPERATION.GAPC_ENCRYPT,
+                                 GAPC_MSG_ID.GAPC_CMP_EVT,
+                                 GAPC_OPERATION.GAPC_ENCRYPT,
                                  self._gapc_encrypt_complete,
                                  evt)
+        return True
 
     def _gapc_encrypt_complete(self, gtl: GapcCmpEvt, param: BleEventBase):
         if param.evt_code == BLE_EVT_GAP.BLE_EVT_GAP_SET_SEC_LEVEL_FAILED:
@@ -764,7 +769,7 @@ class BleManagerGap(BleManagerBase):
                     # Translate error codes
                     case (HOST_STACK_ERROR_CODE.SMP_ERROR_REM_ENC_KEY_MISSING
                           | SMP_PROP_ERROR.SMP_ERROR_ENC_KEY_MISSING):
-         
+
                         evt.status = BLE_ERROR.BLE_ERROR_ENC_KEY_MISSING
 
                     case _:
@@ -1683,6 +1688,10 @@ class BleManagerGap(BleManagerBase):
                 cfm.parameters.rcsrk.key = (c_uint8 * KEY_LEN).from_buffer_copy(dev.remote_csrk.key)
 
             # TODO something with service changed characteristic value from ..storage
+            svc_chg_ccc, error = self.storage_get_int(evt.conn_idx, INTERNAL_STORAGE_KEY.STORAGE_KEY_SVC_CHANGED_CCC)
+            if error != BLE_ERROR.BLE_STATUS_OK:
+                svc_chg_ccc = 0
+            cfm.parameters.svc_changed_ind_enable = (svc_chg_ccc & GATT_CCC.GATT_CCC_INDICATIONS)
             self._adapter_command_queue_send(cfm)
         self.storage_release()
         self.dev_params_release()
@@ -1775,7 +1784,7 @@ class BleManagerGap(BleManagerBase):
         conn_idx = self._task_to_connidx(gtl.src_id)
         self.storage_acquire()
         dev: StoredDevice = self._stored_device_list.find_device_by_conn_idx(conn_idx)
-        if dev is not None:
+        if dev:
             if dev.resolving:
                 dev.discon_reason = gtl.parameters.reason
             else:
@@ -1976,13 +1985,14 @@ class BleManagerGap(BleManagerBase):
         secure = True if (self._ble_config.dg_configBLE_SECURE_CONNECTIONS == 1) else False
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(command.conn_idx)
-        master = dev.master
-        bonded = dev.bonded
-        paired = dev.paired
-        self.storage_release()
         if not dev:
+            self.storage_release()
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
         else:
+            master = dev.master
+            bonded = dev.bonded
+            paired = dev.paired
+            self.storage_release()
             io_cap = self._get_local_io_cap()
             if (not command.bond and (paired or bonded)):
                 response.status = BLE_ERROR.BLE_ERROR_ALREADY_DONE
@@ -2213,11 +2223,11 @@ class BleManagerGap(BleManagerBase):
         if not dev:
             response.status = BLE_ERROR.BLE_ERROR_NOT_CONNECTED
         else:
-            if self._ble_config.dg_configBLE_SECURE_CONNECTIONS and command.level == GAP_SEC_LEVEL.GAP_SEC_LEVEL_4:
+            if self._ble_config.dg_configBLE_SECURE_CONNECTIONS == 0 and command.level == GAP_SEC_LEVEL.GAP_SEC_LEVEL_4:
                 response.status = BLE_ERROR.BLE_ERROR_NOT_SUPPORTED
             else:
                 if dev.master:
-                    
+
                     if self._ble_config.dg_configBLE_CENTRAL:
                         evt = BleEventGapSetSecLevelFailed()
                         evt.conn_idx = command.conn_idx
@@ -2226,7 +2236,7 @@ class BleManagerGap(BleManagerBase):
                             dev.sec_level_req = command.level
                             # Initiate pairing
                             self._send_bond_cmd(command.conn_idx, io_cap, dev.bonded, dev.mitm, dev.secure)
-                            response.status = BLE_ERROR.BLE_STATUS_OK
+                        response.status = BLE_ERROR.BLE_STATUS_OK
                     elif self._ble_config.dg_configBLE_PERIPHERAL:
                         if dev.security_req_pending:
                             response.status = BLE_ERROR.BLE_ERROR_IN_PROGRESS
