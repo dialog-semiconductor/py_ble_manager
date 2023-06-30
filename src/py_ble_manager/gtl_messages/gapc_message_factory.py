@@ -80,7 +80,7 @@ class GapcMessageFactory():
                 return GapcSecurityInd(conidx=conidx, parameters=gapc_security_ind.from_buffer_copy(params_buf))
 
             elif msg_id == GAPC_MSG_ID.GAPC_SIGN_COUNTER_IND:
-                GapcSignCounterInd(conidx=conidx, parameters=gapc_sign_counter_ind.from_buffer_copy(params_buf))
+                return GapcSignCounterInd(conidx=conidx, parameters=gapc_sign_counter_ind.from_buffer_copy(params_buf))
 
             else:
                 raise AssertionError(f"GapcMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")
