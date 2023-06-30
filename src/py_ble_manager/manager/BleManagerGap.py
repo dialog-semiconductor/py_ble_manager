@@ -1,3 +1,4 @@
+import copy
 from ctypes import c_uint8, Array
 import queue
 import secrets
@@ -30,7 +31,8 @@ from ..gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReq
     GapcLePktSizeInd, GapcEncryptCmd
 
 from ..gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd, \
-    GapmStartScanCmd, GapmAdvReportInd, GapmCancelCmd, GapmResolvAddrCmd, GapmUpdateAdvertiseDataCmd, GapmDevBdAddrInd
+    GapmStartScanCmd, GapmAdvReportInd, GapmCancelCmd, GapmResolvAddrCmd, GapmUpdateAdvertiseDataCmd, GapmDevBdAddrInd, \
+    GapmAddrSolvedInd
 
 from ..gtl_port.attm import ATTM_PERM
 from ..gtl_port.co_bt import RAND_NB_LEN, KEY_LEN, BLE_LE_LENGTH_FEATURE, BD_ADDR_LEN
@@ -135,7 +137,7 @@ class BleManagerGap(BleManagerBase):
             GAPC_MSG_ID.GAPC_SIGN_COUNTER_IND: None,
             GAPC_MSG_ID.GAPC_ENCRYPT_REQ_IND: self.encrypt_req_ind_evt_handler,
             GAPC_MSG_ID.GAPC_ENCRYPT_IND: self.encrypt_ind_evt_handler,
-            GAPM_MSG_ID.GAPM_ADDR_SOLVED_IND: None,
+            GAPM_MSG_ID.GAPM_ADDR_SOLVED_IND: self.addr_solved_evt_handler,
             GAPC_MSG_ID.GAPC_LE_PKT_SIZE_IND: self.le_pkt_size_ind_evt_handler,
             GAPM_MSG_ID.GAPM_CMP_EVT: self.gapm_cmp_evt_handler,
             GAPC_MSG_ID.GAPC_CMP_EVT: self.gapc_cmp_evt_handler
@@ -868,7 +870,7 @@ class BleManagerGap(BleManagerBase):
         if dev.irk:
             item: gap_sec_key
             for item in copy_array:
-                if bytearray(item.key) == bytearray((c_uint8 * KEY_LEN)()):
+                if bytes(item.key) == bytes((c_uint8 * KEY_LEN)()):
                     item.key[:len(dev.irk.key)] = dev.irk.key[:len(dev.irk.key)]
 
     def _max_bonded_reached(self):
@@ -1166,6 +1168,44 @@ class BleManagerGap(BleManagerBase):
         self.dev_params_release()
         # Check if an air operation is in progress (GAPM_SET_DEV_CONFIG_CMD cannot be sent now)
 
+    def addr_solved_evt_handler(self, gtl: GapmAddrSolvedInd):
+        address = BdAddress()
+
+        address.addr = bytes(gtl.parameters.addr.addr[:])
+        address.addr_type = BLE_ADDR_TYPE.PRIVATE_ADDRESS
+
+        self.storage_acquire()
+        dev_params = self.dev_params_acquire()
+        addr_resolv_req_pending = dev_params.addr_resolv_req_pending
+        self.dev_params_release()
+
+        if addr_resolv_req_pending:
+            dev = self._stored_device_list.find_device_by_irk(gtl.parameters.irk)
+            if dev:
+                evt = BleEventGapAddressResolved()
+                evt.resolved_address = dev.addr
+                evt.address = address
+
+                if dev.connected:
+                    evt.conn_idx = dev.conn_idx
+                else:
+                    evt.conn_idx = BLE_CONN_IDX_INVALID
+
+                self._mgr_event_queue_send(evt)
+        else:
+            temp_dev = self._stored_device_list.find_device_by_address(address, False)
+            if temp_dev and temp_dev.connected:
+                dev = self._stored_device_list.find_device_by_irk(gtl.parameters.irk)
+                if dev:
+                    dev.conn_idx = temp_dev.conn_idx
+                    dev.master = temp_dev.master
+                    dev.connected = True
+                    dev.discon_reason = temp_dev.discon_reason
+
+                    self._stored_device_list.remove(temp_dev)
+
+        self.storage_release()
+
     def adv_data_set_cmd_handler(self, command: BleMgrGapAdvDataSetCmd) -> None:
 
         dev_params = self.dev_params_acquire()
@@ -1396,7 +1436,6 @@ class BleManagerGap(BleManagerBase):
 
                     old_dev = self._stored_device_list.find_device_by_address(addr, False)
                     while (old_dev and old_dev != dev):
-
                         self._stored_device_list.remove(old_dev)
                         old_dev = self._stored_device_list.find_device_by_address(addr, False)
 
@@ -1405,6 +1444,7 @@ class BleManagerGap(BleManagerBase):
                         dev.irk = key_irk()
 
                     dev.irk.key = bytes(gtl.parameters.data.irk.irk.key[:])
+                    evt.address = copy.deepcopy(dev.addr)
                     dev.addr.addr_type = gtl.parameters.data.irk.addr.addr_type
                     dev.addr = addr
                     evt.resolved_address = dev.addr

@@ -3,6 +3,7 @@ from typing import Callable
 
 from ..ble_api.BleCommon import BdAddress
 from ..ble_api.BleGap import GAP_SEC_LEVEL, BLE_GAP_PHY
+from ..gtl_port.gap import gap_sec_key
 
 
 class INTERNAL_STORAGE_KEY(IntEnum):
@@ -244,6 +245,17 @@ class StoredDeviceQueue(SearchableQueue):
             found = device if (device.connected and device.conn_idx == conn_idx) else None
             if found:
                 break
+
+        return found
+
+    def find_device_by_irk(self, irk: gap_sec_key) -> StoredDevice:
+        found = None
+        device: StoredDevice
+        for device in self.queue:
+            if device.irk:
+                found = device if (device.irk.key == bytes(irk.key)) else None
+                if found:
+                    break
 
         return found
 
