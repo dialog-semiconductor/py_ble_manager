@@ -560,6 +560,51 @@ class gapc_get_dev_info_cfm(LittleEndianStructure):
                 ("more_padding", (c_uint8 * 6))]
 
 
+# Device information data
+class gapc_set_dev_info(Union):
+
+    def __init__(self,
+                 name: gap_dev_name = None,
+                 appearance: c_uint16 = None):
+
+        if name:
+            self.name = name
+            super().__init__(name=self.name)
+        elif appearance:
+            self.appearance = appearance
+            super().__init__(appearance=self.appearance)
+        else:
+            self.name = gap_dev_name()
+            super().__init__(name=self.name)
+
+                # Device name
+    _fields_ = [("name", gap_dev_name),
+                # Appearance Icon
+                ("appearance", c_uint16)]
+
+
+# Peer device request to modify local device info such as name or appearance
+class gapc_set_dev_info_req_ind(LittleEndianStructure):
+
+    def __init__(self,
+                 req: GAPC_DEV_INFO = GAPC_DEV_INFO.GAPC_DEV_NAME,
+                 info: gapc_set_dev_info = None):
+
+        self.req = req
+        self.info = info if info else gapc_set_dev_info()
+        super().__init__(req=self.req,
+                         padding=0,
+                         info=self.info)
+
+                # Requested information
+                # - GAPC_DEV_NAME: Device Name
+                # - GAPC_DEV_APPEARANCE: Device Appearance Icon
+    _fields_ = [("req", c_uint8),
+                ("padding", c_uint8),
+                # Peer device information data
+                ("info", gapc_set_dev_info)]
+
+
 # Perform update of connection parameters command
 class gapc_param_update_cmd(LittleEndianStructure):
 

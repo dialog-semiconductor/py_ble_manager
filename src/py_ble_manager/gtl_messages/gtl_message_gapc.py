@@ -7,7 +7,7 @@ from ..gtl_port.gapc_task import GAPC_MSG_ID, gapc_connection_req_ind, gapc_conn
     gapc_encrypt_ind, gapc_param_update_req_ind, gapc_param_update_cfm, gapc_param_update_cmd, gapc_get_dev_info_req_ind, \
     gapc_get_dev_info_cfm, GAPC_DEV_INFO, gapc_disconnect_ind, gapc_param_updated_ind, gapc_disconnect_cmd, gapc_bond_cmd, \
     gapc_peer_version_ind, GAPC_BOND, GAPC_OPERATION, gapc_set_le_pkt_size_cmd, gapc_le_pkt_size_ind, gapc_encrypt_cmd, \
-    gapc_security_ind
+    gapc_security_ind, gapc_set_dev_info_req_ind
 
 from ..gtl_port.rwip_config import KE_API_ID
 
@@ -531,3 +531,42 @@ class GapcSecurityInd(GtlMessageBase):
                          src_id=((conidx << 8) | KE_API_ID.TASK_ID_GAPC),
                          par_len=2,
                          parameters=self.parameters)
+
+
+class GapcSetDevInfoReqInd(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gapc_set_dev_info_req_ind = None):
+
+        self.parameters = parameters if parameters else gapc_set_dev_info_req_ind()
+
+        super().__init__(msg_id=GAPC_MSG_ID.GAPC_SET_DEV_INFO_REQ_IND,
+                         dst_id=KE_API_ID.TASK_ID_GTL,
+                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GAPC),
+                         par_len=self.par_len,
+                         parameters=self.parameters)
+
+    def get_par_len(self):
+        if self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_NAME:
+            self._par_len = 2 + 2 + self.parameters.info.name.length
+        elif self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_APPEARANCE:
+            self._par_len = 2 + 2
+        return self._par_len
+
+    def set_par_len(self, value):
+        self._par_len = value
+
+    par_len = property(get_par_len, set_par_len)
+
+    def _struct_to_bytearray(self, struct: gapc_set_dev_info_req_ind):
+
+        return_array = bytearray(struct.req.to_bytes(length=1, byteorder='little'))
+        padding = 0
+        return_array += bytearray(padding.to_bytes(length=1, byteorder='little'))  # padding
+
+        if struct.req == GAPC_DEV_INFO.GAPC_DEV_NAME:
+            return_array += bytearray(struct.info.name.length.to_bytes(length=2, byteorder='little'))
+            return_array += bytearray(struct.info.name.value)
+        elif struct.req == GAPC_DEV_INFO.GAPC_DEV_APPEARANCE:
+            return_array += bytearray(struct.info.appearance.to_bytes(length=2, byteorder='little'))
+
+        return return_array

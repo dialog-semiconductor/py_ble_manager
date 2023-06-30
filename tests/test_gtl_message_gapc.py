@@ -550,9 +550,30 @@ class TestGapcLePktSizeInd(unittest.TestCase):
         test_message.parameters.max_rx_octets = 251
         test_message.parameters.max_rx_time = 2120
 
-
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+# Table 213
+class TestGapcSetDevInfoReqInd(unittest.TestCase):
 
+    def setUp(self):
+        self.expected = "050C0E10000E000600000002003412"
+        
+    def test_parameters_updated_after_construction(self):
+        test_message = GapcSetDevInfoReqInd()
+        test_message.parameters.req = GAPC_DEV_INFO.GAPC_DEV_NAME
+        test_message.parameters.info.name.value = (c_uint8 * 2)()
+        test_message.parameters.info.name.value[0] = 0x34
+        test_message.parameters.info.name.value[1] = 0x12
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_non_zero_conidx(self):
+        test_message = GapcSetDevInfoReqInd(conidx=1)
+        test_message.parameters.info.name.value = (c_uint8 * 2)()
+        test_message.parameters.info.name.value[0] = 0x34
+        test_message.parameters.info.name.value[1] = 0x12
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+        
 if __name__ == '__main__':
     unittest.main()
