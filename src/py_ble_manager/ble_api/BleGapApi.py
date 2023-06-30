@@ -386,7 +386,7 @@ class BleGapApi(BleApiBase):
         dev_params.io_capabilities = io_cap
         self._ble_manager.dev_params_release()
         return BLE_ERROR.BLE_STATUS_OK
-    
+
     def set_sec_level(self, conn_idx: int, level: GAP_SEC_LEVEL) -> BLE_ERROR:
 
         command = BleMgrGapSetSecLevelCmd(conn_idx, level)
