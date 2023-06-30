@@ -605,6 +605,26 @@ class gapc_set_dev_info_req_ind(LittleEndianStructure):
                 ("info", gapc_set_dev_info)]
 
 
+# Local device accept or reject device info modification
+class gapc_set_dev_info_cfm(LittleEndianStructure):
+
+    def __init__(self,
+                 req: GAPC_DEV_INFO = GAPC_DEV_INFO.GAPC_DEV_NAME,
+                 status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR):
+
+        self.req = req
+        self.status = status
+        super().__init__(req=self.req,
+                         status=self.status)
+
+                # Requested information
+                # - GAPC_DEV_NAME: Device Name
+                # - GAPC_DEV_APPEARANCE: Device Appearance Icon
+    _fields_ = [("req", c_uint8),
+                # Status code used to know if requested has been accepted or not
+                ("status", c_uint8)]
+
+
 # Perform update of connection parameters command
 class gapc_param_update_cmd(LittleEndianStructure):
 

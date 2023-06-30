@@ -574,6 +574,27 @@ class TestGapcSetDevInfoReqInd(unittest.TestCase):
         test_message.parameters.info.name.value[1] = 0x12
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+# Table 215
+class TestGapcSetDevInfoCfm(unittest.TestCase):
+
+    def setUp(self):
+        self.expected = "050D0E0E00100002000048"
+        
+    def test_parameters_updated_after_construction(self):
+        test_message = GapcSetDevInfoCfm()
+        test_message.parameters.req = GAPC_DEV_INFO.GAPC_DEV_NAME
+        test_message.parameters.status = HOST_STACK_ERROR_CODE.GAP_ERR_REJECTED
+
+        self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_parameters_non_zero_conidx(self):
+        test_message = GapcSetDevInfoCfm(conidx=1)
+        test_message.parameters.req = GAPC_DEV_INFO.GAPC_DEV_NAME
+        test_message.parameters.status = HOST_STACK_ERROR_CODE.GAP_ERR_REJECTED
+
+        self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+        
         
 if __name__ == '__main__':
     unittest.main()

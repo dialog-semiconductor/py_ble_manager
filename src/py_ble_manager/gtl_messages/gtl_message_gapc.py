@@ -7,7 +7,7 @@ from ..gtl_port.gapc_task import GAPC_MSG_ID, gapc_connection_req_ind, gapc_conn
     gapc_encrypt_ind, gapc_param_update_req_ind, gapc_param_update_cfm, gapc_param_update_cmd, gapc_get_dev_info_req_ind, \
     gapc_get_dev_info_cfm, GAPC_DEV_INFO, gapc_disconnect_ind, gapc_param_updated_ind, gapc_disconnect_cmd, gapc_bond_cmd, \
     gapc_peer_version_ind, GAPC_BOND, GAPC_OPERATION, gapc_set_le_pkt_size_cmd, gapc_le_pkt_size_ind, gapc_encrypt_cmd, \
-    gapc_security_ind, gapc_set_dev_info_req_ind
+    gapc_security_ind, gapc_set_dev_info_req_ind, gapc_set_dev_info_cfm
 
 from ..gtl_port.rwip_config import KE_API_ID
 
@@ -570,3 +570,16 @@ class GapcSetDevInfoReqInd(GtlMessageBase):
             return_array += bytearray(struct.info.appearance.to_bytes(length=2, byteorder='little'))
 
         return return_array
+
+
+class GapcSetDevInfoCfm(GtlMessageBase):
+
+    def __init__(self, conidx: c_uint8 = 0, parameters: gapc_set_dev_info_cfm = None):
+
+        self.parameters = parameters if parameters else gapc_set_dev_info_cfm()
+
+        super().__init__(msg_id=GAPC_MSG_ID.GAPC_SET_DEV_INFO_CFM,
+                         dst_id=((conidx << 8) | KE_API_ID.TASK_ID_GAPC),
+                         src_id=KE_API_ID.TASK_ID_GTL,
+                         par_len=2,
+                         parameters=self.parameters)
