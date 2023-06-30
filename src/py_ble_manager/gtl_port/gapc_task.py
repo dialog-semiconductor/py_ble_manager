@@ -1036,7 +1036,7 @@ class gapc_encrypt_ind(LittleEndianStructure):
 # Start Security Request command procedure
 class gapc_security_cmd(LittleEndianStructure):
     def __init__(self,
-                 auth: c_uint16 = GAP_AUTH.GAP_AUTH_REQ_SECURE_CONNECTION,
+                 auth: c_uint8 = GAP_AUTH.GAP_AUTH_REQ_SECURE_CONNECTION,
                  ):
 
         self.operation = GAPC_OPERATION.GAPC_SECURITY_REQ
@@ -1049,6 +1049,21 @@ class gapc_security_cmd(LittleEndianStructure):
     _fields_ = [("operation", c_uint8),
                 # Authentication level (@see gap_auth)
                 ("auth", c_uint8)]
+
+
+# Security requested by peer device indication message
+class gapc_security_ind(LittleEndianStructure):
+    def __init__(self,
+                 auth: c_uint8 = GAP_AUTH.GAP_AUTH_REQ_NO_MITM_NO_BOND,
+                 ):
+
+        self.auth = auth
+        super().__init__(auth=self.auth,
+                         padding=0)  # TODO assume there is padding
+
+                # Authentification level (@see GAP_AUTH)
+    _fields_ = [("auth", c_uint8),
+                ("padding", c_uint8)]
 
 
 # Parameters of the @ref GAPC_SIGN_COUNTER_IND message

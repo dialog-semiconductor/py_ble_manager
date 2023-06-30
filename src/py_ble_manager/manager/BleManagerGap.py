@@ -19,7 +19,7 @@ from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_CONN_MODE, BleEventGapConnected, 
     BleEventGapAddressResolved, BleEventGapPeerVersion, BleEventGapPeerFeatures, BleEventGapLtkMissing, \
     BLE_ADV_DATA_LEN_MAX, BLE_NON_CONN_ADV_DATA_LEN_MAX, BleEventGapAddressResolutionFailed, \
     BleEventGapDataLengthSetFailed, GAP_ADV_TYPE, BleEventGapDataLengthChanged, BLE_GAP_DEVNAME_LEN_MAX,\
-    BleEventGapAirOpBdAddr, BleEventGapSetSecLevelFailed
+    BleEventGapAirOpBdAddr, BleEventGapSetSecLevelFailed, BleEventGapSecurityRequest
 
 from ..ble_api.BleGatt import GATT_CCC
 
@@ -28,7 +28,7 @@ from ..gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReq
     GapcDisconnectInd, GapcCmpEvt, GapcDisconnectCmd, GapcParamUpdateCmd, GapcParamUpdatedInd, GapcParamUpdateReqInd, \
     GapcParamUpdateCfm, GapcBondCfm, GapcBondCmd, GapcSecurityCmd, GapcBondReqInd, GapcBondInd, GapcGetInfoCmd, \
     GapcPeerVersionInd, GapcPeerFeaturesInd, GapcEncryptReqInd, GapcEncryptCfm, GapcEncryptInd, GapcSetLePktSizeCmd, \
-    GapcLePktSizeInd, GapcEncryptCmd
+    GapcLePktSizeInd, GapcEncryptCmd, GapcSecurityInd, GapcSignCounterInd
 
 from ..gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd, \
     GapmStartScanCmd, GapmAdvReportInd, GapmCancelCmd, GapmResolvAddrCmd, GapmUpdateAdvertiseDataCmd, GapmDevBdAddrInd, \
@@ -133,8 +133,8 @@ class BleManagerGap(BleManagerBase):
             GAPC_MSG_ID.GAPC_PARAM_UPDATED_IND: self.conn_param_updated_evt_handler,
             GAPC_MSG_ID.GAPC_BOND_REQ_IND: self.bond_req_evt_handler,
             GAPC_MSG_ID.GAPC_BOND_IND: self.bond_ind_evt_handler,
-            GAPC_MSG_ID.GAPC_SECURITY_IND: None,
-            GAPC_MSG_ID.GAPC_SIGN_COUNTER_IND: None,
+            GAPC_MSG_ID.GAPC_SECURITY_IND: self.security_ind_evt_handler,
+            GAPC_MSG_ID.GAPC_SIGN_COUNTER_IND: self.sign_counter_ind_evt_handler,
             GAPC_MSG_ID.GAPC_ENCRYPT_REQ_IND: self.encrypt_req_ind_evt_handler,
             GAPC_MSG_ID.GAPC_ENCRYPT_IND: self.encrypt_ind_evt_handler,
             GAPM_MSG_ID.GAPM_ADDR_SOLVED_IND: self.addr_solved_evt_handler,
@@ -2249,6 +2249,20 @@ class BleManagerGap(BleManagerBase):
         self.dev_params_release()
         self._mgr_response_queue_send(response)
 
+    def security_ind_evt_handler(self, gtl: GapcSecurityInd):
+        conn_idx = self._task_to_connidx(gtl.src_id)
+        self.storage_acquire()
+        dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+        if dev:
+            evt = BleEventGapSecurityRequest()
+            evt.conn_idx = conn_idx
+            evt.bond = bool(gtl.parameters.auth & GAP_AUTH_MASK.GAP_AUTH_BOND)
+            evt.mitm = bool(gtl.parameters & GAP_AUTH_MASK.GAP_AUTH_MITM)
+
+            if not self._encrypt_conn_using_ltk(conn_idx, gtl.parameters.auth, dev.sec_level_req, evt):
+                self._mgr_event_queue_send(evt)
+        self.storage_release() 
+
     def set_sec_level_cmd_handler(self, command: BleMgrGapSetSecLevelCmd) -> None:
         response = BleMgrGapSetSecLevelRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
 
@@ -2291,6 +2305,19 @@ class BleManagerGap(BleManagerBase):
 
         self.storage_release()
         self._mgr_response_queue_send(response)
+
+    def sign_counter_ind_evt_handler(self, gtl: GapcSignCounterInd):
+        self.storage_acquire()
+        conn_idx = self._task_to_connidx(gtl.src_id)
+        dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+        if dev:
+            # Local and remote CSRKs should exist for this device
+            assert dev.csrk
+            assert dev.remote_csrk
+
+            dev.csrk.sign_cnt = gtl.parameters.local_sign_counter
+            dev.remote_csrk.sign_cnt = gtl.parameters.peer_sign_counter
+        self.storage_release()
 
     def unpair_cmd_handler(self, command: BleMgrGapUnpairCmd) -> None:
         response = BleMgrGapUnpairRsp(status=BLE_ERROR.BLE_ERROR_FAILED)

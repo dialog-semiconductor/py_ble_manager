@@ -1,10 +1,11 @@
 from ..gtl_messages.gtl_message_gapc import GapcConnectionReqInd, GapcConnectionCfm, GapcSecurityCmd, GapcCmpEvt, GapcGetInfoCmd, \
     GapcPeerFeaturesInd, GapcBondReqInd, GapcBondCfm, GapcGetDevInfoReqInd, GapcDisconnectInd, GapcParamUpdateReqInd, \
-    GapcParamUpdatedInd, GapcBondInd, GapcPeerVersionInd, GapcEncryptReqInd, GapcEncryptInd, GapcLePktSizeInd
+    GapcParamUpdatedInd, GapcBondInd, GapcPeerVersionInd, GapcEncryptReqInd, GapcEncryptInd, GapcLePktSizeInd, \
+    GapcSecurityInd, GapcSignCounterInd
 from ..gtl_port.gapc_task import GAPC_MSG_ID, gapc_connection_req_ind, gapc_connection_cfm, gapc_security_cmd, gapc_cmp_evt, gapc_get_info_cmd, \
     gapc_peer_features_ind, gapc_bond_req_ind, gapc_bond_cfm, gapc_get_dev_info_req_ind, gapc_disconnect_ind, \
     gapc_param_update_req_ind, gapc_param_updated_ind, gapc_bond_ind, gapc_peer_version_ind, gapc_encrypt_req_ind, \
-    gapc_encrypt_ind, gapc_le_pkt_size_ind
+    gapc_encrypt_ind, gapc_le_pkt_size_ind, gapc_security_ind, gapc_sign_counter_ind
 from ..gtl_port.rwip_config import KE_API_ID
 
 
@@ -74,6 +75,12 @@ class GapcMessageFactory():
 
             elif msg_id == GAPC_MSG_ID.GAPC_LE_PKT_SIZE_IND:
                 return GapcLePktSizeInd(conidx=conidx, parameters=gapc_le_pkt_size_ind.from_buffer_copy(params_buf))
+
+            elif msg_id == GAPC_MSG_ID.GAPC_SECURITY_IND:
+                return GapcSecurityInd(conidx=conidx, parameters=gapc_security_ind.from_buffer_copy(params_buf))
+
+            elif msg_id == GAPC_MSG_ID.GAPC_SIGN_COUNTER_IND:
+                GapcSignCounterInd(conidx=conidx, parameters=gapc_sign_counter_ind.from_buffer_copy(params_buf))
 
             else:
                 raise AssertionError(f"GapcMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")
