@@ -372,15 +372,15 @@ class GapcGetDevInfoCfm(GtlMessageBase):
 
     def get_par_len(self):
         if self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_NAME:
-            self._par_len = 10 + self.parameters.info.name.length
+            self._par_len = 8 + 2 + self.parameters.info.name.length
         elif self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_APPEARANCE:
-            self._par_len = 10 + 2
+            self._par_len = 8 + 2
         elif self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_SLV_PREF_PARAMS:
-            self._par_len = 10 + 8
+            self._par_len = 8 + 8
         elif self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_CENTRAL_RPA:
-            self._par_len = 10 + 1
+            self._par_len = 8 + 1
         elif self.parameters.req == GAPC_DEV_INFO.GAPC_DEV_RPA_ONLY:
-            self._par_len = 10 + 1
+            self._par_len = 8 + 1
         return self._par_len
 
     def set_par_len(self, value):
@@ -419,9 +419,8 @@ class GapcGetDevInfoCfm(GtlMessageBase):
         return_array = bytearray(struct.req.to_bytes(length=1, byteorder='little'))
         padding = 0
         return_array += bytearray(padding.to_bytes(length=1, byteorder='little'))  # padding
-        return_array += bytearray(struct.info.name.length.to_bytes(length=2, byteorder='little'))
-
         if struct.req == GAPC_DEV_INFO.GAPC_DEV_NAME:
+            return_array += bytearray(struct.info.name.length.to_bytes(length=2, byteorder='little'))
             return_array += bytearray(struct.info.name.value)
         elif struct.req == GAPC_DEV_INFO.GAPC_DEV_APPEARANCE:
             return_array += bytearray(struct.info.appearance.to_bytes(length=2, byteorder='little'))
