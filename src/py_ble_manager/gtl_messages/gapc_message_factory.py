@@ -5,7 +5,7 @@ from ..gtl_messages.gtl_message_gapc import GapcConnectionReqInd, GapcConnection
 from ..gtl_port.gapc_task import GAPC_MSG_ID, gapc_connection_req_ind, gapc_connection_cfm, gapc_security_cmd, gapc_cmp_evt, gapc_get_info_cmd, \
     gapc_peer_features_ind, gapc_bond_req_ind, gapc_bond_cfm, gapc_get_dev_info_req_ind, gapc_disconnect_ind, \
     gapc_param_update_req_ind, gapc_param_updated_ind, gapc_bond_ind, gapc_peer_version_ind, gapc_encrypt_req_ind, \
-    gapc_encrypt_ind, gapc_le_pkt_size_ind, gapc_security_ind, gapc_sign_counter_ind, gapc_set_dev_info_req_ind, GAPC_DEV_INFO, gapc_set_dev_info
+    gapc_encrypt_ind, gapc_le_pkt_size_ind, gapc_security_ind, gapc_sign_counter_ind, gapc_set_dev_info_req_ind, GAPC_DEV_INFO
 from ..gtl_port.rwip_config import KE_API_ID
 
 
