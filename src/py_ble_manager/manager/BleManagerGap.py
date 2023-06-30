@@ -868,8 +868,8 @@ class BleManagerGap(BleManagerBase):
         if dev.irk:
             item: gap_sec_key
             for item in copy_array:
-                if item.key == (c_uint8 * KEY_LEN)():
-                    item.key = dev.irk
+                if bytearray(item.key) == bytearray((c_uint8 * KEY_LEN)()):
+                    item.key[:len(dev.irk.key)] = dev.irk.key[:len(dev.irk.key)]
 
     def _max_bonded_reached(self):
         self.storage_acquire()
@@ -895,7 +895,7 @@ class BleManagerGap(BleManagerBase):
             return False
 
         cmd = GapmResolvAddrCmd()
-        cmd.parameters.addr = gtl.parameters.peer_addr
+        cmd.parameters.addr.addr[:] = evt.peer_address.addr[:]
         cmd.parameters.nb_key = irk_count
         cmd.parameters.irk = (gap_sec_key * irk_count)()
 
@@ -1389,6 +1389,7 @@ class BleManagerGap(BleManagerBase):
                 self.storage_acquire()
                 dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
                 if dev:
+                    # Remove any other device record with the same address but an older IRK
                     addr = BdAddress()
                     addr.addr_type = gtl.parameters.data.irk.addr.addr_type
                     addr.addr = bytes(gtl.parameters.data.irk.addr.addr.addr[:])
