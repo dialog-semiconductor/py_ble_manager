@@ -28,7 +28,7 @@ from ..gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReq
     GapcDisconnectInd, GapcCmpEvt, GapcDisconnectCmd, GapcParamUpdateCmd, GapcParamUpdatedInd, GapcParamUpdateReqInd, \
     GapcParamUpdateCfm, GapcBondCfm, GapcBondCmd, GapcSecurityCmd, GapcBondReqInd, GapcBondInd, GapcGetInfoCmd, \
     GapcPeerVersionInd, GapcPeerFeaturesInd, GapcEncryptReqInd, GapcEncryptCfm, GapcEncryptInd, GapcSetLePktSizeCmd, \
-    GapcLePktSizeInd, GapcEncryptCmd, GapcSecurityInd, GapcSignCounterInd
+    GapcLePktSizeInd, GapcEncryptCmd, GapcSecurityInd, GapcSignCounterInd, GapcSetDevInfoReqInd, GapcSetDevInfoCfm
 
 from ..gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd, \
     GapmStartScanCmd, GapmAdvReportInd, GapmCancelCmd, GapmResolvAddrCmd, GapmUpdateAdvertiseDataCmd, GapmDevBdAddrInd, \
@@ -124,7 +124,7 @@ class BleManagerGap(BleManagerBase):
             GAPM_MSG_ID.GAPM_ADV_REPORT_IND: self.adv_report_evt_handler,
             GAPC_MSG_ID.GAPC_CONNECTION_REQ_IND: self.connected_evt_handler,
             GAPC_MSG_ID.GAPC_GET_DEV_INFO_REQ_IND: self.get_device_info_req_evt_handler,
-            GAPC_MSG_ID.GAPC_SET_DEV_INFO_REQ_IND: None,
+            GAPC_MSG_ID.GAPC_SET_DEV_INFO_REQ_IND: self.set_device_info_req_evt_handler,
             GAPC_MSG_ID.GAPC_DISCONNECT_IND: self.disconnected_evt_handler,
             GAPC_MSG_ID.GAPC_PEER_VERSION_IND: self.peer_version_ind_evt_handler,
             GAPC_MSG_ID.GAPC_PEER_FEATURES_IND: self.peer_features_ind_evt_handler,
@@ -2261,7 +2261,28 @@ class BleManagerGap(BleManagerBase):
 
             if not self._encrypt_conn_using_ltk(conn_idx, gtl.parameters.auth, dev.sec_level_req, evt):
                 self._mgr_event_queue_send(evt)
-        self.storage_release() 
+        self.storage_release()
+
+    def set_device_info_req_evt_handler(self, gtl: GapcSetDevInfoReqInd):
+        dev_params = self.dev_params_acquire()
+        conn_idx = self._task_to_connidx(gtl.src_id)
+        cmd = GapcSetDevInfoCfm(conidx=conn_idx)
+
+        match gtl.parameters.req:
+            case GAPC_DEV_INFO.GAPC_DEV_NAME:
+                if gtl.parameters.info.name.length > BLE_GAP_DEVNAME_LEN_MAX:
+                    cmd.parameters.status = HOST_STACK_ERROR_CODE.GAP_ERR_INSUFF_RESOURCES
+                else:
+                    dev_params.dev_name = bytes(gtl.parameters.info.name.value[:gtl.parameters.info.name.length])
+                    cmd.parameters.status = HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR
+
+                self._adapter_command_queue_send(cmd)
+            case GAPC_DEV_INFO.GAPC_DEV_APPEARANCE:
+                dev_params.appearance = gtl.parameters.info.appearance
+            case _:
+                pass
+
+        self.dev_params_release()
 
     def set_sec_level_cmd_handler(self, command: BleMgrGapSetSecLevelCmd) -> None:
         response = BleMgrGapSetSecLevelRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
