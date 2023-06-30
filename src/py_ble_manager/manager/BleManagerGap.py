@@ -716,7 +716,7 @@ class BleManagerGap(BleManagerBase):
 
         return rwperm
 
-    def _encrypt_conn_using_ltk(self, conn_idx: int, auth: int, sec_level_req: GAP_SEC_LEVEL, evt: BleEventBase) -> bool: 
+    def _encrypt_conn_using_ltk(self, conn_idx: int, auth: int, sec_level_req: GAP_SEC_LEVEL, evt: BleEventBase) -> bool:
         self.storage_acquire()
         dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
         if dev is None or dev.remote_ltk is None:
@@ -888,7 +888,7 @@ class BleManagerGap(BleManagerBase):
         if gtl.parameters.peer_addr.addr[5] & 0xC0 != 0x40:
             return False
 
-        # TODO _irk_count_cb instead? 
+        # TODO _irk_count_cb instead?
         irk_count = self._stored_device_list.get_irk_count()
 
         if irk_count == 0:
@@ -1819,7 +1819,8 @@ class BleManagerGap(BleManagerBase):
                     if dev.remote_ltk:
                         cfm.parameters.ltk.key = (c_uint8 * len(dev.remote_ltk.key)).from_buffer_copy(dev.remote_ltk.key)
                         cfm.parameters.found = 0x01
-                        cfm.parameters.key_size = dev.ltk.key_size
+                        # Note: SDK uses dev.ltk.key_size but ran into issue where ltk was not allocated yet (was None)
+                        cfm.parameters.key_size = dev.remote_ltk.key_size
             else:
                 if dev.ltk and dev.ltk.ediv == gtl.parameters.ediv:
                     # Our Rand is stored in the same endianess as RW
