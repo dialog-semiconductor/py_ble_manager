@@ -4,7 +4,7 @@ from typing import Tuple
 from ..ble_api.BleApiBase import BleApiBase
 from ..ble_api.BleAtt import ATT_PERM
 from ..ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR, OwnAddress
-from ..ble_api.BleGap import BLE_GAP_ROLE, GapConnParams, GAP_CONN_MODE, GAP_SCAN_TYPE, GAP_SCAN_MODE, \
+from ..ble_api.BleGap import GAP_ROLE, GapConnParams, GAP_CONN_MODE, GAP_SCAN_TYPE, GAP_SCAN_MODE, \
     GAP_IO_CAPABILITIES, BLE_NON_CONN_ADV_DATA_LEN_MAX, BLE_GAP_APPEARANCE, GAP_DISC_MODE, GapScanParams, \
     GAP_SEC_LEVEL, BLE_ENC_KEY_SIZE_MAX
 from ..manager.BleManager import BleManager
@@ -332,14 +332,14 @@ class BleGapApi(BleApiBase):
 
         return response.status
 
-    def role_get(self) -> Tuple[BLE_GAP_ROLE, BLE_ERROR]:
+    def role_get(self) -> Tuple[GAP_ROLE, BLE_ERROR]:
 
         dev_params = self._ble_manager.dev_params_acquire()
         role = dev_params.role
         self._ble_manager.dev_params_release()
         return role, BLE_ERROR.BLE_STATUS_OK
 
-    def role_set(self, role: BLE_GAP_ROLE) -> BLE_ERROR:
+    def role_set(self, role: GAP_ROLE) -> BLE_ERROR:
 
         command = BleMgrGapRoleSetCmd(role)
         response: BleMgrGapRoleSetRsp = self._ble_manager.cmd_execute(command)

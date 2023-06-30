@@ -4,7 +4,7 @@ from ..ble_api.BleConfig import BleConfigDefault, BLE_DEVICE_TYPE
 from ..ble_api.BleConvert import BleConvert
 from ..ble_devices.BleDeviceBase import BleDeviceBase
 from ..ble_api.BleCommon import BLE_ERROR, BdAddress, BleEventBase, BLE_EVT_GAP
-from ..ble_api.BleGap import BLE_GAP_ROLE, GapConnParams, GAP_SCAN_TYPE, GAP_SCAN_MODE, \
+from ..ble_api.BleGap import GAP_ROLE, GapConnParams, GAP_SCAN_TYPE, GAP_SCAN_MODE, \
     BleEventGapConnParamUpdateReq, GapScanParams
 
 
@@ -331,7 +331,7 @@ class BleCentral(BleDeviceBase):
         :return: result code
         :rtype: BLE_ERROR
         """
-        return super().start(BLE_GAP_ROLE.GAP_CENTRAL_ROLE)
+        return super().start(GAP_ROLE.GAP_CENTRAL_ROLE)
 
     def write(self, conn_idx: int, handle: int, offset: int, value: bytes) -> BLE_ERROR:
         """Write attribute to remote GATT server

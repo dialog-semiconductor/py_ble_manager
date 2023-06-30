@@ -3,7 +3,7 @@ from typing import Tuple
 from ..ble_api.BleAtt import ATT_ERROR
 from ..ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_EVT_GAP, BLE_EVT_GATTS
 from ..ble_api.BleConfig import BleConfigDefault, BLE_DEVICE_TYPE
-from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_CONN_MODE, BleEventGapConnected, \
+from ..ble_api.BleGap import GAP_ROLE, GAP_CONN_MODE, BleEventGapConnected, \
     BleEventGapDisconnected, BleEventGapConnParamUpdateReq, BleEventGapPairReq, \
     BleAdvData, BLE_NON_CONN_ADV_DATA_LEN_MAX, GapConnParams, GAP_DISC_MODE
 from ..ble_api.BleGatt import GATT_EVENT
@@ -287,7 +287,7 @@ class BlePeripheral(BleDeviceBase):
         return error
 
     def start(self) -> BLE_ERROR:
-        return super().start(BLE_GAP_ROLE.GAP_PERIPHERAL_ROLE)
+        return super().start(GAP_ROLE.GAP_PERIPHERAL_ROLE)
 
     def storage_get_int(self, conn_idx: int, key: int) -> Tuple[int, BLE_ERROR]:
         return self._ble_storage.get_int(conn_idx, key)

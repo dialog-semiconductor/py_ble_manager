@@ -10,7 +10,7 @@ from ..ble_api.BleCommon import BLE_ERROR, BleEventBase, OWN_ADDR_TYPE, ADDR_TYP
 from ..ble_api.BleConfig import BleConfigDefault, BLE_HW_TYPE
 from ..ble_api.BleConvert import BleConvert
 
-from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_CONN_MODE, BleEventGapConnected, BleEventGapDisconnected,  \
+from ..ble_api.BleGap import GAP_ROLE, GAP_CONN_MODE, BleEventGapConnected, BleEventGapDisconnected,  \
     BleEventGapAdvCompleted, BLE_CONN_IDX_INVALID, GAP_SEC_LEVEL, GAP_SCAN_TYPE, BleEventGapAdvReport, \
     BleEventGapScanCompleted, BleEventGapConnectionCompleted, BleEventGapDisconnectFailed,  \
     BleEventGapConnParamUpdateCompleted, BleEventGapConnParamUpdated, BleEventGapConnParamUpdateReq, \
@@ -380,22 +380,22 @@ class BleManagerGap(BleManagerBase):
 
         return sec_level
 
-    def _ble_role_to_gtl_role(self, role: BLE_GAP_ROLE):
+    def _ble_role_to_gtl_role(self, role: GAP_ROLE):
 
         gtl_role = GAP_ROLE.GAP_ROLE_NONE
         if self._ble_config.dg_configBLE_CENTRAL:
-            if (role & BLE_GAP_ROLE.GAP_CENTRAL_ROLE):
+            if (role & GAP_ROLE.GAP_CENTRAL_ROLE):
                 gtl_role |= GAP_ROLE.GAP_ROLE_CENTRAL
 
         if self._ble_config.dg_configBLE_PERIPHERAL:
-            if (role & BLE_GAP_ROLE.GAP_PERIPHERAL_ROLE):
+            if (role & GAP_ROLE.GAP_PERIPHERAL_ROLE):
                 gtl_role |= GAP_ROLE.GAP_ROLE_PERIPHERAL
         if self._ble_config.dg_configBLE_BROADCASTER:
-            if (role & BLE_GAP_ROLE.GAP_BROADCASTER_ROLE):
+            if (role & GAP_ROLE.GAP_BROADCASTER_ROLE):
                 gtl_role |= GAP_ROLE.GAP_ROLE_BROADCASTER
 
         if self._ble_config.dg_configBLE_OBSERVER:
-            if (role & BLE_GAP_ROLE.GAP_OBSERVER_ROLE):
+            if (role & GAP_ROLE.GAP_OBSERVER_ROLE):
                 gtl_role |= GAP_ROLE.GAP_ROLE_OBSERVER
 
         return gtl_role

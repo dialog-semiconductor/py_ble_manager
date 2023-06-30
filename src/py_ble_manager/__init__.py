@@ -6,7 +6,7 @@ from .ble_api.BleConfig import BLE_DEVICE_TYPE, BLE_HW_TYPE, BleConfigDefault, B
 
 from .ble_api.BleGap import BLE_CONN_IDX_INVALID, BLE_ENC_KEY_SIZE_MAX, BLE_ADV_DATA_LEN_MAX, BLE_NON_CONN_ADV_DATA_LEN_MAX, \
     ADV_DATA_LEN, SCAN_RSP_DATA_LEN, BLE_GAP_DEVNAME_LEN_MAX, ADV_FILT_POL, GAP_APPEARANCE, GAP_CONN_MODE, \
-    BLE_GAP_PHY, BLE_GAP_ROLE, GAP_ADV_CHANNEL, \
+    BLE_GAP_PHY, GAP_ROLE, GAP_ADV_CHANNEL, \
     GAP_ADV_TYPE, GAP_DATA_TYPE, GAP_DISC_MODE, GAP_IO_CAPABILITIES, GAP_SCAN_MODE, GAP_SCAN_TYPE, GAP_SEC_LEVEL, \
     GapChnlMap, GapConnParams, GapScanParams, BleAdvData, BleEventGapAddressResolutionFailed, BleEventGapAddressResolved, \
     BleEventGapAdvCompleted, BleEventGapAdvReport, BleEventGapConnected, BleEventGapConnectionCompleted, \

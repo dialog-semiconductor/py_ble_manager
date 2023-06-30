@@ -92,7 +92,7 @@ class BLE_GAP_PHY(IntEnum):
     BLE_GAP_PHY_CODED = 0x03  # LE Coded PHY (bit rate of 125 or 500 Kbit/s)
 
 
-class BLE_GAP_ROLE(IntEnum):
+class GAP_ROLE(IntEnum):
     """GAP roles
     """
     GAP_NO_ROLE = 0x00  # No role

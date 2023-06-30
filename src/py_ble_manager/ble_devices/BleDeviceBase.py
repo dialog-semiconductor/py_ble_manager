@@ -5,7 +5,7 @@ from ..ble_api.BleAtt import ATT_PERM
 from ..ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_HCI_ERROR, OwnAddress, BdAddress
 from ..ble_api.BleCommonApi import BleCommonApi
 from ..ble_api.BleConfig import BleConfigDefault
-from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_IO_CAPABILITIES, BLE_GAP_APPEARANCE, GAP_SEC_LEVEL
+from ..ble_api.BleGap import GAP_ROLE, GAP_IO_CAPABILITIES, BLE_GAP_APPEARANCE, GAP_SEC_LEVEL
 from ..ble_api.BleGapApi import BleGapApi, GapConnParams
 from ..ble_api.BleGattcApi import BleGattcApi
 from ..ble_api.BleGattsApi import BleGattsApi
@@ -506,11 +506,11 @@ class BleDeviceBase():
 
         return self._ble_gap.set_sec_level(conn_idx, level)
 
-    def start(self, role: BLE_GAP_ROLE) -> BLE_ERROR:
+    def start(self, role: GAP_ROLE) -> BLE_ERROR:
         """Start the BLE module as a central device
 
         :param role: GAP role of the device
-        :type role: BLE_GAP_ROLE
+        :type role: GAP_ROLE
         :return: result code
         :rtype: BLE_ERROR
         """

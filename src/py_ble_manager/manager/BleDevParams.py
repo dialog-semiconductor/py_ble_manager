@@ -1,7 +1,7 @@
 from ctypes import c_uint8
 
 from ..ble_api.BleCommon import OWN_ADDR_TYPE, BdAddress, OwnAddress, Irk, BLE_STATUS
-from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_CONN_MODE, GAP_APPEARANCE, GapChnlMap, GAP_DISC_MODE, ADV_FILT_POL, \
+from ..ble_api.BleGap import GAP_ROLE, GAP_CONN_MODE, GAP_APPEARANCE, GapChnlMap, GAP_DISC_MODE, ADV_FILT_POL, \
     GapScanParams, GapConnParams, GAP_IO_CAPABILITIES, GAP_DATA_TYPE, BLE_NON_CONN_ADV_DATA_LEN_MAX, SCAN_RSP_DATA_LEN, GAP_ADV_CHANNEL, BLE_GAP_PHY
 from ..gtl_port.gapm_task import gapm_att_cfg_flag
 from ..manager.BleManagerGapMsgs import BLE_MGR_RAL_OP
@@ -20,7 +20,7 @@ class BleDevParams():
         self.advertising = False   # Advertising operation in progress
         self.connecting = False  # Connection operation in progress
         self.scanning = False  # Scanning operation in progress
-        self.role = BLE_GAP_ROLE.GAP_NO_ROLE  # Enabled roles for the device
+        self.role = GAP_ROLE.GAP_NO_ROLE  # Enabled roles for the device
 
         # Privacy parameters
         self.addr_renew_duration = 0  # Random address renew duration
@@ -77,7 +77,7 @@ class BleDevParamsDefault(BleDevParams):
         self.advertising = False
         self.connecting = False
         self.scanning = False
-        self.role = BLE_GAP_ROLE.GAP_NO_ROLE
+        self.role = GAP_ROLE.GAP_NO_ROLE
         self.addr_renew_duration = 900
         self.own_addr.addr_type = OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS
         self.own_addr.addr = bytes([0x01, 0x00, 0xF4, 0x35, 0x23, 0x48])
