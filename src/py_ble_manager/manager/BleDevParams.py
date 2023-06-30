@@ -1,7 +1,7 @@
 from ctypes import c_uint8
 
 from ..ble_api.BleCommon import BLE_OWN_ADDR_TYPE, BdAddress, OwnAddress, Irk, BLE_STATUS
-from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_CONN_MODE, BLE_GAP_APPEARANCE, GapChnlMap, GAP_DISC_MODE, ADV_FILT_POL, \
+from ..ble_api.BleGap import BLE_GAP_ROLE, GAP_CONN_MODE, GAP_APPEARANCE, GapChnlMap, GAP_DISC_MODE, ADV_FILT_POL, \
     GapScanParams, GapConnParams, GAP_IO_CAPABILITIES, GAP_DATA_TYPE, BLE_NON_CONN_ADV_DATA_LEN_MAX, SCAN_RSP_DATA_LEN, GAP_ADV_CHANNEL, BLE_GAP_PHY
 from ..gtl_port.gapm_task import gapm_att_cfg_flag
 from ..manager.BleManagerGapMsgs import BLE_MGR_RAL_OP
@@ -13,7 +13,7 @@ class BleDevParams():
         # GAP device information
         self.dev_name = b""  # GAP device name
 
-        self.appearance = BLE_GAP_APPEARANCE.BLE_GAP_APPEARANCE_UNKNOWN  # GAP device appearance
+        self.appearance = GAP_APPEARANCE.BLE_GAP_APPEARANCE_UNKNOWN  # GAP device appearance
         # BLE state
         self.status = BLE_STATUS.BLE_IS_DISABLED  # Status of the BLE stack
         # Air operations in progress
@@ -71,7 +71,7 @@ class BleDevParamsDefault(BleDevParams):
         super().__init__()
         # GAP device information
         self.dev_name = b"Dialog BLE"
-        self.appearance = BLE_GAP_APPEARANCE.BLE_GAP_APPEARANCE_UNKNOWN
+        self.appearance = GAP_APPEARANCE.BLE_GAP_APPEARANCE_UNKNOWN
         # BLE state
         self.status = BLE_STATUS.BLE_IS_DISABLED
         self.advertising = False

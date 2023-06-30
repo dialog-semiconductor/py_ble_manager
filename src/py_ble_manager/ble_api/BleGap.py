@@ -19,7 +19,7 @@ class ADV_FILT_POL():
     ADV_ALLOW_SCAN_WLIST_CONN_WLIST = auto()  # Allow scan and connect requests only from whitelist
 
 
-class BLE_GAP_APPEARANCE(IntEnum):
+class GAP_APPEARANCE(IntEnum):
     """GAP device external appearance
     """
     BLE_GAP_APPEARANCE_UNKNOWN = 0
