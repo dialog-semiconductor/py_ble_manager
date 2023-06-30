@@ -234,7 +234,7 @@ class BLE_HCI_ERROR(IntEnum):
     BLE_HCI_ERROR_UNKNOWN = auto()
 
 
-class BLE_OWN_ADDR_TYPE(IntEnum):
+class OWN_ADDR_TYPE(IntEnum):
     """Own device address type
     """
     PUBLIC_STATIC_ADDRESS = auto()  # Public Static Address
@@ -332,10 +332,10 @@ class OwnAddress():
     :ivar addr_type: address type
     :ivar addr: 6 byte address
     """
-    def __init__(self, addr_type: BLE_OWN_ADDR_TYPE = BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS, addr: bytes = None) -> None:
+    def __init__(self, addr_type: OWN_ADDR_TYPE = OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS, addr: bytes = None) -> None:
         self.addr_type = addr_type
         self.addr = addr if addr else bytes()
 
     def __repr__(self):
 
-        return f"{type(self).__name__}(addr_type={BLE_OWN_ADDR_TYPE(self.addr_type).name}, addr={list(self.addr)})"
+        return f"{type(self).__name__}(addr_type={OWN_ADDR_TYPE(self.addr_type).name}, addr={list(self.addr)})"

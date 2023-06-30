@@ -5,7 +5,7 @@ import secrets
 import threading
 
 from ..ble_api.BleAtt import ATT_PERM
-from ..ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_OWN_ADDR_TYPE, BLE_ADDR_TYPE, BLE_HCI_ERROR, \
+from ..ble_api.BleCommon import BLE_ERROR, BleEventBase, OWN_ADDR_TYPE, BLE_ADDR_TYPE, BLE_HCI_ERROR, \
     BdAddress, BLE_EVT_GAP
 from ..ble_api.BleConfig import BleConfigDefault, BLE_HW_TYPE
 from ..ble_api.BleConvert import BleConvert
@@ -153,15 +153,15 @@ class BleManagerGap(BleManagerBase):
             dev_params = self.dev_params_acquire()
             dev_params.own_addr.addr_type = command.address.addr_type
             match command.address.addr_type:
-                case BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS:
+                case OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS:
                     # TODO NVM
                     # ad_ble_get_public_address(ble_dev_params->own_addr.addr);
                     # for now, just use the default
                     dev_params.own_addr.addr = self._ble_config.defaultBLE_STATIC_ADDRESS
                     pass
-                case BLE_OWN_ADDR_TYPE.PRIVATE_STATIC_ADDRESS:
+                case OWN_ADDR_TYPE.PRIVATE_STATIC_ADDRESS:
                     dev_params.own_addr.addr = command.address.addr[:BD_ADDR_LEN]
-                case BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
+                case OWN_ADDR_TYPE.PRIVATE_CNTL:
                     # The actual address depends on the air operation and whether the
                     # relevant peer is included in the RAL or not.
                     dev_params.own_addr.addr = bytes(BD_ADDR_LEN)
@@ -270,17 +270,17 @@ class BleManagerGap(BleManagerBase):
                         return BLE_ERROR.BLE_ERROR_NOT_ACCEPTED
 
                 match dev_params.own_addr.addr_type:
-                    case BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS \
-                            | BLE_OWN_ADDR_TYPE.PRIVATE_STATIC_ADDRESS:
+                    case OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS \
+                            | OWN_ADDR_TYPE.PRIVATE_STATIC_ADDRESS:
 
                         gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_STATIC_ADDR
 
-                    case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_RESOLVABLE_ADDRESS:
+                    case OWN_ADDR_TYPE.PRIVATE_RANDOM_RESOLVABLE_ADDRESS:
                         gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_GEN_RSLV_ADDR
-                    case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_NONRESOLVABLE_ADDRESS:
+                    case OWN_ADDR_TYPE.PRIVATE_RANDOM_NONRESOLVABLE_ADDRESS:
                         gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_GEN_NON_RSLV_ADDR
                     # if (dg_configBLE_PRIVACY_1_2 == 1)
-                    case BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
+                    case OWN_ADDR_TYPE.PRIVATE_CNTL:
                         # Generate AdvA using local IRK
                         gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_GEN_RSLV_ADDR
 
@@ -597,17 +597,17 @@ class BleManagerGap(BleManagerBase):
                     gtl = GapmStartConnectionCmd()
                     gtl.parameters.op.code = GAPM_OPERATION.GAPM_CONNECTION_DIRECT
                     match dev_params.own_addr.addr_type:
-                        case BLE_OWN_ADDR_TYPE.PRIVATE_STATIC_ADDRESS \
-                                | BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS:
+                        case OWN_ADDR_TYPE.PRIVATE_STATIC_ADDRESS \
+                                | OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS:
 
                             gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_STATIC_ADDR
 
-                        case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_RESOLVABLE_ADDRESS \
-                                | BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
+                        case OWN_ADDR_TYPE.PRIVATE_RANDOM_RESOLVABLE_ADDRESS \
+                                | OWN_ADDR_TYPE.PRIVATE_CNTL:
 
                             gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_GEN_RSLV_ADDR
 
-                        case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_NONRESOLVABLE_ADDRESS:
+                        case OWN_ADDR_TYPE.PRIVATE_RANDOM_NONRESOLVABLE_ADDRESS:
                             gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_GEN_NON_RSLV_ADDR
 
                     gtl.parameters.scan_interval = BleConvert.scan_interval_from_ms(dev_params.scan_params.interval_ms)
@@ -686,15 +686,15 @@ class BleManagerGap(BleManagerBase):
         gtl.parameters.addr.addr[:] = dev_params.own_addr.addr
 
         match dev_params.own_addr.addr_type:
-            case BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS:
+            case OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS:
                 gtl.parameters.addr_type = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PUBLIC
-            case BLE_OWN_ADDR_TYPE.PRIVATE_STATIC_ADDRESS:
+            case OWN_ADDR_TYPE.PRIVATE_STATIC_ADDRESS:
                 gtl.parameters.addr_type = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PRIVATE
-            case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_RESOLVABLE_ADDRESS:
+            case OWN_ADDR_TYPE.PRIVATE_RANDOM_RESOLVABLE_ADDRESS:
                 gtl.parameters.addr_type = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PRIVACY
-            case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_NONRESOLVABLE_ADDRESS:
+            case OWN_ADDR_TYPE.PRIVATE_RANDOM_NONRESOLVABLE_ADDRESS:
                 gtl.parameters.addr_type = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PRIVACY
-            case BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
+            case OWN_ADDR_TYPE.PRIVATE_CNTL:
                 if self._ble_config.dg_configBLE_PRIVACY_1_2:
                     gtl.parameters.addr_type = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PRIVACY_CNTL
             case _:
@@ -965,17 +965,17 @@ class BleManagerGap(BleManagerBase):
                     gtl.parameters.op.code = GAPM_OPERATION.GAPM_SCAN_PASSIVE
 
             match dev_params.own_addr.addr_type:
-                case BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS \
-                        | BLE_OWN_ADDR_TYPE.PRIVATE_STATIC_ADDRESS:
+                case OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS \
+                        | OWN_ADDR_TYPE.PRIVATE_STATIC_ADDRESS:
 
                     gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_STATIC_ADDR
 
-                case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_RESOLVABLE_ADDRESS \
-                        | BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
+                case OWN_ADDR_TYPE.PRIVATE_RANDOM_RESOLVABLE_ADDRESS \
+                        | OWN_ADDR_TYPE.PRIVATE_CNTL:
 
                     gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_GEN_RSLV_ADDR
 
-                case BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_NONRESOLVABLE_ADDRESS:
+                case OWN_ADDR_TYPE.PRIVATE_RANDOM_NONRESOLVABLE_ADDRESS:
                     gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_GEN_NON_RSLV_ADDR
                 case _:
                     gtl.parameters.op.addr_src = GAPM_OWN_ADDR.GAPM_STATIC_ADDR
@@ -1139,16 +1139,16 @@ class BleManagerGap(BleManagerBase):
         if not (dev_params.advertising or dev_params.scanning):
             gtl = self._dev_params_to_gtl(dev_params)
             match command.address.addr_type:
-                case BLE_OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS:
+                case OWN_ADDR_TYPE.PUBLIC_STATIC_ADDRESS:
                     gtl.parameters.addr_type = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PUBLIC
-                case BLE_OWN_ADDR_TYPE.PRIVATE_STATIC_ADDRESS:
+                case OWN_ADDR_TYPE.PRIVATE_STATIC_ADDRESS:
                     gtl.parameters.addr_type = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PRIVATE
                     gtl.parameters.addr.addr[:] = (c_uint8 * len(command.address.addr)).from_buffer_copy(command.address.addr)
-                case (BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_RESOLVABLE_ADDRESS
-                      | BLE_OWN_ADDR_TYPE.PRIVATE_RANDOM_NONRESOLVABLE_ADDRESS):
+                case (OWN_ADDR_TYPE.PRIVATE_RANDOM_RESOLVABLE_ADDRESS
+                      | OWN_ADDR_TYPE.PRIVATE_RANDOM_NONRESOLVABLE_ADDRESS):
                     gtl.parameters.renew_dur = command.renew_dur
                     gtl.parameters.addr_type = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PRIVACY
-                case BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
+                case OWN_ADDR_TYPE.PRIVATE_CNTL:
                     gtl.parameters.renew_dur = command.renew_dur
                     gtl.parameters.addr_type = GAPM_ADDR_TYPE.GAPM_CFG_ADDR_PRIVACY_CNTL
                     gtl.parameters.priv1_2 = 0
@@ -1351,7 +1351,7 @@ class BleManagerGap(BleManagerBase):
 
                 dev_params = self.dev_params_acquire()
                 if self._ble_config.dg_configBLE_PRIVACY_1_2:
-                    if dev_params.own_addr.addr_type == BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
+                    if dev_params.own_addr.addr_type == OWN_ADDR_TYPE.PRIVATE_CNTL:
                         dev_params.prev_privacy_operation = BLE_MGR_RAL_OP.BLE_MGR_RAL_OP_NONE
                 self.dev_params_release()
 
@@ -1701,7 +1701,7 @@ class BleManagerGap(BleManagerBase):
 
         done = False
         if self._ble_config.dg_configBLE_PRIVACY_1_2:
-            if dev_params.own_addr.addr_type != BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
+            if dev_params.own_addr.addr_type != OWN_ADDR_TYPE.PRIVATE_CNTL:
                 if self._resolve_address_from_connected_evt(gtl, evt):
                     dev.resolving = True
                     done = True
@@ -2353,7 +2353,7 @@ class BleManagerGap(BleManagerBase):
 
             if self._ble_config.dg_configBLE_PRIVACY_1_2:
                 dev_params = self.dev_params_acquire()
-                if dev_params.own_addr.addr_type == BLE_OWN_ADDR_TYPE.PRIVATE_CNTL:
+                if dev_params.own_addr.addr_type == OWN_ADDR_TYPE.PRIVATE_CNTL:
                     dev_params.prev_privacy_operation = BLE_MGR_RAL_OP.BLE_MGR_RAL_OP_NONE
                 self.dev_params_release()
 

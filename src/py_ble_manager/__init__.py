@@ -1,6 +1,6 @@
 from .ble_api.BleAtt import ATT_ERROR, ATT_UUID_TYPE, AttUuid, ATT_PERM
 from .ble_api.BleCommon import BLE_ADDR_TYPE, BLE_ERROR, BLE_EVT_CAT, BLE_EVT_GAP, BLE_EVT_GATTC, BLE_EVT_GATTS, \
-    BLE_HCI_ERROR, BLE_OWN_ADDR_TYPE, BLE_STATUS, BdAddress, BleEventBase, BleEventResetCompleted, Irk, OwnAddress
+    BLE_HCI_ERROR, OWN_ADDR_TYPE, BLE_STATUS, BdAddress, BleEventBase, BleEventResetCompleted, Irk, OwnAddress
 
 from .ble_api.BleConfig import BLE_DEVICE_TYPE, BLE_HW_TYPE, BleConfigDefault, BleConfigDA14531, BleConfigDA1469x
 
