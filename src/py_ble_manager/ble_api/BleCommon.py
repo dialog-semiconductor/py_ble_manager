@@ -1,7 +1,7 @@
 from enum import IntEnum, auto
 
 
-class BLE_ADDR_TYPE(IntEnum):
+class ADDR_TYPE(IntEnum):
     """Bluetooth address type
     """
     PUBLIC_ADDRESS = 0x00  # Public Static Address
@@ -261,13 +261,13 @@ class BdAddress():
     :ivar addr_type: address type
     :ivar addr: 6 byte address
     """
-    def __init__(self, addr_type: BLE_ADDR_TYPE = BLE_ADDR_TYPE.PUBLIC_ADDRESS, addr: bytes = None) -> None:
+    def __init__(self, addr_type: ADDR_TYPE = ADDR_TYPE.PUBLIC_ADDRESS, addr: bytes = None) -> None:
         self.addr_type = addr_type
         self.addr = addr if addr else bytes()
 
     def __repr__(self):
 
-        return f"{type(self).__name__}(addr_type={BLE_ADDR_TYPE(self.addr_type).name}, addr={list(self.addr)})"
+        return f"{type(self).__name__}(addr_type={ADDR_TYPE(self.addr_type).name}, addr={list(self.addr)})"
 
 
 class BleEventBase():

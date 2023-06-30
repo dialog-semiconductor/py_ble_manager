@@ -1,5 +1,5 @@
 from ..ble_api.BleAtt import AttUuid, ATT_UUID_TYPE
-from ..ble_api.BleCommon import BdAddress, BLE_ADDR_TYPE
+from ..ble_api.BleCommon import BdAddress, ADDR_TYPE
 from ..ble_api.BleGap import BleAdvData, GAP_DATA_TYPE
 
 
@@ -24,7 +24,7 @@ class BleUtils():
                 byte_string = "0" + byte_string
             return_string = byte_string + ":" + return_string
         return_string = return_string[:-1]
-        return_string += ",P" if bd.addr_type == BLE_ADDR_TYPE.PUBLIC_ADDRESS else ",R"
+        return_string += ",P" if bd.addr_type == ADDR_TYPE.PUBLIC_ADDRESS else ",R"
         return return_string
 
     @staticmethod
@@ -72,7 +72,7 @@ class BleUtils():
         """
 
         periph_addr_str, addr_type_str = bd_addr_str.split(',')
-        addr_type = BLE_ADDR_TYPE.PUBLIC_ADDRESS if addr_type_str == 'P' else BLE_ADDR_TYPE.PRIVATE_ADDRESS
+        addr_type = ADDR_TYPE.PUBLIC_ADDRESS if addr_type_str == 'P' else ADDR_TYPE.PRIVATE_ADDRESS
         periph_addr_str_stripped = periph_addr_str.replace(":", "")
         bd_addr_list = [int(periph_addr_str_stripped[idx:idx + 2], 16) for idx in range(0, len(periph_addr_str_stripped), 2)]
         bd_addr_list.reverse()  # mcu is little endian

@@ -5,7 +5,7 @@ import secrets
 import threading
 
 from ..ble_api.BleAtt import ATT_PERM
-from ..ble_api.BleCommon import BLE_ERROR, BleEventBase, OWN_ADDR_TYPE, BLE_ADDR_TYPE, BLE_HCI_ERROR, \
+from ..ble_api.BleCommon import BLE_ERROR, BleEventBase, OWN_ADDR_TYPE, ADDR_TYPE, BLE_HCI_ERROR, \
     BdAddress, BLE_EVT_GAP
 from ..ble_api.BleConfig import BleConfigDefault, BLE_HW_TYPE
 from ..ble_api.BleConvert import BleConvert
@@ -883,7 +883,7 @@ class BleManagerGap(BleManagerBase):
         # Note this function accesses storage. Storage should be acquired before calling
 
         # Check if peer's address is random
-        if gtl.parameters.peer_addr_type != BLE_ADDR_TYPE.PRIVATE_ADDRESS:
+        if gtl.parameters.peer_addr_type != ADDR_TYPE.PRIVATE_ADDRESS:
             return False
 
         # Check if peer's address is resolvable
@@ -1172,7 +1172,7 @@ class BleManagerGap(BleManagerBase):
         address = BdAddress()
 
         address.addr = bytes(gtl.parameters.addr.addr[:])
-        address.addr_type = BLE_ADDR_TYPE.PRIVATE_ADDRESS
+        address.addr_type = ADDR_TYPE.PRIVATE_ADDRESS
 
         self.storage_acquire()
         dev_params = self.dev_params_acquire()
@@ -1250,7 +1250,7 @@ class BleManagerGap(BleManagerBase):
         # evt->address.addr_type = gevt->report.adv_addr_type & 0x01;
         # else
 
-        evt.address.addr_type = BLE_ADDR_TYPE(gtl.parameters.report.adv_addr_type)
+        evt.address.addr_type = ADDR_TYPE(gtl.parameters.report.adv_addr_type)
         # endif /* (dg_configBLE_PRIVACY_1_2 == 1) */
         evt.address.addr = bytes(gtl.parameters.report.adv_addr.addr)
         length = gtl.parameters.report.data_len
@@ -1665,9 +1665,9 @@ class BleManagerGap(BleManagerBase):
         evt.own_addr.addr_type = dev_params.own_addr.addr_type
         evt.own_addr.addr = dev_params.own_addr.addr
         if self._ble_config.dg_configBLE_PRIVACY_1_2:
-            evt.peer_address.addr_type = BLE_ADDR_TYPE(gtl.parameters.peer_addr_type & 0x01)
+            evt.peer_address.addr_type = ADDR_TYPE(gtl.parameters.peer_addr_type & 0x01)
         else:
-            evt.peer_address.addr_type = BLE_ADDR_TYPE(gtl.parameters.peer_addr_type)
+            evt.peer_address.addr_type = ADDR_TYPE(gtl.parameters.peer_addr_type)
 
         evt.peer_address.addr = bytes(gtl.parameters.peer_addr.addr)
         evt.conn_params.interval_min_ms = BleConvert.conn_interval_to_ms(gtl.parameters.con_interval)
