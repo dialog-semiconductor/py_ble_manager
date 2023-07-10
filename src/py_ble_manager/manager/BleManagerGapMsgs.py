@@ -3,7 +3,7 @@ from enum import IntEnum, auto
 from ..ble_api.BleAtt import ATT_PERM
 from ..ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR, OwnAddress
 from ..ble_api.BleGap import GAP_CONN_MODE, GAP_ROLE, GapConnParams, GAP_SCAN_TYPE, GAP_SCAN_MODE, \
-    BLE_NON_CONN_ADV_DATA_LEN_MAX, BLE_GAP_APPEARANCE, GAP_SEC_LEVEL
+    BLE_NON_CONN_ADV_DATA_LEN_MAX, GAP_APPEARANCE, GAP_SEC_LEVEL
 from ..manager.BleManagerCommonMsgs import BleMgrMsgBase, BleMgrMsgRsp, BLE_CMD_GAP_OPCODE
 
 
@@ -77,7 +77,7 @@ class BleMgrGapAdvStopRsp(BleMgrMsgRsp):
 
 class BleMgrGapAppearanceSetCmd(BleMgrMsgBase):
     def __init__(self,
-                 appearance: BLE_GAP_APPEARANCE,
+                 appearance: GAP_APPEARANCE,
                  perm: ATT_PERM) -> None:
         super().__init__(opcode=BLE_CMD_GAP_OPCODE.BLE_MGR_GAP_APPEARANCE_SET_CMD)
         self.appearance = appearance

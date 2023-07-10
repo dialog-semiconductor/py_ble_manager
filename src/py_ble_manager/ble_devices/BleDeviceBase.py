@@ -5,7 +5,7 @@ from ..ble_api.BleAtt import ATT_PERM
 from ..ble_api.BleCommon import BleEventBase, BLE_ERROR, BLE_HCI_ERROR, OwnAddress, BdAddress
 from ..ble_api.BleCommonApi import BleCommonApi
 from ..ble_api.BleConfig import BleConfigDefault
-from ..ble_api.BleGap import GAP_ROLE, GAP_IO_CAPABILITIES, BLE_GAP_APPEARANCE, GAP_SEC_LEVEL
+from ..ble_api.BleGap import GAP_ROLE, GAP_IO_CAPABILITIES, GAP_APPEARANCE, GAP_SEC_LEVEL
 from ..ble_api.BleGapApi import BleGapApi, GapConnParams
 from ..ble_api.BleGattcApi import BleGattcApi
 from ..ble_api.BleGattsApi import BleGattsApi
@@ -122,15 +122,15 @@ class BleDeviceBase():
 
         return self._ble_gap.address_set(address, renew_dur)
 
-    def appearance_get(self) -> Tuple[BLE_GAP_APPEARANCE, BLE_ERROR]:
+    def appearance_get(self) -> Tuple[GAP_APPEARANCE, BLE_ERROR]:
         """Get the appearance used for GAP service
 
         :return: appearance, result code
-        :rtype: Tuple[BLE_GAP_APPEARANCE, BLE_ERROR]
+        :rtype: Tuple[GAP_APPEARANCE, BLE_ERROR]
         """
         return self._ble_gap.appearance_get()
 
-    def appearance_set(self, appearance: BLE_GAP_APPEARANCE, perm: ATT_PERM) -> BLE_ERROR:
+    def appearance_set(self, appearance: GAP_APPEARANCE, perm: ATT_PERM) -> BLE_ERROR:
         """Set the appearance used for GAP service
 
         ..note:
@@ -139,7 +139,7 @@ class BleDeviceBase():
             current attribute database (if it exists).
 
         :param appearance: appearance value
-        :type appearance: BLE_GAP_APPEARANCE
+        :type appearance: GAP_APPEARANCE
         :param perm: appearance attribute write permission
         :type perm: ATT_PERM
         :return: result code

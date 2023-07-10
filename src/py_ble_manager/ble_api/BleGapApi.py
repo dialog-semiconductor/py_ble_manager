@@ -5,7 +5,7 @@ from ..ble_api.BleApiBase import BleApiBase
 from ..ble_api.BleAtt import ATT_PERM
 from ..ble_api.BleCommon import BLE_ERROR, BdAddress, BLE_HCI_ERROR, OwnAddress
 from ..ble_api.BleGap import GAP_ROLE, GapConnParams, GAP_CONN_MODE, GAP_SCAN_TYPE, GAP_SCAN_MODE, \
-    GAP_IO_CAPABILITIES, BLE_NON_CONN_ADV_DATA_LEN_MAX, BLE_GAP_APPEARANCE, GAP_DISC_MODE, GapScanParams, \
+    GAP_IO_CAPABILITIES, BLE_NON_CONN_ADV_DATA_LEN_MAX, GAP_APPEARANCE, GAP_DISC_MODE, GapScanParams, \
     GAP_SEC_LEVEL, BLE_ENC_KEY_SIZE_MAX
 from ..manager.BleManager import BleManager
 from ..manager.BleManagerGapMsgs import BleMgrGapRoleSetCmd, BleMgrGapRoleSetRsp, BleMgrGapConnectCmd, \
@@ -37,14 +37,14 @@ class BleGapApi(BleApiBase):
         if dev.connected and not dev.resolving:
             active_conn_idx_list.append(dev.conn_idx)
 
-    def appearance_get(self) -> Tuple[BLE_GAP_APPEARANCE, BLE_ERROR]:
+    def appearance_get(self) -> Tuple[GAP_APPEARANCE, BLE_ERROR]:
 
         dev_params = self._ble_manager.dev_params_acquire()
         appearance = dev_params.appearance
         self._ble_manager.dev_params_release()
         return appearance
 
-    def appearance_set(self, appearance: BLE_GAP_APPEARANCE, perm: ATT_PERM) -> BLE_ERROR:
+    def appearance_set(self, appearance: GAP_APPEARANCE, perm: ATT_PERM) -> BLE_ERROR:
 
         command = BleMgrGapAppearanceSetCmd(appearance, perm)
         response: BleMgrGapAppearanceSetRsp = self._ble_manager.cmd_execute(command)
