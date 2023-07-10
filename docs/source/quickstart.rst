@@ -1,11 +1,6 @@
 Quick Start
 ===========
 
-.. _Quick Start:
-
-Quick Start (terminal)
-----------------------
-
 #. Refer to the :doc:`hardware_setup` to setup the jumpers on your development kit.
 
 #. Call: ``pip install "py_ble_manager[dev] @ git+https://github.com/dialog-semiconductor/py_ble_manager.git`` to install the ``py_ble_manager`` package and its dependencies.
@@ -20,3 +15,10 @@ Quick Start (terminal)
 #. :doc:`Download <programming_util>` the py_ble_manager enabled firmware binary to the development kit by calling the ``py_ble_manager_programmer`` utility from the terminal.
     
 #. The package is now installed and you are ready to run one of the `examples <https://github.com/dialog-semiconductor/py_ble_manager/tree/main/examples>`_!
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   
+   hardware_setup
+   programming_util
