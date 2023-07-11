@@ -3,8 +3,7 @@ import threading
 from typing import Callable
 
 from ..ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_STATUS, BleEventResetCompleted
-from ..ble_api.BleConfig import BleConfigDefault, BleConfigDA14531, BleConfigDA1469x, DA14531VersionInd, DA14695VersionInd, \
-    BLE_HW_TYPE
+from ..ble_api.BleConfig import BleConfigDefault, BleConfigDA14531, BleConfigDA1469x, DA14531VersionInd, DA14695VersionInd
 from ..ble_api.BleGap import BLE_CONN_IDX_INVALID
 from ..gtl_messages.gtl_message_base import GtlMessageBase
 from ..gtl_messages.gtl_message_gapm import GapmResetCmd, GapmCmpEvt, GapmGetDevVersionCmd, GapmDevVersionInd
