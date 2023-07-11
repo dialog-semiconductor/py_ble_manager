@@ -364,7 +364,7 @@ class BleManagerGap(BleManagerBase):
         response = BleMgrGapDeviceNameSetRsp(status=status)
         self._mgr_response_queue_send(response)
 
-    def _auth_to_sec_level(self, auth: GAP_AUTH_MASK, key_size: int):
+    def _auth_to_sec_level(self, auth: GAP_AUTH_MASK, key_size: int) -> GAP_SEC_LEVEL:
 
         if auth & GAP_AUTH_MASK.GAP_AUTH_MITM:
             if (auth & GAP_AUTH_MASK.GAP_AUTH_SEC
@@ -1073,7 +1073,7 @@ class BleManagerGap(BleManagerBase):
         gtl.parameters.operation = operation
         self._adapter_command_queue_send(gtl)
 
-    def _send_sec_level_changed_evt(self, conn_idx: int, sec_level: GAP_AUTH_MASK):
+    def _send_sec_level_changed_evt(self, conn_idx: int, sec_level: GAP_SEC_LEVEL):
         evt = BleEventGapSecLevelChanged()
         evt.conn_idx = conn_idx
         evt.level = sec_level
