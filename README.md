@@ -6,13 +6,13 @@ A python library for controlling Renesas BLE devices.
 
 The intent of this library is to provide a python interface similar to [SDK10](http://lpccs-docs.renesas.com/um-b-092-da1469x_software_platform_reference/User_guides/User_guides.html#the-ble-framework) for controlling BLE of DA14xxx devices. This is achieved by communicating with a development kit running Generic Transport Layer (GTL) supported firmware over a USB port on your PC:
 
-![usb_to_pc](assets/usb_to_pc.png)
+![usb_to_pc](https://raw.githubusercontent.com/dialog-semiconductor/py_ble_manager/blob/main/assets/usb_to_pc.png)
 
 The primary intent is for use as a central device for benchtop testing, continuous integration, or as an end-of-line tool. For additional information on the GTL please see the [GTL User Manual](https://www.renesas.com/us/en/document/mat/um-b-143-renesas-external-processor-interface-gtl-interface?language=en&r=1564826).
 
 ## Quick Start
 
-1. Refer to the [hardware setup](docs/source/hardware_setup.rst) to setup the jumpers on your development kit.
+1. Refer to the [hardware setup](https://github.com/dialog-semiconductor/py_ble_manager/blob/main/docs/source/hardware_setup.rst) to setup the jumpers on your development kit.
 
 2. Call: `pip install "py_ble_manager[dev] @ git+https://github.com/dialog-semiconductor/py_ble_manager.git"` to install the `py_ble_manager` package and its dependencies.
 
@@ -23,7 +23,8 @@ The primary intent is for use as a central device for benchtop testing, continuo
     > **_NOTE:_**
       This library requires Python v3.10.5 or later.
 
-3. [Download](src/py_ble_manager/util/) the py_ble_manager compatible firmware binary to the development kit by calling the `py_ble_manager_programmer` utility from the terminal.
+3. [Download](https://github.com/dialog-semiconductor/py_ble_manager/tree/main/src/py_ble_manager/util) the py_ble_manager compatible firmware binary to the development kit by calling the `py_ble_manager_programmer`
+utility from the terminal.
 
 4. The package is now installed and you are ready to run one of the [examples](examples)!
 
@@ -133,4 +134,4 @@ evt = central.get_event()
 
 ## Architecture
 
-Refer to the [architecture](docs/architecture.md) description.
+Refer to the [architecture](https://github.com/dialog-semiconductor/py_ble_manager/blob/main/docs/architecture.md) description.
