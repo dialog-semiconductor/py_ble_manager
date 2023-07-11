@@ -20,6 +20,10 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent"
 ]
+keywords = [
+    "ble",
+    "bluetooth",
+]
 
 [project.optional-dependencies]
 dev = [
@@ -37,7 +41,8 @@ where = ["src"]
 py_ble_manager_programmer = "py_ble_manager.util.py_ble_manager_programmer:main"
 
 [project.urls]
-Repository = "https://github.com/dialog-semiconductor/py_ble_manager"
+documentation = "https://lpccs-docs.renesas.com/py_ble_manager/index.html"
+repository = "https://github.com/dialog-semiconductor/py_ble_manager"
 
 [tool.setuptools_scm]
 version_scheme  = "release-branch-semver"
