@@ -4,7 +4,7 @@ from enum import auto, IntEnum
 from .attm import ATTM_PERM
 from .co_bt import ADV_CHANNEL_MAP, ADV_DATA_LEN, ADV_FILTER_POLICY, bd_addr, SCAN_RSP_DATA_LEN, SCAN_FILTER_POLICY, \
     SCAN_DUP_FILTER_POLICY, adv_report
-from .gap import GAP_ADV_MODE, gap_bdaddr, GAP_ROLE, gap_sec_key, GAP_SCAN_MODE
+from .gap import GAP_ADV_MODE, gap_bdaddr, GTL_GAP_ROLE, gap_sec_key, GAP_SCAN_MODE
 from .rwble_hl_error import HOST_STACK_ERROR_CODE
 from .rwip_config import KE_API_ID
 
@@ -442,7 +442,7 @@ class gapm_reset_cmd(LittleEndianStructure):
 class gapm_set_dev_config_cmd(LittleEndianStructure):
     def __init__(self,
                  operation: GAPM_OPERATION = GAPM_OPERATION.GAPM_SET_DEV_CONFIG,
-                 role: GAP_ROLE = GAP_ROLE.GAP_ROLE_NONE,
+                 role: GTL_GAP_ROLE = GTL_GAP_ROLE.GAP_ROLE_NONE,
                  renew_dur: c_uint16 = 0,
                  addr: bd_addr = bd_addr(),
                  irk: gap_sec_key = gap_sec_key(),

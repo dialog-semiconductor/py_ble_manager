@@ -37,7 +37,7 @@ from ..gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvert
 from ..gtl_port.attm import ATTM_PERM
 from ..gtl_port.co_bt import RAND_NB_LEN, KEY_LEN, BLE_LE_LENGTH_FEATURE, BD_ADDR_LEN
 from ..gtl_port.co_error import CO_ERROR
-from ..gtl_port.gap import GAP_ROLE, GAP_AUTH_MASK, gap_bdaddr, GAP_IO_CAP, GAP_OOB, GAP_TK_TYPE, GAP_SEC_REQ, gap_sec_key
+from ..gtl_port.gap import GTL_GAP_ROLE, GAP_AUTH_MASK, gap_bdaddr, GAP_IO_CAP, GAP_OOB, GAP_TK_TYPE, GAP_SEC_REQ, gap_sec_key
 
 from ..gtl_port.gapc import GAPC_FIELDS_MASK
 from ..gtl_port.gapc_task import GAPC_MSG_ID, GAPC_DEV_INFO, GAPC_OPERATION, GAPC_BOND
@@ -382,21 +382,21 @@ class BleManagerGap(BleManagerBase):
 
     def _ble_role_to_gtl_role(self, role: GAP_ROLE):
 
-        gtl_role = GAP_ROLE.GAP_ROLE_NONE
+        gtl_role = GTL_GAP_ROLE.GAP_ROLE_NONE
         if self._ble_config.dg_configBLE_CENTRAL:
             if (role & GAP_ROLE.GAP_CENTRAL_ROLE):
-                gtl_role |= GAP_ROLE.GAP_ROLE_CENTRAL
+                gtl_role |= GTL_GAP_ROLE.GAP_ROLE_CENTRAL
 
         if self._ble_config.dg_configBLE_PERIPHERAL:
             if (role & GAP_ROLE.GAP_PERIPHERAL_ROLE):
-                gtl_role |= GAP_ROLE.GAP_ROLE_PERIPHERAL
+                gtl_role |= GTL_GAP_ROLE.GAP_ROLE_PERIPHERAL
         if self._ble_config.dg_configBLE_BROADCASTER:
             if (role & GAP_ROLE.GAP_BROADCASTER_ROLE):
-                gtl_role |= GAP_ROLE.GAP_ROLE_BROADCASTER
+                gtl_role |= GTL_GAP_ROLE.GAP_ROLE_BROADCASTER
 
         if self._ble_config.dg_configBLE_OBSERVER:
             if (role & GAP_ROLE.GAP_OBSERVER_ROLE):
-                gtl_role |= GAP_ROLE.GAP_ROLE_OBSERVER
+                gtl_role |= GTL_GAP_ROLE.GAP_ROLE_OBSERVER
 
         return gtl_role
 
