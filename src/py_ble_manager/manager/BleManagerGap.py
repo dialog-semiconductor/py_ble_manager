@@ -1381,8 +1381,8 @@ class BleManagerGap(BleManagerBase):
                             | HOST_STACK_ERROR_CODE.SMP_ERROR_LOC_UNSPECIFIED_REASON):
 
                         evt.status = BLE_ERROR.BLE_ERROR_FAILED
-                    # case HOST_STACK_ERROR_CODE.SMP_ERROR_TIMEOUT:  # TODO additional SMP ERROR code sefined in smp_common.h
-                    #    evt.status = BLE_ERROR.BLE_ERROR_TIMEOUT
+                    case SMP_PROP_ERROR.SMP_ERROR_TIMEOUT:
+                        evt.status = BLE_ERROR.BLE_ERROR_TIMEOUT
                     case _:
                         # evt.status = gtl.parameters.data.reason  # this throws a ValueError if not a valid BLE_ERROR
                         evt.status = BLE_ERROR.BLE_ERROR_FAILED
