@@ -75,7 +75,7 @@ class TestGapmSetDevConfigCmd(unittest.TestCase):
     def test_parameters_updated_after_construction(self):
         test_message = GapmSetDevConfigCmd()
         test_message.parameters.operation = GAPM_OPERATION.GAPM_SET_DEV_CONFIG
-        test_message.parameters.role = GAP_ROLE.GAP_ROLE_PERIPHERAL
+        test_message.parameters.role = GTL_GAP_ROLE.GAP_ROLE_PERIPHERAL
         test_message.parameters.att_cfg.svc_chg_present = True
         test_message.parameters.max_mtu = 512 
         test_message.parameters.max_txoctets = 251

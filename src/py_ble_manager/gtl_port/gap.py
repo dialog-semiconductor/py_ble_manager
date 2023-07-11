@@ -112,7 +112,7 @@ class GAP_ENABLE_TYPE(IntEnum):
 
 
 # GAP Role
-class GAP_ROLE(IntEnum):
+class GTL_GAP_ROLE(IntEnum):
     # No role set yet
     GAP_ROLE_NONE = 0x00
 

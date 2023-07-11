@@ -138,7 +138,7 @@ If no `parameters` are specified when the message is created, default `parameter
 ```Python
 set_dev_cmd = GapmSetDevConfigCmd()
 set_dev_cmd.parameters.operation = GAPM_OPERATION.GAPM_SET_DEV_CONFIG
-set_dev_cmd.parameters.role = GAP_ROLE.GAP_ROLE_PERIPHERAL
+set_dev_cmd.parameters.role = GTL_GAP_ROLE.GAP_ROLE_PERIPHERAL
 set_dev_cmd.parameters.att_cfg = 0x20 
 set_dev_cmd.parameters.max_mtu = 512 
 set_dev_cmd.parameters.max_txoctets = 251
