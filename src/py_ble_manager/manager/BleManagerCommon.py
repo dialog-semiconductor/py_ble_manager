@@ -66,12 +66,6 @@ class BleManagerCommon(BleManagerBase):
                     response.config = BleConfigDA14531()
                 elif response == DA14695VersionInd():
                     response.config = BleConfigDA1469x()
-            else:
-                # otherwise just update the HW type
-                if response == DA14531VersionInd():
-                    self._ble_config.dg_configHW_TYPE = BLE_HW_TYPE.DA14531
-                elif response == DA14695VersionInd():
-                    self._ble_config.dg_configHW_TYPE = BLE_HW_TYPE.DA14695
 
         self._mgr_response_queue_send(response)
 
