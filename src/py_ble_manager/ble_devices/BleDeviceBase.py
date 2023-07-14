@@ -193,7 +193,7 @@ class BleDeviceBase():
 
         This function will set the maximum transmit data channel PDU payload length and time depending
         on the `conn_idx` provided. If `conn_idx` is set to
-        :py:data`~py_ble_manager.ble_api.BleGap.BLE_CONN_IDX_INVALID` then this API sets
+        :py:data:`~py_ble_manager.ble_api.BleGap.BLE_CONN_IDX_INVALID` then this API sets
         the preferred TX data length and time for subsequent connections. If `conn_idx` corresponds to
         an existing connection, it will set the TX data length and time for the specific connection (and
         possibly will initiate a Data Length Update procedure as defined in Bluetooth Core v_4.2).
