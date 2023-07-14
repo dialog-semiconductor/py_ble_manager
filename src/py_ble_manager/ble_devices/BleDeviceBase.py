@@ -507,7 +507,7 @@ class BleDeviceBase():
         return self._ble_gap.set_sec_level(conn_idx, level)
 
     def start(self, role: GAP_ROLE) -> BLE_ERROR:
-        """Start the BLE module as a central device
+        """Start the BLE module
 
         :param role: GAP role of the device
         :type role: GAP_ROLE
