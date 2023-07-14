@@ -5,6 +5,8 @@ on:
     branches: 
       - release
 
+  workflow_dispatch:
+
 jobs:
   build:
     if: github.repository_owner == 'dialog-semiconductor'
