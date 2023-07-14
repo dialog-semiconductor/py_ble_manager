@@ -527,15 +527,67 @@ class BleDeviceBase():
         return error
 
     def storage_get_buffer(self, conn_idx: int, key: int) -> Tuple[bytes, BLE_ERROR]:
+        """Get buffer value from storage
+
+        :param conn_idx: connection index
+        :type conn_idx: int
+        :param key: storage key (attribute handle)
+        :type key: int
+        :return: buffer, result code
+        :rtype: Tuple[bytes, BLE_ERROR]
+        """
         return self._ble_storage.get_buffer(conn_idx, key)
 
-    def storage_put_buffer(self, conn_idx: int, key: int, value: bytes, persistent: bool) -> BLE_ERROR:
-        return self._ble_storage.put_buffer(conn_idx, key, value, persistent)
-
     def storage_get_int(self, conn_idx: int, key: int) -> Tuple[int, BLE_ERROR]:
+        """Get int value from storage
+
+        :param conn_idx: connection index
+        :type conn_idx: int
+        :param key: storage key (attribute handle)
+        :type key: int
+        :return: integer value, result code
+        :rtype: Tuple[int, BLE_ERROR]
+        """
         return self._ble_storage.get_int(conn_idx, key)
 
+    def storage_put_buffer(self, conn_idx: int, key: int, value: bytes, persistent: bool) -> BLE_ERROR:
+        """Store data buffer in storage
+
+         .. note:
+            While ``key`` can be an arbitrary value, it's recommended to use values within service attribute
+            handles range to avoid collision with other services or applications.
+
+        :param conn_idx: connection index
+        :type conn_idx: int
+        :param key: storage key (attribute handle)
+        :type key: int
+        :param value: buffer to be stored
+        :type value: bytes
+        :param persistent: if true, value will be persistent for bonded devices
+        :type persistent: bool
+        :return: result code
+        :rtype: BLE_ERROR
+        """
+        return self._ble_storage.put_buffer(conn_idx, key, value, persistent)
+
     def storage_put_int(self, conn_idx: int, key: int, value: int, persistent: bool) -> BLE_ERROR:
+        """Store signed integer value in storage
+
+        .. note:
+            While ``key`` can be an arbitrary value, it's recommended to use values within service attribute
+            handles range to avoid collision with other services or applications.
+
+        :param conn_idx: connection index
+        :type conn_idx: int
+        :param key: storage key (attribute handle)
+        :type key: int
+        :param value: value to be stored
+        :type value: int
+        :param persistent: if true, value will be persistent for bonded devices
+        :type persistent: bool
+        :return: result code
+        :rtype: BLE_ERROR
+        """
         return self._ble_storage.put_int(conn_idx, key, value, persistent)
 
     def unpair(self, addr: BdAddress) -> BLE_ERROR:
