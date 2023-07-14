@@ -170,7 +170,7 @@ class BlePeripheral(BleDeviceBase):
     def per_pref_conn_params_set(self, conn_params: GapConnParams) -> BLE_ERROR:
         """Set the peripheral preferred connection parameters used for GAP service
 
-        ..note:
+        .. note:
             This API function has to be called prior to creating the attribute database of the device. This
             is because the device configuration is going to be modified, which will result in clearing the
             current attribute database (if it exists).
