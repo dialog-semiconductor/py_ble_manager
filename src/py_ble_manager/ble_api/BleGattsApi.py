@@ -1,3 +1,4 @@
+from typing import Tuple
 from ..ble_api.BleApiBase import BleApiBase
 from ..ble_api.BleAtt import AttUuid, ATT_PERM, ATT_ERROR
 from ..ble_api.BleCommon import BLE_ERROR
@@ -26,7 +27,7 @@ class BleGattsApi(BleApiBase):
                            perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
                            max_len: int = 0,
                            flags: GATTS_FLAG = GATTS_FLAG.GATTS_FLAG_CHAR_READ_REQ,
-                           ) -> tuple[int, int, BLE_ERROR]:
+                           ) -> Tuple[int, int, BLE_ERROR]:
 
         command = BleMgrGattsServiceAddCharacteristicCmd(uuid, prop, perm, max_len, flags)
         response: BleMgrGattsServiceAddCharacteristicRsp = self._ble_manager.cmd_execute(command)
@@ -40,7 +41,7 @@ class BleGattsApi(BleApiBase):
                        perm: ATT_PERM = ATT_PERM.ATT_PERM_NONE,
                        max_len: int = 0,
                        flags: GATTS_FLAG = GATTS_FLAG.GATTS_FLAG_CHAR_READ_REQ,
-                       ) -> tuple[int, BLE_ERROR]:
+                       ) -> Tuple[int, BLE_ERROR]:
 
         command = BleMgrGattsServiceAddDescriptorCmd(uuid, perm, max_len, flags)
         response: BleMgrGattsServiceAddDescriptorRsp = self._ble_manager.cmd_execute(command)
@@ -74,12 +75,12 @@ class BleGattsApi(BleApiBase):
     def get_value(self,
                   handle: int = 0,
                   max_len: int = 0
-                  ) -> BLE_ERROR:
+                  ) -> Tuple[bytes, BLE_ERROR]:
 
         command = BleMgrGattsGetValueCmd(handle, max_len)
         response: BleMgrGattsGetValueRsp = self._ble_manager.cmd_execute(command)
 
-        return response.status
+        return response.value, response.status
 
     def register_service(self, svc: BleServiceBase) -> BLE_ERROR:
 
