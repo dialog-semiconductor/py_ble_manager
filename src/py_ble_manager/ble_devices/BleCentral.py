@@ -269,7 +269,7 @@ class BleCentral(BleDeviceBase):
         the scan parameters of a connection attempt which is in progress (the scan parameters will be
         set for the next connection attempt).
 
-        .. note:
+        .. note::
             This call should be used prior to ble_gap_connect(). If a connection attempt is in
             progress, one should cancel it using the ble_gap_connect_cancel() call, set the desired
             scan parameters, and call ble_gap_connect() again.
