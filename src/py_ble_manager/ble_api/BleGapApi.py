@@ -145,14 +145,14 @@ class BleGapApi(BleApiBase):
 
         return response.status
 
-    def conn_param_update(self, conn_idx: int, conn_params: GapConnParams):
+    def conn_param_update(self, conn_idx: int, conn_params: GapConnParams) -> BLE_ERROR:
 
         command = BleMgrGapConnParamUpdateCmd(conn_idx, conn_params)
         response: BleMgrGapConnParamUpdateRsp = self._ble_manager.cmd_execute(command)
 
         return response.status
 
-    def conn_param_update_reply(self, conn_idx: int, accept: bool):
+    def conn_param_update_reply(self, conn_idx: int, accept: bool) -> BLE_ERROR:
 
         command = BleMgrGapConnParamUpdateReplyCmd(conn_idx, accept)
         response: BleMgrGapConnParamUpdateReplyRsp = self._ble_manager.cmd_execute(command)
@@ -276,7 +276,7 @@ class BleGapApi(BleApiBase):
 
         return response.status
 
-    def numeric_reply(self, conn_idx: int, accept: bool):
+    def numeric_reply(self, conn_idx: int, accept: bool) -> BLE_ERROR:
 
         command = BleMgrGapNumericReplyCmd(conn_idx, accept)
         response: BleMgrGapNumericReplyRsp = self._ble_manager.cmd_execute(command)
@@ -290,7 +290,7 @@ class BleGapApi(BleApiBase):
 
         return response.status
 
-    def passkey_reply(self, conn_idx: int, accept: bool, passkey: int):
+    def passkey_reply(self, conn_idx: int, accept: bool, passkey: int) -> BLE_ERROR:
 
         command = BleMgrGapPasskeyReplyCmd(conn_idx, accept, passkey)
         response: BleMgrGapPasskeyReplyRsp = self._ble_manager.cmd_execute(command)
@@ -394,7 +394,7 @@ class BleGapApi(BleApiBase):
 
         return response.status
 
-    def unpair(self, addr: BdAddress):
+    def unpair(self, addr: BdAddress) -> BLE_ERROR:
 
         command = BleMgrGapUnpairCmd(addr)
         response: BleMgrGapUnpairRsp = self._ble_manager.cmd_execute(command)
