@@ -61,13 +61,13 @@ def main(com_port, peripheral_addr_str: str, timeout_s: int):
                         central.disconnect(conn_idx=conn_idx)
                     else:
                         # The connection was cancelled, exit
-                        sys.exit()
+                        sys.exit(1)
 
                 # Disconnected from peripheral
                 case ble.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED:
                     evt: ble.BleEventGapDisconnected
                     print(f"Disconnected from addr={ble.BleUtils.bd_addr_to_str(evt.address)}")
-                    sys.exit()
+                    sys.exit(0)
 
 
 if __name__ == "__main__":
