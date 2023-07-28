@@ -4,7 +4,7 @@ import time
 import py_ble_manager as ble
 
 
-def main(com_port):
+def main(com_port: str, timeout_s: int):
     peripheral = ble.BlePeripheral(com_port)
 
     # Initialize the Python BLE Framework
@@ -21,13 +21,18 @@ def main(com_port):
     local_name_ad = ble.BleAdvData(ble.GAP_DATA_TYPE.GAP_DATA_TYPE_LOCAL_NAME, bytes(dev_name, 'utf-8)'))
     adv_ad_list = [local_name_ad]
     peripheral.advertising_data_set(adv_ad_list)
-    print(f"Advertising as: {dev_name}")
 
     # Set the advertising interval
-    peripheral.set_advertising_interval(adv_intv_min_ms=20, adv_intv_max_ms=30)
+    peripheral.advertising_interval_set(adv_intv_min_ms=20, adv_intv_max_ms=30)
 
     # Start advertising
-    peripheral.advertising_start()
+    error = peripheral.advertising_start()
+
+    if error == ble.BLE_ERROR.BLE_STATUS_OK:
+        print(f"Advertising as: {dev_name}")
+    else:
+        print(f"Failed to start advertising. Error: {error.name}")
+        sys.exit(1)
 
     adv_start_time = time.time()
     while True:
@@ -43,7 +48,7 @@ def main(com_port):
         # after 20 seconds have passed, stop advertising and exit the example
         if now - adv_start_time > 20:
             peripheral.advertising_stop()
-            print("Adverting stopped")
+            print("Advertising stopped")
             print("Exiting...")
             sys.exit(0)
 
@@ -54,9 +59,11 @@ if __name__ == "__main__":
 
     parser.add_argument("com_port", type=str, help='COM port for your development kit')
 
+    parser.add_argument("timeout_s", type=int, help='Time (in seconds) to wait before advertising stops and the application exits')
+
     args = parser.parse_args()
 
     try:
-        main(args.com_port)
+        main(args.com_port, args.timeout_s)
     except KeyboardInterrupt:
         print("Exiting")
