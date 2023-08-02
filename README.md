@@ -23,6 +23,9 @@ The primary intent is for use as a central device for benchtop testing, continuo
     > **_NOTE:_**
       This library requires Python v3.10.5 or later.
 
+    > **_NOTE:_**
+       It is recommended to install the library using a virtual environment. To setup a virtual environment using [venv](https://docs.python.org/3/library/venv.html) call: `$ python -m venv ./<name_of_your_env>`. Note to create a virtual environment that uses Python 3.10.5, you must already have Python 3.10.5 downloaded on your computer. To use the above command to create a Python 3.10.5 environment, Python 3.10.5 must be configured in your PATH. You can download it from the [python website](https://www.python.org/downloads/release/python-3105/).
+
 3. [Download](https://github.com/dialog-semiconductor/py_ble_manager/tree/main/src/py_ble_manager/util) the py_ble_manager compatible firmware binary to the development kit by calling the `py_ble_manager_programmer`
 utility from the terminal.
 
