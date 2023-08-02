@@ -7,7 +7,7 @@ from ..ble_api.BleCommon import BleEventBase, BLE_ERROR
 from ..ble_api.BleConfig import BleConfigDefault
 from ..ble_api.BleGattc import BleEventGattcDiscoverSvc, BleEventGattcDiscoverCompleted, GATTC_DISCOVERY_TYPE, \
     BleEventGattcDiscoverChar, BleEventGattcDiscoverDesc, BleEventGattcBrowseSvc, BleEventGattcBrowseCompleted, \
-    GattcItem, GATTC_ITEM_TYPE, GattcIncludedServiceData, GattcCharacteristicData, BleEventGattcReadCompleted,\
+    GattcItem, GATTC_ITEM_TYPE, GattcIncludedServiceData, GattcCharacteristicData, BleEventGattcReadCompleted, \
     BleEventGattcWriteCompleted, BleEventGattcNotification, BleEventGattcIndication, BleEventGattcMtuChanged, \
     BleEventGattcDiscoverInclude
 from ..gtl_messages.gtl_message_base import GtlMessageBase

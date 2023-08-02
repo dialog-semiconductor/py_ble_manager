@@ -18,7 +18,7 @@ from ..ble_api.BleGap import GAP_ROLE, GAP_CONN_MODE, BleEventGapConnected, BleE
     BleEventGapPasskeyNotify, BleEventGapNumericRequest, BleEventGapPairCompleted, BleEventGapSecLevelChanged, \
     BleEventGapAddressResolved, BleEventGapPeerVersion, BleEventGapPeerFeatures, BleEventGapLtkMissing, \
     BLE_ADV_DATA_LEN_MAX, BLE_NON_CONN_ADV_DATA_LEN_MAX, BleEventGapAddressResolutionFailed, \
-    BleEventGapDataLengthSetFailed, GAP_ADV_TYPE, BleEventGapDataLengthChanged, BLE_GAP_DEVNAME_LEN_MAX,\
+    BleEventGapDataLengthSetFailed, GAP_ADV_TYPE, BleEventGapDataLengthChanged, BLE_GAP_DEVNAME_LEN_MAX, \
     BleEventGapAirOpBdAddr, BleEventGapSetSecLevelFailed, BleEventGapSecurityRequest
 
 from ..ble_api.BleGatt import GATT_CCC
