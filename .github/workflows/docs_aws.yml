@@ -1,9 +1,8 @@
 name: Sphinx build for AWS
 
 on:
-  push:
-    branches: 
-      - release
+  release:
+    types: [published]
 
   workflow_dispatch:
 
