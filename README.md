@@ -14,7 +14,7 @@ The primary intent is for use as a central device for benchtop testing, continuo
 
 1. Refer to the [hardware setup](https://github.com/dialog-semiconductor/py_ble_manager/blob/main/docs/source/hardware_setup.rst) to setup the jumpers on your development kit.
 
-2. Call: `pip install "py_ble_manager[dev] @ git+https://github.com/dialog-semiconductor/py_ble_manager.git"` to install the `py_ble_manager` package and its dependencies.
+2. Call: `pip install py-ble-manager` to install the `py_ble_manager` package and its dependencies.
 
     > **_NOTE:_**
       Specifying [dev] will install optional dependency: [prompt_toolkit](https://pypi.org/project/prompt-toolkit/).
