@@ -11,8 +11,6 @@ from importlib.metadata import version as get_version
 project = 'py_ble_manager'
 copyright = '2023, Patrick Murphy'
 author = 'Patrick Murphy'
-version = get_version("py_ble_manager")
-release = version
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
