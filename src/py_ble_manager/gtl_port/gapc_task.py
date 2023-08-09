@@ -130,6 +130,10 @@ class GAPC_MSG_ID(IntEnum):
     # LE Set Data Length Indication
     GAPC_LE_PKT_SIZE_IND = auto()
 
+    # 5.0 CH2
+    # LE Channel Selection Algorithm Indication
+    GAPC_LE_CH_SEL_IND = auto()
+
     # ---------------------- INTERNAL API ------------------------
     # Internal messages for timer events, not part of API*/
     # Signature procedure
@@ -152,6 +156,34 @@ class GAPC_MSG_ID(IntEnum):
     GAPC_KEYPRESS_NOTIFICATION = auto()
     GAPC_KEYPRESS_NOTIFICATION_CMD = GAPC_KEYPRESS_NOTIFICATION
     GAPC_KEYPRESS_NOTIFICATION_IND = GAPC_KEYPRESS_NOTIFICATION
+
+    # This is the indication coming from either a "set phy" command or spontaneously by the controller
+    GAPC_LE_PHY_IND = auto()
+    # This is the indication coming from a "read phy" command
+    GAPC_LE_READ_PHY_IND = auto()
+
+    # Send an LE set PHY command to the controller
+    GAPC_LE_SET_PHY_CMD = auto()
+
+    # Set TX power for a specific connection
+    GAPC_SET_TX_PWR_CMD = auto()
+
+    # Indication coming from a LE Enhanced Read Transmit Power Level command
+    GAPC_LE_RD_TX_PWR_LVL_ENH_IND = auto()
+    # Indication coming from a LE Read Remote Transmit Power Level command or spontaneously by the controller
+    GAPC_LE_TX_PWR_REPORT_IND = auto()
+    # Indication coming from a Set Path Loss Reporting Parameters Enable command or spontaneously by the controller
+    GAPC_LE_PATH_LOSS_THRES_IND = auto()
+    # Send an LE Enhanced Read Transmit Power Level command to controller
+    GAPC_LE_RD_TX_PWR_LVL_ENH_CMD = auto()
+    # Send an LE Read Remote Transmit Power Level command to controller
+    GAPC_LE_RD_REM_TX_PWR_LVL_CMD = auto()
+    # Send LE Set Path Loss Reporting Parameters command to controller
+    GAPC_LE_SET_PATH_LOSS_REPORT_PARAMS_CMD = auto()
+    # Send an LE Set Path Loss Reporting Enable command to controller
+    GAPC_LE_SET_PATH_LOSS_REPORT_EN_CMD = auto()
+    # Send an LE Set Transmit Power Reporting Enable command to controller
+    GAPC_LE_SET_TX_PWR_REPORT_EN_CMD = auto()
 
 
 # request operation type - application interface
@@ -1203,3 +1235,39 @@ class gapc_le_pkt_size_ind(LittleEndianStructure):
                 ("max_rx_octets", c_uint16),
                 # The maximum time that the local Controller will take to RX
                 ("max_rx_time", c_uint16)]
+
+
+class GAPC_LE_PHY_RATE(IntEnum):
+
+    # Use the 1Mb/s LE PHY
+    GAPC_LE_PHY_RATE_1M = 0x01,
+
+    # Use the 2Mb/s LE PHY
+    GAPC_LE_PHY_RATE_2M = 0x02,
+
+    # Use the Coded LE PHY
+    GAPC_LE_PHY_RATE_CODED = 0x03
+
+
+# Used for both "set" and "read" operations on PHY
+class gapc_le_phy_ind(LittleEndianStructure):
+
+    def __init__(self,
+                 status: HOST_STACK_ERROR_CODE = HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR,
+                 tx_phy: GAPC_LE_PHY_RATE = GAPC_LE_PHY_RATE.GAPC_LE_PHY_RATE_1M,
+                 rx_phy: GAPC_LE_PHY_RATE = GAPC_LE_PHY_RATE.GAPC_LE_PHY_RATE_1M
+                 ):
+
+        self.status = status
+        self.tx_phy = tx_phy
+        self.rx_phy = rx_phy
+        super().__init__(status=self.status,
+                         tx_phy=self.tx_phy,
+                         rx_phy=self.rx_phy)
+
+                # Status code coming from the controller
+    _fields_ = [("status", c_uint8),
+                # TX_PHY value. Allowed values come from gapc_le_phy_rate.
+                ("tx_phy", c_uint8),
+                # RX_PHY value. Allowed values come from gapc_le_phy_rate.
+                ("rx_phy", c_uint8)]

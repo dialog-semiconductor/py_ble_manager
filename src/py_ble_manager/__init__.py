@@ -13,7 +13,9 @@ from .ble_api.BleGap import BLE_CONN_IDX_INVALID, BLE_ENC_KEY_SIZE_MAX, BLE_ADV_
     BleEventGapConnParamUpdateCompleted, BleEventGapConnParamUpdateReq, BleEventGapConnParamUpdated, \
     BleEventGapDataLengthChanged, BleEventGapDataLengthSetFailed, BleEventGapLtkMissing, BleEventGapPeerFeatures,\
     BleEventGapPeerVersion, BleEventGapDisconnected, BleEventGapDisconnectFailed, BleEventGapNumericRequest, \
-    BleEventGapPairCompleted, BleEventGapPairReq, BleEventGapPasskeyNotify, BleEventGapScanCompleted, BleEventGapSecLevelChanged
+    BleEventGapPairCompleted, BleEventGapPairReq, BleEventGapPasskeyNotify, BleEventGapScanCompleted, \
+    BleEventGapSecLevelChanged, BleEventGapPhySetCompleted, BleEventGapPhyChanged
+
 
 from .ble_api.BleGatt import GATT_EVENT, GATT_PROP, GATT_SERVICE
 

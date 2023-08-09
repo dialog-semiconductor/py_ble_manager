@@ -298,6 +298,10 @@ class BleController():
                 self.handle_evt_gattc_discover_desc(evt)
             case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_DISCOVER_COMPLETED:
                 self.handle_evt_gattc_discover_completed(evt)
+            case ble.BLE_EVT_GAP.BLE_EVT_GAP_PHY_SET_COMPLETED:
+                self.handle_evt_gap_phy_set_completed(evt)
+            case ble.BLE_EVT_GAP.BLE_EVT_GAP_PHY_CHANGED:
+                self.handle_evt_gap_phy_changed(evt)
             case _:
                 # print(f"Ble Task unhandled event: {evt}")
                 self.central.handle_event_default(evt)
@@ -343,6 +347,12 @@ class BleController():
     def handle_evt_gap_peer_version(self, evt: ble.BleEventGapPeerVersion):
         print(f"Peer version: conn_idx={evt.conn_idx}, lmp_version={evt.lmp_version} "
               + f"company_id={evt.company_id}, lmp_subversion={evt.lmp_subversion}")
+
+    def handle_evt_gap_phy_changed(self, evt: ble.BleEventGapPhyChanged):
+        print(f"PHY set compeleted: conn_idx={evt.conn_idx}, tx_phy={evt.tx_phy.name}, rx_phy={evt.rx_phy.name}")
+
+    def handle_evt_gap_phy_set_completed(self, evt: ble.BleEventGapPhySetCompleted):
+        print(f"PHY set compeleted: conn_idx={evt.conn_idx}, status={evt.status.name}")
 
     def handle_evt_gap_scan_completed(self, evt: ble.BleEventGapScanCompleted):
         print(f"Scan completed: status={evt.status.name}")

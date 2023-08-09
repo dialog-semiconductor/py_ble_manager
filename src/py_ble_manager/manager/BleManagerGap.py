@@ -19,7 +19,8 @@ from ..ble_api.BleGap import GAP_ROLE, GAP_CONN_MODE, BleEventGapConnected, BleE
     BleEventGapAddressResolved, BleEventGapPeerVersion, BleEventGapPeerFeatures, BleEventGapLtkMissing, \
     BLE_ADV_DATA_LEN_MAX, BLE_NON_CONN_ADV_DATA_LEN_MAX, BleEventGapAddressResolutionFailed, \
     BleEventGapDataLengthSetFailed, GAP_ADV_TYPE, BleEventGapDataLengthChanged, BLE_GAP_DEVNAME_LEN_MAX, \
-    BleEventGapAirOpBdAddr, BleEventGapSetSecLevelFailed, BleEventGapSecurityRequest
+    BleEventGapAirOpBdAddr, BleEventGapSetSecLevelFailed, BleEventGapSecurityRequest, BleEventGapPhySetCompleted, \
+    BleEventGapPhyChanged, BLE_GAP_PHY
 
 from ..ble_api.BleGatt import GATT_CCC
 
@@ -28,7 +29,8 @@ from ..gtl_messages.gtl_message_gapc import GapcConnectionCfm, GapcConnectionReq
     GapcDisconnectInd, GapcCmpEvt, GapcDisconnectCmd, GapcParamUpdateCmd, GapcParamUpdatedInd, GapcParamUpdateReqInd, \
     GapcParamUpdateCfm, GapcBondCfm, GapcBondCmd, GapcSecurityCmd, GapcBondReqInd, GapcBondInd, GapcGetInfoCmd, \
     GapcPeerVersionInd, GapcPeerFeaturesInd, GapcEncryptReqInd, GapcEncryptCfm, GapcEncryptInd, GapcSetLePktSizeCmd, \
-    GapcLePktSizeInd, GapcEncryptCmd, GapcSecurityInd, GapcSignCounterInd, GapcSetDevInfoReqInd, GapcSetDevInfoCfm
+    GapcLePktSizeInd, GapcEncryptCmd, GapcSecurityInd, GapcSignCounterInd, GapcSetDevInfoReqInd, GapcSetDevInfoCfm, \
+    GapcLePhyInd
 
 from ..gtl_messages.gtl_message_gapm import GapmSetDevConfigCmd, GapmStartAdvertiseCmd, GapmCmpEvt, GapmStartConnectionCmd, \
     GapmStartScanCmd, GapmAdvReportInd, GapmCancelCmd, GapmResolvAddrCmd, GapmUpdateAdvertiseDataCmd, GapmDevBdAddrInd, \
@@ -140,7 +142,8 @@ class BleManagerGap(BleManagerBase):
             GAPM_MSG_ID.GAPM_ADDR_SOLVED_IND: self.addr_solved_evt_handler,
             GAPC_MSG_ID.GAPC_LE_PKT_SIZE_IND: self.le_pkt_size_ind_evt_handler,
             GAPM_MSG_ID.GAPM_CMP_EVT: self.gapm_cmp_evt_handler,
-            GAPC_MSG_ID.GAPC_CMP_EVT: self.gapc_cmp_evt_handler
+            GAPC_MSG_ID.GAPC_CMP_EVT: self.gapc_cmp_evt_handler,
+            GAPC_MSG_ID.GAPC_LE_PHY_IND: self.le_phy_ind_handler,
         }
 
     def _address_set_rsp(self, gtl: GapmCmpEvt, command: BleMgrGapAddressSetCmd) -> None:
@@ -1988,6 +1991,65 @@ class BleManagerGap(BleManagerBase):
 
         self._adapter_command_queue_send(cfm)
         self.dev_params_release()
+
+    def le_phy_ind_handler(self, gtl: GapcLePhyInd):
+        dev_params = self.dev_params_acquire()
+        phy_changed = False
+
+        self.storage_acquire()
+        conn_idx = self._task_to_connidx(gtl.src_id)
+        dev = self._stored_device_list.find_device_by_conn_idx(conn_idx)
+        if not dev:
+            # Connection lost, ignore event
+            self.dev_params_release()
+        else:
+            phy_changed = (dev.tx_phy != gtl.parameters.tx_phy) or (dev.rx_phy != gtl.parameters.rx_phy)
+
+            # Check if a BLE_EVT_GAP_SET_COMPLETED event should be sent to the application
+            if dev_params.phy_set_pending:
+                dev_params.phy_set_pending = False
+                evt = BleEventGapPhySetCompleted()
+                evt.conn_idx = conn_idx
+                if gtl.parameters.status == HOST_STACK_ERROR_CODE.GAP_ERR_NO_ERROR:
+                    if dev_params.phy_change_req and not phy_changed:
+                        # A change in PHY was requested but PHY was not changed
+                        evt.status = BLE_ERROR.BLE_ERROR_NOT_ACCEPTED
+                    else:
+                        # No change in PHY was requested. PHY preferences possibly changed
+                        evt.status = BLE_ERROR.BLE_STATUS_OK
+                else:
+                    match gtl.parameters.status:
+                        case HOST_STACK_ERROR_CODE.LL_ERR_UNSUPPORTED_REMOTE_FEATURE:
+                            evt.status = BLE_ERROR.BLE_ERROR_NOT_SUPPORTED_BY_PEER
+                        case HOST_STACK_ERROR_CODE.LL_ERR_LMP_COLLISION:
+                            evt.status = BLE_ERROR.BLE_ERROR_LMP_COLLISION
+                        case HOST_STACK_ERROR_CODE.LL_ERR_DIFF_TRANSACTION_COLLISION:
+                            evt.status = BLE_ERROR.BLE_ERROR_DIFF_TRANS_COLLISION
+                        case _:
+                            # Below needs to be refactored to not depend on internal __members__ of IntEnum class
+                            evt.status = BLE_ERROR(gtl.parameters.status) if gtl.parameters.status in BLE_ERROR.__members__.values() else BLE_ERROR.BLE_ERROR_FAILED
+
+                # Reset phy_change_req flag in any case
+                dev_params.phy_change_req = False
+                self._mgr_event_queue_send(evt)
+
+            self.dev_params_release()
+            # Check if a BLE_EVT_GAP_PHY_CHANGED event should be sent to the application
+            if phy_changed:
+                # Update connected device attributes
+                dev.tx_phy = BLE_GAP_PHY(gtl.parameters.tx_phy)
+                dev.rx_phy = BLE_GAP_PHY(gtl.parameters.rx_phy)
+
+                # Create new event and fill it
+                evt = BleEventGapPhyChanged()
+                evt.conn_idx = conn_idx
+                evt.tx_phy = BLE_GAP_PHY(gtl.parameters.tx_phy)
+                evt.rx_phy = BLE_GAP_PHY(gtl.parameters.rx_phy)
+
+                # Send to event queue
+                self._mgr_event_queue_send(evt)
+
+        self.storage_release()
 
     def le_pkt_size_ind_evt_handler(self, gtl: GapcLePktSizeInd):
         evt = BleEventGapDataLengthChanged()
