@@ -1,7 +1,7 @@
 # central_crash_info
 
 This example provides a command line interface to retreive crash information from a DA14531 peripheral running the Debug Crash Info Service. See the
-[Debug Crash Info Github](https://github.com/Renesas-US-Connectivity/dlg_crash_info) for additional details.
+[firmware Github](https://github.com/dialog-semiconductor/BLE_SDK6_examples/tree/main/features/dlg_crash_info) for additional details.
 
 You can run it with:
 
