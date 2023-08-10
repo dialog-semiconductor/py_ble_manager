@@ -455,7 +455,7 @@ class BlePeripheral(BleDeviceBase):
         The application will receive a :py:class:`~py_ble_manager.ble_api.BleGatts.BleEventGattsEventSent` event when the notification is
         successfully sent over the air.
 
-        .. note::GATT_PROP
+        .. note::
             The characteristic must have either the :py:class:`~py_ble_manager.ble_api.BleGatt.GATT_PROP.GATT_PROP_NOTIFY` or the
             :py:class:`~py_ble_manager.ble_api.BleGatt.GATT_PROP.GATT_PROP_INDICATE` property.
 
