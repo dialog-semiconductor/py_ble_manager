@@ -60,12 +60,12 @@ The scan start function in python is defined as:
 .. code-block:: python 
 
     def scan_start(self,
-                   type: GAP_SCAN_TYPE = GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
-                   mode: GAP_SCAN_MODE = GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
-                   interval: int = 0,
-                   window: int = 0,
-                   filt_wlist: bool = False,
-                   filt_dupl: bool = False
+                   type: GAP_SCAN_TYPE,
+                   mode: GAP_SCAN_MODE,
+                   interval: int,
+                   window: int,
+                   filt_wlist: bool,
+                   filt_dupl: bool
                    ) -> BLE_ERROR:
 
 The methods exposed by these classes are wrappers for class methods defined in the `ble_api`_. The intent is to provide a single object that encapsulates all the functionality for implementing a 
