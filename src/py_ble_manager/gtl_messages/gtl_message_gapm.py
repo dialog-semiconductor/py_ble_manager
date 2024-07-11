@@ -162,7 +162,7 @@ class GapmUpdateAdvertiseDataCmd(GtlMessageBase):
 
         self.parameters = parameters if parameters else gapm_update_advertise_data_cmd()
 
-        super().__init__(msg_id=GAPM_MSG_ID.GAPM_ADDR_SOLVED_IND,
+        super().__init__(msg_id=GAPM_MSG_ID.GAPM_UPDATE_ADVERTISE_DATA_CMD,
                          dst_id=KE_API_ID.TASK_ID_GAPM,
                          src_id=KE_API_ID.TASK_ID_GTL,
                          par_len=65,

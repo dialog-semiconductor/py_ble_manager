@@ -1229,6 +1229,7 @@ class BleManagerGap(BleManagerBase):
                                          GAPM_OPERATION.GAPM_UPDATE_ADVERTISE_DATA,
                                          self._adv_data_update_cmp_rsp,
                                          command)
+                self._adapter_command_queue_send(gtl)
         else:
             dev_params.adv_data_length = command.adv_data_len
             dev_params.adv_data[:command.adv_data_len] = command.adv_data[:command.adv_data_len]
