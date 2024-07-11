@@ -80,7 +80,7 @@ class BlePeripheral(BleDeviceBase):
             :py:class:`~py_ble_manager.ble_api.BleGap.GAP_ADV_CHANNEL.GAP_ADV_CHANNEL_38`,
             :py:class:`~py_ble_manager.ble_api.BleGap.GAP_ADV_CHANNEL.GAP_ADV_CHANNEL_39`.
 
-        :return:  channel map currently used for advertising, result code
+        :return: channel map currently used for advertising, result code
         :rtype: Tuple[int, BLE_ERROR]
         """
 
@@ -149,8 +149,7 @@ class BlePeripheral(BleDeviceBase):
         for ad in adv_data_ad_list:
             adv_data[adv_data_len] = c_uint8(ad.len)
             adv_data[adv_data_len + 1] = c_uint8(ad.type)
-
-            adv_data[adv_data_len + 2:len(ad.data) + 2] = ad.data
+            adv_data[adv_data_len + 2:adv_data_len + len(ad.data) + 2] = ad.data
             adv_data_len += ad.len + 1  # +1 to account for AD len byte
 
         scan_rsp_data_len = 0
