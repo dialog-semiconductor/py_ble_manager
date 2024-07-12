@@ -50,27 +50,40 @@ def load_binary_data(device_id_str: str):
                 # open binary and load data
                 bin_data = bin_file.read()
         case 'da1469x':
-            print("Available baud rates:")
-            print("0. 1M Baud (default)")
-            print("1. 3M Baud")
-            baud_select = input("Select baud rate (0 or 1): ")
-            baud_select = int(baud_select) if baud_select else 0  # default to 1M
-            match baud_select:
+            print("Development Kit:")
+            print("0. Pro Kit (default)")
+            print("1. USB Kit")
+            kit_type = input("Select kit type (0 or 1): ")
+            kit_type = int(kit_type) if kit_type else 0  # default to Pro Kit
+
+            match kit_type:
                 case 0:
-                    with open(os.path.join(os.path.dirname(os.path.abspath(py_ble_manager.__file__)),
-                                           'firmware/da1469x_pro_kit_1000000_baud.bin'), 'rb'
-                              ) as bin_file:
-                        # open binary and load data
-                        bin_data = bin_file.read()
+                    print("Available baud rates:")
+                    print("0. 1M Baud (default)")
+                    print("1. 3M Baud")
+                    baud_select = input("Select baud rate (0 or 1): ")
+                    baud_select = int(baud_select) if baud_select else 0  # default to 1M
+                    match baud_select:
+                        case 0:
+                            with open(os.path.join(os.path.dirname(os.path.abspath(py_ble_manager.__file__)),
+                                                'firmware/da1469x_pro_kit_1000000_baud.bin'), 'rb'
+                                    ) as bin_file:
+                                # open binary and load data
+                                bin_data = bin_file.read()
+                        case 1:
+                            with open(os.path.join(os.path.dirname(os.path.abspath(py_ble_manager.__file__)),
+                                                'firmware/da1469x_pro_kit_3000000_baud.bin'), 'rb'
+                                    ) as bin_file:
+                                # open binary and load data
+                                bin_data = bin_file.read()
+                        case _:
+                            print("Baud not supported")
+                            sys.exit(1)
                 case 1:
-                    with open(os.path.join(os.path.dirname(os.path.abspath(py_ble_manager.__file__)),
-                                           'firmware/da1469x_pro_kit_3000000_baud.bin'), 'rb'
-                              ) as bin_file:
+                    with open(os.path.join(os.path.dirname(os.path.abspath(py_ble_manager.__file__)), 'firmware/da1469x_usb_kit_115200_baud.bin'), 'rb') \
+                         as bin_file:
                         # open binary and load data
                         bin_data = bin_file.read()
-                case _:
-                    print("Baud not supported")
-                    sys.exit(1)
         case _:
             print("MCU not supported")
             sys.exit(1)

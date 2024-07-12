@@ -41,14 +41,32 @@ If the LED on the development kit is illuminated, the application is running. Be
 
 * DA1469x Pro Development kit: <br> ![da1469x_pro_kit](assets/da1469x_pro_kit_jumpers_led_on.png)
 
-In the case of the DA1469x, you will be prompted which baud rate to use:
+* DA1469x USB Development kit: <br> ![da1469x_usb_kit](assets/da1469x_usb_kit_jumpers_led_on.png)
+
+In the case of the DA1469x, you will be prompted which kit to use:
+
+![terminal_69x_kit_type](assets/terminal_69x_kit_type.png)
+
+For the Pro kit, you will be prompted which baud rate to use:
 
 ![terminal](assets/terminal_baud.png)
 
-Note the default `baud_rate` used by a `BleCentral` object is 1M. If you select the 3M baud option, ensure you pass in the `baud_rate` parameter when creating a `BleCentral` object:
+> **_NOTE:_** the default `baud_rate` used by a `BleCentral` object is 1M. If you select the 3M baud option, ensure you pass in the `baud_rate` parameter when creating a `BleCentral` object:
 
 ```Python
 import py_ble_manager as ble
 
 central = ble.BleCentral("COM54", baud_rate=3000000)
+```
+
+For the UBS Kit, firmware supporting a baud rate of 115200 will automatically be downloaded:
+
+![terminal_69x_usb](assets/terminal_69x_usb.png)
+
+> **_NOTE:_** the default `baud_rate` used by a `BleCentral` object is 1M. If you are using the USB kit, ensure you pass in the `baud_rate` parameter when creating a `BleCentral` object:
+
+```Python
+import py_ble_manager as ble
+
+central = ble.BleCentral("COM54", baud_rate=115200)
 ```
