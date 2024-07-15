@@ -63,7 +63,7 @@ class BleManagerGattc(BleManagerBase):
             # GATTC_MSG_ID.GATTC_CMP_EVT: self.cmp_evt_handler,
             GATTC_MSG_ID.GATTC_MTU_CHANGED_IND: self.mtu_changed_ind_evt_handler,
             GATTC_MSG_ID.GATTC_SDP_SVC_IND: self.sdp_svc_ind_evt_handler,
-            GATTC_MSG_ID.GATTC_DISC_SVC_IND: self.disc_svc_incl_ind_evt_handler,
+            GATTC_MSG_ID.GATTC_DISC_SVC_IND: self.disc_svc_ind_evt_handler,
             GATTC_MSG_ID.GATTC_DISC_SVC_INCL_IND: self.disc_svc_incl_ind_evt_handler,
             GATTC_MSG_ID.GATTC_DISC_CHAR_IND: self.disc_char_ind_evt_handler,
             GATTC_MSG_ID.GATTC_DISC_CHAR_DESC_IND: self.disc_char_desc_ind_evt_handler,
