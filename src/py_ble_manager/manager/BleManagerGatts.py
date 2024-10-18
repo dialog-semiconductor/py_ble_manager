@@ -86,7 +86,7 @@ class BleManagerGatts(BleManagerBase):
             rwperm.broadcast |= ATTM_BROADCAST.YES
 
         if (prop & GATT_PROP.GATT_PROP_WRITE_NO_RESP):
-            rwperm.write |= ATTM_PERM.ENABLE
+            rwperm.write_command |= ATTM_PERM.ENABLE
 
         if (prop & GATT_PROP.GATT_PROP_WRITE):
             rwperm.write_request |= ATTM_WRITE_REQUEST.ACCEPTED
