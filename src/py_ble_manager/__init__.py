@@ -17,7 +17,7 @@ from .ble_api.BleGap import BLE_CONN_IDX_INVALID, BLE_ENC_KEY_SIZE_MAX, BLE_ADV_
     BleEventGapSecLevelChanged, BleEventGapPhySetCompleted, BleEventGapPhyChanged
 
 
-from .ble_api.BleGatt import GATT_EVENT, GATT_PROP, GATT_SERVICE
+from .ble_api.BleGatt import GATT_EVENT, GATT_PROP, GATT_SERVICE, GATT_CCC
 
 from .ble_api.BleGattc import GATTC_DISCOVERY_TYPE, GATTC_ITEM_TYPE, GattcIncludedServiceData, GattcCharacteristicData, \
     GattcItem, BleEventGattcBrowseSvc, BleEventGattcBrowseCompleted, BleEventGattcDiscoverChar, \

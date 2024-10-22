@@ -39,12 +39,6 @@ class FETCH_DATA_STATE(IntEnum):
     FETCH_DATA_ERROR = auto()
 
 
-class GATT_EVENT(IntEnum):
-    GATT_EVENT_NONE = 0x0000
-    GATT_EVENT_NOTIFICATION = 0x0001
-    GATT_EVENT_INDICATION = 0x0002
-
-
 class DebugCrashInfoSvc():
     def __init__(self):
         self.svc_handle = 0
@@ -432,7 +426,7 @@ class BleController():
                     self.central.write(0,
                                        self.dci_svc.tx_ccc.handle,
                                        0,
-                                       bytes(GATT_EVENT.GATT_EVENT_NOTIFICATION.to_bytes(2, 'little'))
+                                       bytes(ble.GATT_CCC.GATT_CCC_NOTIFICATIONS.to_bytes(2, 'little'))
                                        )
 
             case FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_ENABLE_CCC:
