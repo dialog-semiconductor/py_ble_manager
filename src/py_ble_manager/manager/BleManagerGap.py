@@ -130,7 +130,7 @@ class BleManagerGap(BleManagerBase):
             GAPC_MSG_ID.GAPC_DISCONNECT_IND: self.disconnected_evt_handler,
             GAPC_MSG_ID.GAPC_PEER_VERSION_IND: self.peer_version_ind_evt_handler,
             GAPC_MSG_ID.GAPC_PEER_FEATURES_IND: self.peer_features_ind_evt_handler,
-            GAPC_MSG_ID.GAPC_CON_RSSI_IND: None,
+            GAPC_MSG_ID.GAPC_CON_RSSI_IND: None,  # TODO ble_mgr_gap_con_rssi_ind_handler
             GAPC_MSG_ID.GAPC_PARAM_UPDATE_REQ_IND: self.conn_param_update_req_evt_handler,
             GAPC_MSG_ID.GAPC_PARAM_UPDATED_IND: self.conn_param_updated_evt_handler,
             GAPC_MSG_ID.GAPC_BOND_REQ_IND: self.bond_req_evt_handler,
