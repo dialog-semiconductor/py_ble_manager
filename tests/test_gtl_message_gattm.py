@@ -2,6 +2,7 @@ import unittest
 from py_ble_manager.gtl_messages.gtl_message_gattm import *
 from py_ble_manager.gtl_port.gattm_task import *
 from py_ble_manager.gtl_port.attm import *
+from py_ble_manager.gtl_messages.gtl_message_factory import *
 
 # Table 70
 class TestGattmAddSvcReq(unittest.TestCase):
@@ -53,8 +54,7 @@ class TestGattmAddSvcReq(unittest.TestCase):
                         "0200" + \
                         "0000"
 
-    def test_parameters_updated_after_construction(self):
-        
+    def generate_test_message(self):
         test_message = GattmAddSvcReq()
         test_message.parameters.svc_desc.task_id = KE_API_ID.TASK_ID_GTL
         test_message.parameters.svc_desc.perm.uuid_len = ATTM_UUID_LEN.BITS_128
@@ -143,8 +143,21 @@ class TestGattmAddSvcReq(unittest.TestCase):
         att_list.append(att)
 
         test_message.parameters.svc_desc.atts = (gattm_att_desc * len(att_list))(*att_list)
+        return test_message
+
+    def test_parameters_updated_after_construction(self):
+        test_message = self.generate_test_message()
 
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_factory(self):
+        test_message = self.generate_test_message()
+        
+        # Test factory generates message appropriately 
+        byte_string = bytes.fromhex(self.expected)
+        factory_message = GtlMessageFactory.create_message(byte_string)
+        # verify message class match
+        self.assertEqual(factory_message, test_message, f"{type(factory_message).__name__}() incorrect msg created")
 
 # Table 75
 class TestGattmAddSvcRsp(unittest.TestCase):
