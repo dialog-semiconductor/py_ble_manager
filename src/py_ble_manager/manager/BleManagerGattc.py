@@ -1,3 +1,4 @@
+import logging
 import queue
 import threading
 from ctypes import c_uint8
@@ -13,7 +14,7 @@ from ..ble_api.BleGattc import BleEventGattcDiscoverSvc, BleEventGattcDiscoverCo
 from ..gtl_messages.gtl_message_base import GtlMessageBase
 from ..gtl_messages.gtl_message_gattc import GattcDiscCmd, GattcDiscSvcInd, GattcCmpEvt, GattcDiscCharInd, GattcSdpSvcDiscCmd, \
     GattcSdpSvcInd, GattcReadCmd, GattcReadInd, GattcWriteCmd, GattcEventInd, GattcEventReqInd, GattcEventCfm, \
-    GattcWriteExecuteCmd, GattcMtuChangedInd, GattcExcMtuCmd, GattcSvcChangedCfgInd, GattcDiscSvcInclInd
+    GattcWriteExecuteCmd, GattcMtuChangedInd, GattcExcMtuCmd, GattcSvcChangedCfgInd, GattcDiscSvcInclInd, GattcTransactionToErrorInd
 from ..gtl_port.gattc_task import GATTC_OPERATION, GATTC_MSG_ID, gattc_sdp_att_info, GATTC_SDP_ATT_TYPE, gattc_read_simple
 from ..gtl_port.rwble_hl_error import HOST_STACK_ERROR_CODE
 from ..manager.BleManagerBase import BleManagerBase
@@ -71,6 +72,7 @@ class BleManagerGattc(BleManagerBase):
             GATTC_MSG_ID.GATTC_EVENT_IND: self.event_ind_evt_handler,  # Notifications
             GATTC_MSG_ID.GATTC_EVENT_REQ_IND: self.event_req_ind_evt_handler,  # Indications
             GATTC_MSG_ID.GATTC_SVC_CHANGED_CFG_IND: self.svc_changed_cfg_ind_evt_handler,
+            GATTC_MSG_ID.GATTC_TRANSACTION_TO_ERROR_IND: self.transaction_to_error_ind_handler,
         }
 
     def _cmp_browse_evt_handler(self, gtl: GattcCmpEvt):
@@ -475,6 +477,17 @@ class BleManagerGattc(BleManagerBase):
                              INTERNAL_STORAGE_KEY.STORAGE_KEY_SVC_CHANGED_CCC,
                              evt.parameters.ind_cfg,
                              True)
+
+    def transaction_to_error_ind_handler(self, evt: GattcTransactionToErrorInd):
+        # SDK simply breaks (without a handler). Log an error instead
+        # TODO consider making an error event and sending to user so they can handle gracefully
+
+        # Description: Message triggered to main application when an Attribute transaction has timeout. This means that no more
+        # attribute transaction will be accepted by device on current connection.
+        # Note: Disconnection of the link must be performed by application.
+
+        log = logging.getLogger(__name__)
+        log.error(f"Transaction Error, disconnection of link required. evt={evt}\n")
 
     def write_execute_cmd_handler(self, command: BleMgrGattcWriteExecuteCmd):
         response = BleMgrGattcWriteExecuteRsp(status=BLE_ERROR.BLE_ERROR_FAILED)
