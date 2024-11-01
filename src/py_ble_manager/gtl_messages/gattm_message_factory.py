@@ -1,7 +1,7 @@
 from ctypes import c_uint8
-from ..gtl_messages.gtl_message_gattm import GattmAddSvcReq, GattmAddSvcRsp, GattmAttSetValueRsp
+from ..gtl_messages.gtl_message_gattm import GattmAddSvcReq, GattmAddSvcRsp, GattmAttSetValueRsp, GattmSvcGetPermissionReq
 from ..gtl_port.gattm_task import GATTM_MSG_ID, gattm_add_svc_req, attm_svc_perm, gattm_add_svc_rsp, gattm_att_set_value_rsp, \
-    ATT_UUID_128_LEN, gattm_att_desc
+    ATT_UUID_128_LEN, gattm_att_desc, gattm_svc_get_permission_req
 
 
 class GattmMessageFactory():
@@ -12,9 +12,9 @@ class GattmMessageFactory():
         params_buf = msg_bytes[9:]
 
         '''
-        class GattmAddSvcReq(GtlMessageBase):
-        class GattmAddSvcRsp(GtlMessageBase):
-        class GattmSvcGetPermissionReq(GtlMessageBase):
+        class GattmAddSvcReq(GtlMessageBase): Done
+        class GattmAddSvcRsp(GtlMessageBase): Done
+        class GattmSvcGetPermissionReq(GtlMessageBase): Done
         class GattmSvcGetPermissionRsp(GtlMessageBase):
         class GattmSvcSetPermissionReq(GtlMessageBase):
         class GattmSvcSetPermissionRsp(GtlMessageBase):
@@ -46,6 +46,9 @@ class GattmMessageFactory():
 
             if msg_id == GATTM_MSG_ID.GATTM_ADD_SVC_RSP:
                 return GattmAddSvcRsp(parameters=gattm_add_svc_rsp.from_buffer_copy(params_buf))
+
+            if msg_id == GATTM_MSG_ID.GATTM_SVC_GET_PERMISSION_REQ:
+                return GattmSvcGetPermissionReq(parameters=gattm_svc_get_permission_req.from_buffer_copy(params_buf))
 
             elif msg_id == GATTM_MSG_ID.GATTM_ATT_SET_VALUE_RSP:
                 return GattmAttSetValueRsp(parameters=gattm_att_set_value_rsp.from_buffer_copy(params_buf))

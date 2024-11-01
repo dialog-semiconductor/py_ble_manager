@@ -165,13 +165,24 @@ class TestGattmAddSvcRsp(unittest.TestCase):
     def setUp(self):
         self.expected = "05010B10000B00040017000000"
 
-    def test_parameters_updated_after_construction(self):
-        
+    def generate_test_message(self):
         test_message = GattmAddSvcRsp()
         test_message.parameters.start_hdl = 0x17
         test_message.parameters.status = HOST_STACK_ERROR_CODE.ATT_ERR_NO_ERROR
+        return test_message
 
+    def test_parameters_updated_after_construction(self):
+        test_message = self.generate_test_message()
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_factory(self):
+        test_message = self.generate_test_message()
+        
+        # Test factory generates message appropriately 
+        byte_string = bytes.fromhex(self.expected)
+        factory_message = GtlMessageFactory.create_message(byte_string)
+        # verify message class match
+        self.assertEqual(factory_message, test_message, f"{type(factory_message).__name__}() incorrect msg created")
 
 
 # Table 78
@@ -180,12 +191,23 @@ class TestGattmSvcGetPermissionReq(unittest.TestCase):
     def setUp(self):
         self.expected = "05020B0B00100002001700"
 
-    def test_parameters_updated_after_construction(self):
-        
+    def generate_test_message(self):
         test_message = GattmSvcGetPermissionReq()
         test_message.parameters.start_hdl = 0x17
+        return test_message
 
+    def test_parameters_updated_after_construction(self):
+        test_message = self.generate_test_message()
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_factory(self):
+        test_message = self.generate_test_message()
+        
+        # Test factory generates message appropriately 
+        byte_string = bytes.fromhex(self.expected)
+        factory_message = GtlMessageFactory.create_message(byte_string)
+        # verify message class match
+        self.assertEqual(factory_message, test_message, f"{type(factory_message).__name__}() incorrect msg created")
 
 # Table 78
 class TestGattmSvcGetPermissionRsp(unittest.TestCase):
