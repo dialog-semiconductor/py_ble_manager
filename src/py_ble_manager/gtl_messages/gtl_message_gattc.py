@@ -586,3 +586,16 @@ class GattcSvcChangedCfgInd(GtlMessageBase):
                          src_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
                          par_len=2,
                          parameters=self.parameters)
+
+
+# TODO not documented. need unit test
+class GattcTransactionToErrorInd(GtlMessageBase):
+
+    # TODO confirm if has connection index
+    def __init__(self, conidx: c_uint8 = 0):
+
+        super().__init__(msg_id=GATTC_MSG_ID.GATTC_TRANSACTION_TO_ERROR_IND,
+                         dst_id=KE_API_ID.TASK_ID_GTL,
+                         src_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
+                         par_len=0,
+                         parameters=None)
