@@ -50,9 +50,9 @@ class GapmMessageFactory():
                 nb_peers = int.from_bytes(params_buf[20:21], "little", signed=False)
 
                 # peers is list of gap_bdaddr which is 7 bytes
-                assert (nb_peers * 7) == len(params_buf[21:-1])  # Check for mismatch in value length and remaining bytes
+                assert (nb_peers * 7) == len(params_buf[21:-1])  # Check for mismatch in value length and remaining bytes, -1 to account for padding
 
-                parameters.peers = (gap_bdaddr * (len(params_buf[21:-1]) // 7)).from_buffer_copy(params_buf[21:-1])  # -1 to account for padding
+                parameters.peers = (gap_bdaddr * (len(params_buf[21:-1]) // 7)).from_buffer_copy(params_buf[21:-1])
                 return GapmStartConnectionCmd(parameters=parameters)
 
             elif msg_id == GAPM_MSG_ID.GAPM_START_SCAN_CMD:

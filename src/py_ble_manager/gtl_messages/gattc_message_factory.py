@@ -49,9 +49,9 @@ class GattcMessageFactory():
                 parameters.end_hdl = int.from_bytes(params_buf[2:4], "little", signed=False)
 
                 uuid_len = int.from_bytes(params_buf[4:5], "little", signed=False)
-                assert uuid_len == len(params_buf[5:-1])  # Check for mismatch in uuid_len and remaining bytes
+                assert uuid_len == len(params_buf[5:-1])  # Check for mismatch in uuid_len and remaining bytes, -1 to account for padding
 
-                parameters.uuid = (c_uint8 * len(params_buf[5:-1])).from_buffer_copy(params_buf[5:-1])  # -1 to account for padding
+                parameters.uuid = (c_uint8 * len(params_buf[5:-1])).from_buffer_copy(params_buf[5:-1])
                 return GattcDiscSvcInd(conidx=conidx, parameters=parameters)
 
             elif msg_id == GATTC_MSG_ID.GATTC_DISC_CHAR_IND:
@@ -127,7 +127,7 @@ class GattcMessageFactory():
                 uuid_len = int.from_bytes(params_buf[2:3], "little", signed=False)
                 assert uuid_len == len(params_buf[3:-1])  # Check for mismatch in uuid_len and remaining bytes. Index to -1 to account for padding
 
-                parameters.uuid = (c_uint8 * len(params_buf[3:-1])).from_buffer_copy(params_buf[3:-1])  # -1 to account for padding
+                parameters.uuid = (c_uint8 * len(params_buf[3:-1])).from_buffer_copy(params_buf[3:-1])
                 return GattcDiscCharDescInd(conidx=conidx, parameters=parameters)
 
             elif msg_id == GATTC_MSG_ID.GATTC_SVC_CHANGED_CFG_IND:
