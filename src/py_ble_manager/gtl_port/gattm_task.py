@@ -284,7 +284,7 @@ class gattm_att_get_value_rsp(LittleEndianStructure):
                 ("status", c_uint8),
                 # Attribute value
                 ("_value", POINTER(c_uint8)),
-                ("paddong", c_uint8)]
+                ("padding", c_uint8)]
 
     def get_value(self):
         return cast(self._value, POINTER(c_uint8 * self.length)).contents
