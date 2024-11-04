@@ -8,6 +8,7 @@ from ..gtl_port.gattc_task import GATTC_MSG_ID, gattc_write_req_ind, gattc_write
 from ..gtl_port.rwip_config import KE_API_ID
 
 
+# TODO method to add condix after construction?
 class GattcExcMtuCmd(GtlMessageBase):
 
     def __init__(self, conidx: c_uint8 = 0, parameters: gattc_exc_mtu_cmd = None):
@@ -88,7 +89,7 @@ class GattcAttInfoCfm(GtlMessageBase):
 
         self.parameters = parameters if parameters else gattc_att_info_cfm()
 
-        super().__init__(msg_id=GATTC_MSG_ID.GATTC_WRITE_CFM,
+        super().__init__(msg_id=GATTC_MSG_ID.GATTC_ATT_INFO_CFM,
                          dst_id=((conidx << 8) | KE_API_ID.TASK_ID_GATTC),
                          src_id=KE_API_ID.TASK_ID_GTL,
                          par_len=6,
