@@ -557,13 +557,16 @@ class TestGattcDiscSvcInd(unittest.TestCase):
         # TODO expected string does mot match table
         self.expected = "05040C10000C0008000100050002180100"
 
-    def test_parameters_updated_after_construction(self):
-        
+    def generate_test_message(self):
         test_message = GattcDiscSvcInd()
         test_message.parameters.start_hdl = 1
         test_message.parameters.end_hdl = 5
         uuid = bytearray.fromhex("1801")
         test_message.parameters.uuid = (c_uint8 * len(uuid)).from_buffer_copy(uuid)
+        return test_message
+    
+    def test_parameters_updated_after_construction(self):
+        test_message = self.generate_test_message()
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
     
     def test_parameters_non_zero_conidx(self):
@@ -576,6 +579,15 @@ class TestGattcDiscSvcInd(unittest.TestCase):
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+    def test_factory(self):
+        test_message = self.generate_test_message()
+        
+        # Test factory generates message appropriately 
+        byte_string = bytes.fromhex(self.expected)
+        factory_message = GtlMessageFactory.create_message(byte_string)
+        # verify message class match
+        self.assertEqual(factory_message, test_message, f"{type(factory_message).__name__}() incorrect msg created")
+
 # Table 127
 class TestGattcDiscSvcInclInd(unittest.TestCase):
 
@@ -584,14 +596,17 @@ class TestGattcDiscSvcInclInd(unittest.TestCase):
         # TODO expected string does mot match table
         self.expected = "05050C10000C000A00150009000C00020F1800"
 
-    def test_parameters_updated_after_construction(self):
-        
+    def generate_test_message(self):
         test_message = GattcDiscSvcInclInd()
         test_message.parameters.attr_hdl = 21
         test_message.parameters.start_hdl = 9
         test_message.parameters.end_hdl = 12
         uuid = bytearray.fromhex("0F18")
         test_message.parameters.uuid = (c_uint8 * len(uuid)).from_buffer_copy(uuid)
+        return test_message
+
+    def test_parameters_updated_after_construction(self):
+        test_message = self.generate_test_message()
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
     
     def test_parameters_non_zero_conidx(self):
@@ -605,6 +620,15 @@ class TestGattcDiscSvcInclInd(unittest.TestCase):
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+    def test_factory(self):
+        test_message = self.generate_test_message()
+        
+        # Test factory generates message appropriately 
+        byte_string = bytes.fromhex(self.expected)
+        factory_message = GtlMessageFactory.create_message(byte_string)
+        # verify message class match
+        self.assertEqual(factory_message, test_message, f"{type(factory_message).__name__}() incorrect msg created")
+
 # Table 132
 class TestGattcDiscCharInd(unittest.TestCase):
 
@@ -613,14 +637,17 @@ class TestGattcDiscCharInd(unittest.TestCase):
         # TODO expected string does mot match table
         self.expected = "05060C10000C000800020003000202002A"
 
-    def test_parameters_updated_after_construction(self):
-        
+    def generate_test_message(self):
         test_message = GattcDiscCharInd()
         test_message.parameters.attr_hdl = 2
         test_message.parameters.pointer_hdl = 3
         test_message.parameters.prop = ATT_CHAR_PROP.READ
         uuid = bytearray.fromhex("002A")
         test_message.parameters.uuid = (c_uint8 * len(uuid)).from_buffer_copy(uuid)
+        return test_message
+    
+    def test_parameters_updated_after_construction(self):
+        test_message = self.generate_test_message()
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
     
     def test_parameters_non_zero_conidx(self):
@@ -634,6 +661,15 @@ class TestGattcDiscCharInd(unittest.TestCase):
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+    def test_factory(self):
+        test_message = self.generate_test_message()
+        
+        # Test factory generates message appropriately 
+        byte_string = bytes.fromhex(self.expected)
+        factory_message = GtlMessageFactory.create_message(byte_string)
+        # verify message class match
+        self.assertEqual(factory_message, test_message, f"{type(factory_message).__name__}() incorrect msg created")
+
 # Table 137
 class TestGattcSdpSvcInd(unittest.TestCase):
 
@@ -641,8 +677,7 @@ class TestGattcSdpSvcInd(unittest.TestCase):
         self.maxDiff = None
         self.expected = "051A0C10000C00580002011800000000000000000000000000000006000900022008000000000000000000000000000000000000000302052A00000000000000000000000000000000000004020229000000000000000000000000000000000000"
 
-    def test_parameters_updated_after_construction(self):
-        
+    def generate_test_message(self):
         test_message = GattcSdpSvcInd()
         uuid = bytes.fromhex("0118")
         test_message.parameters.uuid = (c_uint8 * len(uuid)).from_buffer_copy(uuid)
@@ -669,7 +704,10 @@ class TestGattcSdpSvcInd(unittest.TestCase):
         info_list.append(info)
 
         test_message.parameters.info = (gattc_sdp_att_info * len(info_list))(*info_list)  
+        return test_message
 
+    def test_parameters_updated_after_construction(self):
+        test_message = self.generate_test_message()
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
     
     def test_parameters_non_zero_conidx(self):
@@ -703,6 +741,15 @@ class TestGattcSdpSvcInd(unittest.TestCase):
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+    def test_factory(self):
+        test_message = self.generate_test_message()
+        
+        # Test factory generates message appropriately 
+        byte_string = bytes.fromhex(self.expected)
+        factory_message = GtlMessageFactory.create_message(byte_string)
+        # verify message class match
+        self.assertEqual(factory_message, test_message, f"{type(factory_message).__name__}() incorrect msg created")
+
 
 
 # Table 136
@@ -713,8 +760,7 @@ class TestGattcSdpSvcDiscCmd(unittest.TestCase):
         # TODO expected string does mot match table
         self.expected = "05190C0C0010001800150220000100FFFF01180000000000000000000000000000"
 
-    def test_parameters_updated_after_construction(self):
-        
+    def generate_test_message(self):
         test_message = GattcSdpSvcDiscCmd()
         test_message.parameters.operation = GATTC_OPERATION.GATTC_SDP_DISC_SVC
         test_message.parameters.seq_num = 0x20
@@ -722,6 +768,10 @@ class TestGattcSdpSvcDiscCmd(unittest.TestCase):
         test_message.parameters.end_hdl = 0xFFFF
         uuid = bytearray.fromhex("0118")
         test_message.parameters.uuid = (c_uint8 * len(uuid)).from_buffer_copy(uuid)
+        return test_message
+    
+    def test_parameters_updated_after_construction(self):
+        test_message = self.generate_test_message()    
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
     
     def test_parameters_non_zero_conidx(self):
@@ -736,6 +786,15 @@ class TestGattcSdpSvcDiscCmd(unittest.TestCase):
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+    def test_factory(self):
+        test_message = self.generate_test_message()
+        
+        # Test factory generates message appropriately 
+        byte_string = bytes.fromhex(self.expected)
+        factory_message = GtlMessageFactory.create_message(byte_string)
+        # verify message class match
+        self.assertEqual(factory_message, test_message, f"{type(factory_message).__name__}() incorrect msg created")
+
 
 # Table 146
 class TestGattcReadCmd_GATTC_READ(unittest.TestCase):
@@ -744,13 +803,15 @@ class TestGattcReadCmd_GATTC_READ(unittest.TestCase):
         self.maxDiff = None
         self.expected = "05080C0C0010000A0008000B00040000000000"
 
-    def test_parameters_updated_after_construction(self):
-        
+    def generate_test_message(self):
         test_message = GattcReadCmd()
         test_message.parameters.operation = GATTC_OPERATION.GATTC_READ
         test_message.parameters.seq_num = 0x0B
         test_message.parameters.req.simple.handle = 0x04
+        return test_message
 
+    def test_parameters_updated_after_construction(self):
+        test_message = self.generate_test_message()
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
     
     def test_parameters_non_zero_conidx(self):
@@ -761,6 +822,15 @@ class TestGattcReadCmd_GATTC_READ(unittest.TestCase):
         test_message.parameters.req.simple.handle = 0x04
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_factory(self):
+        test_message = self.generate_test_message()
+        
+        # Test factory generates message appropriately 
+        byte_string = bytes.fromhex(self.expected)
+        factory_message = GtlMessageFactory.create_message(byte_string)
+        # verify message class match
+        self.assertEqual(factory_message, test_message, f"{type(factory_message).__name__}() incorrect msg created")
 
 # Table 150
 class TestGattcReadCmd_GATTC_READ_LONG(unittest.TestCase):
@@ -864,13 +934,15 @@ class TestGattcReadInd_GATTC_READ(unittest.TestCase):
         # TODO  manual says src_id is TASK_ID_GAPC
         self.expected = "05090C10000C000B00040000000500020500012A"
 
-    def test_parameters_updated_after_construction(self):
-        
+    def generate_test_message(self):
         test_message = GattcReadInd()
         test_message.parameters.handle = 4
         value = bytearray.fromhex("020500012A")
         test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+        return test_message
 
+    def test_parameters_updated_after_construction(self):
+        test_message = self.generate_test_message()       
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
     
     def test_parameters_non_zero_conidx(self):
@@ -881,6 +953,15 @@ class TestGattcReadInd_GATTC_READ(unittest.TestCase):
         test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_factory(self):
+        test_message = self.generate_test_message()
+        
+        # Test factory generates message appropriately 
+        byte_string = bytes.fromhex(self.expected)
+        factory_message = GtlMessageFactory.create_message(byte_string)
+        # verify message class match
+        self.assertEqual(factory_message, test_message, f"{type(factory_message).__name__}() incorrect msg created")
 
 # Table 151
 class TestGattcReadInd_GATTC_READ_LONG(unittest.TestCase):
@@ -913,8 +994,7 @@ class TestGattcReadInd_GATTC_READ_LONG(unittest.TestCase):
                         "6E67566572794C6F6E672048" + \
                         "6F475020446576696365"
 
-    def test_parameters_updated_after_construction(self):
-        
+    def generate_test_message(self):
         test_message = GattcReadInd()
         test_message.parameters.handle = 3
         value_str = "VeryLongVeryLongVer" + \
@@ -934,7 +1014,10 @@ class TestGattcReadInd_GATTC_READ_LONG(unittest.TestCase):
                 "Device"
         value = bytearray(value_str, 'utf-8') 
         test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+        return test_message
 
+    def test_parameters_updated_after_construction(self):
+        test_message = self.generate_test_message()
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
     
     def test_parameters_non_zero_conidx(self):
@@ -960,6 +1043,15 @@ class TestGattcReadInd_GATTC_READ_LONG(unittest.TestCase):
         test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_factory(self):
+        test_message = self.generate_test_message()
+        
+        # Test factory generates message appropriately 
+        byte_string = bytes.fromhex(self.expected)
+        factory_message = GtlMessageFactory.create_message(byte_string)
+        # verify message class match
+        self.assertEqual(factory_message, test_message, f"{type(factory_message).__name__}() incorrect msg created")
 
 # Table 154
 class TestGattcReadInd_GATTC_READ_BY_UUID(unittest.TestCase):
@@ -969,14 +1061,16 @@ class TestGattcReadInd_GATTC_READ_BY_UUID(unittest.TestCase):
         # TODO  manual says src_id is TASK_ID_GAPC
         self.expected = "05090C10000C001000030000000A004469616C6F6720424C45"
 
-    def test_parameters_updated_after_construction(self):
-        
+    def generate_test_message(self):
         test_message = GattcReadInd()
         test_message.parameters.handle = 3
         value_str = "Dialog BLE"
         value = bytearray(value_str, 'utf-8') 
         test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
-
+        return test_message
+    
+    def test_parameters_updated_after_construction(self):
+        test_message = self.generate_test_message()    
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
     
     def test_parameters_non_zero_conidx(self):
@@ -988,6 +1082,15 @@ class TestGattcReadInd_GATTC_READ_BY_UUID(unittest.TestCase):
         test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_factory(self):
+        test_message = self.generate_test_message()
+        
+        # Test factory generates message appropriately 
+        byte_string = bytes.fromhex(self.expected)
+        factory_message = GtlMessageFactory.create_message(byte_string)
+        # verify message class match
+        self.assertEqual(factory_message, test_message, f"{type(factory_message).__name__}() incorrect msg created")
 
 # Table 157
 class TestGattcReadInd_GATTC_READ_MULTIPLE_Num_1(unittest.TestCase):
@@ -1048,8 +1151,7 @@ class TestGattcWriteCmd_GATTC_WRITE(unittest.TestCase):
         self.maxDiff = None
         self.expected = "050A0C0C0010000E000C01090003000000010000000100"
 
-    def test_parameters_updated_after_construction(self):
-        
+    def generate_test_message(self):
         test_message = GattcWriteCmd()
         test_message.parameters.operation =  GATTC_OPERATION.GATTC_WRITE
         test_message.parameters.auto_execute = True
@@ -1057,7 +1159,10 @@ class TestGattcWriteCmd_GATTC_WRITE(unittest.TestCase):
         test_message.parameters.handle = 3
         value = bytearray.fromhex("01")
         test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
+        return test_message
 
+    def test_parameters_updated_after_construction(self):
+        test_message = self.generate_test_message()
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
     
     def test_parameters_non_zero_conidx(self):
@@ -1071,6 +1176,15 @@ class TestGattcWriteCmd_GATTC_WRITE(unittest.TestCase):
         test_message.parameters.value = (c_uint8 * len(value)).from_buffer_copy(value)
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_factory(self):
+        test_message = self.generate_test_message()
+        
+        # Test factory generates message appropriately 
+        byte_string = bytes.fromhex(self.expected)
+        factory_message = GtlMessageFactory.create_message(byte_string)
+        # verify message class match
+        self.assertEqual(factory_message, test_message, f"{type(factory_message).__name__}() incorrect msg created")
 
 # Table 163
 class TestGattcWriteCmd_GATTC_WRITE_NO_RESPONSE(unittest.TestCase):
@@ -1141,12 +1255,14 @@ class TestGattcWriteExecuteCmd(unittest.TestCase):
     def setUp(self):
         self.expected = "050B0C0C00100004000F012000"
 
-    def test_parameters_updated_after_construction(self):
-        
+    def generate_test_message(self):
         test_message = GattcWriteExecuteCmd()
         test_message.parameters.execute = True
         test_message.parameters.seq_num = 0x20
+        return test_message
 
+    def test_parameters_updated_after_construction(self):
+        test_message = self.generate_test_message()
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
     
     def test_parameters_non_zero_conidx(self):
@@ -1157,17 +1273,28 @@ class TestGattcWriteExecuteCmd(unittest.TestCase):
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
 
+    def test_factory(self):
+        test_message = self.generate_test_message()
+        
+        # Test factory generates message appropriately 
+        byte_string = bytes.fromhex(self.expected)
+        factory_message = GtlMessageFactory.create_message(byte_string)
+        # verify message class match
+        self.assertEqual(factory_message, test_message, f"{type(factory_message).__name__}() incorrect msg created")
+
 # Table 190
 class TestGattcSvcChangedCfgInd(unittest.TestCase):
 
     def setUp(self):
         self.expected = "05120C10000C0002000200"
 
-    def test_parameters_updated_after_construction(self):
-        
+    def generate_test_message(self):
         test_message = GattcSvcChangedCfgInd()
         test_message.parameters.ind_cfg = 0x0002
+        return test_message
 
+    def test_parameters_updated_after_construction(self):
+        test_message = self.generate_test_message()
         self.assertEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
     
     def test_parameters_non_zero_conidx(self):
@@ -1176,6 +1303,15 @@ class TestGattcSvcChangedCfgInd(unittest.TestCase):
         test_message.parameters.ind_cfg = 0x0002
 
         self.assertNotEqual(test_message.to_hex(), self.expected, f"{type(test_message).__name__}() incorrect byte stream")
+
+    def test_factory(self):
+        test_message = self.generate_test_message()
+        
+        # Test factory generates message appropriately 
+        byte_string = bytes.fromhex(self.expected)
+        factory_message = GtlMessageFactory.create_message(byte_string)
+        # verify message class match
+        self.assertEqual(factory_message, test_message, f"{type(factory_message).__name__}() incorrect msg created")
 
 if __name__ == '__main__':
     unittest.main()

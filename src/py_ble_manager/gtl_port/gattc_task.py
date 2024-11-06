@@ -523,7 +523,7 @@ class gattc_read_simple(LittleEndianStructure):
                 # attribute handle
     _fields_ = [("handle", c_uint16),
                 # start offset in data payload
-                ("offset", c_uint8),
+                ("offset", c_uint16),
                 # Length of data to read (0 = read all)
                 ("length", c_uint16)]
 

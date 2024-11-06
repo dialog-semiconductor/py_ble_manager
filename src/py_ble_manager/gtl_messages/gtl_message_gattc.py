@@ -589,7 +589,7 @@ class GattcSvcChangedCfgInd(GtlMessageBase):
                          parameters=self.parameters)
 
 
-# TODO not documented. need unit test
+# TODO not documented. need unit test and factory test
 class GattcTransactionToErrorInd(GtlMessageBase):
 
     # TODO confirm if has connection index
