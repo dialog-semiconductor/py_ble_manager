@@ -101,11 +101,11 @@ class GapmMessageFactory():
     def dev_bdaddr_ind(params_buf: bytes):
         return GapmDevBdAddrInd(gapm_dev_bdaddr_ind.from_buffer_copy(params_buf))
 
-    @staticmethod
-    def create_message(msg_bytes: bytes):
+    @classmethod
+    def create_message(cls, msg_bytes: bytes):
         msg_id = GAPM_MSG_ID(int.from_bytes(msg_bytes[1:3], "little", signed=False))
         params_buf = msg_bytes[9:]
-        handler = GapmMessageFactory.msg_handlers.get(msg_id)
+        handler = cls.msg_handlers.get(msg_id)
         try:
             if handler:
                 return handler(params_buf)
