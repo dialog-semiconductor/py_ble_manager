@@ -7,14 +7,17 @@ from ..tools.GtlSerialReceiver import GtlSerialReceiver
 
 class GtlSniffer():
 
-    def __init__(self, com_port_rx: str, com_port_tx: str, baud_rate: int) -> None:
-        self.msg_q = queue.Queue()
-        self.rx_serial_path = GtlSerialReceiver(com_port_rx, baud_rate, self.msg_q)
-        self.tx_serial_path = GtlSerialReceiver(com_port_tx, baud_rate, self.msg_q)
+    def __init__(self, com_port_1: str, com_port_2: str = None, baud_rate: int = 1000000) -> None:
+        self._msg_q = queue.Queue()
+        self._serial_path_1 = GtlSerialReceiver(com_port_1, baud_rate, self._msg_q)
+        if com_port_2:
+            self._serial_path_2 = GtlSerialReceiver(com_port_2, baud_rate, self._msg_q)
+        else:
+            self._serial_path_2 = None
 
     def _get_gtl_msg_bytes(self, timeout: int = 0) -> bytes:
         try:
-            msg = self.msg_q.get(timeout=timeout)
+            msg = self._msg_q.get(timeout=timeout)
         except queue.Empty:
             msg = None
         return msg
@@ -40,5 +43,6 @@ class GtlSniffer():
         return None
 
     def init(self):
-        self.rx_serial_path.init()
-        self.tx_serial_path.init()
+        self._serial_path_1.init()
+        if self._serial_path_2:
+            self._serial_path_2.init()
