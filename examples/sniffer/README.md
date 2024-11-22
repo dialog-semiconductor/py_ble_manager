@@ -23,7 +23,7 @@ You can run it with:
 
 ## Running *without* a log file
 
-Once runninng, a message will print to the terminal to indicate sniffing has started:
+Once running, a message will print to the terminal to indicate sniffing has started:
 
 ![terminal](assets/terminal_started.png)
 
@@ -33,7 +33,7 @@ You should see messages printed to the terminal once GTL communication is starte
 
 ## Running *with* a log file
 
-Once runninng, a message will print to the terminal to indicate sniffing has started:
+Once running, a message will print to the terminal to indicate sniffing has started:
 
 ![terminal](assets/log_started.png)
 
