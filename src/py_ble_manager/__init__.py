@@ -33,6 +33,8 @@ from .ble_devices.BlePeripheral import BlePeripheral
 from .gtl_port.gap import GAP_KDIST
 from .services.BleService import BleServiceBase, AttributeHandle, GattServiceDef, CharacteristicDef, DescriptorDef, GattCharacteristicDef
 
+from .tools.GtlAioSniffer import GtlAioSniffer
 from .tools.GtlSniffer import GtlSniffer
+
 
 

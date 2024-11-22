@@ -1,4 +1,4 @@
-# gtl_sniffer.py
+# gtl_sniffer_aio.py
 
 This is a utility script for sniffing serial GTL communication between a host and DA14xxx BLE device. You can sniff communication from the host to the BLE device,
 from the BLE device to the host, or both.
@@ -11,7 +11,7 @@ Host < -- Rx  --   BLE: Connect USB-to-UART Rx pin to the Host Rx pin to sniff G
 
 You can run it with:
 
-`python gtl_sniffer.py <com_port_1> <baud_rate> <--com_port_2> <--log_file>`
+`python gtl_sniffer_aio.py <com_port_1> <baud_rate> <--com_port_2> <--log_file>`
 
 `<com_port_1>` is the COM port associated with your (first) USB-to-UART converter.
 

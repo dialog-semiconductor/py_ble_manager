@@ -1,26 +1,28 @@
-import queue
-import threading
+import asyncio
+
 from ..gtl_messages.gtl_message_base import GtlMessageBase
 from ..gtl_messages.gtl_message_factory import GtlMessageFactory
 from ..gtl_port.rwip_config import KE_API_ID
-from ..tools.GtlSerialReceiver import GtlSerialReceiver
+from ..tools.GtlAioSerialReceiver import GtlAioSerialReceiver
 
 
-class GtlSniffer():
+class GtlAioSniffer():
 
     def __init__(self, com_port_1: str, com_port_2: str = None, baud_rate: int = 1000000) -> None:
-        self._msg_q = queue.Queue()
-        self.lock = threading.Lock()
-        self._serial_path_1 = GtlSerialReceiver(com_port_1, baud_rate, self._msg_q, self.lock)
+        self._msg_q: asyncio.Queue[bytes] = asyncio.Queue()
+
+        self._serial_path_1 = GtlAioSerialReceiver(com_port_1, baud_rate, self._msg_q)
         if com_port_2:
-            self._serial_path_2 = GtlSerialReceiver(com_port_2, baud_rate, self._msg_q, self.lock)
+            self._serial_path_2 = GtlAioSerialReceiver(com_port_2, baud_rate, self._msg_q)
         else:
             self._serial_path_2 = None
 
-    def _get_gtl_msg_bytes(self, timeout: int = 0) -> bytes:
+    async def _get_gtl_msg_bytes(self, timeout: int = 0) -> bytes:
         try:
-            msg = self._msg_q.get(timeout=timeout)
-        except queue.Empty:
+            msg = await self._msg_q.get()
+            # TODO
+            # msg = await asyncio.wait_for(self._msg_q.get(), timeout)
+        except asyncio.QueueEmpty:
             msg = None
         return msg
 
@@ -38,13 +40,15 @@ class GtlSniffer():
 
         return msg_string
 
-    def get_gtl_msg_str(self, timeout: int = 0) -> bytes:
-        msg: bytes = self._get_gtl_msg_bytes(timeout)
+    async def get_gtl_msg_str(self, timeout: int = 0) -> bytes:
+        msg: bytes = await self._get_gtl_msg_bytes(timeout)
         if msg:
             return self._process_msg(msg)
         return None
 
-    def init(self):
+    async def init(self):
+        await self._serial_path_1.open_serial_port()
         self._serial_path_1.init()
         if self._serial_path_2:
+            await self._serial_path_2.open_serial_port()
             self._serial_path_2.init()

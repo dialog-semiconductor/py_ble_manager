@@ -18,6 +18,7 @@ class GtlSerialReceiver():
     def _receive(self):
         buffer = bytes()
         buffer = self._serial_port.read(1)
+
         if (buffer[0] == GTL_INITIATOR):
             # Get msg_id, dst_id, src_id, par_len. Use par_len to read rest of message
             buffer += self._serial_port.read(8)
