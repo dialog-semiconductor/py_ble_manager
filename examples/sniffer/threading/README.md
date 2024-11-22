@@ -4,7 +4,7 @@ This is a utility script for sniffing serial GTL communication between a host an
 from the BLE device to the host, or both.
 
 **WARNING** this scipt and the classes it leverages use the threading library to read from two serialports simultaneously. There may be minor errors
-in timestamping/order of messages due to this. For most percise sniffing, reference the [asyncio version](../asyncio/README.md) of this script.
+in timestamping/order of messages due to this. For most percise sniffing, reference the [asyncio version](../asyncio/) of this script.
 
 It requires at least one USB-to-UART converter, two if you are sniffing Tx and Rx simultaneously. The Rx pin of your USB-to-UART converter(s) should be connected
 to the Host-BLE pin you are intereseted in sniffing:
