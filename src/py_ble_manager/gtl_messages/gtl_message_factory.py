@@ -27,16 +27,16 @@ class GtlMessageFactory():
 
         try:
             if message_task_id == KE_API_ID.TASK_ID_GAPM:
-                return GapmMessageFactory().create_message(msg_bytes)
+                return GapmMessageFactory.create_message(msg_bytes)
 
             elif message_task_id == KE_API_ID.TASK_ID_GAPC:
-                return GapcMessageFactory().create_message(msg_bytes)
+                return GapcMessageFactory.create_message(msg_bytes)
 
             elif message_task_id == KE_API_ID.TASK_ID_GATTM:
-                return GattmMessageFactory().create_message(msg_bytes)
+                return GattmMessageFactory.create_message(msg_bytes)
 
             elif message_task_id == KE_API_ID.TASK_ID_GATTC:
-                return GattcMessageFactory().create_message(msg_bytes)
+                return GattcMessageFactory.create_message(msg_bytes)
 
             else:
                 raise AssertionError(f"GtlMessageFactory: Message type is unhandled or not valid. message={msg_bytes.hex()}")
