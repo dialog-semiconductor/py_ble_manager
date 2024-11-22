@@ -19,7 +19,8 @@ class GtlAioSniffer():
 
     async def _get_gtl_msg_bytes(self, timeout: int = 0) -> bytes:
         try:
-            msg = await asyncio.wait_for(self._msg_q.get(), timeout)
+            timeout_seconds = timeout if timeout else None
+            msg = await asyncio.wait_for(self._msg_q.get(), timeout_seconds)
         except asyncio.TimeoutError:
             msg = None
         return msg
@@ -42,6 +43,8 @@ class GtlAioSniffer():
         msg: bytes = await self._get_gtl_msg_bytes(timeout)
         if msg:
             return self._process_msg(msg)
+        else:
+            print("None")
         return None
 
     async def init(self):
