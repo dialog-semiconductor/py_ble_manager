@@ -30,9 +30,9 @@ class GtlSniffer():
             elif msg.src_id == KE_API_ID.TASK_ID_GTL:
                 msg_string = (f"--> Tx: {msg}\n")
             else:
-                raise AssertionError("msg ID does not make sense")
+                raise AssertionError(f"{__class__.__name__}.{__name__}: invalid msg ID. msg.src_id={msg.src_id}, msg.dst_id={msg.dst_id} ")
         else:
-            raise AssertionError(f"{__class__.__name__}.{__name__} unhandled serial message. byte_string={byte_string.hex()}")
+            raise AssertionError(f"{__class__.__name__}.{__name__}: unhandled serial message. byte_string={byte_string.hex()}")
 
         return msg_string
 
