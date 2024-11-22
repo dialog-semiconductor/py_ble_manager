@@ -1,0 +1,41 @@
+import queue
+import serial
+import threading
+from py_ble_manager.gtl_messages.gtl_message_base import GTL_INITIATOR
+
+
+class GtlSerialReceiver():
+
+    def __init__(self, com_port: str, baud_rate: int, rx_queue: queue.Queue[bytes]) -> None:
+        self._rx_queue: queue.Queue[bytes] = rx_queue
+        self._com_port: str = com_port
+        self._baud_rate: int = baud_rate
+
+    def _process_received_data(self, buffer: bytes):
+        if buffer:
+            self._rx_queue.put_nowait(buffer)
+
+    def _receive(self):
+        buffer = bytes()
+        buffer = self._serial_port.read(1)
+        if (buffer[0] == GTL_INITIATOR):
+            # Get msg_id, dst_id, src_id, par_len. Use par_len to read rest of message
+            buffer += self._serial_port.read(8)
+            par_len = int.from_bytes(buffer[7:9], "little", signed=False)
+            if (par_len != 0):
+                buffer += self._serial_port.read(par_len)
+        else:
+            # print("Received some garbage")
+            pass
+        return buffer
+
+    def _receive_task(self):
+        while True:
+            serial_message = self._receive()
+            self._process_received_data(serial_message)
+
+    def init(self):
+        self._serial_port = serial.Serial(self._com_port, baudrate=self._baud_rate)
+        self._rx_task = threading.Thread(target=self._receive_task)
+        self._rx_task.daemon = True
+        self._rx_task.start()
