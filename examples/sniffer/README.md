@@ -19,9 +19,9 @@ You can run it with:
 
 `<--com_port_2>` is the COM port associated with your second USB-to-UART converter if you are sniffing both Tx and Rx.
 
-`<--log_file>` is the path to a log file to log GTL communication to. If no log file is provided, information will be logged to the terminal.
+`<--log_file>` is the path to a file to save GTL communication to. If no log file is provided, information will be logged to the terminal.
 
-## Running *with* a log file
+## Running *without* a log file
 
 Once runninng, a message will print to the terminal to indicate sniffing has started:
 
@@ -31,7 +31,7 @@ You should see messages printed to the terminal once GTL communication is starte
 
 ![terminal](assets/terminal_running.png)
 
-## Running *without* a log file
+## Running *with* a log file
 
 Once runninng, a message will print to the terminal to indicate sniffing has started:
 
