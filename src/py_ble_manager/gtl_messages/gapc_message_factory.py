@@ -105,8 +105,10 @@ class GapcMessageFactory():
         if parameters.req == GAPC_DEV_INFO.GAPC_DEV_NAME:
             # parameters.info.name.length will be set when parameters.info.name.value set
             length = int.from_bytes(params_buf[2:4], "little", signed=False)
+
+            # Check for mismatch in value length and remaining bytes
             # -6 to account for additional padding in gapc_get_dev_info_cfm
-            assert (length) == len(params_buf[4:-6]), f"length={length}, params_buf[4:]={len(params_buf[4:-6])}"  # Check for mismatch in value length and remaining bytes
+            assert (length) == len(params_buf[4:-6]), f"length={length}, params_buf[4:]={len(params_buf[4:-6])}"
             parameters.info.name.value = (length * c_uint8).from_buffer_copy(params_buf[4:-6])
         elif parameters.req == GAPC_DEV_INFO.GAPC_DEV_APPEARANCE:
             assert len(params_buf[2:-6] == 2)
@@ -193,7 +195,8 @@ class GapcMessageFactory():
             if handler:
                 return handler(conidx, params_buf)
             else:
-                raise AssertionError(f"{__class__.__name__}: Message type is unhandled or not valid. msg_id={type(msg_id).__name__}.{msg_id.name}, message={msg_bytes.hex()}")
+                raise AssertionError(f"{__class__.__name__}: Message type is unhandled or not valid. msg_id={type(msg_id).__name__}.{msg_id.name}, \
+                                     message={msg_bytes.hex()}")
         except AssertionError as e:
             print(e)
             raise e
