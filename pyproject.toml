@@ -27,7 +27,8 @@ keywords = [
 
 [project.optional-dependencies]
 dev = [
-    "prompt_toolkit>=3.0.38"
+    "prompt_toolkit>=3.0.38",
+    "pyserial-asyncio>=0.6",
 ]
 
 [tool.setuptools.packages.find]
