@@ -14,7 +14,7 @@ description = "A python library for controlling Renesas BLE devices"
 requires-python = ">=3.10.5"
 dependencies = [
     "pyserial>=3.5",
-    "ezFlashCLI=1.0.28",
+    "ezFlashCLI==1.0.28",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
