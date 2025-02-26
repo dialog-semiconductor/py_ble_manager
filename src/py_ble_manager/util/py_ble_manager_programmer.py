@@ -3,7 +3,7 @@ import json
 import os
 import sys
 import ezFlashCLI.cli
-from ezFlashCLI.ezFlash.smartbond.smartbondDevices import da14xxx, da14531, da1469x, SMARTBOND_IDENTIFIER
+from ezFlashCLI.ezFlash.smartbond.smartbondDevices import da14xxx, da14531, da1469x  # TODO add DA14592. ezFlashCLI to be updated for DA14594?
 from ezFlashCLI.ezFlash.pyjlink import pyjlink
 import py_ble_manager
 
@@ -37,7 +37,7 @@ def identify_hardware_type(serial_number: str):
     # identify hardware type
     mcu = da14xxx()
     id = mcu.connect(serial_number)
-    device_id_str = SMARTBOND_IDENTIFIER[id]
+    device_id_str = id
     # close the link
     mcu.link.close()
     return device_id_str
