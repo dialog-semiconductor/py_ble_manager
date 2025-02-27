@@ -1244,7 +1244,8 @@ class BleManagerGap(BleManagerBase):
         evt = BleEventGapAdvReport()
         evt.type = GAP_ADV_TYPE(gtl.parameters.report.evt_type)
         if (self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14695
-                or self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14592):
+                or self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14592
+                or self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14594):
 
             evt.rssi = (gtl.parameters.report.rssi & 0x7F)
             evt.rssi = (-1 * evt.rssi) if (gtl.parameters.report.rssi & 0x80) else evt.rssi
@@ -1283,8 +1284,12 @@ class BleManagerGap(BleManagerBase):
         else:
 
             op = GAPM_OPERATION.GAPM_CANCEL
-            if self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14695:
+            if (self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14695
+                    or self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14592
+                    or self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14594):
+
                 op = GAPM_OPERATION.GAPM_CANCEL_ADVERTISE
+
             self._send_gapm_cancel_cmd(op)
             response.status = BLE_ERROR.BLE_STATUS_OK
         self.dev_params_release()
@@ -1649,8 +1654,12 @@ class BleManagerGap(BleManagerBase):
             response.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
         else:
             op = GAPM_OPERATION.GAPM_CANCEL
-            if self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14695:
+            if (self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14695
+                    or self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14592
+                    or self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14594):
+
                 op = GAPM_OPERATION.GAPM_CANCEL_CONNECTION
+
             self._send_gapm_cancel_cmd(op)
             response.status = BLE_ERROR.BLE_STATUS_OK
 
@@ -2308,8 +2317,12 @@ class BleManagerGap(BleManagerBase):
             response.status = BLE_ERROR.BLE_ERROR_NOT_ALLOWED
         else:
             op = GAPM_OPERATION.GAPM_CANCEL
-            if self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14695:
+            if (self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14695
+                    or self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14592
+                    or self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14594):
+
                 op = GAPM_OPERATION.GAPM_CANCEL_SCAN
+
             self._send_gapm_cancel_cmd(op)
             response.status = BLE_ERROR.BLE_STATUS_OK
         self.dev_params_release()
