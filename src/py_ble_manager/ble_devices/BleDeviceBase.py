@@ -55,6 +55,13 @@ class BleDeviceBase():
 
         self._services: list[BleServiceBase] = []
 
+        self._serial_stream_manager.open_serial_port()
+
+        # Start always running BLE tasks
+        self._ble_manager.init()
+        self._ble_adapter.init()
+        self._serial_stream_manager.init()
+
     def _ble_reset(self) -> BLE_ERROR:
         """Reset BLE module
 
@@ -367,14 +374,6 @@ class BleDeviceBase():
         """
 
         return self._ble_gap.get_sec_level(conn_idx)
-
-    def init(self) -> None:
-        self._serial_stream_manager.open_serial_port()
-
-        # Start always running BLE tasks
-        self._ble_manager.init()
-        self._ble_adapter.init()
-        self._serial_stream_manager.init()
 
     def mtu_size_get(self) -> Tuple[int, BLE_ERROR]:
         """Get MTU size
