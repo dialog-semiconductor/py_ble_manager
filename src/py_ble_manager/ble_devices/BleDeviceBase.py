@@ -518,6 +518,8 @@ class BleDeviceBase():
         if error == BLE_ERROR.BLE_STATUS_OK:
             ble_config, error = self._get_dev_version()
             if error == BLE_ERROR.BLE_STATUS_OK:
+                # If user is using the default BleConfigDefault, update with config with HW Type (ble_config will be BleConfigDA14531, BleConfigDA1469x, BleConfigDA1452, or BleConfigDA1454)
+                # If user is using their own config, ble_config will be None
                 if ble_config:
                     self._ble_config = ble_config
                     self._ble_manager.update_ble_config(ble_config)
