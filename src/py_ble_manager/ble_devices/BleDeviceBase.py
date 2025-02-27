@@ -523,6 +523,9 @@ class BleDeviceBase():
                     self._ble_config = ble_config
                     self._ble_manager.update_ble_config(ble_config)
                 error = self._ble_gap.role_set(role)
+        else:
+            raise ValueError("Failed to reset BLE stack. Check your development kit hardware setup"
+                             " and confirm the development kit is programmed with py_ble_manager firmware")
 
         return error
 

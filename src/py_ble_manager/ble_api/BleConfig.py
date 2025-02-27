@@ -14,6 +14,8 @@ class BLE_HW_TYPE(IntEnum):
     NONE = 0
     DA14531 = 1
     DA14695 = 2
+    DA14592 = 3
+    DA14594 = 4
 
 
 class BleConfigDefault():
@@ -65,6 +67,14 @@ class BleConfigDA1469x(BleConfigDefault):
         self.dg_configHW_TYPE = BLE_HW_TYPE.DA14695
 
 
+class BleConfigDA1452(BleConfigDefault):
+    """DA14695 configuration for various BLE parameters
+    """
+    def __init__(self, ble_device_type: BLE_DEVICE_TYPE = BLE_DEVICE_TYPE.CENTRAL):
+        super().__init__(ble_device_type)
+        self.dg_configHW_TYPE = BLE_HW_TYPE.DA14592
+
+
 class DA14531VersionInd():
     def __init__(self):
         super().__init__()
@@ -95,6 +105,28 @@ class DA14695VersionInd():
         self.host_ver = 8
         self.hci_subver = 24
         self.lmp_subver = 24
+        self.host_subver = 526
+        self.manuf_name = 210
+
+    def __eq__(self, other):
+        return (self.hci_ver == other.hci_ver
+                and self.hci_ver == other.hci_ver
+                and self.lmp_ver == other.lmp_ver
+                and self.host_ver == other.host_ver
+                and self.hci_subver == other.hci_subver
+                and self.lmp_subver == other.lmp_subver
+                and self.host_subver == other.host_subver
+                and self.manuf_name == other.manuf_name)
+
+
+class DA14592VersionInd():
+    def __init__(self):
+        super().__init__()
+        self.hci_ver = 11
+        self.lmp_ver = 11
+        self.host_ver = 8
+        self.hci_subver = 1
+        self.lmp_subver = 1
         self.host_subver = 526
         self.manuf_name = 210
 

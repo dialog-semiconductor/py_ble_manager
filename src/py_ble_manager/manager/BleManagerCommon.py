@@ -3,7 +3,7 @@ import threading
 from typing import Callable
 
 from ..ble_api.BleCommon import BLE_ERROR, BleEventBase, BLE_STATUS, BleEventResetCompleted
-from ..ble_api.BleConfig import BleConfigDefault, BleConfigDA14531, BleConfigDA1469x, DA14531VersionInd, DA14695VersionInd
+from ..ble_api.BleConfig import BleConfigDefault, BleConfigDA14531, BleConfigDA1469x, BleConfigDA1452, DA14531VersionInd, DA14695VersionInd, DA14592VersionInd
 from ..ble_api.BleGap import BLE_CONN_IDX_INVALID
 from ..gtl_messages.gtl_message_base import GtlMessageBase
 from ..gtl_messages.gtl_message_gapm import GapmResetCmd, GapmCmpEvt, GapmGetDevVersionCmd, GapmDevVersionInd
@@ -65,6 +65,8 @@ class BleManagerCommon(BleManagerBase):
                     response.config = BleConfigDA14531()
                 elif response == DA14695VersionInd():
                     response.config = BleConfigDA1469x()
+                elif response == DA14592VersionInd():
+                    response.config = BleConfigDA1452()
 
         self._mgr_response_queue_send(response)
 

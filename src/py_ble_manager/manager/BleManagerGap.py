@@ -1243,9 +1243,12 @@ class BleManagerGap(BleManagerBase):
     def adv_report_evt_handler(self, gtl: GapmAdvReportInd) -> None:
         evt = BleEventGapAdvReport()
         evt.type = GAP_ADV_TYPE(gtl.parameters.report.evt_type)
-        if self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14695:
+        if (self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14695
+                or self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14592):
+
             evt.rssi = (gtl.parameters.report.rssi & 0x7F)
             evt.rssi = (-1 * evt.rssi) if (gtl.parameters.report.rssi & 0x80) else evt.rssi
+
         elif self._ble_config.dg_configHW_TYPE == BLE_HW_TYPE.DA14531:
             evt.rssi = -1 * (256 - gtl.parameters.report.rssi)
 
