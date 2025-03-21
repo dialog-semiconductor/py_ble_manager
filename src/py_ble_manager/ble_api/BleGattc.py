@@ -35,6 +35,9 @@ class GattcIncludedServiceData():
         self.start_h = start_h
         self.end_h = end_h
 
+    def __repr__(self):
+        return f"{type(self).__name__}(start_h={self.start_h}, end_h={self.end_h})"
+
 
 class GattcCharacteristicData():
     """GATT Characteristic data
@@ -48,6 +51,9 @@ class GattcCharacteristicData():
                  properties: int = 0):
         self.value_handle = value_handle
         self.properties = properties
+
+    def __repr__(self):
+        return f"{type(self).__name__}(value_handle={self.value_handle}, properties={self.properties})"
 
 
 class GattcItem():
@@ -72,6 +78,9 @@ class GattcItem():
         self.type = type
         self.service_data = service_data
         self.char_data = char_data
+    
+    def __repr__(self):
+        return f"{type(self).__name__}(uuid={self.uuid}, handle={self.handle}, type={self.type.name}, service_data={self.service_data}, char_data={self.char_data})"
 
 
 class BleEventGattcBrowseSvc(BleEventBase):

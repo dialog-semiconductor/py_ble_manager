@@ -1,0 +1,620 @@
+import argparse
+import threading
+from io import TextIOWrapper
+import queue
+from enum import IntEnum, auto
+import os
+from pathlib import Path
+from prompt_toolkit import PromptSession
+from prompt_toolkit.completion import WordCompleter
+from prompt_toolkit.patch_stdout import patch_stdout
+import time
+
+from serial_port_service import SPS_UUID_STR, SPS_SERVER_TX_UUID_STR, SPS_SERVER_RX_UUID_STR, SPS_SERVER_FLOW_CTRL_UUID_STR, SPS_FLOW
+
+import py_ble_manager as ble
+
+
+FILE_PATH = Path(__file__).parent
+
+
+CCC_UUID_STR = "2902"
+USER_DESC_UUID_STR = "2901"
+DEVICE_NAME_UUID_STR = "2A00"
+GENERIC_ACCESS_SERVICE_UUID_STR = "1800"
+
+# TODO WANT TO INCREASE MTU TO MAX
+# TODO Accept Param update REq BleEventGapConnParamUpdateReq
+class APP_STATE(IntEnum):
+    NONE = auto()
+    WAIT_FOR_CONNECTION = auto()
+    CONNECTED = auto()
+    WAIT_FOR_BROWSE_GENERIC_ACCESS = auto()
+    WAIT_FOR_NAME = auto()
+    WAIT_FOR_BROWSE_SPS = auto()
+    WAIT_FOR_ENABLE_CCC = auto()
+    READY_RX_TX = auto()
+    DISCONNECTED = auto()
+    DONE = auto()
+    ERROR = auto()
+
+
+class SerialPortSvc():
+    def __init__(self):
+        self.svc_handle = 0
+        self.server_rx = ble.GattcItem()            # Rx Characteristic for service. Central writes to this characteristic
+        self.server_rx_ccc = ble.GattcItem()        # Rx Client Characteristic Configuration Descriptor     (WHY DOES THIS EXIST)
+        self.server_rx_user_desc = ble.GattcItem()  # Rx Char User Description
+        self.server_tx = ble.GattcItem()            # Tx Characteristic for service. Central receives notifications on this characteristic
+        self.server_tx_user_desc = ble.GattcItem()  # Tx Char User Description
+        self.server_tx_ccc = ble.GattcItem()        # Tx Client Characteristic Configuration Descriptor
+        self.flow_ctrl = ble.GattcItem()            # Flow Control Char for service. 
+        self.flow_ctrl_ccc = ble.GattcItem()        # Flow Control Client Characteristic Configuration Descriptor   (WHY DOES THIS EXIST)
+        self.flow_ctrl_user_desc = ble.GattcItem()  # Flow Control Char User Description
+
+
+
+class CLIHandler():
+    def __init__(self, ble_command_q: queue.Queue, ble_response_q: queue.Queue):
+        self.ble_command_q = ble_command_q
+        self.ble_response_q = ble_response_q
+        self.exit = threading.Event()
+
+    def start_prompt(self):
+        # Accepted commands
+        commands = ['SCAN',
+                    'CONNECT',
+                    'SEND',
+                    'SEND_FILE',
+                    'EXIT']
+        commands.sort()
+        word_completer = WordCompleter(commands, ignore_case=True)
+
+        self.session = PromptSession(completer=word_completer)
+        while True:
+            with patch_stdout():
+                try:
+                    if self.exit.is_set():
+                        return
+                    input: str = self.session.prompt('>>> ')
+                    if input:
+                        args = input.split()
+                        # Ensure we have a valid command
+                        if input and args[0] in commands:
+                            self.ble_command_q.put_nowait(input)
+                            response = self.ble_response_q.get()
+                        else:
+                            response = "ERROR Invalid Command"
+                        print(f"<<< {response}")
+                except KeyboardInterrupt:
+                    print("Session Keyboard Interrupt")
+                    return
+
+    def shutdown(self):
+        try:
+            if self.session and self.session.app.is_running:
+                self.session.app.exit()
+                self.exit.set()
+        finally:
+            pass
+
+
+class BleController():
+    def __init__(self,
+                 com_port: str,
+                 command_q: queue.Queue,
+                 response_q: queue.Queue,
+                 log: object = TextIOWrapper):
+
+        self.com_port = com_port
+        self.command_q = command_q
+        self.response_q = response_q
+        self._exit = threading.Event()
+        #                    ble addr     name, adv packet,               scan rsp packet
+        self.scan_dict: dict[bytes, tuple[str,  ble.BleEventGapAdvReport, ble.BleEventGapAdvReport]] = {}
+        self.sps_uuid: ble.AttUuid = ble.BleUtils.uuid_from_str(SPS_UUID_STR)
+        self.sps_svc = SerialPortSvc() # Can we merge uuid and this? 
+
+        self.connected_addr: ble.BdAddress = ble.BdAddress()
+        
+        self.app_state = APP_STATE.DISCONNECTED
+        #self.response = DciSvcResponse()
+        #self.reset_data = DciData()
+        self.connected_name = "Unknown"
+        self.log_file_handle = log
+        self.device_name_handle = 0
+
+    def _command_queue_task(self):
+        while True:
+            command = self.command_queue_get()
+            error = self.handle_console_command(command)
+            if error == ble.BLE_ERROR.BLE_STATUS_OK:
+                response = "OK"
+            else:
+                response = f"ERROR: {error.name}"
+            self.response_q.put_nowait(str(response))
+
+    def _event_queue_task(self):
+        while True:
+            evt = self.central.get_event()
+            if evt:
+                self.handle_ble_event(evt)
+
+    def ble_task(self):
+        assert self.com_port
+        assert self.command_q
+        assert self.response_q
+
+        # initialize central device
+        self.central = ble.BleCentral(self.com_port)
+        self.central.init()
+        self.central.start()
+        self.central.set_io_cap(ble.GAP_IO_CAPABILITIES.GAP_IO_CAP_KEYBOARD_DISP)
+
+        self._command_task = threading.Thread(target=self._command_queue_task)
+        self._command_task.daemon = True
+        self._command_task.start()
+
+        self._event_task = threading.Thread(target=self._event_queue_task)
+        self._event_task.daemon = True
+        self._event_task.start()
+
+        self._exit.wait()
+
+    def command_queue_get(self):
+        return self.command_q.get()
+
+    def handle_ble_event(self, evt: ble.BleEventBase = None):
+        if evt:
+            match evt.evt_code:
+                case ble.BLE_EVT_GAP.BLE_EVT_GAP_ADV_REPORT:
+                    self.handle_evt_gap_adv_report(evt)
+                case ble.BLE_EVT_GAP.BLE_EVT_GAP_SCAN_COMPLETED:
+                    self.handle_evt_gap_scan_completed(evt)
+                case ble.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTED:
+                    self.handle_evt_gap_connected(evt)
+                case ble.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED:
+                    self.handle_evt_gap_connection_completed(evt)
+                case ble.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED:
+                    self.handle_evt_gap_disconnected(evt)
+                case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_SVC:
+                    self.handle_evt_gattc_browse_svc(evt)
+                case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED:
+                    self.handle_evt_gattc_browse_completed(evt)
+                case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_NOTIFICATION:
+                    self.handle_evt_gattc_notification(evt)
+                case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED:
+                    self.handle_evt_gattc_write_completed(evt)
+                case ble.BLE_EVT_GATTC.BLE_EVT_GATTC_READ_COMPLETED:
+                    self.handle_evt_gattc_read_completed(evt)
+
+                case _:
+                    self.central.handle_event_default(evt)
+
+            if self.app_state is not APP_STATE.NONE:
+                self.update_state(evt)
+
+    def handle_console_command(self, command: str) -> ble.BLE_ERROR:
+        error = ble.BLE_ERROR.BLE_ERROR_FAILED
+        args = command.split()
+        if len(args) > 0:
+            ble_func = args[0]
+            match ble_func:
+                case 'SCAN':
+                    # Expected command format: >>>GAPSCAN
+                    self.scan_dict: dict[bytes, tuple[str, ble.BleEventGapAdvReport]] = {}
+                    self.log("Starting scan...")
+                    error = self.central.scan_start(ble.GAP_SCAN_TYPE.GAP_SCAN_ACTIVE,
+                                                    ble.GAP_SCAN_MODE.GAP_SCAN_GEN_DISC_MODE,
+                                                    100,
+                                                    50,
+                                                    False,
+                                                    False)
+                    
+                case "CONNECT":
+                    # Expected command format: >>>CONNECT 48:23:35:f4:00:02,P
+                    # TODO REVERT TO PASSING IN ADDR
+                    # if len(args) == 2:
+                    if len(args) == 1:
+                        # periph_bd = ble.BleUtils.str_to_bd_addr(args[1])
+                        
+                        periph_bd = ble.BleUtils.str_to_bd_addr("48:23:35:f4:00:02,P")
+                        
+                        periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
+                        error = self.central.connect(periph_bd, periph_conn_params)
+
+                    # move to state machine function
+                    if error == ble.BLE_ERROR.BLE_STATUS_OK:
+                        self.app_state = APP_STATE.WAIT_FOR_CONNECTION
+
+                case "SEND":
+                    if self.app_state == APP_STATE.READY_RX_TX:
+                        # Expected command format: >>>GETALLRESETDATA 48:23:35:00:1b:53,P
+                        if len(args) >= 2:
+                            
+                            # value = args[1].encode('utf-8')
+                            #value = (string.encode('utf-8') for string in args[1:])
+                            value = ' '.join(args[1:]).encode('utf-8')
+                            print(f"Sending: {value}")
+                            error = self.central.write_no_resp(0, (self.sps_svc.server_rx.handle + 1), 0, value)
+                        else: 
+                            print("Wrong num of arguments")
+                        # move to state machine function
+                        if error != ble.BLE_ERROR.BLE_STATUS_OK:
+                            #self.app_state = APP_STATE.ERROR
+                            print(f"Failed SEND: {error.name}")
+                    else:
+                        print("Not ready to communicate with device")
+
+                case "SEND_FILE":
+                    # Expected command format: >>>GETALLRESETDATA 48:23:35:00:1b:53,P
+                    if len(args) == 2:
+                        periph_bd = ble.BleUtils.str_to_bd_addr(args[1])
+                        periph_conn_params = ble.GapConnParams(50, 70, 0, 420)
+                        error = self.central.connect(periph_bd, periph_conn_params)
+
+                    # move to state machine function
+                    if error == ble.BLE_ERROR.BLE_STATUS_OK:
+                        self.app_state = FETCH_DATA_STATE.FETCH_DATA_CONNECT
+
+                case "EXIT":
+                    # Expected command format: EXIT
+                    self.shutdown()
+                    error = ble.BLE_ERROR.BLE_STATUS_OK
+
+                case _:
+                    pass
+
+        return error
+
+    def handle_evt_gap_adv_report(self, evt: ble.BleEventGapAdvReport):
+        #print(f"Report. address={ble.BleUtils.bd_addr_to_str(evt.address)} evt={evt}")
+
+        
+        name = "Unknown"
+        adv_packet = False  # used to separate adv packets from scan responses
+
+        # Parse the advertising structures
+        ad_structs = ble.BleUtils.parse_adv_data_from_bytes(evt.data)
+        for ad_struct in ad_structs:
+            if ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_FLAGS:
+                # This is an advertising packet (vs scan response)
+                adv_packet = True
+
+            if (ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_LOCAL_NAME
+                    or ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_SHORT_LOCAL_NAME):
+                # device name found
+                decoded_name = ad_struct.data.decode("utf-8")
+                if decoded_name != '\x00':  # some devices have a null character for the short name, ignore them
+                    name = decoded_name
+
+        if adv_report := self.scan_dict.get(evt.address.addr):
+            # Item exists in the scan dict, update it
+            # if we have a name for this device, do not overwrite it with Unknown
+            if adv_report[0] != "Unknown":
+                name = adv_report[0]
+            if adv_packet:
+                self.scan_dict[evt.address.addr] = (name, evt, adv_report[2])
+            else:
+                self.scan_dict[evt.address.addr] = (name, adv_report[1], evt)
+        else:
+            # Item does not exist in the scan dict, add it to the dict
+            for ad_struct in ad_structs:
+                #if (ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_UUID128_LIST):
+                #    print(f"name={name}, evt={evt}")
+                # only want devices that advertise Debug Crash Info Service
+                if (ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_UUID128_LIST
+                        and ad_struct.data == self.sps_uuid.uuid):
+                    # first time seeing this device, add it to dict with an empty scan rsp
+                    self.scan_dict[evt.address.addr] = (name, evt, ble.BleEventGapAdvReport())
+                    #print(f"Found: name={name} evt={evt}")
+
+    def handle_evt_gap_connected(self, evt: ble.BleEventGapConnected):
+        self.connected_addr = evt.peer_address
+        self.log(f"Connected to: address={ble.BleUtils.bd_addr_to_str(evt.peer_address)}")
+
+    def handle_evt_gap_connection_completed(self, evt: ble.BleEventGapConnectionCompleted):
+        self.log(f"Connection completed: status={evt.status.name}")
+
+    def handle_evt_gap_disconnected(self, evt: ble.BleEventGapDisconnected):
+        self.log(f"Disconnected from addr={ble.BleUtils.bd_addr_to_str(evt.address)}")
+
+    def handle_evt_gap_scan_completed(self, evt: ble.BleEventGapScanCompleted):
+        self.log("Scan complete")
+        device_info = ""
+        # Display information for all devices advertising with the Serial Port Service
+        for key in self.scan_dict:
+            name, adv_packet, scan_rsp = self.scan_dict[key]
+            device_info += f"Device name: {name}, addr: {ble.BleUtils.bd_addr_to_str(adv_packet.address)}"
+
+            ad_structs = ble.BleUtils.parse_adv_data_from_bytes(adv_packet.data)
+            for ad_struct in ad_structs:
+                if ad_struct.type == ble.GAP_DATA_TYPE.GAP_DATA_TYPE_UUID128_SVC_DATA:
+                    num_resets = ad_struct.data[-1]
+                    device_info += f", number of resets: {num_resets}"
+
+            self.log(device_info)
+
+    def handle_evt_gattc_browse_completed(self, evt: ble.BleEventGattcBrowseCompleted):
+        self.log(f"Browsing complete: conn_idx={evt.conn_idx}, evt={evt.status.name}")
+
+    def handle_evt_gattc_browse_svc(self, evt: ble.BleEventGattcBrowseSvc):
+        print(f"Browse {evt}")
+        if (ble.BleUtils.uuid_from_str(GENERIC_ACCESS_SERVICE_UUID_STR) == evt.uuid):
+            for item in evt.items:
+                if item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_CHARACTERISTIC:
+                    if item.uuid == ble.BleUtils.uuid_from_str(DEVICE_NAME_UUID_STR):
+                        print(f"Name GattcItem: {item}")
+                        self.device_name_handle = item.handle
+
+        # If browse info is for Serial Port Service,  store attribute handles so we can access attributes via read/write/etc.
+        if (ble.BleUtils.uuid_from_str(SPS_UUID_STR) == evt.uuid):
+            self.sps_svc.svc_handle = evt.start_h
+            for item in evt.items:
+                if item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_CHARACTERISTIC:
+                    if item.uuid == ble.BleUtils.uuid_from_str(SPS_SERVER_RX_UUID_STR):
+                        self.sps_svc.server_rx = item
+                        print(f"RX CHAR: {self.sps_svc.server_rx}")
+                    elif item.uuid == ble.BleUtils.uuid_from_str(SPS_SERVER_TX_UUID_STR):
+                        self.sps_svc.server_tx = item
+                        print(f"TX CHAR: {self.sps_svc.server_tx}")
+                    elif item.uuid == ble.BleUtils.uuid_from_str(SPS_SERVER_FLOW_CTRL_UUID_STR):
+                        self.sps_svc.flow_ctrl = item
+                        print(f"FLOR CTRL CHAR: {self.sps_svc.flow_ctrl}")
+
+                elif item.type == ble.GATTC_ITEM_TYPE.GATTC_ITEM_TYPE_DESCRIPTOR:
+                    # Parse Descriptors
+                    if (item.handle == self.sps_svc.server_rx.handle + 2
+                            or item.handle == self.sps_svc.server_rx.handle + 3):
+
+                        if ble.BleUtils.uuid_to_str(item.uuid) == CCC_UUID_STR:
+                            self.sps_svc.server_rx_ccc = item
+                        elif ble.BleUtils.uuid_to_str(item.uuid) == USER_DESC_UUID_STR:
+                            self.sps_svc.server_rx_user_desc = item
+
+                    elif (item.handle == self.sps_svc.server_tx.handle + 2
+                            or item.handle == self.sps_svc.server_tx.handle + 3):
+
+                        if ble.BleUtils.uuid_to_str(item.uuid) == CCC_UUID_STR:
+                            self.sps_svc.server_tx_ccc = item
+                        elif ble.BleUtils.uuid_to_str(item.uuid) == USER_DESC_UUID_STR:
+                            self.sps_svc.server_tx_user_desc = item
+
+                    if (item.handle == self.sps_svc.flow_ctrl.handle + 2
+                            or item.handle == self.sps_svc.flow_ctrl.handle + 3):
+
+                        if ble.BleUtils.uuid_to_str(item.uuid) == CCC_UUID_STR:
+                            self.sps_svc.flow_ctrl = item
+                        elif ble.BleUtils.uuid_to_str(item.uuid) == USER_DESC_UUID_STR:
+                            self.sps_svc.flow_ctrl = item
+
+    def handle_evt_gattc_notification(self, evt: ble.BleEventGattcNotification):
+        self.log(f"Received Notification: conn_idx={evt.conn_idx}, handle={evt.handle}, value={evt.value.hex()}")
+
+    def handle_evt_gattc_read_completed(self, evt: ble.BleEventGattcReadCompleted):
+        self.log(f"Read Complete: conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status.name}, value={evt.value.hex()}")
+
+    def handle_evt_gattc_write_completed(self, evt: ble.BleEventGattcWriteCompleted):
+        self.log(f"Write Complete: conn_idx={evt.conn_idx}, handle={evt.handle}, status={evt.status.name}")
+
+    def log(self, string):
+        print(string)
+        if self.log_file_handle:
+            self.log_file_handle.write(string + "\n")
+        # logging.info(string)
+
+    def log_reset_data(self):
+        self.log("*******************Debug Crash Info*******************")
+        self.log(f"Device name: {self.connected_name}")
+        self.log(f"Device address: {ble.BleUtils.bd_addr_to_str(self.connected_addr)}")
+        self.log(f"Last reset reason: {self.reset_data.last_reset_reason.name}")
+        self.log(f"Number of resets: {self.reset_data.num_resets}")
+
+        for i in range(self.reset_data.num_resets):
+            if self.reset_data.fault_data[i].data_valid:
+                self.log(f"Fault Data #{i}:")
+                self.log(f"\t Epoch: {self.reset_data.fault_data[i].epoch}")
+                self.log(f"\t Fault Type: {self.reset_data.fault_data[i].fault_handler.name}")
+                self.log("\t Last stack frame: ")
+                self.log(f"\t\t r0:  0x{self.reset_data.fault_data[i].stack_frame.r0:08x}")
+                self.log(f"\t\t r1:  0x{self.reset_data.fault_data[i].stack_frame.r1:08x}")
+                self.log(f"\t\t r2:  0x{self.reset_data.fault_data[i].stack_frame.r2:08x}")
+                self.log(f"\t\t r3:  0x{self.reset_data.fault_data[i].stack_frame.r3:08x}")
+                self.log(f"\t\t r12: 0x{self.reset_data.fault_data[i].stack_frame.r12:08x}")
+                self.log(f"\t\t LR:  0x{self.reset_data.fault_data[i].stack_frame.LR:08x}")
+                self.log(f"\t\t return_address: 0x{self.reset_data.fault_data[i].stack_frame.return_address:08x}")
+                self.log(f"\t\t xPSR: 0x{self.reset_data.fault_data[i].stack_frame.xPSR:08x}")
+
+                self.log("\t Call trace: ")
+                for j in range(self.reset_data.fault_data[i].num_of_call_vals):
+                    self.log(f"\t\t Call address {j}: 0x{self.reset_data.fault_data[i].call_trace[j]:08x}")
+
+        self.log("*****************Debug Crash Info End*****************")
+
+    def parse_reset_data(self, data: bytes):
+
+        self.reset_data.last_reset_reason = DCI_REST_REASON(data[0])
+        self.reset_data.num_resets = data[1]
+
+        # Parsing assumes data is the appropriate length
+        fault_data = data[2:]
+        for i in range(self.reset_data.num_resets):
+            fault_data = fault_data[(i * 63):]
+            self.reset_data.fault_data.append(DciFaultInfo())
+            self.reset_data.fault_data[i].data_valid = bool(fault_data[0])
+            self.reset_data.fault_data[i].epoch = int.from_bytes(fault_data[1:5], 'little')
+            self.reset_data.fault_data[i].fault_handler = DCI_LAST_FAULT_HANDLER(fault_data[5])
+            self.reset_data.fault_data[i].stack_frame = CortexM0StackFrame(fault_data[6:38])
+            self.reset_data.fault_data[i].num_of_call_vals = int(fault_data[38])
+            index = 39
+            for _ in range(6):
+                self.reset_data.fault_data[i].call_trace.append(int.from_bytes(fault_data[index:(index + 4)], 'little'))
+                index = index + 4
+
+    def update_state(self, evt: ble.BleEventBase):
+        '''
+        Process:
+        1. Connect to the device on interest
+        2. Read the device name
+        3. Browse the Device Crash Info Service to determine characteristic/descriptor handles
+        4. Enable TX Characteristic CCC to receive data from peripheral
+        5. Send Get All Reset Data command
+        6. Receive notifications with data
+        '''
+
+        print(f"update_state. State={self.app_state.name}. evt={evt}")
+        match self.app_state:
+
+            case APP_STATE.WAIT_FOR_CONNECTION:
+                if (evt.evt_code == ble.BLE_EVT_GAP.BLE_EVT_GAP_CONNECTION_COMPLETED):
+                    print("Starting to browse...")
+                    self.app_state = APP_STATE.WAIT_FOR_BROWSE_GENERIC_ACCESS
+                    self.central.browse(0, ble.BleUtils.uuid_from_str(GENERIC_ACCESS_SERVICE_UUID_STR))
+
+            case APP_STATE.WAIT_FOR_BROWSE_GENERIC_ACCESS:
+                evt: ble.BleEventGattcBrowseCompleted
+                if (evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED
+                        and self.device_name_handle != 0):
+                    self.app_state = APP_STATE.WAIT_FOR_NAME  # TODO may not have Device Info Service
+                    self.central.read(0, self.device_name_handle + 1, 0)  # saved handle is the char declaration, +1 to read the char value
+
+ 
+            case APP_STATE.WAIT_FOR_NAME:
+                if (evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_READ_COMPLETED
+                        and evt.handle == self.device_name_handle + 1):  # saved handle is the char declaration, +1 is the char value
+                    evt: ble.BleEventGattcReadCompleted
+                    self.connected_name = evt.value.decode("utf-8")
+                    print(f"connected_name = {self.connected_name}")
+                    self.app_state = APP_STATE.WAIT_FOR_BROWSE_SPS
+                    #self.central.browse(0, ble.BleUtils.uuid_from_str(DEBUG_CRASH_INFO_SVC_UUID_STR))
+                    self.central.browse(0, self.sps_uuid)
+
+            case APP_STATE.WAIT_FOR_BROWSE_SPS:
+                evt: ble.BleEventGattcBrowseCompleted
+                if (evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_BROWSE_COMPLETED
+                        and self.sps_svc.svc_handle != 0):
+                    print(f"Made it to Enable CCC. Writing {self.sps_svc.server_tx_ccc.handle}")
+                    self.app_state = APP_STATE.WAIT_FOR_ENABLE_CCC
+                    self.central.write(0,
+                                       self.sps_svc.server_tx_ccc.handle,
+                                       0,
+                                       bytes(ble.GATT_CCC.GATT_CCC_NOTIFICATIONS.to_bytes(2, 'little'))
+                                       )
+
+            case APP_STATE.WAIT_FOR_ENABLE_CCC:
+                if (evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_WRITE_COMPLETED
+                        and evt.handle == self.sps_svc.server_tx_ccc.handle):
+                    if evt.status == ble.BLE_ERROR.BLE_STATUS_OK:
+                        self.app_state = APP_STATE.READY_RX_TX
+                        print(f"READY TO COMMUNICATE!!!")
+                        '''
+                        evt: ble.BleEventGattcWriteCompleted
+                        self.app_state = FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_GET_ALL_RESPONSE
+                        # +1 as handle is for char declaration
+                        self.central.write(0,
+                                           (self.dci_svc.rx.handle + 1),  # saved handle is the char declaration, +1 to write to the char value
+                                           0,
+                                           bytes(DCI_SVC_COMMAND.GET_ALL_RESET_DATA.to_bytes(1, 'little'))
+                                           )
+                        '''
+                    else:
+                        self.app_state = APP_STATE.ERROR
+                        print(f"State: {self.app_state.name}. Error")
+
+            case APP_STATE.READY_RX_TX:
+                if evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_NOTIFICATION:
+                    evt: ble.BleEventGattcNotification
+                    print(f"RX <--: {evt.value.decode('utf-8')}")
+
+            
+            #case FETCH_DATA_STATE.FETCH_DATA_WAIT_FOR_GET_ALL_RESPONSE:
+            #    if (evt.evt_code == ble.BLE_EVT_GATTC.BLE_EVT_GATTC_NOTIFICATION
+            #            and evt.handle == self.dci_svc.tx.handle + 1):
+
+            #        evt: ble.BleEventGattcNotification
+            #        if self.response.command == DCI_SVC_COMMAND.NONE and len(evt.value) > 4:
+            #            self.response.command = int.from_bytes(evt.value[0:2], "little", signed=False)
+            #            self.response.len = int.from_bytes(evt.value[2:4], "little", signed=False)
+            #            self.response.data += evt.value[4:]
+            #        else:
+            #            self.response.data += evt.value
+            #            if len(self.response.data) == self.response.len:
+            #                self.parse_reset_data(self.response.data)
+            #                self.log_reset_data()
+            #                self.app_state = FETCH_DATA_STATE.FETCH_DATA_DISCONNECT
+            #                self.central.disconnect(0, ble.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON)
+
+            #case FETCH_DATA_STATE.FETCH_DATA_DISCONNECT:
+            #    if (evt.evt_code == ble.BLE_EVT_GAP.BLE_EVT_GAP_DISCONNECTED):
+            #        self.app_state = FETCH_DATA_STATE.FETCH_DATA_NONE
+            #        self.shutdown()
+
+
+        #if self.app_state == FETCH_DATA_STATE.FETCH_DATA_ERROR:
+        #    self.central.disconnect(0, ble.BLE_HCI_ERROR.BLE_HCI_ERROR_REMOTE_USER_TERM_CON)'
+        
+
+    def shutdown(self):
+        self.log_file_handle.close()
+        # self.response_q.put("EXIT")
+        self._exit.set()
+
+
+def create_log():
+
+    # Create the log directory if necessary
+    logs_directory = f"{FILE_PATH}\\logs"
+    if not os.path.exists(logs_directory):
+        os.makedirs(logs_directory)
+
+    log_file = open(f"{logs_directory}\\DCI_log_{time.strftime('%Y%m%d-%H%M%S')}.txt", 'w')
+
+    return log_file
+
+
+def main(com_port: str):
+
+    logfile = create_log()
+    ble_command_q = queue.Queue()
+    ble_response_q = queue.Queue()
+    ble_handler = BleController(com_port, ble_command_q, ble_response_q, logfile)
+    console = CLIHandler(ble_command_q, ble_response_q)
+
+    # start 2 tasks:
+    #   one for handling command line input
+    #   one for handling BLE
+
+    cli_task = threading.Thread(target=console.start_prompt)
+    cli_task.daemon = True
+    cli_task.start()
+
+    ble_task = threading.Thread(target=ble_handler.ble_task)
+    ble_task.daemon = True
+    ble_task.start()
+
+    while True:
+        # If one of the tasks exits, clean up and exit the application
+        if cli_task.is_alive() and ble_task.is_alive():
+            time.sleep(1)
+        else:
+            if cli_task.is_alive():
+                console.shutdown()
+            if ble_task.is_alive():
+                ble_handler.shutdown()
+            return
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(prog='BLE Central SPS',
+                                     description='A command line interface for...'
+                                     + 'Service')
+
+    #parser.add_argument("com_port", type=str, help='COM port for your development kit')
+
+    #args = parser.parse_args()
+
+    try:
+        #main(args.com_port)
+        main('COM36')
+    except KeyboardInterrupt:
+        pass
